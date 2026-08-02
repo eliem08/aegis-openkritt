@@ -1,6 +1,6 @@
 # Repository Strengths — Aegis Implementation Ledger
 
-Last reconciled with Aegis commit: `0c3600a` on 2026-08-02
+Last reconciled with Aegis commit: `ecd6162` on 2026-08-02
 
 This file is the authoritative delivery ledger for the audited repository
 strengths and the corrections discovered during the Aegis reread. Update a row
@@ -194,6 +194,22 @@ binaries. Obtain distribution-specific legal review before release.
     Interactsh server, the Chromium image) have not been run live — all fail closed
     on unpinned digests, blocked on the outstanding legal/license review.
 - [ ] Phase 5: distributed isolation, load, failover, restore, and rotation drills pass.
+  - **Production-readiness validation**: complete (`0c3600a`) — rejects dev/Compose
+    DB defaults, weak/untenanted posture, SQLite-as-HA, and public OAST (closes the
+    last deferred correction).
+  - **Versioned key management**: complete (`ecd6162`) — envelope encryption with
+    key ids, overlapping rotation windows, rewrap, and fail-closed on missing/
+    revoked keys (never plaintext).
+  - Remaining (operational; not code-only — cannot be ticked in-process): Redis
+    ephemeral coordination with fail-closed on loss; signed worker identities +
+    typed capability queues; PostgreSQL replication/failover/PITR/restore drills;
+    KMS/HSM/Vault integration + rotation jobs; minimal non-root read-only adapter
+    images with seccomp + digest pinning + SBOM/dependency scanning; OpenTelemetry
+    traces/metrics/logs + load-test-derived SLOs; deployment manifests, autoscaling,
+    and the failure drills (worker death, gateway/Redis/PG failover, key
+    unavailability, OAST outage, kill-switch under load). The Phase 5 completion
+    gate needs real infrastructure + operator runbooks; it is not reachable from
+    in-process tests alone.
 - [ ] Production documentation matches only tested and enabled capabilities.
 - [ ] Legal/license review completed for the exact distributed versions.
 - [ ] Supervised pilot approved by a human for a program permitting automation.
