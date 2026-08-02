@@ -47,11 +47,13 @@ def create_app(config: ControlPlaneConfig | None = None) -> FastAPI:
     )
     app.state.config = config
     app.state.verifier = verifier
+    app.state.repository = config.build_repository()
     app.state.store = EngagementStore(
         verifier=verifier,
         require_signature=config.require_signature,
         max_audit_records=config.max_audit_records,
         max_decisions_cached=config.max_decisions_cached,
+        repository=app.state.repository,
     )
 
     app.add_middleware(CorrelationIdMiddleware)

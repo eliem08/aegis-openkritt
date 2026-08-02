@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import threading
 from dataclasses import dataclass, field
+from typing import Callable
 
 
 @dataclass
@@ -102,14 +103,24 @@ class RateBudget:
 
 
 class SpendBudget:
-    """A simple monetary / unit spend cap. ``limit=None`` means unlimited."""
+    """A simple monetary / unit spend cap. ``limit=None`` means unlimited.
 
-    def __init__(self, limit: float | None = None, spent: float = 0.0) -> None:
+    ``on_change`` is a generic callback (new total spent) fired after ``record``,
+    so the store can persist spend across restarts.
+    """
+
+    def __init__(
+        self,
+        limit: float | None = None,
+        spent: float = 0.0,
+        on_change: "Callable[[float], None] | None" = None,
+    ) -> None:
         if limit is not None and limit < 0:
             raise ValueError("limit must be >= 0")
         self._limit = limit
         self._spent = spent
         self._lock = threading.Lock()
+        self._on_change = on_change
 
     def check(self, amount: float) -> bool:
         if amount < 0:
@@ -122,6 +133,9 @@ class SpendBudget:
             raise ValueError("amount must be >= 0")
         with self._lock:
             self._spent += amount
+            total = self._spent
+        if self._on_change is not None:
+            self._on_change(total)
 
     @property
     def spent(self) -> float:

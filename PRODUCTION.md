@@ -37,6 +37,11 @@ controlled engagements**, not unattended against production targets.
 - **LLM planner** (`aegis.ai`) — DeepSeek as a *guardrailed* planner: output
   filtered to allowed actions + in-scope targets, key from env, deterministic
   fallback. The model is never trusted; the gate re-checks.
+- **Durable persistence** (`aegis.api.persistence`) — SQLite behind the
+  `Repository` protocol. Engagements, approval grants, the append-only audit
+  trail, **kill-switch state**, and spend budget survive a restart (a fired kill
+  switch stays fired — fail-safe). Set `AEGIS_DB_PATH` to enable; Postgres is a
+  drop-in via the same protocol.
 - **Packaging** — typed (`py.typed`), pinned build backend, `.env` loader that
   never overrides the real environment, secrets kept out of logs, CI on 3.11/3.12,
   Docker image running as non-root with a healthcheck.
@@ -45,8 +50,8 @@ controlled engagements**, not unattended against production targets.
 
 | Gap | Impact | Path |
 |---|---|---|
-| **In-memory store** | Engagements/approvals/audit are lost on restart; no HA | Implement the `EngagementStore` interface over Postgres; encrypt evidence at rest (§12) |
-| **No persistence for audit** | Audit trail is a bounded ring buffer | Ship audit to durable, append-only storage (WORM / OTel backend) |
+| **Single-node durability** | SQLite persists across restarts (set `AEGIS_DB_PATH`), but no HA / multi-writer | Swap `SqliteRepository` for a Postgres one (same `Repository` protocol); encrypt at rest (§12) |
+| **Rate budget not persisted** | Rate/concurrency reset on restart (conservative: no in-flight load after a restart) | Externalise rate state (Redis) when scaling to multiple workers |
 | **Stand-in workers/planner/patcher** | No real testing/fix capability yet | Build real `passive_recon`, `api_agent`, …, and the patch protocol |
 | **Single-process** | No horizontal scale; budgets/kill switch are per-process | Externalise budget/kill-switch state (Redis) behind the same interfaces |
 | **Signing = HMAC (symmetric)** | Control plane holds the secret | Swap in an asymmetric `SignatureVerifier` (Ed25519) so the agent verifies with a public key |

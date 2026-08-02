@@ -1,10 +1,10 @@
-# aegis — deterministic safety core
+# aegis — Autonomous Exposure-to-Fix Agent
 
-The **policy & authorization layer** for the Autonomous Exposure-to-Fix Agent
-(the bug-bounty hunter described in the master operating prompt). This is the
-piece the prompt calls its *"primary control"*: a deterministic gate that sits
-**underneath** the LLM planner and independently decides whether any proposed
-action is allowed to run.
+A **human-supervised bug-bounty research copilot**: it ingests authorized
+programs, plans (LLM, guardrailed) and runs scope-enforced detectors, and turns
+verified findings into acceptance-grade reports — all underneath a deterministic
+policy gate that the prompt calls the *"primary control"* and that decides,
+in code, whether any proposed action may run.
 
 > The agent is a planner; this layer is the law. The LLM can never talk its way
 > past a gate — every action is classified and checked by code, not prose.
@@ -14,7 +14,7 @@ API**), HackerOne ingestion, knowledge base, **outbound scope proxy**,
 **guardrailed DeepSeek planner**, an **extensible vulnerability-detector
 framework** (BOLA/IDOR, exposed files, open redirect), and **acceptance-grade
 reporting** (redact → dedup → quality gates → HackerOne-ready report) —
-implemented and tested (**293 tests**). Full worker fleet and the patch protocol
+implemented and tested (**302 tests**). Full worker fleet and the patch protocol
 are still partial. See [Roadmap](#roadmap) and [PRODUCTION.md](PRODUCTION.md) for
 an honest readiness assessment.
 
@@ -463,9 +463,9 @@ Stages 1–3 are done. What remains of the operating loop (§3):
   more injection classes; plus a passive-recon + asset-change-monitoring worker.
 - [ ] **Browser worker** — authenticated multi-step workflows / business logic.
 - [ ] **Patch protocol** — reproduce → failing test → fix → verify → PR.
-- [ ] **Persistence** — swap the in-memory store for an encrypted, retained
-  store (§12) behind the same interface. *(top production gap — see
-  [PRODUCTION.md](PRODUCTION.md))*
+- [x] **Durable persistence (SQLite)** — engagements, approvals, append-only
+  audit, **kill-switch state**, and spend survive restarts (`AEGIS_DB_PATH`),
+  behind a `Repository` protocol. Postgres is a drop-in for HA.
 - [ ] **Ingest → control plane wiring** — register a draft authorization for
   operator signing straight from a discovered program.
 

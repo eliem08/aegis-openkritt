@@ -61,6 +61,15 @@ class ControlPlaneConfig:
     auth_enabled: bool = True
     max_audit_records: int = 1000
     max_decisions_cached: int = 500
+    db_path: str | None = None  # SQLite file; None = in-memory (no durability)
+
+    def build_repository(self):
+        """A durable repository if a DB is configured, else None (in-memory)."""
+        if not self.db_path:
+            return None
+        from .persistence import SqliteRepository
+
+        return SqliteRepository(self.db_path)
 
     def build_verifier(self) -> SignatureVerifier:
         if self.signing_keys:
@@ -98,6 +107,7 @@ class ControlPlaneConfig:
             signing_keys=signing_keys,
             require_signature=require_signature,
             auth_enabled=auth_enabled,
+            db_path=env.get("AEGIS_DB_PATH") or None,
         )
 
 

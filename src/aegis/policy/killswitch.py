@@ -8,8 +8,9 @@ overrides any in-progress plan. When the switch is fired the engine denies
 from __future__ import annotations
 
 import threading
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
+from typing import Callable
 
 
 def _utcnow() -> datetime:
@@ -25,23 +26,40 @@ class KillSwitchState:
 
 
 class KillSwitch:
-    """Thread-safe latch. Once fired it stays fired until ``reset``."""
+    """Thread-safe latch. Once fired it stays fired until ``reset``.
 
-    def __init__(self) -> None:
+    ``on_change`` is a generic callback (state) fired after a change — the store
+    wires it to persist the state so a fired switch survives a restart. Policy
+    stays free of any persistence dependency.
+    """
+
+    def __init__(self, on_change: Callable[[KillSwitchState], None] | None = None) -> None:
         self._state = KillSwitchState()
         self._lock = threading.Lock()
+        self._on_change = on_change
 
     def fire(self, reason: str, source: str = "control-plane") -> None:
+        changed = False
         with self._lock:
             if not self._state.fired:
                 self._state = KillSwitchState(
                     fired=True, reason=reason, fired_at=_utcnow(), source=source
                 )
+                changed = True
+        if changed and self._on_change is not None:
+            self._on_change(self._state)
 
     def reset(self, source: str = "control-plane") -> None:
         """Clear the latch. Should only ever be called by a human / control plane."""
         with self._lock:
             self._state = KillSwitchState()
+        if self._on_change is not None:
+            self._on_change(self._state)
+
+    def restore(self, state: KillSwitchState) -> None:
+        """Rehydrate persisted state (used by the store on load)."""
+        with self._lock:
+            self._state = state
 
     @property
     def is_active(self) -> bool:
