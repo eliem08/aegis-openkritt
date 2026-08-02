@@ -116,8 +116,14 @@ def routes_from_assets(assets) -> list[Route]:
 def plan_detectors(
     routes: list[Route], *, host: str = "", seeds=(), identities=(), privileged_endpoints=(),
     enabled=None, per_target_requests: int = 2, max_targets_per_detector: int = 200,
+    identifier_samples=None,
 ) -> DetectorPlan:
-    """Derive detector tasks from discovered routes + owned seeds + identities."""
+    """Derive detector tasks from discovered routes + owned seeds + identities.
+
+    ``identifier_samples`` maps a route template to observed object ids; when given,
+    a BOLA task is annotated with the id's enumeration risk so a sequential-id IDOR
+    is flagged with its true (mass-exposure) impact.
+    """
     plan = DetectorPlan()
     enabled = set(enabled) if enabled is not None else set(DETECTOR_ACTIONS)
     names = _names(identities)
@@ -131,10 +137,15 @@ def plan_detectors(
         else:
             objects = _bola_objects(seeds, discovered_sigs)
             if objects:
+                config = {"objects": [{"url": o.url, "owner": o.owner, "canary": o.canary} for o in objects]}
+                risk = _enumeration_risk(seeds, identifier_samples)
+                if risk is not None:
+                    config["enumeration_risk"] = risk.enumeration_risk
+                    config["identifier_kind"] = risk.kind.value
+                    config["enumerable"] = risk.enumerable
                 plan.tasks.append(DetectorTask(
                     "bola", DETECTOR_ACTIONS["bola"], tuple(o.url for o in objects),
-                    {"objects": [{"url": o.url, "owner": o.owner, "canary": o.canary} for o in objects]},
-                    est_requests=len(objects) * len(names),
+                    config, est_requests=len(objects) * len(names),
                 ))
             else:
                 plan.skipped["bola"] = "no owned seed matched a discovered id-bearing route"
@@ -214,6 +225,19 @@ def passes_report_gate(status: str) -> bool:
 
 
 # --- helpers ---------------------------------------------------------------
+
+def _enumeration_risk(seeds, identifier_samples):
+    """Enumeration-risk profile for the seeded objects, if id samples are available."""
+    from aegis.active.enumeration import analyze_identifiers
+
+    samples = list(identifier_samples or [])
+    if isinstance(identifier_samples, dict):
+        samples = [v for values in identifier_samples.values() for v in values]
+    # Always include the seed object ids as data points.
+    samples = samples + [str(s.object_id) for s in seeds]
+    samples = [s for s in samples if s]
+    return analyze_identifiers(samples) if samples else None
+
 
 def _bola_objects(seeds, discovered_sigs) -> list[ObjectRef]:
     objects = []

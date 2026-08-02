@@ -30,6 +30,7 @@ from .detectors import (
     reserve_plan,
     routes_from_assets,
 )
+from .enumeration import IdentifierKind, IdentifierProfile, analyze_identifiers
 from .routes import (
     EnumConfig,
     EnumerationResult,
@@ -85,4 +86,7 @@ __all__ = [
     "TransportResponse",
     "run_parameter_stage",
     "run_route_stage",
+    "analyze_identifiers",
+    "IdentifierProfile",
+    "IdentifierKind",
 ]
