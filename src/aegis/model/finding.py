@@ -27,6 +27,23 @@ class SSVCDecision(str, Enum):
     TRACK = "track"
 
 
+CWE_NAMES: dict[str, str] = {
+    "CWE-639": "Insecure Direct Object Reference (IDOR)",
+    "CWE-284": "Improper Access Control",
+    "CWE-285": "Broken Function Level Authorization",
+    "CWE-200": "Exposure of Sensitive Information",
+    "CWE-538": "Information Exposure Through Files",
+    "CWE-601": "Open Redirect",
+    "CWE-918": "Server-Side Request Forgery (SSRF)",
+    "CWE-287": "Improper Authentication",
+    "CWE-269": "Improper Privilege Management",
+    "CWE-79": "Cross-site Scripting (XSS)",
+    "CWE-89": "SQL Injection",
+    "CWE-352": "Cross-Site Request Forgery (CSRF)",
+    "CWE-798": "Use of Hard-coded Credentials",
+}
+
+
 class Candidate(BaseModel):
     """A raw finding produced by a worker, before triage."""
 
@@ -66,6 +83,14 @@ class Candidate(BaseModel):
                 self.cwe.strip().upper(),
             ]
         )
+
+    def weakness_label(self) -> str:
+        return CWE_NAMES.get(self.cwe, self.cwe or "Security issue")
+
+    def title(self) -> str:
+        loc = self.route or self.asset
+        base = self.weakness_label()
+        return f"{base} on {loc}" if loc else base
 
 
 class Finding(Candidate):
