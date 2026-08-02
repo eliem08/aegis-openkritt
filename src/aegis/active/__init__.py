@@ -39,6 +39,7 @@ from .auth_posture import (
 )
 from .enumeration import IdentifierKind, IdentifierProfile, analyze_identifiers
 from .client_analysis import ClientFinding, ClientIssue, analyze_client_script
+from .graphql import GraphqlFinding, GraphqlIssue, GraphqlResponse, analyze_graphql
 from .http_hardening import HardeningFinding, HardeningIssue, analyze_response_hardening
 from .js_secrets import HIGH_VALUE_CATEGORIES, JsSecretFinding, analyze_javascript_secrets
 from .ssrf import SSRF_PARAM_HINTS, SsrfFinding, candidate_ssrf_params, run_ssrf_probes
@@ -118,4 +119,8 @@ __all__ = [
     "analyze_client_script",
     "ClientFinding",
     "ClientIssue",
+    "analyze_graphql",
+    "GraphqlResponse",
+    "GraphqlFinding",
+    "GraphqlIssue",
 ]
