@@ -1,6 +1,6 @@
 # Repository Strengths — Aegis Implementation Ledger
 
-Last reconciled with Aegis commit: `fa132d2` on 2026-08-02
+Last reconciled with Aegis commit: `7b6227a` on 2026-08-02
 
 This file is the authoritative delivery ledger for the audited repository
 strengths and the corrections discovered during the Aegis reread. Update a row
@@ -24,7 +24,7 @@ Status values: `existing`, `partial`, `not-started`, `in-progress`, `complete`,
 | projectdiscovery/nuclei | MIT | Versioned signed templates, filters, workflows, protocol work pools | Pinned adapter plus Aegis manifest allowlist | 3 | `adapters/nuclei`, template policy | Unknown/unsigned/prohibited templates rejected; request caps enforced | complete (digest unpinned) | c706c69 |
 | hahwul/dalfox | MIT | Reflection-first XSS, DOM/AST analysis, WAF/session awareness, cancellation, resume, SARIF/JSON | Pinned guarded adapter | 3 | `adapters/dalfox` | Bounded local-lab detection; session-loss/cancel/resume tests | complete (digest unpinned) | 30ecd91 |
 | projectdiscovery/interactsh | MIT | Correlated encrypted OAST sessions, authentication, polling, resumption | Private pinned service and client adapter | 4 | `oast`, `adapters/interactsh` | Encrypted tenant-scoped correlation, expiry, deletion, public-service rejection | complete (server binary unpinned) | fa132d2 |
-| yogeshojha/rengine | GPL-3.0 | Durable asset history, stage DAGs, subscans, diffs, task ledger, notifications | Clean-room Aegis architecture; no copied GPL code | 1/4 | scheduler, snapshots, notifications | Durable stage/activity history; accurate diffs; authorized subscans | partial | 7d7cc23 |
+| yogeshojha/rengine | GPL-3.0 | Durable asset history, stage DAGs, subscans, diffs, task ledger, notifications | Clean-room Aegis architecture; no copied GPL code | 1/4 | scheduler, snapshots, notifications | Durable stage/activity history; accurate diffs; authorized subscans | complete | 7b6227a |
 
 License identifiers apply to the versions audited on 2026-08-02 and must be
 rechecked when pinning a release. Keep upstream notices for distributed MIT
@@ -158,7 +158,8 @@ binaries. Obtain distribution-specific legal review before release.
     adapter fails closed on an unpinned `executable_digest`. Pinning + a live lab
     run remain blocked on the outstanding legal/license review for the exact
     distributed versions.
-- [ ] Phase 4: private OAST/browser/monitoring and quarantine gates pass.
+- [x] Phase 4: private OAST/browser/monitoring and quarantine gates pass. (`7b6227a`)
+  (in-process gate; live Chromium/Interactsh server binaries still gated on pinning + legal review)
   - **Sensitive-data classifier + quarantine boundary**: complete (`6ca7699`) —
     deterministic/structured/entropy/context/tenant-marker classification into
     credential/token/key/financial/identifier categories; ML cannot downgrade a
@@ -174,10 +175,24 @@ binaries. Obtain distribution-specific legal review before release.
     unmatched/cross-tenant/disabled/foreign quarantined, protected polling, expiry/
     deregistration/retention, and public-server rejection in production. (Pinning
     the actual Interactsh server binary remains a deployment step.)
-  - Remaining: browser worker (declarative schema, scope-checked navigation/
-    subresources, quarantined downloads, ephemeral per-tenant contexts); session-
-    loss monitoring; continuous monitoring/subscans (parent scope digest, no
-    widening) + idempotent notifications; and the Phase 4 lab completion gate.
+  - **Continuous monitoring/subscans + notifications**: complete (`07351d1`) —
+    immutable-config schedules, diff-driven bounded subscans that cannot widen the
+    parent scope digest, removals only from agreeing complete scans, durable
+    activity records, and idempotent sanitized notifications with encrypted secret
+    refs.
+  - **Session-loss monitoring**: complete (`ae9b7ca`) — preflight discriminators,
+    periodic re-checks, per-origin drain-on-loss that never touches other origins.
+  - **Browser worker**: complete (`8084dd2`) — declarative no-JS schema, every
+    navigation/subresource/popup/websocket/service-worker scope-checked, downloads
+    quarantined, capabilities disabled, ephemeral per-tenant/identity contexts,
+    logout avoidance.
+  - **Lab completion gate**: passes (`7b6227a`) — OAST + browser verify seeded
+    findings without cross-session leakage, sensitive artifacts cannot cross the
+    quarantine boundary, and monitoring produces accurate diffs + bounded subscans.
+  - **Standing caveat (Phases 2-4):** proven in-process against synthetic labs +
+    golden fixtures; the real pinned binaries (discovery/active tools, the
+    Interactsh server, the Chromium image) have not been run live — all fail closed
+    on unpinned digests, blocked on the outstanding legal/license review.
 - [ ] Phase 5: distributed isolation, load, failover, restore, and rotation drills pass.
 - [ ] Production documentation matches only tested and enabled capabilities.
 - [ ] Legal/license review completed for the exact distributed versions.
