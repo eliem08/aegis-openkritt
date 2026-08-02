@@ -9,12 +9,14 @@ action is allowed to run.
 > The agent is a planner; this layer is the law. The LLM can never talk its way
 > past a gate — every action is classified and checked by code, not prose.
 
-Status: **Policy + Auth core**, **control-plane API**, the **orchestrator loop**
-(local **or over the API**), **HackerOne ingestion**, a **knowledge base**, an
-**outbound scope-enforcement proxy**, and a **guardrailed DeepSeek planner** —
-implemented and tested (**257 tests**). Real worker tooling and the patch
-protocol are not built yet. See [Roadmap](#roadmap) and
-[PRODUCTION.md](PRODUCTION.md) for an honest readiness assessment.
+Status: safety core, control-plane API, orchestrator loop (local **or over the
+API**), HackerOne ingestion, knowledge base, **outbound scope proxy**,
+**guardrailed DeepSeek planner**, an **extensible vulnerability-detector
+framework** (BOLA/IDOR, exposed files, open redirect), and **acceptance-grade
+reporting** (redact → dedup → quality gates → HackerOne-ready report) —
+implemented and tested (**284 tests**). Full worker fleet and the patch protocol
+are still partial. See [Roadmap](#roadmap) and [PRODUCTION.md](PRODUCTION.md) for
+an honest readiness assessment.
 
 ---
 
@@ -295,6 +297,41 @@ unchanged.
 
 ---
 
+## Detectors: any bug class is a plug-in (`aegis.detect`)
+
+The "handle many bug classes smartly" layer. Each class is a `Detector` that
+runs through the **scope proxy with per-request gating** — it physically cannot
+reach out of scope. Shipped detectors:
+
+| Detector | Class | How it proves impact safely |
+|---|---|---|
+| `BolaDetector` | IDOR/BOLA (CWE-639) | two **owned** test accounts + a canary — proves cross-account read without touching a real user (§18) |
+| `ExposedFileDetector` | VCS/config/creds (CWE-538/200) | GET known paths, require a content signature (no SPA false positives) |
+| `OpenRedirectDetector` | open redirect (CWE-601) | canary host in `Location`, checked **without following** the redirect |
+
+Add a class by writing a `Detector` and registering it — nothing else changes.
+`DetectorWorker` bridges them into the orchestrator loop.
+
+> Honest scope: this is an *extensible framework with high-value detectors*, not
+> a claim that every bug class is covered. New classes are cheap to add; breadth
+> grows over time.
+
+## Reports that get accepted (`aegis.report`)
+
+A found bug earns nothing without an accepted report. `prepare_submission`
+takes a verified finding → **redacts** credentials/PII from the evidence →
+checks **internal + public duplicates** → runs **quality gates**
+(reproducible, verified, in-scope, material, redacted, non-duplicate) → renders
+a **HackerOne-ready** report (CWE remediation + scope-compliance statement).
+Only findings that pass every gate are marked submittable — and **submission
+stays human-approved** (§10).
+
+```bash
+python examples/full_pipeline_demo.py   # detect -> triage -> submission report (offline)
+```
+
+---
+
 ## Learning from past reports
 
 The **LEARN** stage (§3, §8, §12). `aegis.knowledge` ingests past disclosed
@@ -371,7 +408,19 @@ src/aegis/ai/
   config.py          DeepSeek config (key from env)
   client.py          DeepSeek chat client (OpenAI-compatible, httpx)
   planner.py         LLMPlanner — guardrailed, deterministic fallback
-tests/               257 tests (+ netgate scope proxy, + ai guardrails)
+src/aegis/detect/
+  base.py            Detector framework (gated context, registry)
+  access_control.py  BOLA/IDOR (owned accounts + canary)
+  exposure.py        exposed VCS/config/credential files
+  redirects.py       open redirect (no-follow)
+  worker.py          DetectorWorker (bridges to the loop)
+src/aegis/report/
+  redact.py          strip credentials/PII from evidence
+  quality.py         submission quality gates
+  dedup.py           internal + public duplicate detection
+  report.py          HackerOne-ready report generation
+  pipeline.py        prepare_submission (redact->dedup->gates->report)
+tests/               284 tests (+ scope proxy, ai guardrails, detectors, reports)
 examples/            *.py demos + *.sample.json / reports.sample.jsonl
 Dockerfile · PRODUCTION.md · .github/workflows/ci.yml
 ```
@@ -399,10 +448,13 @@ Stages 1–3 are done. What remains of the operating loop (§3):
   transport (`aegis.netgate`).
 - [x] **LLM planner (DeepSeek)** — guardrailed: LLM proposes, deterministic
   filter + gate dispose; falls back to deterministic planning.
-- [ ] **Real worker classes** — `passive_recon`, `api_agent`, `browser_agent`,
-  `template_scanner` — built **on the scope proxy**, each request gated.
-  *(next; the authenticated API/authz worker with 2 test accounts is the #1
-  revenue driver.)*
+- [x] **Detector framework + high-value detectors** — BOLA/IDOR (owned accounts +
+  canary), exposed files, open redirect; each gated per request.
+- [x] **Acceptance-grade reporting** — redact → dedup → quality gates →
+  HackerOne-ready report; submission stays human-approved.
+- [ ] **Broaden detectors** — auth/session, SSRF (safe canary), business-logic,
+  more injection classes; plus a passive-recon + asset-change-monitoring worker.
+- [ ] **Browser worker** — authenticated multi-step workflows / business logic.
 - [ ] **Patch protocol** — reproduce → failing test → fix → verify → PR.
 - [ ] **Persistence** — swap the in-memory store for an encrypted, retained
   store (§12) behind the same interface. *(top production gap — see

@@ -1,6 +1,9 @@
-"""aegis — deterministic safety core for the Autonomous Exposure-to-Fix Agent.
+"""aegis — the Autonomous Exposure-to-Fix Agent (human-supervised copilot).
 
-Only the policy layer is implemented so far. See ``aegis.policy``.
+Packages: ``policy`` (deterministic safety gate), ``api`` (control plane),
+``orchestrator`` (gated loop), ``ingest`` (HackerOne), ``knowledge`` (learning),
+``netgate`` (outbound scope proxy), ``ai`` (DeepSeek planner, guardrailed),
+``detect`` (vulnerability detectors), ``report`` (acceptance-grade reporting).
 """
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
