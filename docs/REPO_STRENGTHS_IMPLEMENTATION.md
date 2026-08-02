@@ -1,6 +1,6 @@
 # Repository Strengths — Aegis Implementation Ledger
 
-Last reconciled with Aegis commit: `3e4baab` on 2026-08-02
+Last reconciled with Aegis commit: `af3f341` on 2026-08-03
 
 This file is the authoritative delivery ledger for the audited repository
 strengths and the corrections discovered during the Aegis reread. Update a row
@@ -221,6 +221,32 @@ binaries. Obtain distribution-specific legal review before release.
 - [ ] Production documentation matches only tested and enabled capabilities.
 - [ ] Legal/license review completed for the exact distributed versions.
 - [ ] Supervised pilot approved by a human for a program permitting automation.
+
+## Post-spec detector expansion (ground-truthed against a real report corpus)
+
+Beyond the five phase specs, the detector suite was expanded from a corpus of ~129
+real broken-access-control/bug-bounty reports (`[[mdpsec-report-corpus]]`). All are
+safe (read-only, static, or out-of-band), emit unverified candidates, and are wired
+into detector-planning + `surface_candidates` (reporting). Commits:
+- identifier enumeration-risk (`af34733`), auth-posture differential (`8b8a2b2`),
+  cross-tenant access control (`ba4c61f`), OAST-backed blind SSRF (`09ca134`),
+  first-party JS secrets (`3a4fd5b`), HTTP response-hardening (`51ff6d0`), client-
+  side postMessage/origin (`8bd175d`), GraphQL auth-gap (`89716f1`), path-
+  normalization bypass (`9d63034`), and the planning/reporting wiring (`af3f341`).
+- **Deliberately excluded** (state-changing → held behind the human-approval
+  boundary, never auto-exploited): business-logic/price tampering, gift-card/
+  entitlement races, mutable-identity-claim ATO.
+
+## Program status (as of `af3f341`, 2026-08-03)
+
+All corrections complete; all 11 reference-tool rows complete. Phases 1-4 pass their
+in-process gates; Phase 5's in-process pieces are complete. **~905 tests pass on
+SQLite; the full gated suite passes on PostgreSQL.** The two things that remain are
+NOT code and cannot be ticked here: (a) pinning + live-running the real third-party
+binaries (blocked on the outstanding legal/license review — every such adapter fails
+closed on an unpinned digest), and (b) standing up production infrastructure for the
+Phase 5 operational drills. The platform is code-complete for a **human-supervised**
+pilot; it permits neither unattended exploitation nor automatic submission.
 
 ## Update rules
 
