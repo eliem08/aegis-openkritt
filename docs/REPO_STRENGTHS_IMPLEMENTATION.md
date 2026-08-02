@@ -1,6 +1,6 @@
 # Repository Strengths — Aegis Implementation Ledger
 
-Last reconciled with Aegis commit: `ecd6162` on 2026-08-02
+Last reconciled with Aegis commit: `3e4baab` on 2026-08-02
 
 This file is the authoritative delivery ledger for the audited repository
 strengths and the corrections discovered during the Aegis reread. Update a row
@@ -198,18 +198,26 @@ binaries. Obtain distribution-specific legal review before release.
     DB defaults, weak/untenanted posture, SQLite-as-HA, and public OAST (closes the
     last deferred correction).
   - **Versioned key management**: complete (`ecd6162`) — envelope encryption with
-    key ids, overlapping rotation windows, rewrap, and fail-closed on missing/
-    revoked keys (never plaintext).
-  - Remaining (operational; not code-only — cannot be ticked in-process): Redis
-    ephemeral coordination with fail-closed on loss; signed worker identities +
-    typed capability queues; PostgreSQL replication/failover/PITR/restore drills;
-    KMS/HSM/Vault integration + rotation jobs; minimal non-root read-only adapter
-    images with seccomp + digest pinning + SBOM/dependency scanning; OpenTelemetry
-    traces/metrics/logs + load-test-derived SLOs; deployment manifests, autoscaling,
-    and the failure drills (worker death, gateway/Redis/PG failover, key
-    unavailability, OAST outage, kill-switch under load). The Phase 5 completion
-    gate needs real infrastructure + operator runbooks; it is not reachable from
-    in-process tests alone.
+    key ids, overlapping rotation windows, rewrap, fail-closed on missing/revoked.
+  - **Distributed coordination**: complete (`8be5a19`) — Redis-shaped rate buckets/
+    semaphores/cancellation/dedup with fail-closed admission on backend loss
+    (active denied, passive may pause) and lease reconciliation from durable state.
+  - **Signed worker identities + typed capability queues**: complete (`ef99e84`) —
+    short-lived signed identities, capability-gated queue claims, mutual auth.
+  - **Observability facade**: complete (`7d11497`) — OTel-shaped spans/metrics/logs
+    with pseudonymous tenants and redaction; canonical metric names.
+  - **API/operational protection**: complete (`fa83580`) — per-tenant rate limits/
+    quotas, body-size limits, capped pagination, short-lived service identities,
+    audited break-glass.
+  - **Supply-chain policy**: complete (`3e4baab`) — SBOM + license notices, image
+    digest pinning, severity gate with time-limited exceptions.
+  - Remaining (genuinely operational — NOT code, cannot be ticked in-process):
+    real Redis/PostgreSQL replication-failover-PITR-restore drills; KMS/HSM/Vault
+    integration + rotation jobs; building the minimal non-root seccomp adapter
+    images and wiring dependency/image scanners; exporting telemetry to a real OTel
+    backend and deriving SLOs from load tests; deployment manifests + autoscaling;
+    and the live failure drills. The Phase 5 completion gate needs real
+    infrastructure + operator runbooks and is not reachable from tests alone.
 - [ ] Production documentation matches only tested and enabled capabilities.
 - [ ] Legal/license review completed for the exact distributed versions.
 - [ ] Supervised pilot approved by a human for a program permitting automation.
