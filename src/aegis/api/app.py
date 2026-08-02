@@ -58,6 +58,9 @@ def create_app(config: ControlPlaneConfig | None = None) -> FastAPI:
     app.state.verifier = verifier
     app.state.repository = config.build_repository()
     app.state.adapters = _default_adapters()
+    from aegis.observ import Telemetry
+
+    app.state.telemetry = Telemetry()      # pseudonymous, redacting facade for hot paths
     app.state.store = EngagementStore(
         verifier=verifier,
         require_signature=config.require_signature,

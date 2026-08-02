@@ -88,6 +88,24 @@ def _host_of(url: str) -> str:
     return (urlsplit(candidate).hostname or "").lower().rstrip(".")
 
 
+def _block_category(reason: str) -> str:
+    """Collapse a block reason to a low-cardinality metric label."""
+    r = (reason or "").lower()
+    if "budget" in r:
+        return "budget_exhausted"
+    if "scope" in r or "provider" in r or "oast" in r:
+        return "out_of_scope"
+    if "private" in r:
+        return "private_ip"
+    if "dns" in r or "rebinding" in r:
+        return "dns"
+    if "method" in r:
+        return "method_not_permitted"
+    if "host" in r:
+        return "no_host"
+    return "other"
+
+
 def _default_resolver(host: str) -> list[str]:
     import socket
 
@@ -101,10 +119,14 @@ class ScopedExecutionGateway:
         *,
         resolver: Resolver | None = None,
         on_audit: Callable[[NetworkAuditEvent], None] | None = None,
+        telemetry=None,
+        tenant_id: str | None = None,
     ) -> None:
         self._config = config
         self._resolver = resolver or _default_resolver
         self._on_audit = on_audit
+        self._telemetry = telemetry
+        self._tenant_id = tenant_id
         self._pins: dict[str, set[str]] = {}
         self._requests_made = 0
         self._audit: list[NetworkAuditEvent] = []
@@ -147,7 +169,21 @@ class ScopedExecutionGateway:
         self._audit.append(event)
         if self._on_audit is not None:
             self._on_audit(event)
+        self._emit(decision)
         return decision
+
+    def _emit(self, decision: GatewayDecision) -> None:
+        if self._telemetry is None:
+            return
+        from aegis.observ import MetricNames
+
+        labels = {"profile": self._config.profile.value}
+        if self._tenant_id is not None:
+            labels["tenant_id"] = self._tenant_id     # pseudonymized by the facade
+        self._telemetry.counter(MetricNames.REQUEST_RATE).inc(**labels)
+        if not decision.allowed:
+            self._telemetry.counter(MetricNames.GATEWAY_BLOCKS).inc(
+                reason=_block_category(decision.reason), **labels)
 
     def _evaluate(self, method: str, url: str, *, consume: bool) -> GatewayDecision:
         host = _host_of(url)

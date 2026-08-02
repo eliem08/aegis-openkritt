@@ -25,7 +25,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+import time
 import uuid
+from contextlib import nullcontext
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from types import SimpleNamespace
@@ -101,6 +103,7 @@ class ScanCoordinator:
         config: ScanConfig,
         runner: SafeProcessRunner | None = None,
         is_killed: Callable[[], bool] | None = None,
+        telemetry=None,
     ) -> None:
         self._repo = repository
         self._reservations = reservations
@@ -108,6 +111,7 @@ class ScanCoordinator:
         self._config = config
         self._runner = runner or SafeProcessRunner()
         self._is_killed = is_killed or (lambda: False)
+        self._telemetry = telemetry
         self._scope_digest = hashlib.sha256(
             json.dumps(sorted(config.scope_targets)).encode("utf-8")
         ).hexdigest()
@@ -185,12 +189,15 @@ class ScanCoordinator:
             return None  # lost the compare-and-set race to another worker
 
         est_spend = float(task.quotas.get("est_spend", 0.0))
+        _t0 = time.perf_counter()
         reservation = self._reservations.reserve(
             self._resv_engagement, spend=est_spend, sessions=1,
             idempotency_key=f"resv:{task.task_id}",
         )
+        self._observe("reservation_latency", (time.perf_counter() - _t0) * 1000)
         if reservation is None:
             # Over a cap — this task cannot proceed under the authorization.
+            self._count("policy_denials", reason="budget")
             self._repo.transition_task(task.task_id, scans.TaskState.BLOCKED,
                                        result_summary={"reason": "budget/session cap reached"})
             return StepResult(task.task_id, "blocked", reason="budget/session cap reached")
@@ -198,7 +205,9 @@ class ScanCoordinator:
         actual_spend = 0.0
         try:
             self._repo.transition_task(task.task_id, scans.TaskState.RUNNING)
-            result = self._execute(task)
+            with self._span("scan.task.run", adapter=task.adapter,
+                            capability_tier=task.capability_tier, tenant_id=self._config.tenant_id):
+                result = self._execute(task)
             events = result.events
             quarantine, reason = self._should_quarantine(result.process, events,
                                                          sensitive=result.sensitive)
@@ -218,6 +227,10 @@ class ScanCoordinator:
                     summary["report_blocked"] = True
                 self._repo.transition_task(task.task_id, scans.TaskState.QUARANTINED,
                                            result_summary=summary)
+                if result.sensitive:
+                    category = (result.sensitive_classifications[0].get("category")
+                                if result.sensitive_classifications else "unknown")
+                    self._count("sensitive_quarantines", category=category)
                 return StepResult(task.task_id, "quarantined", len(events), reason)
             if result.process.ok:
                 graph = self._promote(task, result)
@@ -232,6 +245,7 @@ class ScanCoordinator:
                 return StepResult(task.task_id, "cancelled", len(events))
             self._repo.transition_task(task.task_id, scans.TaskState.RETRYABLE_FAILED,
                                        result_summary={"outcome": outcome.value})
+            self._count("adapter_errors", adapter=task.adapter, version=task.adapter_version)
             return StepResult(task.task_id, "failed", len(events), outcome.value)
         except EnvelopeError as exc:
             # An inconsistent/invalid instruction is a hard, non-retryable stop.
@@ -253,7 +267,35 @@ class ScanCoordinator:
 
     def recover(self, now: datetime | None = None) -> list[tuple[str, str]]:
         """Reclaim leases from crashed workers so their tasks requeue/block."""
-        return self._repo.reclaim_expired_leases(now or datetime.now(timezone.utc))
+        reclaimed = self._repo.reclaim_expired_leases(now or datetime.now(timezone.utc))
+        if reclaimed:
+            self._count("lease_expiry", amount=len(reclaimed))
+        return reclaimed
+
+    # -- telemetry (no-ops unless a facade is wired) ------------------------
+
+    _METRICS = {
+        "reservation_latency": "RESERVATION_LATENCY", "policy_denials": "POLICY_DENIALS",
+        "sensitive_quarantines": "SENSITIVE_QUARANTINES", "adapter_errors": "ADAPTER_ERRORS",
+        "lease_expiry": "LEASE_EXPIRY", "snapshot_coverage": "SNAPSHOT_COVERAGE",
+    }
+
+    def _span(self, name: str, **attrs):
+        return self._telemetry.span(name, **attrs) if self._telemetry is not None else nullcontext({})
+
+    def _count(self, metric: str, *, amount: float = 1.0, **labels) -> None:
+        if self._telemetry is None:
+            return
+        from aegis.observ import MetricNames
+
+        self._telemetry.counter(getattr(MetricNames, self._METRICS[metric])).inc(amount, **labels)
+
+    def _observe(self, metric: str, value: float, **labels) -> None:
+        if self._telemetry is None:
+            return
+        from aegis.observ import MetricNames
+
+        self._telemetry.histogram(getattr(MetricNames, self._METRICS[metric])).observe(value, **labels)
 
     def cancel_scan(self, scan_id: str) -> int:
         """Stop a scan: queued/leased/running tasks -> cancelled. Returns the count."""
@@ -413,6 +455,7 @@ class ScanCoordinator:
             assets=assets, complete=complete,
         )
         self._repo.save_snapshot(snapshot)
+        self._count("snapshot_coverage", coverage="complete" if complete else "partial")
         return snapshot
 
     def _persist(self, task, events, *, quarantined: bool) -> None:

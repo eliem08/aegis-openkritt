@@ -51,7 +51,11 @@ def get_adapters(request: Request) -> dict:
     return getattr(request.app.state, "adapters", {})
 
 
-def _coordinator_for(engagement: Engagement, repo, adapters):
+def get_telemetry(request: Request):
+    return getattr(request.app.state, "telemetry", None)
+
+
+def _coordinator_for(engagement: Engagement, repo, adapters, telemetry=None):
     from aegis.scheduler import ScanConfig, ScanCoordinator
 
     a = engagement.authorization
@@ -64,6 +68,7 @@ def _coordinator_for(engagement: Engagement, repo, adapters):
     )
     return ScanCoordinator(
         repository=repo, reservations=ReservationService(repo), adapters=adapters, config=config,
+        telemetry=telemetry,
     )
 
 
@@ -92,6 +97,7 @@ def create_scan(
     config: ControlPlaneConfig = Depends(get_config),
     repo=Depends(get_repository),
     adapters: dict = Depends(get_adapters),
+    telemetry=Depends(get_telemetry),
     principal: ApiPrincipal = Depends(require_agent),
 ) -> ScanOut:
     engagement = store.get(body.engagement_id)
@@ -118,7 +124,7 @@ def create_scan(
 
     from aegis.scheduler import StageSpec, TaskSpec
 
-    coordinator = _coordinator_for(engagement, repo, adapters)
+    coordinator = _coordinator_for(engagement, repo, adapters, telemetry)
     try:
         scan_id = coordinator.plan_scan(
             [StageSpec(s.key, s.stage_type, tuple(s.depends_on)) for s in body.stages],
@@ -169,11 +175,12 @@ def cancel_scan(
     config: ControlPlaneConfig = Depends(get_config),
     repo=Depends(get_repository),
     adapters: dict = Depends(get_adapters),
+    telemetry=Depends(get_telemetry),
     principal: ApiPrincipal = Depends(require_operator),
 ) -> CancelOut:
     scan = _owned_scan(scan_id, principal, repo, config)
     engagement = _engagement_for_scan(scan, store)
-    coordinator = _coordinator_for(engagement, repo, adapters)
+    coordinator = _coordinator_for(engagement, repo, adapters, telemetry)
     return CancelOut(scan_id=scan_id, cancelled=coordinator.cancel_scan(scan_id))
 
 
@@ -187,13 +194,14 @@ def run_next(
     config: ControlPlaneConfig = Depends(get_config),
     repo=Depends(get_repository),
     adapters: dict = Depends(get_adapters),
+    telemetry=Depends(get_telemetry),
     principal: ApiPrincipal = Depends(require_worker),
 ) -> StepOut:
     scan = _owned_scan(scan_id, principal, repo, config)
     engagement = _engagement_for_scan(scan, store)
     if not engagement.is_active:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="engagement is closed")
-    coordinator = _coordinator_for(engagement, repo, adapters)
+    coordinator = _coordinator_for(engagement, repo, adapters, telemetry)
     step = coordinator.run_next(scan_id, worker_id=principal.name)
     if step is None:
         return StepOut(ran=False, reason="no runnable task")
