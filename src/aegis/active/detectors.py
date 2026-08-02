@@ -32,6 +32,7 @@ from aegis.detect.access_control import ObjectRef, ObjectSeed, route_signature
 DETECTOR_ACTIONS = {
     "bola": "authenticated_testing",
     "bfla": "authenticated_testing",
+    "cross_tenant": "authenticated_testing",
     "missing_auth": "authenticated_testing",
     "exposed_files": "passive_discovery",
     "error_disclosure": "benign_request_mutation",

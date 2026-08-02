@@ -35,6 +35,7 @@ class Identity:
 
     name: str
     headers: dict[str, str] = field(default_factory=dict)
+    tenant: str | None = None       # the tenant this owned account belongs to
 
 
 @dataclass

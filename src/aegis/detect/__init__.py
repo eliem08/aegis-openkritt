@@ -23,6 +23,7 @@ from .base import (
     Identity,
 )
 from .cors import CorsMisconfigDetector
+from .cross_tenant import CrossTenantDetector, CrossTenantResource
 from .exposure import ErrorDisclosureDetector, ExposedFileDetector
 from .recon import ReconWorker, parse_openapi
 from .redirects import OpenRedirectDetector
@@ -39,6 +40,7 @@ def default_registry() -> DetectorRegistry:
     reg.register(CorsMisconfigDetector())
     reg.register(OpenRedirectDetector())
     reg.register(ErrorDisclosureDetector())
+    reg.register(CrossTenantDetector())
     return reg
 
 
@@ -60,6 +62,8 @@ __all__ = [
     "ErrorDisclosureDetector",
     "CorsMisconfigDetector",
     "OpenRedirectDetector",
+    "CrossTenantDetector",
+    "CrossTenantResource",
     "DetectorWorker",
     "ReconWorker",
     "parse_openapi",
