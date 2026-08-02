@@ -300,6 +300,15 @@ class PostgresRepository:
         rows = self._query(f"SELECT {scans.SCAN_COLS} FROM scan_runs WHERE scan_id=%s", (scan_id,))
         return scans.scan_from_row(rows[0]) if rows else None
 
+    def scans_for_tenant(self, tenant_id=None):
+        if tenant_id is None:
+            rows = self._query(f"SELECT {scans.SCAN_COLS} FROM scan_runs ORDER BY created_at DESC")
+        else:
+            rows = self._query(
+                f"SELECT {scans.SCAN_COLS} FROM scan_runs WHERE tenant_id=%s ORDER BY created_at DESC",
+                (tenant_id,))
+        return [scans.scan_from_row(r) for r in rows]
+
     def create_stage(self, stage) -> None:
         self._exec(f"INSERT INTO stage_runs({scans.STAGE_COLS}) VALUES ({','.join(['%s'] * 8)})", scans.stage_values(stage))
 
@@ -358,6 +367,12 @@ class PostgresRepository:
                         (now.isoformat(), (now + timedelta(seconds=ttl_seconds)).isoformat(), lease_id))
             return True
 
+    def heartbeat_task(self, task_id, owner=None, ttl_seconds=300) -> bool:
+        rows = self._query("SELECT lease_id, owner, cancelled FROM task_leases WHERE task_id=%s", (task_id,))
+        if not rows or bool(rows[0][2]) or (owner is not None and rows[0][1] != owner):
+            return False
+        return self.heartbeat(rows[0][0], ttl_seconds)
+
     def transition_task(self, task_id, new_state, result_summary=None):
         now = datetime.now(timezone.utc)
         target = scans.TaskState(new_state) if isinstance(new_state, str) else new_state
@@ -408,6 +423,10 @@ class PostgresRepository:
 
     def artifacts_for_task(self, task_id):
         return [scans.artifact_from_row(r) for r in self._query(f"SELECT {scans.ARTIFACT_COLS} FROM artifacts WHERE task_id=%s", (task_id,))]
+
+    def get_artifact(self, artifact_id):
+        rows = self._query(f"SELECT {scans.ARTIFACT_COLS} FROM artifacts WHERE artifact_id=%s", (artifact_id,))
+        return scans.artifact_from_row(rows[0]) if rows else None
 
     def close(self) -> None:
         self._pool.close()

@@ -53,21 +53,26 @@ def authenticated(
     return _authenticate(request, credentials)
 
 
+# Operational roles that sit outside the agent/operator scan ladder.
+_NON_SCAN_ROLES = {Role.SYSTEM_ADMIN, Role.WORKER}
+
+
 def require_role(minimum: Role):
     """Dependency factory: require at least ``minimum`` scan role.
 
-    SYSTEM_ADMIN is an operational role and is explicitly rejected here — it
-    cannot execute scans/engagements."""
+    SYSTEM_ADMIN and WORKER are operational roles outside the agent/operator
+    ladder and are explicitly rejected here — they cannot manage engagements or
+    scans (a WORKER only executes tasks, via ``require_worker``)."""
 
     def dependency(
         request: Request,
         credentials: HTTPAuthorizationCredentials | None = Depends(_bearer),
     ) -> ApiPrincipal:
         principal = _authenticate(request, credentials)
-        if principal.role == Role.SYSTEM_ADMIN:
+        if principal.role in _NON_SCAN_ROLES:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="system-admin role cannot execute scans/engagements",
+                detail=f"{principal.role.name.lower()} role cannot manage scans/engagements",
             )
         if principal.role < minimum:
             raise HTTPException(
@@ -77,6 +82,20 @@ def require_role(minimum: Role):
         return principal
 
     return dependency
+
+
+def require_worker(
+    request: Request,
+    credentials: HTTPAuthorizationCredentials | None = Depends(_bearer),
+) -> ApiPrincipal:
+    """The execution identity: only a WORKER may lease/run/heartbeat tasks."""
+    principal = _authenticate(request, credentials)
+    if principal.role != Role.WORKER:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="requires the worker role",
+        )
+    return principal
 
 
 require_agent = require_role(Role.AGENT)

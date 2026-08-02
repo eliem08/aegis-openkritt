@@ -29,11 +29,14 @@ FALSE_VALUES = {"0", "false", "no", "off", ""}
 
 class Role(IntEnum):
     """Roles. AGENT/OPERATOR are the ordered scan roles (operator ⊇ agent).
-    SYSTEM_ADMIN is a separate operational role that **cannot execute scans**."""
+    SYSTEM_ADMIN and WORKER are separate operational roles: SYSTEM_ADMIN runs the
+    platform but **cannot execute scans**; WORKER is the execution identity that
+    leases and runs tasks but cannot manage engagements or scans."""
 
     AGENT = 1
     OPERATOR = 2
     SYSTEM_ADMIN = 3
+    WORKER = 4
 
     @classmethod
     def parse(cls, value: str | int) -> "Role":

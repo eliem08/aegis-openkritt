@@ -57,6 +57,7 @@ def create_app(config: ControlPlaneConfig | None = None) -> FastAPI:
     app.state.config = config
     app.state.verifier = verifier
     app.state.repository = config.build_repository()
+    app.state.adapters = _default_adapters()
     app.state.store = EngagementStore(
         verifier=verifier,
         require_signature=config.require_signature,
@@ -75,6 +76,15 @@ def create_app(config: ControlPlaneConfig | None = None) -> FastAPI:
 
     _warn_on_insecure_config(config)
     return app
+
+
+def _default_adapters() -> dict:
+    """The adapter registry available to scans. Phase 1 ships the fake discovery
+    adapter; real pinned adapters (subfinder/httpx/...) register here in Phase 2."""
+    from aegis.adapters import FakeDiscoveryAdapter
+
+    fake = FakeDiscoveryAdapter()
+    return {fake.manifest.name: fake}
 
 
 def _warn_on_insecure_config(config: ControlPlaneConfig) -> None:

@@ -392,6 +392,18 @@ class SqliteRepository:
             row = self._conn.execute(f"SELECT {scans.SCAN_COLS} FROM scan_runs WHERE scan_id=?", (scan_id,)).fetchone()
         return scans.scan_from_row(row) if row else None
 
+    def scans_for_tenant(self, tenant_id=None):
+        """All scans, or only one tenant's (newest first)."""
+        with self._lock:
+            if tenant_id is None:
+                rows = self._conn.execute(
+                    f"SELECT {scans.SCAN_COLS} FROM scan_runs ORDER BY created_at DESC").fetchall()
+            else:
+                rows = self._conn.execute(
+                    f"SELECT {scans.SCAN_COLS} FROM scan_runs WHERE tenant_id=? ORDER BY created_at DESC",
+                    (tenant_id,)).fetchall()
+        return [scans.scan_from_row(r) for r in rows]
+
     def create_stage(self, stage) -> None:
         ph = ",".join("?" * 8)
         with self._lock:
@@ -486,6 +498,15 @@ class SqliteRepository:
                 self._conn.rollback()
                 raise
 
+    def heartbeat_task(self, task_id, owner=None, ttl_seconds=300) -> bool:
+        """Extend the active lease on a task (optionally checking the owner)."""
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT lease_id, owner, cancelled FROM task_leases WHERE task_id=?", (task_id,)).fetchone()
+        if row is None or bool(row[2]) or (owner is not None and row[1] != owner):
+            return False
+        return self.heartbeat(row[0], ttl_seconds)
+
     def transition_task(self, task_id, new_state, result_summary=None):
         now = datetime.now(timezone.utc)
         target = scans.TaskState(new_state) if isinstance(new_state, str) else new_state
@@ -561,6 +582,12 @@ class SqliteRepository:
         with self._lock:
             rows = self._conn.execute(f"SELECT {scans.ARTIFACT_COLS} FROM artifacts WHERE task_id=?", (task_id,)).fetchall()
         return [scans.artifact_from_row(r) for r in rows]
+
+    def get_artifact(self, artifact_id):
+        with self._lock:
+            row = self._conn.execute(
+                f"SELECT {scans.ARTIFACT_COLS} FROM artifacts WHERE artifact_id=?", (artifact_id,)).fetchone()
+        return scans.artifact_from_row(row) if row else None
 
     def close(self) -> None:
         with self._lock:

@@ -224,6 +224,10 @@ class ScanCoordinator:
         """Reclaim leases from crashed workers so their tasks requeue/block."""
         return self._repo.reclaim_expired_leases(now or datetime.now(timezone.utc))
 
+    def cancel_scan(self, scan_id: str) -> int:
+        """Stop a scan: queued/leased/running tasks -> cancelled. Returns the count."""
+        return self._cancel_open_work(scan_id)
+
     # --- internals ---------------------------------------------------------
 
     def _pick_ready_task(self, scan_id: str):
@@ -302,18 +306,18 @@ class ScanCoordinator:
         )
         self._repo.create_artifact(artifact)
 
-    def _cancel_open_work(self, scan_id: str) -> None:
-        """Kill-switch response: queued -> cancelled, and signal any live lease."""
+    def _cancel_open_work(self, scan_id: str) -> int:
+        """Kill-switch response: queued/leased/running -> cancelled. Returns count."""
+        cancelled = 0
         for t in self._repo.tasks_for_scan(scan_id):
             state = scans.TaskState(t.status)
-            if state == scans.TaskState.QUEUED:
+            if state in (scans.TaskState.QUEUED, scans.TaskState.LEASED, scans.TaskState.RUNNING):
+                # Queued work stops; a live run's worker terminates its own process
+                # tree — here we mark intent so it cannot settle as succeeded.
                 self._repo.transition_task(t.task_id, scans.TaskState.CANCELLED,
-                                           result_summary={"reason": "kill switch"})
-            elif state in (scans.TaskState.LEASED, scans.TaskState.RUNNING):
-                # A worker running this task terminates its own process tree; here
-                # we just mark intent so it cannot succeed after the stop.
-                self._repo.transition_task(t.task_id, scans.TaskState.CANCELLED,
-                                           result_summary={"reason": "kill switch"})
+                                           result_summary={"reason": "cancelled"})
+                cancelled += 1
+        return cancelled
 
 
 @dataclass
