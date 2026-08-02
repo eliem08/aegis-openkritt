@@ -1,6 +1,6 @@
 # Repository Strengths — Aegis Implementation Ledger
 
-Last reconciled with Aegis commit: `30ecd91` on 2026-08-02
+Last reconciled with Aegis commit: `c5dce4b` on 2026-08-02
 
 This file is the authoritative delivery ledger for the audited repository
 strengths and the corrections discovered during the Aegis reread. Update a row
@@ -56,7 +56,7 @@ binaries. Obtain distribution-specific legal review before release.
 | External-process scoped execution gateway (policy authority + fake backend; prod network-namespace egress enforcement is deployment) | In-process `httpx` transport cannot constrain CLI tools | 1 | Direct egress, redirect, private-IP, DNS-change tests | complete | bf0bf9e |
 | Derive report scope from authorization | `prepare_submission` currently trusts a caller boolean | 1 | API cannot override an out-of-scope result | complete | 7a7b252 |
 | Gate each detector by `detector.action` | Current worker shares one outer action across all detectors | 1 | Mixed detector registry produces separate policy decisions | complete | 7a7b252 |
-| Make recon-to-BOLA an orchestrator transition | Current helper is called manually in a test | 3 | Discovery plus owned seed automatically queues BOLA task | not-started | — |
+| Make recon-to-BOLA an orchestrator transition | Current helper is called manually in a test | 3 | Discovery plus owned seed automatically queues BOLA task | complete | c5dce4b |
 | Strengthen BFLA differential proof | Missing identity/signature can turn a generic 200 into weak evidence | 1/3 | Missing identity is inapplicable; baseline/differential required | complete | 7a7b252 |
 | Fix insecure-config warning for Ed25519 | Warning currently checks HMAC keys but not configured public keys | 1 | Ed25519-only production config emits no false missing-key warning | complete | 7a7b252 |
 | Correct roadmap and production claims | Documentation currently overstates automatic wiring and has a stale TL;DR | 1 | Documentation consistency check/manual review | complete | 7a7b252 |
@@ -132,12 +132,16 @@ binaries. Obtain distribution-specific legal review before release.
     blind/stored refused without OAST authorization, bounded, session-loss stops
     the host, distinct clean/finding/cancelled/truncated/error/session-loss
     outcomes, per-target resume, JSON+SARIF parsing, FINDING candidates.
-  - Remaining to close Phase 3: wire the two clean-room engines to
-    `benign_request_mutation` stages through the gateway-enforced transport; make
-    recon→BOLA an orchestrator transition (deferred P1 correction); BFLA identity
-    pair + privileged-response discriminator; per-detector reservations/gating;
-    the automated **license test** (no copied AGPL/GPL code or dataset); and the
-    lab completion gate (seeded bugs found within exact budgets).
+  - **Detector orchestration**: complete (`c5dce4b`) — recon→BOLA transition
+    (deferred P1 correction) derives detector tasks from the asset graph; owned
+    seed on a discovered route auto-queues BOLA; route detectors get explicit
+    targets from discovery and are skipped (not defaulted) without route evidence;
+    BFLA gated on a real identity pair + discriminator; per-detector reservations;
+    and candidate≠verification (differential or second replay).
+  - Remaining to close Phase 3: wire the clean-room parameter/route engines to
+    `benign_request_mutation` stages through the gateway-enforced transport; the
+    automated **license test** (no copied AGPL/GPL code or dataset); and the lab
+    completion gate (seeded bugs found within exact request/capability budgets).
 - [ ] Phase 4: private OAST/browser/monitoring and quarantine gates pass.
 - [ ] Phase 5: distributed isolation, load, failover, restore, and rotation drills pass.
 - [ ] Production documentation matches only tested and enabled capabilities.
