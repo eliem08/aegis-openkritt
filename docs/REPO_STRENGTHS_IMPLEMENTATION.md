@@ -1,6 +1,6 @@
 # Repository Strengths — Aegis Implementation Ledger
 
-Last reconciled with Aegis commit: `1cb0424` on 2026-08-02
+Last reconciled with Aegis commit: `1fdf02b` on 2026-08-02
 
 This file is the authoritative delivery ledger for the audited repository
 strengths and the corrections discovered during the Aegis reread. Update a row
@@ -70,13 +70,17 @@ binaries. Obtain distribution-specific legal review before release.
   - Safety corrections: all complete (rows above).
   - Completion-gate substrate: durable scan model + versioned migrations (`8cfaa3d`),
     scoped execution gateway (`bf0bf9e`), safe process runner (`f4fa9f8`), adapter
-    contract + fake adapter (`d35d0be`), and the scan coordinator (`1cb0424`) that
-    drives reservation → lease → process → event → quarantine → normalization →
-    persistence → cancel/recover. The gate flow passes end-to-end via the coordinator
-    on SQLite and (gated) PostgreSQL.
-  - Remaining before the box is ticked: tenant-scoped scan **API** endpoints
-    (create/list/read/cancel scans; worker lease/heartbeat; quarantine-review for raw
-    artifacts) so the fake adapter runs "through the real API" as the gate requires.
+    contract + fake adapter (`d35d0be`), the scan coordinator (`1cb0424`), and the
+    tenant-scoped scan **API** (`1fdf02b`). The fake discovery adapter now runs the
+    full gate flow — create → run-next (reservation → lease → process → event →
+    quarantine → normalization → persistence) → read, plus cancel and recover —
+    **through the real HTTP API on SQLite and (gated) PostgreSQL**, no direct network.
+  - Remaining before the box is ticked: the one Phase-1 test bullet not yet met —
+    "single-use approvals are consumed atomically with a reservation." Reservations
+    currently claim spend + a session slot atomically but do **not** consume a
+    single-use approval token inside the same transaction. Wiring (and testing) that
+    coupling is the final Phase-1 item. (Full asset/observation graph normalization
+    remains a Phase-2 deliverable, as the persistence row already notes.)
 - [ ] Phase 2: five discovery adapters produce a durable authorized snapshot.
 - [ ] Phase 3: guarded active pipeline finds seeded lab bugs within exact limits.
 - [ ] Phase 4: private OAST/browser/monitoring and quarantine gates pass.
