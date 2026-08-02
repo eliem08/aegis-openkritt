@@ -19,7 +19,7 @@ from datetime import datetime, timedelta, timezone
 
 from aegis.policy.killswitch import KillSwitchState
 
-from . import scans
+from . import graph_serde, scans
 from .migrations import Migration, run_migrations
 from .store import ApprovalGrant, EngagementRecord, PolicyReservation
 
@@ -160,10 +160,33 @@ CREATE TABLE IF NOT EXISTS artifacts (
 CREATE INDEX IF NOT EXISTS idx_artifact_task ON artifacts(task_id);
 """
 
+_GRAPH_SCHEMA_SQLITE = """
+CREATE TABLE IF NOT EXISTS observations (
+    observation_id TEXT PRIMARY KEY, engagement_id TEXT NOT NULL,
+    scan_id TEXT NOT NULL REFERENCES scan_runs(scan_id), task_id TEXT,
+    asset_key TEXT NOT NULL, kind TEXT NOT NULL, source TEXT, provider TEXT,
+    observed_at TEXT, data TEXT, confidence REAL, raw_ref TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_obs_scan ON observations(scan_id);
+CREATE INDEX IF NOT EXISTS idx_obs_asset ON observations(engagement_id, asset_key);
+CREATE TABLE IF NOT EXISTS assets (
+    engagement_id TEXT NOT NULL, asset_key TEXT NOT NULL, kind TEXT NOT NULL,
+    attributes TEXT, sources TEXT, first_seen TEXT, last_seen TEXT,
+    observation_count INTEGER, PRIMARY KEY (engagement_id, asset_key)
+);
+CREATE TABLE IF NOT EXISTS asset_snapshots (
+    snapshot_id TEXT PRIMARY KEY, engagement_id TEXT NOT NULL,
+    scan_id TEXT NOT NULL REFERENCES scan_runs(scan_id),
+    entries TEXT, complete INTEGER, created_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_snap_eng ON asset_snapshots(engagement_id);
+"""
+
 # The full baseline schema is migration 0001; later schema changes append here.
 SQLITE_MIGRATIONS = [
     Migration(1, "initial_schema", _SCHEMA),
     Migration(2, "scan_model", _SCAN_SCHEMA_SQLITE),
+    Migration(3, "asset_graph", _GRAPH_SCHEMA_SQLITE),
 ]
 
 
@@ -612,6 +635,86 @@ class SqliteRepository:
             row = self._conn.execute(
                 f"SELECT {scans.ARTIFACT_COLS} FROM artifacts WHERE artifact_id=?", (artifact_id,)).fetchone()
         return scans.artifact_from_row(row) if row else None
+
+    # -- asset graph (observations are append-only; assets are the derived view) --
+
+    def record_observations(self, observations) -> int:
+        rows = [graph_serde.observation_values(o) for o in observations]
+        if not rows:
+            return 0
+        with self._lock:
+            self._conn.executemany(
+                f"INSERT INTO observations({graph_serde.OBSERVATION_COLS}) VALUES ({','.join('?' * 12)})", rows
+            )
+            self._conn.commit()
+        return len(rows)
+
+    def upsert_assets(self, assets) -> int:
+        """Merge assets into the derived view. Provenance unions; nothing is deleted."""
+        assets = list(assets)
+        if not assets:
+            return 0
+        with self._lock:
+            self._conn.execute("BEGIN IMMEDIATE")
+            try:
+                for asset in assets:
+                    row = self._conn.execute(
+                        f"SELECT {graph_serde.ASSET_COLS} FROM assets WHERE engagement_id=? AND asset_key=?",
+                        (asset.engagement_id, asset.asset_key),
+                    ).fetchone()
+                    merged = graph_serde.merge_asset_row(row, asset)
+                    self._conn.execute(
+                        f"INSERT OR REPLACE INTO assets({graph_serde.ASSET_COLS}) VALUES ({','.join('?' * 8)})",
+                        graph_serde.asset_values(merged),
+                    )
+                self._conn.commit()
+                return len(assets)
+            except Exception:
+                self._conn.rollback()
+                raise
+
+    def assets_for_engagement(self, engagement_id, kind=None):
+        sql = f"SELECT {graph_serde.ASSET_COLS} FROM assets WHERE engagement_id=?"
+        params: tuple = (engagement_id,)
+        if kind is not None:
+            sql += " AND kind=?"
+            params += (getattr(kind, "value", kind),)
+        with self._lock:
+            rows = self._conn.execute(sql + " ORDER BY asset_key", params).fetchall()
+        return [graph_serde.asset_from_row(r) for r in rows]
+
+    def observations_for_asset(self, engagement_id, asset_key):
+        with self._lock:
+            rows = self._conn.execute(
+                f"SELECT {graph_serde.OBSERVATION_COLS} FROM observations "
+                "WHERE engagement_id=? AND asset_key=? ORDER BY observed_at",
+                (engagement_id, asset_key),
+            ).fetchall()
+        return [graph_serde.observation_from_row(r) for r in rows]
+
+    def observations_for_scan(self, scan_id):
+        with self._lock:
+            rows = self._conn.execute(
+                f"SELECT {graph_serde.OBSERVATION_COLS} FROM observations WHERE scan_id=? ORDER BY observed_at",
+                (scan_id,),
+            ).fetchall()
+        return [graph_serde.observation_from_row(r) for r in rows]
+
+    def save_snapshot(self, snapshot) -> None:
+        with self._lock:
+            self._conn.execute(
+                f"INSERT OR REPLACE INTO asset_snapshots({graph_serde.SNAPSHOT_COLS}) VALUES ({','.join('?' * 6)})",
+                graph_serde.snapshot_values(snapshot),
+            )
+            self._conn.commit()
+
+    def snapshots_for_engagement(self, engagement_id):
+        with self._lock:
+            rows = self._conn.execute(
+                f"SELECT {graph_serde.SNAPSHOT_COLS} FROM asset_snapshots "
+                "WHERE engagement_id=? ORDER BY created_at", (engagement_id,),
+            ).fetchall()
+        return [graph_serde.snapshot_from_row(r) for r in rows]
 
     def close(self) -> None:
         with self._lock:

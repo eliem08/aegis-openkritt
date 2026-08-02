@@ -66,7 +66,7 @@ def test_sqlite_repository_uses_migrations(tmp_path):
 
     repo = SqliteRepository(str(tmp_path / "m.db"))
     rows = dict(repo._conn.execute("SELECT version, name FROM schema_migrations").fetchall())
-    assert rows[1] == "initial_schema" and rows[2] == "scan_model"
+    assert rows[1] == "initial_schema" and rows[2] == "scan_model" and rows[3] == "asset_graph"
     applied_count = len(rows)
     repo.close()
 

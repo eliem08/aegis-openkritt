@@ -39,6 +39,8 @@ from aegis.adapters import (
     ExecutionEnvelope,
 )
 from aegis.api import scans
+from aegis.graph import Normalizer, new_snapshot
+from aegis.policy.scope import ScopeGuard
 from aegis.process import CancelToken, ProcessOutcome, SafeProcessRunner
 
 
@@ -76,6 +78,8 @@ class StepResult:
     outcome: str                 # succeeded | quarantined | blocked | failed | cancelled
     events: int = 0
     reason: str = ""
+    assets: int = 0              # assets merged into the graph
+    rejected: int = 0            # out-of-scope / wildcard / unparseable emissions
 
 
 # States that make a stage "settled" for dependency purposes.
@@ -102,6 +106,9 @@ class ScanCoordinator:
         self._scope_digest = hashlib.sha256(
             json.dumps(sorted(config.scope_targets)).encode("utf-8")
         ).hexdigest()
+        # In-process mirror of the authorized allowlist; the normalizer refuses to
+        # store anything outside it (the gateway enforces the same at request time).
+        self._scope = ScopeGuard.from_authorization(list(config.scope_targets))
         # Reservation caps travel with a lightweight, secret-free engagement view.
         self._resv_engagement = SimpleNamespace(
             id=config.engagement_id,
@@ -191,9 +198,12 @@ class ScanCoordinator:
                                            result_summary={"events": len(events), "reason": reason})
                 return StepResult(task.task_id, "quarantined", len(events), reason)
             if result.process.ok:
+                # Only clean output reaches the graph; scope/wildcard rejects are counted.
+                graph = self._normalize(task, events)
                 self._repo.transition_task(task.task_id, scans.TaskState.SUCCEEDED,
-                                           result_summary={"events": len(events)})
-                return StepResult(task.task_id, "succeeded", len(events))
+                                           result_summary={"events": len(events), "graph": graph})
+                return StepResult(task.task_id, "succeeded", len(events),
+                                  assets=graph["assets"], rejected=graph["rejected"])
             # Non-zero / timeout / cancelled — retryable unless a hard failure.
             outcome = result.process.outcome
             if outcome in (ProcessOutcome.CANCELLED,):
@@ -290,6 +300,48 @@ class ScanCoordinator:
         if process.ok and not any(e.kind == EventKind.TERMINAL for e in events):
             return True, "invalid output (no terminal event)"
         return False, ""
+
+    def _normalize(self, task, events) -> dict:
+        """Fold a task's events into the durable asset graph.
+
+        Observations are appended immutably; assets are merged into the derived
+        view. Out-of-scope and wildcard emissions are rejected here and counted,
+        never stored.
+        """
+        normalizer = Normalizer(
+            scope=self._scope, engagement_id=self._config.engagement_id, scan_id=task.scan_id,
+        )
+        result = normalizer.normalize(events)
+        self._repo.record_observations(result.observations)
+        self._repo.upsert_assets(result.assets.values())
+        counts = result.counts
+        by_reason: dict[str, int] = {}
+        for rejection in result.rejections:
+            by_reason[rejection.reason] = by_reason.get(rejection.reason, 0) + 1
+        if by_reason:
+            counts["rejections"] = by_reason
+        return counts
+
+    def snapshot_scan(self, scan_id: str):
+        """Record what this scan saw as an :class:`AssetSnapshot`.
+
+        ``complete`` is true only when every task settled successfully — a scan
+        with failed, blocked, or quarantined work is partial coverage, and a
+        partial snapshot may never justify calling an asset removed.
+        """
+        tasks = self._repo.tasks_for_scan(scan_id)
+        complete = bool(tasks) and all(t.status == scans.TaskState.SUCCEEDED.value for t in tasks)
+        seen = {o.asset_key for o in self._repo.observations_for_scan(scan_id)}
+        assets = [
+            a for a in self._repo.assets_for_engagement(self._config.engagement_id)
+            if a.asset_key in seen
+        ]
+        snapshot = new_snapshot(
+            engagement_id=self._config.engagement_id, scan_id=scan_id,
+            assets=assets, complete=complete,
+        )
+        self._repo.save_snapshot(snapshot)
+        return snapshot
 
     def _persist(self, task, events, *, quarantined: bool) -> None:
         payload = json.dumps([{"kind": e.kind.value, "data": e.data} for e in events], sort_keys=True)
