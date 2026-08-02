@@ -12,14 +12,12 @@ concurrency. Values are stored as TEXT/INTEGER for parity with SQLite.
 from __future__ import annotations
 
 import json
-import threading
 
-import psycopg
+from psycopg_pool import ConnectionPool
 
 from aegis.policy.killswitch import KillSwitchState
 
 from .persistence import (
-    dt_from_iso,
     engagement_from_row,
     engagement_values,
     grant_from_row,
@@ -52,35 +50,42 @@ CREATE TABLE IF NOT EXISTS spend (engagement_id TEXT PRIMARY KEY, spent DOUBLE P
 
 
 class PostgresRepository:
-    def __init__(self, dsn: str) -> None:
+    def __init__(self, dsn: str, *, encryptor=None, min_size: int = 1, max_size: int = 8) -> None:
+        from .crypto import NullEncryptor
+
         self._dsn = dsn
-        self._lock = threading.Lock()
-        self._conn = psycopg.connect(dsn, autocommit=True)
-        with self._lock, self._conn.cursor() as cur:
-            cur.execute(_SCHEMA)
+        self._enc = encryptor or NullEncryptor()
+        self._pool = ConnectionPool(
+            dsn, min_size=min_size, max_size=max_size, kwargs={"autocommit": True}, open=True
+        )
+        self._exec(_SCHEMA)
 
     def _exec(self, sql: str, params: tuple = ()):
-        with self._lock, self._conn.cursor() as cur:
+        with self._pool.connection() as conn, conn.cursor() as cur:
             cur.execute(sql, params)
 
     def _query(self, sql: str, params: tuple = ()) -> list[tuple]:
-        with self._lock, self._conn.cursor() as cur:
+        with self._pool.connection() as conn, conn.cursor() as cur:
             cur.execute(sql, params)
             return cur.fetchall()
 
     def save_engagement(self, record: EngagementRecord) -> None:
+        eid, auth_json, status, created = engagement_values(record)
         self._exec(
             "INSERT INTO engagements(id, auth_json, status, created_at) VALUES (%s,%s,%s,%s) "
             "ON CONFLICT (id) DO UPDATE SET auth_json=EXCLUDED.auth_json, status=EXCLUDED.status, "
             "created_at=EXCLUDED.created_at",
-            engagement_values(record),
+            (eid, self._enc.encrypt(auth_json), status, created),
         )
 
     def get_engagement(self, engagement_id: str) -> EngagementRecord | None:
         rows = self._query(
             "SELECT id, auth_json, status, created_at FROM engagements WHERE id=%s", (engagement_id,)
         )
-        return engagement_from_row(rows[0]) if rows else None
+        if not rows:
+            return None
+        r = rows[0]
+        return engagement_from_row((r[0], self._enc.decrypt(r[1]), r[2], r[3]))
 
     def list_engagement_ids(self) -> list[str]:
         return [r[0] for r in self._query("SELECT id FROM engagements")]
@@ -109,7 +114,7 @@ class PostgresRepository:
     def append_audit(self, engagement_id: str, record: dict) -> None:
         self._exec(
             "INSERT INTO audit(engagement_id, record, ts) VALUES (%s,%s,%s)",
-            (engagement_id, json.dumps(record), now_iso()),
+            (engagement_id, self._enc.encrypt(json.dumps(record)), now_iso()),
         )
 
     def recent_audit(self, engagement_id: str, limit: int) -> list[dict]:
@@ -117,7 +122,7 @@ class PostgresRepository:
             "SELECT record FROM audit WHERE engagement_id=%s ORDER BY seq DESC LIMIT %s",
             (engagement_id, limit),
         )
-        return [json.loads(r[0]) for r in reversed(rows)]
+        return [json.loads(self._enc.decrypt(r[0])) for r in reversed(rows)]
 
     def save_kill_state(self, engagement_id: str, state: KillSwitchState) -> None:
         self._exec(
@@ -145,5 +150,4 @@ class PostgresRepository:
         return rows[0][0] if rows else None
 
     def close(self) -> None:
-        with self._lock:
-            self._conn.close()
+        self._pool.close()

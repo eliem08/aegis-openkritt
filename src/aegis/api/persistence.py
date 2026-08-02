@@ -95,8 +95,11 @@ CREATE TABLE IF NOT EXISTS spend (engagement_id TEXT PRIMARY KEY, spent REAL);
 
 
 class SqliteRepository:
-    def __init__(self, path: str) -> None:
+    def __init__(self, path: str, *, encryptor=None) -> None:
+        from .crypto import NullEncryptor
+
         self._path = path
+        self._enc = encryptor or NullEncryptor()
         self._lock = threading.Lock()
         self._conn = sqlite3.connect(path, check_same_thread=False)
         self._conn.execute("PRAGMA journal_mode=WAL")
@@ -105,10 +108,11 @@ class SqliteRepository:
             self._conn.commit()
 
     def save_engagement(self, record: EngagementRecord) -> None:
+        eid, auth_json, status, created = engagement_values(record)
         with self._lock:
             self._conn.execute(
                 "INSERT OR REPLACE INTO engagements(id, auth_json, status, created_at) VALUES (?,?,?,?)",
-                engagement_values(record),
+                (eid, self._enc.encrypt(auth_json), status, created),
             )
             self._conn.commit()
 
@@ -117,7 +121,9 @@ class SqliteRepository:
             row = self._conn.execute(
                 "SELECT id, auth_json, status, created_at FROM engagements WHERE id=?", (engagement_id,)
             ).fetchone()
-        return engagement_from_row(row) if row else None
+        if not row:
+            return None
+        return engagement_from_row((row[0], self._enc.decrypt(row[1]), row[2], row[3]))
 
     def list_engagement_ids(self) -> list[str]:
         with self._lock:
@@ -149,7 +155,7 @@ class SqliteRepository:
         with self._lock:
             self._conn.execute(
                 "INSERT INTO audit(engagement_id, record, ts) VALUES (?,?,?)",
-                (engagement_id, json.dumps(record), now_iso()),
+                (engagement_id, self._enc.encrypt(json.dumps(record)), now_iso()),
             )
             self._conn.commit()
 
@@ -159,7 +165,7 @@ class SqliteRepository:
                 "SELECT record FROM audit WHERE engagement_id=? ORDER BY seq DESC LIMIT ?",
                 (engagement_id, limit),
             ).fetchall()
-        return [json.loads(r[0]) for r in reversed(rows)]
+        return [json.loads(self._enc.decrypt(r[0])) for r in reversed(rows)]
 
     def save_kill_state(self, engagement_id: str, state: KillSwitchState) -> None:
         with self._lock:

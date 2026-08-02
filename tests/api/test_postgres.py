@@ -27,8 +27,7 @@ KID, SECRET = "kid-pg", "pg-secret"
 @pytest.fixture(autouse=True)
 def clean():
     repo = PostgresRepository(DSN)
-    with repo._lock, repo._conn.cursor() as cur:
-        cur.execute("TRUNCATE engagements, grants, audit, kill_state, spend")
+    repo._exec("TRUNCATE engagements, grants, audit, kill_state, spend")
     repo.close()
     yield
 

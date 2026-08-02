@@ -10,6 +10,7 @@ middleware for correlation IDs, and the routers. All real policy logic lives in
 from __future__ import annotations
 
 import logging
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
@@ -40,10 +41,18 @@ def create_app(config: ControlPlaneConfig | None = None) -> FastAPI:
     config = config or ControlPlaneConfig.from_env()
     verifier = config.build_verifier()
 
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        yield
+        repo = getattr(app.state, "repository", None)
+        if repo is not None and hasattr(repo, "close"):
+            repo.close()  # close DB connections / pool on shutdown
+
     app = FastAPI(
         title="aegis control plane",
         version=__version__,
         description=DESCRIPTION,
+        lifespan=lifespan,
     )
     app.state.config = config
     app.state.verifier = verifier

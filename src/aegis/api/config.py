@@ -69,20 +69,25 @@ class ControlPlaneConfig:
     max_decisions_cached: int = 500
     db_path: str | None = None  # SQLite file; None = in-memory (no durability)
     db_url: str | None = None  # Postgres DSN; takes precedence over db_path
+    encryption_key: str | None = None  # Fernet key; None = plaintext at rest
 
     def build_repository(self):
         """A durable repository if a DB is configured, else None (in-memory).
 
-        ``AEGIS_DB_URL`` (Postgres) wins over ``AEGIS_DB_PATH`` (SQLite).
+        ``AEGIS_DB_URL`` (Postgres) wins over ``AEGIS_DB_PATH`` (SQLite). When
+        ``AEGIS_ENCRYPTION_KEY`` is set, sensitive columns are encrypted at rest.
         """
+        from .crypto import build_encryptor
+
+        encryptor = build_encryptor(self.encryption_key)
         if self.db_url:
             from .postgres import PostgresRepository
 
-            return PostgresRepository(self.db_url)
+            return PostgresRepository(self.db_url, encryptor=encryptor)
         if self.db_path:
             from .persistence import SqliteRepository
 
-            return SqliteRepository(self.db_path)
+            return SqliteRepository(self.db_path, encryptor=encryptor)
         return None
 
     def build_verifier(self) -> SignatureVerifier:
@@ -133,6 +138,7 @@ class ControlPlaneConfig:
             auth_enabled=auth_enabled,
             db_path=env.get("AEGIS_DB_PATH") or None,
             db_url=env.get("AEGIS_DB_URL") or None,
+            encryption_key=env.get("AEGIS_ENCRYPTION_KEY") or None,
         )
 
 
