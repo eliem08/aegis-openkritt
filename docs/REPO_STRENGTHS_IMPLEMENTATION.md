@@ -1,6 +1,6 @@
 # Repository Strengths — Aegis Implementation Ledger
 
-Last reconciled with Aegis commit: `c5dce4b` on 2026-08-02
+Last reconciled with Aegis commit: `4dfad03` on 2026-08-02
 
 This file is the authoritative delivery ledger for the audited repository
 strengths and the corrections discovered during the Aegis reread. Update a row
@@ -19,8 +19,8 @@ Status values: `existing`, `partial`, `not-started`, `in-progress`, `complete`,
 | projectdiscovery/katana | MIT | Standard/headless split, bounded queues, session state, dedup, logout avoidance | Pinned adapter; headless enabled in Phase 4 | 2/4 | `adapters/katana`, browser worker | Queue/scope/logout/session tests; direct-egress denial | complete (digest unpinned) | 2fd909b |
 | lc/gau | MIT | Pluggable passive historical-URL providers and streaming filters | Pinned adapter | 2 | `adapters/gau`, discovery stages | Provider/timestamp provenance; zero target traffic | complete (digest unpinned) | 5c8de76 |
 | BishopFox/jsluice | MIT | AST-based endpoint/secret extraction with context and FP discipline | Pinned adapter over acquired JS | 2 | `adapters/jsluice`, classifier | AST golden fixtures; contextual events; secret candidates quarantined | complete (digest unpinned) | 5c8de76 |
-| s0md3v/Arjun | AGPL-3.0 | Stable baseline, batched anomaly detection, recursive narrowing, individual confirmation | Clean-room native algorithm; no copied source/wordlists | 3 | `active/parameters` | Seeded parameter found efficiently; unstable targets incomplete; license check | partial (algorithm done; stage-wiring + license test pending) | 5a23327 |
-| assetnote/kiterunner | AGPL-3.0 | Method/header/body-aware route schemas, wildcard baselines, target quarantine | Clean-room native schema/enumerator using owned/permissive data | 3 | `active/routes` | Wildcard FP suppression; bounded route enumeration; license check | partial (schema+enumerator done; stage-wiring + license test pending) | c25e347 |
+| s0md3v/Arjun | AGPL-3.0 | Stable baseline, batched anomaly detection, recursive narrowing, individual confirmation | Clean-room native algorithm; no copied source/wordlists | 3 | `active/parameters` | Seeded parameter found efficiently; unstable targets incomplete; license check | complete | 4dfad03 |
+| assetnote/kiterunner | AGPL-3.0 | Method/header/body-aware route schemas, wildcard baselines, target quarantine | Clean-room native schema/enumerator using owned/permissive data | 3 | `active/routes` | Wildcard FP suppression; bounded route enumeration; license check | complete | 4dfad03 |
 | projectdiscovery/nuclei | MIT | Versioned signed templates, filters, workflows, protocol work pools | Pinned adapter plus Aegis manifest allowlist | 3 | `adapters/nuclei`, template policy | Unknown/unsigned/prohibited templates rejected; request caps enforced | complete (digest unpinned) | c706c69 |
 | hahwul/dalfox | MIT | Reflection-first XSS, DOM/AST analysis, WAF/session awareness, cancellation, resume, SARIF/JSON | Pinned guarded adapter | 3 | `adapters/dalfox` | Bounded local-lab detection; session-loss/cancel/resume tests | complete (digest unpinned) | 30ecd91 |
 | projectdiscovery/interactsh | MIT | Correlated encrypted OAST sessions, authentication, polling, resumption | Private pinned service and client adapter | 4 | `oast`, `adapters/interactsh` | Encrypted tenant-scoped correlation, expiry, deletion, public-service rejection | not-started | — |
@@ -138,10 +138,14 @@ binaries. Obtain distribution-specific legal review before release.
     targets from discovery and are skipped (not defaulted) without route evidence;
     BFLA gated on a real identity pair + discriminator; per-detector reservations;
     and candidate≠verification (differential or second replay).
-  - Remaining to close Phase 3: wire the clean-room parameter/route engines to
-    `benign_request_mutation` stages through the gateway-enforced transport; the
-    automated **license test** (no copied AGPL/GPL code or dataset); and the lab
-    completion gate (seeded bugs found within exact request/capability budgets).
+  - **Stage-wiring + license test**: complete (`4dfad03`) — the parameter/route
+    engines run through the real ScopedExecutionGateway (scope/method/DNS/budget
+    enforced per probe) emitting PARAMETER/ROUTE events into the graph; automated
+    license test asserts no copied AGPL/GPL source or bundled dataset.
+  - Remaining to close Phase 3: the **lab completion gate** — a local authorized
+    lab where the active pipeline finds seeded bugs within exact request/capability
+    budgets and produces nothing from unstable or truncated scans. (Live runs
+    against real pinned binaries still require the outstanding legal review.)
 - [ ] Phase 4: private OAST/browser/monitoring and quarantine gates pass.
 - [ ] Phase 5: distributed isolation, load, failover, restore, and rotation drills pass.
 - [ ] Production documentation matches only tested and enabled capabilities.
