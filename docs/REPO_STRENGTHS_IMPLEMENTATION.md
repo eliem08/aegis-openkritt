@@ -1,6 +1,6 @@
 # Repository Strengths — Aegis Implementation Ledger
 
-Last reconciled with Aegis commit: `2fd909b` on 2026-08-02
+Last reconciled with Aegis commit: `5a23327` on 2026-08-02
 
 This file is the authoritative delivery ledger for the audited repository
 strengths and the corrections discovered during the Aegis reread. Update a row
@@ -19,7 +19,7 @@ Status values: `existing`, `partial`, `not-started`, `in-progress`, `complete`,
 | projectdiscovery/katana | MIT | Standard/headless split, bounded queues, session state, dedup, logout avoidance | Pinned adapter; headless enabled in Phase 4 | 2/4 | `adapters/katana`, browser worker | Queue/scope/logout/session tests; direct-egress denial | complete (digest unpinned) | 2fd909b |
 | lc/gau | MIT | Pluggable passive historical-URL providers and streaming filters | Pinned adapter | 2 | `adapters/gau`, discovery stages | Provider/timestamp provenance; zero target traffic | complete (digest unpinned) | 5c8de76 |
 | BishopFox/jsluice | MIT | AST-based endpoint/secret extraction with context and FP discipline | Pinned adapter over acquired JS | 2 | `adapters/jsluice`, classifier | AST golden fixtures; contextual events; secret candidates quarantined | complete (digest unpinned) | 5c8de76 |
-| s0md3v/Arjun | AGPL-3.0 | Stable baseline, batched anomaly detection, recursive narrowing, individual confirmation | Clean-room native algorithm; no copied source/wordlists | 3 | `discovery/parameters` | Seeded parameter found efficiently; unstable targets incomplete; license check | not-started | — |
+| s0md3v/Arjun | AGPL-3.0 | Stable baseline, batched anomaly detection, recursive narrowing, individual confirmation | Clean-room native algorithm; no copied source/wordlists | 3 | `active/parameters` | Seeded parameter found efficiently; unstable targets incomplete; license check | partial (algorithm done; stage-wiring + license test pending) | 5a23327 |
 | assetnote/kiterunner | AGPL-3.0 | Method/header/body-aware route schemas, wildcard baselines, target quarantine | Clean-room native schema/enumerator using owned/permissive data | 3 | `discovery/routes` | Wildcard FP suppression; bounded route enumeration; license check | not-started | — |
 | projectdiscovery/nuclei | MIT | Versioned signed templates, filters, workflows, protocol work pools | Pinned adapter plus Aegis manifest allowlist | 3 | `adapters/nuclei`, template policy | Unknown/unsigned/prohibited templates rejected; request caps enforced | not-started | — |
 | hahwul/dalfox | MIT | Reflection-first XSS, DOM/AST analysis, WAF/session awareness, cancellation, resume, SARIF/JSON | Pinned guarded adapter | 3 | `adapters/dalfox` | Bounded local-lab detection; session-loss/cancel/resume tests | not-started | — |
@@ -113,6 +113,18 @@ binaries. Obtain distribution-specific legal review before release.
     consumer can start from validated partial events while completion stays
     distinct; a quarantined stream is never promoted into the graph).
 - [ ] Phase 3: guarded active pipeline finds seeded lab bugs within exact limits.
+  - Clean-room **parameter discovery**: algorithm complete (`5a23327`) —
+    calibrate (stable-feature detection, unstable-target rejection) → batched
+    marker probing → recursive bisection → individual verification, with request/
+    candidate/depth/time/anomaly caps and capability/method authorization. Found
+    seeded params with 8.5x fewer requests than one-per-name; drops survivors that
+    do not reproduce alone. No AGPL Arjun source/wordlists used.
+  - Remaining: wire it to a `benign_request_mutation` stage/adapter through the
+    gateway-enforced transport; clean-room **route discovery** (Kiterunner); the
+    **Nuclei** and **Dalfox** adapters with template/mode allowlisting; make
+    recon→BOLA an orchestrator transition (deferred P1 correction); BFLA identity
+    pair; per-detector reservations; and the automated **license test** asserting
+    no copied AGPL/GPL code or bundled restricted dataset.
 - [ ] Phase 4: private OAST/browser/monitoring and quarantine gates pass.
 - [ ] Phase 5: distributed isolation, load, failover, restore, and rotation drills pass.
 - [ ] Production documentation matches only tested and enabled capabilities.
