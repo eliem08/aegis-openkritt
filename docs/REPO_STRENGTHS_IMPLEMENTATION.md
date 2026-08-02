@@ -1,6 +1,6 @@
 # Repository Strengths — Aegis Implementation Ledger
 
-Last reconciled with Aegis commit: `1fdf02b` on 2026-08-02
+Last reconciled with Aegis commit: `4cb7442` on 2026-08-02
 
 This file is the authoritative delivery ledger for the audited repository
 strengths and the corrections discovered during the Aegis reread. Update a row
@@ -66,21 +66,25 @@ binaries. Obtain distribution-specific legal review before release.
 
 ## Phase completion checklist
 
-- [ ] Phase 1: foundation and safety-correction acceptance gate passes.
+- [x] Phase 1: foundation and safety-correction acceptance gate passes. (`4cb7442`)
   - Safety corrections: all complete (rows above).
   - Completion-gate substrate: durable scan model + versioned migrations (`8cfaa3d`),
     scoped execution gateway (`bf0bf9e`), safe process runner (`f4fa9f8`), adapter
     contract + fake adapter (`d35d0be`), the scan coordinator (`1cb0424`), and the
-    tenant-scoped scan **API** (`1fdf02b`). The fake discovery adapter now runs the
-    full gate flow — create → run-next (reservation → lease → process → event →
+    tenant-scoped scan **API** (`1fdf02b`). The fake discovery adapter runs the full
+    gate flow — create → run-next (reservation → lease → process → event →
     quarantine → normalization → persistence) → read, plus cancel and recover —
     **through the real HTTP API on SQLite and (gated) PostgreSQL**, no direct network.
-  - Remaining before the box is ticked: the one Phase-1 test bullet not yet met —
-    "single-use approvals are consumed atomically with a reservation." Reservations
-    currently claim spend + a session slot atomically but do **not** consume a
-    single-use approval token inside the same transaction. Wiring (and testing) that
-    coupling is the final Phase-1 item. (Full asset/observation graph normalization
-    remains a Phase-2 deliverable, as the persistence row already notes.)
+  - Every Phase-1 "Tests" bullet maps to a passing test: tenant-crossing denial,
+    reservation caps + idempotent finalize, **single-use approvals consumed
+    atomically with a reservation** (`4cb7442`), the six process-runner cases, the
+    seven gateway cases, SQLite/Postgres contract + migrations, crash/restart lease
+    reclaim with preserved success, report scope non-override, and detector-specific
+    actions.
+  - Phase-2 boundary (not part of this gate): full asset/observation **graph**
+    normalization — the coordinator does Phase-1 event→artifact classification and
+    quarantine; the graph lands with the discovery adapters, as the persistence row
+    notes.
 - [ ] Phase 2: five discovery adapters produce a durable authorized snapshot.
 - [ ] Phase 3: guarded active pipeline finds seeded lab bugs within exact limits.
 - [ ] Phase 4: private OAST/browser/monitoring and quarantine gates pass.
