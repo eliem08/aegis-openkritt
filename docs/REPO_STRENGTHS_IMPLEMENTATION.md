@@ -1,6 +1,6 @@
 # Repository Strengths — Aegis Implementation Ledger
 
-Last reconciled with Aegis commit: `57a0b56` on 2026-08-02
+Last reconciled with Aegis commit: `7a7b252` on 2026-08-02
 
 This file is the authoritative delivery ledger for the audited repository
 strengths and the corrections discovered during the Aegis reread. Update a row
@@ -54,15 +54,15 @@ binaries. Obtain distribution-specific legal review before release.
 | Persist scans, stages, tasks, leases, assets, observations, artifacts | Current repositories persist control state only | 1 | SQLite/PostgreSQL contract plus restart recovery | not-started | — |
 | Versioned DB migrations and foreign-key integrity | Current startup schema is create-if-not-exists without migration history | 1 | Upgrade/downgrade refusal and migration checksum tests | not-started | — |
 | External-process scoped execution gateway | In-process `httpx` transport cannot constrain CLI tools | 1 | Direct egress, redirect, private-IP, DNS-change tests | not-started | — |
-| Derive report scope from authorization | `prepare_submission` currently trusts a caller boolean | 1 | API cannot override an out-of-scope result | not-started | — |
-| Gate each detector by `detector.action` | Current worker shares one outer action across all detectors | 1 | Mixed detector registry produces separate policy decisions | not-started | — |
+| Derive report scope from authorization | `prepare_submission` currently trusts a caller boolean | 1 | API cannot override an out-of-scope result | complete | 7a7b252 |
+| Gate each detector by `detector.action` | Current worker shares one outer action across all detectors | 1 | Mixed detector registry produces separate policy decisions | complete | 7a7b252 |
 | Make recon-to-BOLA an orchestrator transition | Current helper is called manually in a test | 3 | Discovery plus owned seed automatically queues BOLA task | not-started | — |
-| Strengthen BFLA differential proof | Missing identity/signature can turn a generic 200 into weak evidence | 1/3 | Missing identity is inapplicable; baseline/differential required | not-started | — |
-| Fix insecure-config warning for Ed25519 | Warning currently checks HMAC keys but not configured public keys | 1 | Ed25519-only production config emits no false missing-key warning | not-started | — |
-| Correct roadmap and production claims | Documentation currently overstates automatic wiring and has a stale TL;DR | 1 | Documentation consistency check/manual review | not-started | — |
+| Strengthen BFLA differential proof | Missing identity/signature can turn a generic 200 into weak evidence | 1/3 | Missing identity is inapplicable; baseline/differential required | complete | 7a7b252 |
+| Fix insecure-config warning for Ed25519 | Warning currently checks HMAC keys but not configured public keys | 1 | Ed25519-only production config emits no false missing-key warning | complete | 7a7b252 |
+| Correct roadmap and production claims | Documentation currently overstates automatic wiring and has a stale TL;DR | 1 | Documentation consistency check/manual review | complete | 7a7b252 |
 | Add sensitive-data classifier at ingestion boundary | Current worker flag relies on detector behavior and regex redaction is downstream | 4 | Sensitive fixture never reaches normal DB/API/report | not-started | — |
 | Replace dev Compose database defaults for production | Default password/host port are suitable only for local development | 5 | Production config validation rejects dev credentials/exposure | not-started | — |
-| Resolve FastAPI TestClient dependency deprecation | Current suite emits a Starlette/httpx compatibility warning | 1 | Default test suite has no compatibility deprecation | not-started | — |
+| Resolve FastAPI TestClient dependency deprecation | Current suite emits a Starlette/httpx compatibility warning | 1 | Default test suite has no compatibility deprecation | complete | 7a7b252 |
 
 ## Phase completion checklist
 
