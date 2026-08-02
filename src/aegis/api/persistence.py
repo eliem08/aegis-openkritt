@@ -19,6 +19,7 @@ from datetime import datetime, timezone
 
 from aegis.policy.killswitch import KillSwitchState
 
+from .migrations import Migration, run_migrations
 from .store import ApprovalGrant, EngagementRecord, PolicyReservation
 
 # --- pure, DB-agnostic serialization (shared with Postgres, unit-testable) ---
@@ -126,6 +127,9 @@ CREATE TABLE IF NOT EXISTS reservations (
 CREATE INDEX IF NOT EXISTS idx_res_eng ON reservations(engagement_id);
 """
 
+# The full baseline schema is migration 0001; later schema changes append here.
+SQLITE_MIGRATIONS = [Migration(1, "initial_schema", _SCHEMA)]
+
 
 class SqliteRepository:
     def __init__(self, path: str, *, encryptor=None) -> None:
@@ -136,8 +140,15 @@ class SqliteRepository:
         self._lock = threading.Lock()
         self._conn = sqlite3.connect(path, check_same_thread=False)
         self._conn.execute("PRAGMA journal_mode=WAL")
+        self._conn.execute("PRAGMA foreign_keys=ON")
         with self._lock:
-            self._conn.executescript(_SCHEMA)
+            run_migrations(
+                SQLITE_MIGRATIONS,
+                execute_script=self._conn.executescript,
+                execute=lambda sql, params=(): self._conn.execute(sql, params),
+                query=lambda sql, params=(): self._conn.execute(sql, params).fetchall(),
+                placeholder="?",
+            )
             self._conn.commit()
 
     def save_engagement(self, record: EngagementRecord) -> None:

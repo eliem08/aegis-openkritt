@@ -19,6 +19,7 @@ from psycopg_pool import ConnectionPool
 
 from aegis.policy.killswitch import KillSwitchState
 
+from .migrations import Migration, run_migrations
 from .persistence import (
     _RES_COLS,
     _SESSION_USAGE_SQL,
@@ -60,6 +61,9 @@ CREATE TABLE IF NOT EXISTS reservations (
 CREATE INDEX IF NOT EXISTS idx_res_eng ON reservations(engagement_id);
 """
 
+POSTGRES_MIGRATIONS = [Migration(1, "initial_schema", _SCHEMA)]
+_MIGRATION_LOCK_ID = 8234110001  # arbitrary constant; serialises migration across instances
+
 
 class PostgresRepository:
     def __init__(self, dsn: str, *, encryptor=None, min_size: int = 1, max_size: int = 8) -> None:
@@ -70,7 +74,25 @@ class PostgresRepository:
         self._pool = ConnectionPool(
             dsn, min_size=min_size, max_size=max_size, kwargs={"autocommit": True}, open=True
         )
-        self._exec(_SCHEMA)
+        self._migrate()
+
+    def _migrate(self) -> None:
+        with self._pool.connection() as conn, conn.cursor() as cur:
+            cur.execute("SELECT pg_advisory_lock(%s)", (_MIGRATION_LOCK_ID,))
+            try:
+                def query(sql, params=()):
+                    cur.execute(sql, params)
+                    return cur.fetchall()
+
+                run_migrations(
+                    POSTGRES_MIGRATIONS,
+                    execute_script=lambda sql: cur.execute(sql),
+                    execute=lambda sql, params=(): cur.execute(sql, params),
+                    query=query,
+                    placeholder="%s",
+                )
+            finally:
+                cur.execute("SELECT pg_advisory_unlock(%s)", (_MIGRATION_LOCK_ID,))
 
     def _exec(self, sql: str, params: tuple = ()):
         with self._pool.connection() as conn, conn.cursor() as cur:
