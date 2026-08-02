@@ -1,6 +1,6 @@
 # Repository Strengths — Aegis Implementation Ledger
 
-Last reconciled with Aegis commit: `6ca7699` on 2026-08-02
+Last reconciled with Aegis commit: `fa132d2` on 2026-08-02
 
 This file is the authoritative delivery ledger for the audited repository
 strengths and the corrections discovered during the Aegis reread. Update a row
@@ -23,7 +23,7 @@ Status values: `existing`, `partial`, `not-started`, `in-progress`, `complete`,
 | assetnote/kiterunner | AGPL-3.0 | Method/header/body-aware route schemas, wildcard baselines, target quarantine | Clean-room native schema/enumerator using owned/permissive data | 3 | `active/routes` | Wildcard FP suppression; bounded route enumeration; license check | complete | 4dfad03 |
 | projectdiscovery/nuclei | MIT | Versioned signed templates, filters, workflows, protocol work pools | Pinned adapter plus Aegis manifest allowlist | 3 | `adapters/nuclei`, template policy | Unknown/unsigned/prohibited templates rejected; request caps enforced | complete (digest unpinned) | c706c69 |
 | hahwul/dalfox | MIT | Reflection-first XSS, DOM/AST analysis, WAF/session awareness, cancellation, resume, SARIF/JSON | Pinned guarded adapter | 3 | `adapters/dalfox` | Bounded local-lab detection; session-loss/cancel/resume tests | complete (digest unpinned) | 30ecd91 |
-| projectdiscovery/interactsh | MIT | Correlated encrypted OAST sessions, authentication, polling, resumption | Private pinned service and client adapter | 4 | `oast`, `adapters/interactsh` | Encrypted tenant-scoped correlation, expiry, deletion, public-service rejection | not-started | — |
+| projectdiscovery/interactsh | MIT | Correlated encrypted OAST sessions, authentication, polling, resumption | Private pinned service and client adapter | 4 | `oast`, `adapters/interactsh` | Encrypted tenant-scoped correlation, expiry, deletion, public-service rejection | complete (server binary unpinned) | fa132d2 |
 | yogeshojha/rengine | GPL-3.0 | Durable asset history, stage DAGs, subscans, diffs, task ledger, notifications | Clean-room Aegis architecture; no copied GPL code | 1/4 | scheduler, snapshots, notifications | Durable stage/activity history; accurate diffs; authorized subscans | partial | 7d7cc23 |
 
 License identifiers apply to the versions audited on 2026-08-02 and must be
@@ -167,11 +167,17 @@ binaries. Obtain distribution-specific legal review before release.
     escalation is raised, and report rendering is blocked. Wired as the normalizer
     ingestion gate + coordinator quarantine (sensitive fixture never reaches the
     graph/observations/summary).
-  - Remaining: private Interactsh OAST (tenant-scoped, encrypted, unmatched->
-    quarantine, public-server rejection); browser worker (declarative schema, scope-
-    checked navigation/subresources, quarantined downloads, ephemeral contexts);
-    session-loss monitoring; continuous monitoring/subscans (parent scope digest,
-    no widening) + idempotent notifications; and the Phase 4 lab completion gate.
+  - **Private OAST**: complete (`fa132d2`) — tenant/engagement/scan/reservation-
+    bound authenticated sessions, secrets held in the secrets service (worker sees
+    only the interaction domain + opaque ref), interactions encrypted at rest and
+    matched to an outstanding authorized probe before becoming evidence, everything
+    unmatched/cross-tenant/disabled/foreign quarantined, protected polling, expiry/
+    deregistration/retention, and public-server rejection in production. (Pinning
+    the actual Interactsh server binary remains a deployment step.)
+  - Remaining: browser worker (declarative schema, scope-checked navigation/
+    subresources, quarantined downloads, ephemeral per-tenant contexts); session-
+    loss monitoring; continuous monitoring/subscans (parent scope digest, no
+    widening) + idempotent notifications; and the Phase 4 lab completion gate.
 - [ ] Phase 5: distributed isolation, load, failover, restore, and rotation drills pass.
 - [ ] Production documentation matches only tested and enabled capabilities.
 - [ ] Legal/license review completed for the exact distributed versions.
