@@ -1,6 +1,6 @@
 # Repository Strengths — Aegis Implementation Ledger
 
-Last reconciled with Aegis commit: `2c206ae` on 2026-08-02
+Last reconciled with Aegis commit: `bf0bf9e` on 2026-08-02
 
 This file is the authoritative delivery ledger for the audited repository
 strengths and the corrections discovered during the Aegis reread. Update a row
@@ -53,7 +53,7 @@ binaries. Obtain distribution-specific legal review before release.
 | Atomic policy/resource reservations | Separate authorize/commit can overbook and double-commit under concurrency | 1 | Concurrent DB tests cannot exceed budgets; finalize is idempotent | complete | a50c281 |
 | Persist scans, stages, tasks, leases, artifacts (assets/observations land with Phase 2 normalization) | Current repositories persist control state only | 1 | SQLite/PostgreSQL contract plus restart recovery | complete | 2c206ae |
 | Versioned DB migrations and foreign-key integrity | Current startup schema is create-if-not-exists without migration history | 1 | Upgrade/downgrade refusal and migration checksum tests | complete | 8cfaa3d |
-| External-process scoped execution gateway | In-process `httpx` transport cannot constrain CLI tools | 1 | Direct egress, redirect, private-IP, DNS-change tests | not-started | — |
+| External-process scoped execution gateway (policy authority + fake backend; prod network-namespace egress enforcement is deployment) | In-process `httpx` transport cannot constrain CLI tools | 1 | Direct egress, redirect, private-IP, DNS-change tests | complete | bf0bf9e |
 | Derive report scope from authorization | `prepare_submission` currently trusts a caller boolean | 1 | API cannot override an out-of-scope result | complete | 7a7b252 |
 | Gate each detector by `detector.action` | Current worker shares one outer action across all detectors | 1 | Mixed detector registry produces separate policy decisions | complete | 7a7b252 |
 | Make recon-to-BOLA an orchestrator transition | Current helper is called manually in a test | 3 | Discovery plus owned seed automatically queues BOLA task | not-started | — |
