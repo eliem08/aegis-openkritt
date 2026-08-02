@@ -1,6 +1,6 @@
 # Repository Strengths — Aegis Implementation Ledger
 
-Last reconciled with Aegis commit: `4dfad03` on 2026-08-02
+Last reconciled with Aegis commit: `d3b6410` on 2026-08-02
 
 This file is the authoritative delivery ledger for the audited repository
 strengths and the corrections discovered during the Aegis reread. Update a row
@@ -112,7 +112,8 @@ binaries. Obtain distribution-specific legal review before release.
     handoff** (provisional observations + a separate task_progress record, so a
     consumer can start from validated partial events while completion stays
     distinct; a quarantined stream is never promoted into the graph).
-- [ ] Phase 3: guarded active pipeline finds seeded lab bugs within exact limits.
+- [x] Phase 3: guarded active pipeline finds seeded lab bugs within exact limits.
+  (in-process lab gate; live binary runs still gated on digest-pinning + legal review)
   - Clean-room **parameter discovery**: algorithm complete (`5a23327`) —
     calibrate (stable-feature detection, unstable-target rejection) → batched
     marker probing → recursive bisection → individual verification, with request/
@@ -142,10 +143,21 @@ binaries. Obtain distribution-specific legal review before release.
     engines run through the real ScopedExecutionGateway (scope/method/DNS/budget
     enforced per probe) emitting PARAMETER/ROUTE events into the graph; automated
     license test asserts no copied AGPL/GPL source or bundled dataset.
-  - Remaining to close Phase 3: the **lab completion gate** — a local authorized
-    lab where the active pipeline finds seeded bugs within exact request/capability
-    budgets and produces nothing from unstable or truncated scans. (Live runs
-    against real pinned binaries still require the outstanding legal review.)
+  - **Lab completion gate**: passes (`d3b6410`) — an in-process authorized lab
+    (seeded BOLA object + canary, hidden/reflected parameter, discoverable routes;
+    no binaries, no network) driven end-to-end through the real pipeline: discovery
+    populates the graph, the recon→BOLA transition plans a task off it + an owned
+    seed, the real BOLA detector confirms the seeded cross-account read and the
+    candidate verifies on differential evidence; request accounting is exact
+    (engine→gateway→lab) and never over budget; unstable and truncated scans yield
+    incomplete-not-clean; and the unapproved is rejected (out-of-scope routes,
+    missing BFLA identity, blind XSS without OAST, non-manifest Nuclei templates).
+  - **Standing caveat (Phases 2–3):** the pipeline is proven in-process against a
+    synthetic lab and recorded golden fixtures. It has **not** run against the real
+    pinned binaries (subfinder/gau/httpx/katana/jsluice/nuclei/dalfox) — every such
+    adapter fails closed on an unpinned `executable_digest`. Pinning + a live lab
+    run remain blocked on the outstanding legal/license review for the exact
+    distributed versions.
 - [ ] Phase 4: private OAST/browser/monitoring and quarantine gates pass.
 - [ ] Phase 5: distributed isolation, load, failover, restore, and rotation drills pass.
 - [ ] Production documentation matches only tested and enabled capabilities.
