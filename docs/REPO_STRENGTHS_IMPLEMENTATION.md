@@ -1,6 +1,6 @@
 # Repository Strengths — Aegis Implementation Ledger
 
-Last reconciled with Aegis commit: `a50c281` on 2026-08-02
+Last reconciled with Aegis commit: `65dc710` on 2026-08-02
 
 This file is the authoritative delivery ledger for the audited repository
 strengths and the corrections discovered during the Aegis reread. Update a row
@@ -49,7 +49,7 @@ binaries. Obtain distribution-specific legal review before release.
 
 | Change needed | Why | Phase | Acceptance test | Status | Commit |
 |---|---|---:|---|---|---|
-| Tenant-bind principals and engagement access | Current agent/operator roles are global | 1 | Cross-tenant API/worker access denied | not-started | — |
+| Tenant-bind principals and engagement access | Current agent/operator roles are global | 1 | Cross-tenant API/worker access denied | complete | 65dc710 |
 | Atomic policy/resource reservations | Separate authorize/commit can overbook and double-commit under concurrency | 1 | Concurrent DB tests cannot exceed budgets; finalize is idempotent | complete | a50c281 |
 | Persist scans, stages, tasks, leases, assets, observations, artifacts | Current repositories persist control state only | 1 | SQLite/PostgreSQL contract plus restart recovery | not-started | — |
 | Versioned DB migrations and foreign-key integrity | Current startup schema is create-if-not-exists without migration history | 1 | Upgrade/downgrade refusal and migration checksum tests | not-started | — |
