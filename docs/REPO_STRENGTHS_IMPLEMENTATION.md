@@ -1,6 +1,6 @@
 # Repository Strengths — Aegis Implementation Ledger
 
-Last reconciled with Aegis commit: `7b6227a` on 2026-08-02
+Last reconciled with Aegis commit: `0c3600a` on 2026-08-02
 
 This file is the authoritative delivery ledger for the audited repository
 strengths and the corrections discovered during the Aegis reread. Update a row
@@ -61,7 +61,7 @@ binaries. Obtain distribution-specific legal review before release.
 | Fix insecure-config warning for Ed25519 | Warning currently checks HMAC keys but not configured public keys | 1 | Ed25519-only production config emits no false missing-key warning | complete | 7a7b252 |
 | Correct roadmap and production claims | Documentation currently overstates automatic wiring and has a stale TL;DR | 1 | Documentation consistency check/manual review | complete | 7a7b252 |
 | Add sensitive-data classifier at ingestion boundary | Current worker flag relies on detector behavior and regex redaction is downstream | 4 | Sensitive fixture never reaches normal DB/API/report | complete | 6ca7699 |
-| Replace dev Compose database defaults for production | Default password/host port are suitable only for local development | 5 | Production config validation rejects dev credentials/exposure | not-started | — |
+| Replace dev Compose database defaults for production | Default password/host port are suitable only for local development | 5 | Production config validation rejects dev credentials/exposure | complete | 0c3600a |
 | Resolve FastAPI TestClient dependency deprecation | Current suite emits a Starlette/httpx compatibility warning | 1 | Default test suite has no compatibility deprecation | complete | 7a7b252 |
 
 ## Phase completion checklist
