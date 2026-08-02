@@ -15,11 +15,13 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "pytest-cov", "httpx>=0.27"]
-api = ["fastapi>=0.110", "uvicorn>=0.29", "httpx>=0.27"]
+dev = ["pytest>=8", "pytest-cov", "httpx>=0.27", "cryptography>=42"]
+api = ["fastapi>=0.110", "uvicorn>=0.29", "httpx>=0.27", "cryptography>=42"]
 # Scope-enforcing outbound client + DeepSeek LLM planner both use httpx only.
 ai = ["httpx>=0.27"]
 net = ["httpx>=0.27"]
+# Ed25519 asymmetric authorization signatures.
+crypto = ["cryptography>=42"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

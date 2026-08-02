@@ -80,3 +80,97 @@ class RejectAllVerifier:
 
     def verify(self, payload: dict[str, Any], signature: str | None, key_id: str | None) -> bool:
         return False
+
+
+# --- Ed25519 (asymmetric) -------------------------------------------------
+#
+# The production-grade choice (Master Prompt §8 / P0 #8): the control plane
+# signs with a *private* key; the agent verifies with a *public* key it cannot
+# use to forge. Requires the ``cryptography`` package.
+
+try:
+    from cryptography.exceptions import InvalidSignature
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import (
+        Ed25519PrivateKey,
+        Ed25519PublicKey,
+    )
+
+    _HAS_ED25519 = True
+except ImportError:  # pragma: no cover - crypto not installed
+    _HAS_ED25519 = False
+
+
+def _require_crypto() -> None:
+    if not _HAS_ED25519:
+        raise RuntimeError("Ed25519 signing requires the 'cryptography' package")
+
+
+def _to_public_key(value) -> "Ed25519PublicKey":
+    if isinstance(value, Ed25519PublicKey):
+        return value
+    raw = bytes.fromhex(value) if isinstance(value, str) else bytes(value)
+    return Ed25519PublicKey.from_public_bytes(raw)
+
+
+class Ed25519SignatureVerifier:
+    """Verifies Ed25519 signatures with per-``key_id`` public keys.
+
+    Public keys may be raw 32-byte values, hex strings, or ``Ed25519PublicKey``
+    objects. Holds no private material — it can verify but never forge.
+    """
+
+    def __init__(self, public_keys: dict[str, "bytes | str | Ed25519PublicKey"]) -> None:
+        _require_crypto()
+        if not public_keys:
+            raise ValueError("at least one public key is required")
+        self._keys: dict[str, Ed25519PublicKey] = {
+            kid: _to_public_key(pk) for kid, pk in public_keys.items()
+        }
+
+    def verify(self, payload: dict[str, Any], signature: str | None, key_id: str | None) -> bool:
+        if not signature or not key_id:
+            return False
+        public_key = self._keys.get(key_id)
+        if public_key is None:
+            return False
+        try:
+            sig = bytes.fromhex(signature)
+        except ValueError:
+            return False
+        try:
+            public_key.verify(sig, canonical_bytes(payload))
+            return True
+        except InvalidSignature:
+            return False
+        except Exception:  # any crypto error => reject (fail closed)
+            return False
+
+
+class Ed25519Signer:
+    """Signs authorization payloads with an Ed25519 private key (control plane)."""
+
+    def __init__(self, private_key: "bytes | str | Ed25519PrivateKey", key_id: str) -> None:
+        _require_crypto()
+        if isinstance(private_key, Ed25519PrivateKey):
+            self._key = private_key
+        else:
+            raw = bytes.fromhex(private_key) if isinstance(private_key, str) else bytes(private_key)
+            self._key = Ed25519PrivateKey.from_private_bytes(raw)
+        self.key_id = key_id
+
+    @classmethod
+    def generate(cls, key_id: str) -> "Ed25519Signer":
+        _require_crypto()
+        return cls(Ed25519PrivateKey.generate(), key_id)
+
+    def sign(self, payload: dict[str, Any]) -> str:
+        return self._key.sign(canonical_bytes(payload)).hex()
+
+    def public_key_hex(self) -> str:
+        return self._key.public_key().public_bytes_raw().hex()
+
+    def private_key_hex(self) -> str:
+        return self._key.private_bytes_raw().hex()
+
+    def verifier(self) -> Ed25519SignatureVerifier:
+        return Ed25519SignatureVerifier({self.key_id: self._key.public_key()})

@@ -14,7 +14,7 @@ API**), HackerOne ingestion, knowledge base, **outbound scope proxy**,
 **guardrailed DeepSeek planner**, an **extensible vulnerability-detector
 framework** (BOLA/IDOR, exposed files, open redirect), and **acceptance-grade
 reporting** (redact → dedup → quality gates → HackerOne-ready report) —
-implemented and tested (**302 tests**). Full worker fleet and the patch protocol
+implemented and tested (**315 tests**). Full worker fleet and the patch protocol
 are still partial. See [Roadmap](#roadmap) and [PRODUCTION.md](PRODUCTION.md) for
 an honest readiness assessment.
 
@@ -466,13 +466,21 @@ Stages 1–3 are done. What remains of the operating loop (§3):
 - [x] **Durable persistence (SQLite)** — engagements, approvals, append-only
   audit, **kill-switch state**, and spend survive restarts (`AEGIS_DB_PATH`),
   behind a `Repository` protocol. Postgres is a drop-in for HA.
+- [x] **Ed25519 signing** — asymmetric authorization signatures; the agent
+  verifies with a public key it cannot forge (`AEGIS_ED25519_PUBLIC_KEYS`).
+- [x] **Recon → BOLA auto-wiring** — discovered `/users/{id}` endpoints +
+  operator-seeded objects become BOLA targets automatically.
+- [ ] **Postgres repository** — the same `Repository` over Postgres, for HA
+  (needs a live DB + docker-compose to validate).
 - [ ] **Ingest → control plane wiring** — register a draft authorization for
   operator signing straight from a discovered program.
 
 ---
 
-*Signing note:* the default `HmacSignatureVerifier` is symmetric (shared secret)
-and stdlib-only, suitable for an internal control plane. For production, plug in
-an asymmetric verifier (e.g. Ed25519) implementing the `SignatureVerifier`
-protocol so the agent verifies with a key it cannot use to forge. Never commit
-signing secrets — see `.gitignore`.
+*Signing note:* two verifiers ship. `HmacSignatureVerifier` is symmetric
+(shared secret), stdlib-only — fine for an internal control plane.
+**`Ed25519SignatureVerifier` is the production choice** (asymmetric): the
+control plane signs with a private key; this process holds only the public key
+and cannot forge. The control plane prefers it automatically when
+`AEGIS_ED25519_PUBLIC_KEYS` is set. Never commit signing secrets — see
+`.gitignore`.

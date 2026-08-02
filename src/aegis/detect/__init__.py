@@ -5,7 +5,13 @@ high-value detectors (BOLA/IDOR, exposed files, open redirect); add a class by
 writing a :class:`Detector` and registering it. Requires ``httpx``.
 """
 
-from .access_control import BolaDetector, ObjectRef
+from .access_control import (
+    BolaDetector,
+    ObjectRef,
+    ObjectSeed,
+    build_bola_objects,
+    route_signature,
+)
 from .auth import MissingAuthDetector
 from .base import (
     DetectionResult,
@@ -42,6 +48,9 @@ __all__ = [
     "Identity",
     "BolaDetector",
     "ObjectRef",
+    "ObjectSeed",
+    "build_bola_objects",
+    "route_signature",
     "MissingAuthDetector",
     "ExposedFileDetector",
     "CorsMisconfigDetector",

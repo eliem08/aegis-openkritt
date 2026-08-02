@@ -16,7 +16,12 @@ from dataclasses import dataclass, field
 from enum import IntEnum
 from typing import Mapping
 
-from aegis.policy import HmacSignatureVerifier, RejectAllVerifier, SignatureVerifier
+from aegis.policy import (
+    Ed25519SignatureVerifier,
+    HmacSignatureVerifier,
+    RejectAllVerifier,
+    SignatureVerifier,
+)
 
 TRUE_VALUES = {"1", "true", "yes", "on"}
 FALSE_VALUES = {"0", "false", "no", "off", ""}
@@ -56,7 +61,8 @@ def _principal_name(token: str, role: Role) -> str:
 @dataclass
 class ControlPlaneConfig:
     api_keys: dict[str, ApiPrincipal] = field(default_factory=dict)
-    signing_keys: dict[str, str] = field(default_factory=dict)
+    signing_keys: dict[str, str] = field(default_factory=dict)  # HMAC (symmetric)
+    signing_public_keys: dict[str, str] = field(default_factory=dict)  # Ed25519 (hex)
     require_signature: bool = True
     auth_enabled: bool = True
     max_audit_records: int = 1000
@@ -72,6 +78,10 @@ class ControlPlaneConfig:
         return SqliteRepository(self.db_path)
 
     def build_verifier(self) -> SignatureVerifier:
+        # Prefer asymmetric Ed25519 (the control plane holds the private key;
+        # this process only ever sees public keys).
+        if self.signing_public_keys:
+            return Ed25519SignatureVerifier(self.signing_public_keys)
         if self.signing_keys:
             return HmacSignatureVerifier(self.signing_keys)
         # No keys configured: reject every signature (fail closed). If
@@ -99,12 +109,18 @@ class ControlPlaneConfig:
         if raw_signing:
             signing_keys = dict(json.loads(raw_signing))
 
+        signing_public_keys: dict[str, str] = {}
+        raw_ed = env.get("AEGIS_ED25519_PUBLIC_KEYS")
+        if raw_ed:
+            signing_public_keys = dict(json.loads(raw_ed))
+
         require_signature = _flag(env.get("AEGIS_REQUIRE_SIGNATURE"), default=True)
         auth_enabled = not _flag(env.get("AEGIS_AUTH_DISABLED"), default=False)
 
         return cls(
             api_keys=api_keys,
             signing_keys=signing_keys,
+            signing_public_keys=signing_public_keys,
             require_signature=require_signature,
             auth_enabled=auth_enabled,
             db_path=env.get("AEGIS_DB_PATH") or None,

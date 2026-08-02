@@ -37,6 +37,10 @@ controlled engagements**, not unattended against production targets.
 - **LLM planner** (`aegis.ai`) — DeepSeek as a *guardrailed* planner: output
   filtered to allowed actions + in-scope targets, key from env, deterministic
   fallback. The model is never trusted; the gate re-checks.
+- **Ed25519 signing** (`aegis.policy.signing`) — asymmetric authorization
+  signatures: the control plane signs with a private key, this process verifies
+  with a public key it cannot use to forge. Preferred automatically when
+  `AEGIS_ED25519_PUBLIC_KEYS` is set (HMAC remains as a fallback).
 - **Durable persistence** (`aegis.api.persistence`) — SQLite behind the
   `Repository` protocol. Engagements, approval grants, the append-only audit
   trail, **kill-switch state**, and spend budget survive a restart (a fired kill
@@ -54,7 +58,7 @@ controlled engagements**, not unattended against production targets.
 | **Rate budget not persisted** | Rate/concurrency reset on restart (conservative: no in-flight load after a restart) | Externalise rate state (Redis) when scaling to multiple workers |
 | **Stand-in workers/planner/patcher** | No real testing/fix capability yet | Build real `passive_recon`, `api_agent`, …, and the patch protocol |
 | **Single-process** | No horizontal scale; budgets/kill switch are per-process | Externalise budget/kill-switch state (Redis) behind the same interfaces |
-| **Signing = HMAC (symmetric)** | Control plane holds the secret | Swap in an asymmetric `SignatureVerifier` (Ed25519) so the agent verifies with a public key |
+| **Key management** | Ed25519 signing is available; rotation/HSM storage of the private key is not built | Store the private key in an HSM/KMS; implement key rotation with overlapping `key_id`s |
 | **Secrets in `.env`/env** | Fine for dev; not for prod | Use a secrets manager (Vault, cloud KMS); never bake into images |
 | **No PII detector wired** | `stop_on_real_pii` is a flag workers must honor | Add a real sensitive-data classifier at the evidence boundary |
 | **Observability is basic** | JSON logs + correlation IDs only | Wire real OpenTelemetry traces/metrics + alerting |

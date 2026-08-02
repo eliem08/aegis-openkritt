@@ -31,6 +31,8 @@ from .engine import PolicyConfig, PolicyEngine, approval_token_for_tier
 from .killswitch import KillSwitch
 from .scope import ScopeGuard, ScopeResult, normalize_host
 from .signing import (
+    Ed25519SignatureVerifier,
+    Ed25519Signer,
     HmacSignatureVerifier,
     RejectAllVerifier,
     SignatureVerifier,
@@ -63,6 +65,8 @@ __all__ = [
     "ScopeResult",
     "normalize_host",
     "HmacSignatureVerifier",
+    "Ed25519SignatureVerifier",
+    "Ed25519Signer",
     "RejectAllVerifier",
     "SignatureVerifier",
     "canonical_bytes",

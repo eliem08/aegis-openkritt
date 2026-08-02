@@ -9,11 +9,14 @@ read — proven **without ever touching a real user's data** (§18).
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 
-from aegis.model import Canary, CanaryKind, Candidate, EvidenceBundle, InteractionStep
+from aegis.model import AttackSurface, Canary, CanaryKind, Candidate, EvidenceBundle, InteractionStep
 
 from .base import DetectionResult, DetectorContext, path_of
+
+_ID_SEGMENT = re.compile(r"^(\{[^}]+\}|\d+)$")
 
 
 @dataclass
@@ -21,6 +24,41 @@ class ObjectRef:
     url: str
     owner: str  # identity name that owns this object
     canary: str  # a marker string present only in the owner's private data
+
+
+@dataclass
+class ObjectSeed:
+    """An operator-seeded object in a discovered endpoint (their own account's).
+
+    ``route`` is the endpoint template (e.g. ``/users/{id}``); ``object_id`` is
+    the owner's own object; ``canary`` is a marker known to be in that object.
+    """
+
+    route: str
+    object_id: str
+    owner: str
+    canary: str
+    param: str = "id"
+
+
+def route_signature(path: str) -> str:
+    """Normalise id-bearing segments so ``/users/{id}`` and ``/users/1001`` match."""
+    return "/".join("*" if _ID_SEGMENT.match(seg) else seg for seg in path.split("/"))
+
+
+def build_bola_objects(surface: AttackSurface, seeds: list[ObjectSeed]) -> list[ObjectRef]:
+    """Auto-wire recon output to BOLA targets: for each seed whose endpoint
+    template was actually discovered, produce a concrete :class:`ObjectRef`."""
+    discovered = {route_signature(r.path) for a in surface.assets for r in a.routes}
+    objects: list[ObjectRef] = []
+    for seed in seeds:
+        if route_signature(seed.route) in discovered:
+            if "{" in seed.route:
+                url = seed.route.replace("{" + seed.param + "}", str(seed.object_id))
+            else:
+                url = seed.route
+            objects.append(ObjectRef(url=url, owner=seed.owner, canary=seed.canary))
+    return objects
 
 
 class BolaDetector:
