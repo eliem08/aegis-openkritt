@@ -16,6 +16,7 @@ from .notify import (
     Notification,
     Notifier,
 )
+from .session_loss import SessionBaseline, SessionCheck, SessionLossMonitor
 
 __all__ = [
     "MonitorSchedule",
@@ -30,4 +31,7 @@ __all__ = [
     "Destination",
     "DestinationKind",
     "DeliveryRecord",
+    "SessionLossMonitor",
+    "SessionBaseline",
+    "SessionCheck",
 ]
