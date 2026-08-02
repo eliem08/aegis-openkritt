@@ -44,6 +44,7 @@ from .http_hardening import HardeningFinding, HardeningIssue, analyze_response_h
 from .js_secrets import HIGH_VALUE_CATEGORIES, JsSecretFinding, analyze_javascript_secrets
 from .path_bypass import PathBypassFinding, analyze_path_normalization, normalization_variants
 from .ssrf import SSRF_PARAM_HINTS, SsrfFinding, candidate_ssrf_params, run_ssrf_probes
+from .surface import surface_candidates
 from .routes import (
     EnumConfig,
     EnumerationResult,
@@ -127,4 +128,5 @@ __all__ = [
     "analyze_path_normalization",
     "normalization_variants",
     "PathBypassFinding",
+    "surface_candidates",
 ]

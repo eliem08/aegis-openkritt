@@ -38,6 +38,9 @@ DETECTOR_ACTIONS = {
     "error_disclosure": "benign_request_mutation",
     "cors": "benign_request_mutation",
     "open_redirect": "benign_request_mutation",
+    "ssrf": "benign_request_mutation",
+    "graphql": "benign_request_mutation",
+    "path_bypass": "benign_request_mutation",
 }
 
 # Detectors whose target set is the discovered route set.
@@ -170,6 +173,33 @@ def plan_detectors(
         else:
             plan.skipped["bfla"] = "no privileged endpoints declared"
 
+    # --- SSRF: only where discovery found a URL-accepting parameter ---
+    if "ssrf" in enabled:
+        from aegis.active.ssrf import candidate_ssrf_params
+
+        param_names = _dedupe(_param_name(p) for r in routes for p in (r.parameters or []))
+        ssrf_params = candidate_ssrf_params([n for n in param_names if n])
+        if ssrf_params:
+            ssrf_routes = _dedupe(
+                r.path for r in routes
+                if any(_param_name(p) in ssrf_params for p in (r.parameters or [])))
+            plan.tasks.append(DetectorTask(
+                "ssrf", DETECTOR_ACTIONS["ssrf"], tuple(ssrf_routes),
+                {"parameters": list(ssrf_params)},
+                est_requests=len(ssrf_params) * max(1, len(ssrf_routes))))
+        else:
+            plan.skipped["ssrf"] = "no URL-accepting parameters discovered"
+
+    # --- GraphQL: only where a GraphQL endpoint was discovered ---
+    if "graphql" in enabled:
+        endpoints = _dedupe(r.path for r in routes if "graphql" in r.path.lower())
+        if endpoints:
+            plan.tasks.append(DetectorTask(
+                "graphql", DETECTOR_ACTIONS["graphql"], tuple(endpoints), {},
+                est_requests=len(endpoints) * 3))
+        else:
+            plan.skipped["graphql"] = "no GraphQL endpoint discovered"
+
     # --- route-target detectors: explicit targets from discovery only ---
     for detector in ROUTE_TARGET_DETECTORS:
         if detector not in enabled:
@@ -251,6 +281,10 @@ def _bola_objects(seeds, discovered_sigs) -> list[ObjectRef]:
             url = seed.route
         objects.append(ObjectRef(url=url, owner=seed.owner, canary=seed.canary))
     return objects
+
+
+def _param_name(param) -> str:
+    return str(param.get("name") if isinstance(param, dict) else param or "")
 
 
 def _names(identities) -> set:
