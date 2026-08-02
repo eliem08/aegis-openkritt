@@ -30,6 +30,13 @@ from .detectors import (
     reserve_plan,
     routes_from_assets,
 )
+from .auth_posture import (
+    AuthAnomaly,
+    AuthPosture,
+    RouteAuthObservation,
+    analyze_auth_differential,
+    classify_posture,
+)
 from .enumeration import IdentifierKind, IdentifierProfile, analyze_identifiers
 from .routes import (
     EnumConfig,
@@ -89,4 +96,9 @@ __all__ = [
     "analyze_identifiers",
     "IdentifierProfile",
     "IdentifierKind",
+    "analyze_auth_differential",
+    "classify_posture",
+    "AuthPosture",
+    "AuthAnomaly",
+    "RouteAuthObservation",
 ]
