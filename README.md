@@ -14,7 +14,7 @@ API**), HackerOne ingestion, knowledge base, **outbound scope proxy**,
 **guardrailed DeepSeek planner**, an **extensible vulnerability-detector
 framework** (BOLA/IDOR, exposed files, open redirect), and **acceptance-grade
 reporting** (redact → dedup → quality gates → HackerOne-ready report) —
-implemented and tested (**284 tests**). Full worker fleet and the patch protocol
+implemented and tested (**293 tests**). Full worker fleet and the patch protocol
 are still partial. See [Roadmap](#roadmap) and [PRODUCTION.md](PRODUCTION.md) for
 an honest readiness assessment.
 
@@ -306,11 +306,15 @@ reach out of scope. Shipped detectors:
 | Detector | Class | How it proves impact safely |
 |---|---|---|
 | `BolaDetector` | IDOR/BOLA (CWE-639) | two **owned** test accounts + a canary — proves cross-account read without touching a real user (§18) |
+| `MissingAuthDetector` | missing auth (CWE-306) | request a protected endpoint with **no credentials**; flag 200 + signature |
 | `ExposedFileDetector` | VCS/config/creds (CWE-538/200) | GET known paths, require a content signature (no SPA false positives) |
+| `CorsMisconfigDetector` | CORS (CWE-942) | canary `Origin` reflected **with credentials** — headers only |
 | `OpenRedirectDetector` | open redirect (CWE-601) | canary host in `Location`, checked **without following** the redirect |
 
-Add a class by writing a `Detector` and registering it — nothing else changes.
-`DetectorWorker` bridges them into the orchestrator loop.
+A **`ReconWorker`** discovers endpoints (robots/sitemap/JS/OpenAPI spec) through
+the scope proxy and builds the attack surface, so the pipeline maps its own
+targets. Add a bug class by writing a `Detector` and registering it — nothing
+else changes. `DetectorWorker` bridges detectors into the orchestrator loop.
 
 > Honest scope: this is an *extensible framework with high-value detectors*, not
 > a claim that every bug class is covered. New classes are cheap to add; breadth
@@ -411,8 +415,11 @@ src/aegis/ai/
 src/aegis/detect/
   base.py            Detector framework (gated context, registry)
   access_control.py  BOLA/IDOR (owned accounts + canary)
+  auth.py            missing authentication (CWE-306)
   exposure.py        exposed VCS/config/credential files
+  cors.py            CORS misconfiguration (CWE-942)
   redirects.py       open redirect (no-follow)
+  recon.py           ReconWorker — endpoint/surface discovery
   worker.py          DetectorWorker (bridges to the loop)
 src/aegis/report/
   redact.py          strip credentials/PII from evidence
