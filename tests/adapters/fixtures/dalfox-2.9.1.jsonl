@@ -1,0 +1,5 @@
+{"type":"R","inject_type":"inHTML-URL","method":"GET","data":"https://app.example.test/search?q=FUZZ","param":"q","payload":"<script>alert(1)</script>","evidence":"reflected in body","cwe":"CWE-79","severity":"medium"}
+{"type":"V","inject_type":"inJS-URL","method":"GET","data":"https://app.example.test/profile?name=FUZZ","param":"name","payload":"';alert(1);//","evidence":"executed in DOM","cwe":"CWE-79","severity":"high"}
+{"type":"G","inject_type":"grep","method":"GET","data":"https://app.example.test/page?ref=1","param":"ref","evidence":"aws_key pattern","severity":"low"}
+{"type":"log","message":"scanning app.example.test"}
+{"type":"error","message":"connection reset by peer","data":"https://app.example.test/x"}

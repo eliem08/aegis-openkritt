@@ -86,11 +86,16 @@ def _default_adapters() -> dict:
     may reference them but they refuse to execute until a release checksum is
     pinned — fail closed rather than run an unverified binary.
     """
-    from aegis.adapters import FakeDiscoveryAdapter, discovery_adapters
+    from aegis.adapters import DalfoxAdapter, FakeDiscoveryAdapter, discovery_adapters
 
     fake = FakeDiscoveryAdapter()
     registry = {fake.manifest.name: fake}
     registry.update(discovery_adapters())
+    # Dalfox registers here too; like the discovery adapters it fails closed until
+    # a release digest is pinned. (Nuclei needs a signed template manifest, so it
+    # is constructed per-engagement, not in this default registry.)
+    dalfox = DalfoxAdapter()
+    registry[dalfox.manifest.name] = dalfox
     return registry
 
 

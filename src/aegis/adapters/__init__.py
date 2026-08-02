@@ -32,6 +32,14 @@ from .contract import (
     event_from,
     validate_against_manifest,
 )
+from .dalfox import (
+    DALFOX_MANIFEST,
+    DalfoxAdapter,
+    DalfoxConfig,
+    DalfoxMode,
+    DalfoxOutcome,
+    DangerousModeNotAuthorized,
+)
 from .fake import FAKE_MANIFEST, FakeDiscoveryAdapter
 from .gau import GAU_MANIFEST, GauAdapter, GauConfig
 from .http_probe import HTTP_PROBE_MANIFEST, HttpProbeAdapter, HttpProbeConfig
@@ -119,4 +127,10 @@ __all__ = [
     "sign_manifest",
     "DEFAULT_ALLOWED_PROTOCOLS",
     "PROHIBITED_PROTOCOLS",
+    "DalfoxAdapter",
+    "DalfoxConfig",
+    "DalfoxMode",
+    "DalfoxOutcome",
+    "DangerousModeNotAuthorized",
+    "DALFOX_MANIFEST",
 ]
