@@ -78,6 +78,9 @@ class Classification:
 # --- deterministic patterns ------------------------------------------------
 
 _PRIVATE_KEY = re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH |DSA |PGP )?PRIVATE KEY-----")
+# Full PEM block, used for redaction so no fragment (incl. the END marker) survives.
+_PRIVATE_KEY_BLOCK = re.compile(
+    r"-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----.*?-----END [A-Z0-9 ]*PRIVATE KEY-----", re.DOTALL)
 _AWS_KEY = re.compile(r"\b(?:AKIA|ASIA|AGPA|AIDA)[0-9A-Z]{16}\b")
 _JWT = re.compile(r"\beyJ[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\b")
 _GCP_KEY = re.compile(r"\bAIza[0-9A-Za-z_-]{35}\b")
@@ -251,7 +254,7 @@ def redact(value, matches: list[Match] | None = None):
     if isinstance(value, (list, tuple)):
         return [redact(v) for v in value]
     if isinstance(value, str):
-        red = value
+        red = _PRIVATE_KEY_BLOCK.sub("[redacted]", value)   # whole PEM block first
         for _cat, pattern in _DETERMINISTIC:
             red = pattern.sub("[redacted]", red)
         red = _CARD.sub(lambda m: "[redacted]" if _luhn(re.sub(r"\D", "", m.group())) else m.group(), red)
