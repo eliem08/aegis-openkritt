@@ -1,6 +1,6 @@
 # Repository Strengths — Aegis Implementation Ledger
 
-Last reconciled with Aegis commit: `7d7cc23` on 2026-08-02
+Last reconciled with Aegis commit: `5c8de76` on 2026-08-02
 
 This file is the authoritative delivery ledger for the audited repository
 strengths and the corrections discovered during the Aegis reread. Update a row
@@ -14,11 +14,11 @@ Status values: `existing`, `partial`, `not-started`, `in-progress`, `complete`,
 
 | Reference | Audited license | Strength adopted | Aegis strategy | Phase | Planned Aegis area | Acceptance evidence | Status | Commit |
 |---|---|---|---|---:|---|---|---|---|
-| projectdiscovery/subfinder | MIT | Concurrent passive providers, provenance, provider quotas, cancellation, wildcard filtering | Pinned adapter | 2 | `adapters/subfinder`, discovery stages | Multi-provider fixture preserves source; wildcard/out-of-scope results rejected | not-started | — |
-| projectdiscovery/httpx | MIT | Typed HTTP/TLS/service observations, retries, hashes, resumable probing | Pinned `HttpProbeAdapter` | 2 | `adapters/http_probe`, observations | Golden JSON fixtures; typed service snapshot; retry and hash tests | not-started | — |
-| projectdiscovery/katana | MIT | Standard/headless split, bounded queues, session state, dedup, logout avoidance | Pinned adapter; headless enabled in Phase 4 | 2/4 | `adapters/katana`, browser worker | Queue/scope/logout/session tests; direct-egress denial | not-started | — |
-| lc/gau | MIT | Pluggable passive historical-URL providers and streaming filters | Pinned adapter | 2 | `adapters/gau`, discovery stages | Provider/timestamp provenance; zero target traffic | not-started | — |
-| BishopFox/jsluice | MIT | AST-based endpoint/secret extraction with context and FP discipline | Pinned adapter over acquired JS | 2 | `adapters/jsluice`, classifier | AST golden fixtures; contextual events; secret candidates quarantined | not-started | — |
+| projectdiscovery/subfinder | MIT | Concurrent passive providers, provenance, provider quotas, cancellation, wildcard filtering | Pinned adapter | 2 | `adapters/subfinder`, discovery stages | Multi-provider fixture preserves source; wildcard/out-of-scope results rejected | complete (digest unpinned) | 5c8de76 |
+| projectdiscovery/httpx | MIT | Typed HTTP/TLS/service observations, retries, hashes, resumable probing | Pinned `HttpProbeAdapter` | 2 | `adapters/http_probe`, observations | Golden JSON fixtures; typed service snapshot; retry and hash tests | complete (digest unpinned) | 5c8de76 |
+| projectdiscovery/katana | MIT | Standard/headless split, bounded queues, session state, dedup, logout avoidance | Pinned adapter; headless enabled in Phase 4 | 2/4 | `adapters/katana`, browser worker | Queue/scope/logout/session tests; direct-egress denial | partial (no cookie/session boundary) | 5c8de76 |
+| lc/gau | MIT | Pluggable passive historical-URL providers and streaming filters | Pinned adapter | 2 | `adapters/gau`, discovery stages | Provider/timestamp provenance; zero target traffic | complete (digest unpinned) | 5c8de76 |
+| BishopFox/jsluice | MIT | AST-based endpoint/secret extraction with context and FP discipline | Pinned adapter over acquired JS | 2 | `adapters/jsluice`, classifier | AST golden fixtures; contextual events; secret candidates quarantined | complete (digest unpinned) | 5c8de76 |
 | s0md3v/Arjun | AGPL-3.0 | Stable baseline, batched anomaly detection, recursive narrowing, individual confirmation | Clean-room native algorithm; no copied source/wordlists | 3 | `discovery/parameters` | Seeded parameter found efficiently; unstable targets incomplete; license check | not-started | — |
 | assetnote/kiterunner | AGPL-3.0 | Method/header/body-aware route schemas, wildcard baselines, target quarantine | Clean-room native schema/enumerator using owned/permissive data | 3 | `discovery/routes` | Wildcard FP suppression; bounded route enumeration; license check | not-started | — |
 | projectdiscovery/nuclei | MIT | Versioned signed templates, filters, workflows, protocol work pools | Pinned adapter plus Aegis manifest allowlist | 3 | `adapters/nuclei`, template policy | Unknown/unsigned/prohibited templates rejected; request caps enforced | not-started | — |
@@ -93,9 +93,24 @@ binaries. Obtain distribution-specific legal review before release.
     per-scan `AssetSnapshot` with added/changed/unchanged/missing diffs where
     missing is never a removal until N *complete* scans agree. Durable on SQLite +
     Postgres via migration 0003, wired into the coordinator.
-  - Remaining: the five adapters themselves (subfinder, gau, httpx/`HttpProbeAdapter`,
-    katana, jsluice) with golden fixtures per pinned version, plus streaming stage
-    handoff and the per-adapter error/partial-coverage codes.
+  - Five discovery adapters: **built and tested** (`5c8de76`) against golden
+    fixtures per pinned version, with the per-adapter error/partial-coverage codes.
+    All five feed one provenance-rich graph; katana and jsluice corroborate the
+    same route and deduplicate to a single asset retaining both sources.
+  - Remaining before the box is ticked:
+    1. **Release digests are not pinned.** Every adapter declares
+       `executable_digest=""` and refuses to run (fail closed). Pinning requires
+       downloading the exact releases — and the legal/license review for the
+       versions actually distributed, which is still outstanding.
+    2. **No adapter has been run against its real binary.** Parsing is proven only
+       against recorded fixtures, so a live-output mismatch is possible until a
+       pinned run happens.
+    3. **Katana cookie/session boundary** is not implemented (spec: preserve cookie
+       state only inside the task's credential/session boundary).
+    4. **Streaming stage handoff** is not implemented — a downstream stage cannot
+       yet start from validated incremental events while its producer is running.
+    5. **Gateway-audited egress for external binaries** remains deployment-level
+       (network-namespace) enforcement, as the Phase 1 gateway row already notes.
 - [ ] Phase 3: guarded active pipeline finds seeded lab bugs within exact limits.
 - [ ] Phase 4: private OAST/browser/monitoring and quarantine gates pass.
 - [ ] Phase 5: distributed isolation, load, failover, restore, and rotation drills pass.
