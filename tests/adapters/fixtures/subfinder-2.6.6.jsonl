@@ -1,0 +1,8 @@
+{"host":"api.example.test","input":"example.test","source":"crtsh"}
+{"host":"www.example.test","input":"example.test","source":"crtsh"}
+{"host":"API.Example.Test.","input":"example.test","source":"virustotal"}
+{"host":"deep.internal.example.test","input":"example.test","source":"dnsdumpster"}
+{"host":"*.example.test","input":"example.test","source":"crtsh"}
+{"host":"wild.example.test","input":"example.test","source":"crtsh","wildcard":true}
+{"host":"evil.other-domain.test","input":"example.test","source":"virustotal"}
+{"source":"shodan","error":"invalid api key"}

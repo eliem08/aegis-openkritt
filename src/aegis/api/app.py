@@ -79,12 +79,19 @@ def create_app(config: ControlPlaneConfig | None = None) -> FastAPI:
 
 
 def _default_adapters() -> dict:
-    """The adapter registry available to scans. Phase 1 ships the fake discovery
-    adapter; real pinned adapters (subfinder/httpx/...) register here in Phase 2."""
-    from aegis.adapters import FakeDiscoveryAdapter
+    """The adapter registry available to scans.
+
+    The five Phase 2 discovery adapters are registered alongside the fake one.
+    They are constructed with their declared (as yet unpinned) digests, so a scan
+    may reference them but they refuse to execute until a release checksum is
+    pinned — fail closed rather than run an unverified binary.
+    """
+    from aegis.adapters import FakeDiscoveryAdapter, discovery_adapters
 
     fake = FakeDiscoveryAdapter()
-    return {fake.manifest.name: fake}
+    registry = {fake.manifest.name: fake}
+    registry.update(discovery_adapters())
+    return registry
 
 
 def _warn_on_insecure_config(config: ControlPlaneConfig) -> None:

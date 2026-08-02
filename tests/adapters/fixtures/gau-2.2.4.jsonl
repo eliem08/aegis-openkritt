@@ -1,0 +1,5 @@
+{"url":"https://api.example.test/v1/users?id=1&debug=true","provider":"wayback","date":"20240115103000","status":200,"mime":"application/json"}
+{"url":"https://api.example.test/v1/users?id=99&debug=false","provider":"commoncrawl","date":"20231002","status":200,"mime":"application/json"}
+{"url":"https://api.example.test/static/logo.png","provider":"wayback","date":"20240101","status":200,"mime":"image/png"}
+{"url":"https://api.example.test/admin","provider":"otx","status":403,"mime":"text/html"}
+{"url":"https://api.example.test/style.css","provider":"wayback","status":200}

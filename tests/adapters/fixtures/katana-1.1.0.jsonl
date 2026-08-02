@@ -1,0 +1,6 @@
+{"timestamp":"2026-08-02T10:00:00Z","request":{"method":"GET","endpoint":"https://api.example.test/v1/users?id=1","tag":"a","attribute":"href","source":"https://api.example.test/"},"response":{"status_code":200,"body_hash":"h1"}}
+{"timestamp":"2026-08-02T10:00:01Z","request":{"method":"GET","endpoint":"https://api.example.test/v1/users?id=2","tag":"a","attribute":"href","source":"https://api.example.test/"},"response":{"status_code":200,"body_hash":"h2"}}
+{"timestamp":"2026-08-02T10:00:02Z","request":{"method":"POST","endpoint":"https://api.example.test/v1/login","tag":"form","source":"https://api.example.test/","body":"user=&pass="},"response":{"status_code":200,"body_hash":"h3"}}
+{"timestamp":"2026-08-02T10:00:03Z","request":{"method":"GET","endpoint":"https://api.example.test/logout","tag":"a","source":"https://api.example.test/"},"response":{"status_code":200,"body_hash":"h4"}}
+{"timestamp":"2026-08-02T10:00:04Z","request":{"method":"GET","endpoint":"https://evil.other-domain.test/x","tag":"a","source":"https://api.example.test/"},"response":{"status_code":200}}
+{"timestamp":"2026-08-02T10:00:05Z","request":{"method":"GET","endpoint":"https://api.example.test/dup","tag":"a","source":"https://api.example.test/"},"response":{"status_code":200,"body_hash":"h1"}}

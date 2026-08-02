@@ -1,0 +1,4 @@
+{"url":"/api/v2/orders","method":"GET","queryParams":["page","limit"],"type":"fetch","filename":"app.js","line":42}
+{"url":"https://api.example.test/api/v2/checkout","method":"POST","queryParams":[],"bodyParams":["token","amount"],"type":"fetch","filename":"app.js","line":88}
+{"url":"/api/v2/","method":"GET","queryParams":[],"type":"concatenation","filename":"app.js","line":120}
+{"url":"/v1/users","method":"GET","queryParams":["id"],"type":"fetch","filename":"app.js","line":15}

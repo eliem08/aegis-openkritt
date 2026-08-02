@@ -157,7 +157,18 @@ class Normalizer:
             port = data.get("port")
             if port is None:
                 raise ValueError("service event has no port")
-            return [_Candidate(AssetKind.SERVICE, service_key(host, port, str(data.get("scheme") or "")), host, data)]
+            out = [_Candidate(
+                AssetKind.SERVICE, service_key(host, port, str(data.get("scheme") or "")), host, data)]
+            # A probe reports technologies alongside the service; each is its own asset.
+            for tech in data.get("technologies") or []:
+                name, _, version = str(tech).partition(":")
+                if not name:
+                    continue
+                out.append(_Candidate(
+                    AssetKind.TECHNOLOGY, technology_key(host, name, version), host,
+                    {"name": name, "version": version, "host": host},
+                ))
+            return out
 
         if event.kind == EventKind.ROUTE:
             host = normalize_hostname(fallback_host)
