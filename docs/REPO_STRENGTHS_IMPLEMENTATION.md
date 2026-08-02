@@ -1,6 +1,6 @@
 # Repository Strengths — Aegis Implementation Ledger
 
-Last reconciled with Aegis commit: `4cb7442` on 2026-08-02
+Last reconciled with Aegis commit: `7d7cc23` on 2026-08-02
 
 This file is the authoritative delivery ledger for the audited repository
 strengths and the corrections discovered during the Aegis reread. Update a row
@@ -24,7 +24,7 @@ Status values: `existing`, `partial`, `not-started`, `in-progress`, `complete`,
 | projectdiscovery/nuclei | MIT | Versioned signed templates, filters, workflows, protocol work pools | Pinned adapter plus Aegis manifest allowlist | 3 | `adapters/nuclei`, template policy | Unknown/unsigned/prohibited templates rejected; request caps enforced | not-started | — |
 | hahwul/dalfox | MIT | Reflection-first XSS, DOM/AST analysis, WAF/session awareness, cancellation, resume, SARIF/JSON | Pinned guarded adapter | 3 | `adapters/dalfox` | Bounded local-lab detection; session-loss/cancel/resume tests | not-started | — |
 | projectdiscovery/interactsh | MIT | Correlated encrypted OAST sessions, authentication, polling, resumption | Private pinned service and client adapter | 4 | `oast`, `adapters/interactsh` | Encrypted tenant-scoped correlation, expiry, deletion, public-service rejection | not-started | — |
-| yogeshojha/rengine | GPL-3.0 | Durable asset history, stage DAGs, subscans, diffs, task ledger, notifications | Clean-room Aegis architecture; no copied GPL code | 1/4 | scheduler, snapshots, notifications | Durable stage/activity history; accurate diffs; authorized subscans | not-started | — |
+| yogeshojha/rengine | GPL-3.0 | Durable asset history, stage DAGs, subscans, diffs, task ledger, notifications | Clean-room Aegis architecture; no copied GPL code | 1/4 | scheduler, snapshots, notifications | Durable stage/activity history; accurate diffs; authorized subscans | partial | 7d7cc23 |
 
 License identifiers apply to the versions audited on 2026-08-02 and must be
 rechecked when pinning a release. Keep upstream notices for distributed MIT
@@ -86,6 +86,16 @@ binaries. Obtain distribution-specific legal review before release.
     quarantine; the graph lands with the discovery adapters, as the persistence row
     notes.
 - [ ] Phase 2: five discovery adapters produce a durable authorized snapshot.
+  - Asset/observation graph + normalizer: **complete** (`7d7cc23`). Immutable
+    observations with adapter/provider provenance; assets deduplicated by natural
+    key (domain/service/URL/route/parameter/technology) with provenance unioned,
+    never deleted; out-of-scope and wildcard emissions rejected before storage;
+    per-scan `AssetSnapshot` with added/changed/unchanged/missing diffs where
+    missing is never a removal until N *complete* scans agree. Durable on SQLite +
+    Postgres via migration 0003, wired into the coordinator.
+  - Remaining: the five adapters themselves (subfinder, gau, httpx/`HttpProbeAdapter`,
+    katana, jsluice) with golden fixtures per pinned version, plus streaming stage
+    handoff and the per-adapter error/partial-coverage codes.
 - [ ] Phase 3: guarded active pipeline finds seeded lab bugs within exact limits.
 - [ ] Phase 4: private OAST/browser/monitoring and quarantine gates pass.
 - [ ] Phase 5: distributed isolation, load, failover, restore, and rotation drills pass.
