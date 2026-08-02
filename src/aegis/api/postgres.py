@@ -23,6 +23,8 @@ from . import graph_serde, scans
 from .migrations import Migration, run_migrations
 from .persistence import (
     _RES_COLS,
+    _progress_from_row,
+    _state_clause,
     _SESSION_USAGE_SQL,
     _SPEND_USAGE_SQL,
     dt_from_iso,
@@ -117,10 +119,23 @@ CREATE TABLE IF NOT EXISTS asset_snapshots (
 CREATE INDEX IF NOT EXISTS idx_snap_eng ON asset_snapshots(engagement_id);
 """
 
+_STREAMING_SCHEMA_PG = """
+ALTER TABLE observations ADD COLUMN IF NOT EXISTS state TEXT NOT NULL DEFAULT 'promoted';
+CREATE INDEX IF NOT EXISTS idx_obs_state ON observations(task_id, state);
+ALTER TABLE stage_runs ADD COLUMN IF NOT EXISTS stream_from TEXT NOT NULL DEFAULT '[]';
+ALTER TABLE stage_runs ADD COLUMN IF NOT EXISTS min_stream_events INTEGER NOT NULL DEFAULT 1;
+CREATE TABLE IF NOT EXISTS task_progress (
+    task_id TEXT PRIMARY KEY, scan_id TEXT NOT NULL, stage_id TEXT,
+    events INTEGER, assets INTEGER, rejected INTEGER, updated_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_progress_scan ON task_progress(scan_id);
+"""
+
 POSTGRES_MIGRATIONS = [
     Migration(1, "initial_schema", _SCHEMA),
     Migration(2, "scan_model", _SCAN_SCHEMA_PG),
     Migration(3, "asset_graph", _GRAPH_SCHEMA_PG),
+    Migration(4, "streaming_progress", _STREAMING_SCHEMA_PG),
 ]
 _MIGRATION_LOCK_ID = 8234110001  # arbitrary constant; serialises migration across instances
 
@@ -356,7 +371,7 @@ class PostgresRepository:
         return [scans.scan_from_row(r) for r in rows]
 
     def create_stage(self, stage) -> None:
-        self._exec(f"INSERT INTO stage_runs({scans.STAGE_COLS}) VALUES ({','.join(['%s'] * 8)})", scans.stage_values(stage))
+        self._exec(f"INSERT INTO stage_runs({scans.STAGE_COLS}) VALUES ({','.join(['%s'] * 10)})", scans.stage_values(stage))
 
     def stages_for_scan(self, scan_id):
         return [scans.stage_from_row(r) for r in self._query(f"SELECT {scans.STAGE_COLS} FROM stage_runs WHERE scan_id=%s", (scan_id,))]
@@ -476,15 +491,46 @@ class PostgresRepository:
 
     # -- asset graph (observations are append-only; assets are the derived view) --
 
-    def record_observations(self, observations) -> int:
-        rows = [graph_serde.observation_values(o) for o in observations]
+    def record_observations(self, observations, state=graph_serde.PROMOTED) -> int:
+        rows = [graph_serde.observation_values(o, state) for o in observations]
         if not rows:
             return 0
         with self._pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
             cur.executemany(
-                f"INSERT INTO observations({graph_serde.OBSERVATION_COLS}) VALUES ({','.join(['%s'] * 12)})", rows
+                f"INSERT INTO observations({graph_serde.OBSERVATION_COLS}) VALUES ({','.join(['%s'] * 13)})", rows
             )
         return len(rows)
+
+    def observation_state_counts(self, task_id) -> dict:
+        rows = self._query(
+            "SELECT state, COUNT(*) FROM observations WHERE task_id=%s GROUP BY state", (task_id,))
+        return {r[0]: r[1] for r in rows}
+
+    def set_observation_state(self, task_id, state, *, only_from=graph_serde.PROVISIONAL) -> int:
+        with self._pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
+            cur.execute("UPDATE observations SET state=%s WHERE task_id=%s AND state=%s",
+                        (state, task_id, only_from))
+            return cur.rowcount
+
+    def record_progress(self, task_id, scan_id, *, stage_id="", events=0, assets=0, rejected=0) -> None:
+        self._exec(
+            "INSERT INTO task_progress(task_id, scan_id, stage_id, events, assets, rejected, updated_at) "
+            "VALUES (%s,%s,%s,%s,%s,%s,%s) ON CONFLICT (task_id) DO UPDATE SET events=EXCLUDED.events, "
+            "assets=EXCLUDED.assets, rejected=EXCLUDED.rejected, updated_at=EXCLUDED.updated_at",
+            (task_id, scan_id, stage_id, events, assets, rejected, now_iso()),
+        )
+
+    def get_progress(self, task_id):
+        rows = self._query(
+            "SELECT task_id, scan_id, stage_id, events, assets, rejected, updated_at "
+            "FROM task_progress WHERE task_id=%s", (task_id,))
+        return _progress_from_row(rows[0]) if rows else None
+
+    def progress_for_scan(self, scan_id):
+        rows = self._query(
+            "SELECT task_id, scan_id, stage_id, events, assets, rejected, updated_at "
+            "FROM task_progress WHERE scan_id=%s", (scan_id,))
+        return [_progress_from_row(r) for r in rows]
 
     def upsert_assets(self, assets) -> int:
         assets = list(assets)
@@ -514,17 +560,28 @@ class PostgresRepository:
             params += (getattr(kind, "value", kind),)
         return [graph_serde.asset_from_row(r) for r in self._query(sql + " ORDER BY asset_key", params)]
 
-    def observations_for_asset(self, engagement_id, asset_key):
+    def observations_for_asset(self, engagement_id, asset_key, states=(graph_serde.PROMOTED,)):
+        clause, params = _state_clause(states, "%s")
         rows = self._query(
             f"SELECT {graph_serde.OBSERVATION_COLS} FROM observations "
-            "WHERE engagement_id=%s AND asset_key=%s ORDER BY observed_at", (engagement_id, asset_key),
+            f"WHERE engagement_id=%s AND asset_key=%s{clause} ORDER BY observed_at",
+            (engagement_id, asset_key, *params),
         )
         return [graph_serde.observation_from_row(r) for r in rows]
 
-    def observations_for_scan(self, scan_id):
+    def observations_for_scan(self, scan_id, states=(graph_serde.PROMOTED,)):
+        clause, params = _state_clause(states, "%s")
         rows = self._query(
-            f"SELECT {graph_serde.OBSERVATION_COLS} FROM observations WHERE scan_id=%s ORDER BY observed_at",
-            (scan_id,),
+            f"SELECT {graph_serde.OBSERVATION_COLS} FROM observations "
+            f"WHERE scan_id=%s{clause} ORDER BY observed_at", (scan_id, *params),
+        )
+        return [graph_serde.observation_from_row(r) for r in rows]
+
+    def observations_for_task(self, task_id, states=None):
+        clause, params = _state_clause(states, "%s")
+        rows = self._query(
+            f"SELECT {graph_serde.OBSERVATION_COLS} FROM observations "
+            f"WHERE task_id=%s{clause} ORDER BY observed_at", (task_id, *params),
         )
         return [graph_serde.observation_from_row(r) for r in rows]
 

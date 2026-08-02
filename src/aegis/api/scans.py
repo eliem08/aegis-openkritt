@@ -16,7 +16,7 @@ from __future__ import annotations
 import hashlib
 import json
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 
@@ -103,11 +103,13 @@ class StageRun:
     stage_id: str
     scan_id: str
     stage_type: str
-    depends_on: list[str]
+    depends_on: list[str]          # blocking dependencies (must be settled)
     input_hash: str
     status: str
     retry_policy: dict
     created_at: datetime
+    stream_from: list[str] = field(default_factory=list)  # streaming dependencies
+    min_stream_events: int = 1
 
 
 @dataclass
@@ -157,7 +159,8 @@ class Artifact:
 # --- column orders + serde -------------------------------------------------
 
 SCAN_COLS = "scan_id, tenant_id, engagement_id, scope_digest, config_hash, status, manifest_set, created_at, updated_at"
-STAGE_COLS = "stage_id, scan_id, stage_type, depends_on, input_hash, status, retry_policy, created_at"
+STAGE_COLS = ("stage_id, scan_id, stage_type, depends_on, input_hash, status, retry_policy, "
+              "created_at, stream_from, min_stream_events")
 TASK_COLS = ("task_id, scan_id, stage_id, target, adapter, adapter_version, capability_tier, quotas, "
              "idempotency_key, status, result_summary, attempts, max_attempts, retryable, created_at, updated_at")
 LEASE_COLS = "lease_id, task_id, owner, heartbeat_at, expires_at, cancelled, created_at"
@@ -180,12 +183,15 @@ def scan_from_row(r) -> ScanRun:
 
 def stage_values(s: StageRun) -> tuple:
     return (s.stage_id, s.scan_id, s.stage_type, json.dumps(s.depends_on), s.input_hash, s.status,
-            json.dumps(s.retry_policy), s.created_at.isoformat())
+            json.dumps(s.retry_policy), s.created_at.isoformat(),
+            json.dumps(s.stream_from), s.min_stream_events)
 
 
 def stage_from_row(r) -> StageRun:
     return StageRun(r[0], r[1], r[2], json.loads(r[3] or "[]"), r[4], r[5],
-                    json.loads(r[6] or "{}"), dt_from_iso(r[7]))
+                    json.loads(r[6] or "{}"), dt_from_iso(r[7]),
+                    json.loads(r[8] or "[]") if len(r) > 8 else [],
+                    (r[9] if len(r) > 9 and r[9] is not None else 1))
 
 
 def task_values(t: TaskRun) -> tuple:
@@ -229,9 +235,10 @@ def new_scan(*, tenant_id, engagement_id, scope_digest="", config_hash="",
 
 
 def new_stage(*, scan_id, stage_type, depends_on=None, input_hash="", retry_policy=None,
-              stage_id=None) -> StageRun:
+              stage_id=None, stream_from=None, min_stream_events=1) -> StageRun:
     return StageRun(stage_id or uuid.uuid4().hex, scan_id, stage_type, list(depends_on or []),
-                    input_hash, "queued", dict(retry_policy or {}), _now())
+                    input_hash, "queued", dict(retry_policy or {}), _now(),
+                    list(stream_from or []), min_stream_events)
 
 
 def new_task(*, scan_id, stage_id, target, adapter, adapter_version, capability_tier="passive_discovery",

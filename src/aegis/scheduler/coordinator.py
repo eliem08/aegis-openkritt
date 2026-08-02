@@ -38,8 +38,8 @@ from aegis.adapters import (
     EventKind,
     ExecutionEnvelope,
 )
-from aegis.api import scans
-from aegis.graph import Normalizer, new_snapshot
+from aegis.api import graph_serde, scans
+from aegis.graph import Normalizer, merge_into, new_snapshot
 from aegis.policy.scope import ScopeGuard
 from aegis.process import CancelToken, ProcessOutcome, SafeProcessRunner
 
@@ -50,7 +50,11 @@ from aegis.process import CancelToken, ProcessOutcome, SafeProcessRunner
 class StageSpec:
     key: str                     # local handle used by tasks + dependencies
     stage_type: str
-    depends_on: tuple[str, ...] = ()   # other stage keys
+    depends_on: tuple[str, ...] = ()   # blocking: must be settled first
+    #: Streaming dependencies: this stage may start from validated incremental
+    #: events while the producer is still running (Phase 2 §Stage graph).
+    stream_from: tuple[str, ...] = ()
+    min_stream_events: int = 1   # validated events required before starting
 
 
 @dataclass(frozen=True)
@@ -137,6 +141,8 @@ class ScanCoordinator:
                 scan_id=scan.scan_id,
                 stage_type=spec.stage_type,
                 depends_on=[key_to_stage_id[d] for d in spec.depends_on],
+                stream_from=[key_to_stage_id[d] for d in spec.stream_from],
+                min_stream_events=spec.min_stream_events,
             )
             self._repo.create_stage(stage)
             key_to_stage_id[spec.key] = stage.stage_id
@@ -193,13 +199,14 @@ class ScanCoordinator:
             actual_spend = est_spend if result.process.ok else 0.0
 
             if quarantine:
-                final = scans.TaskState.QUARANTINED
-                self._repo.transition_task(task.task_id, final,
+                # The streamed observations are marked quarantined and never
+                # promoted, so nothing from this task reaches the asset graph.
+                self._repo.set_observation_state(task.task_id, graph_serde.QUARANTINED)
+                self._repo.transition_task(task.task_id, scans.TaskState.QUARANTINED,
                                            result_summary={"events": len(events), "reason": reason})
                 return StepResult(task.task_id, "quarantined", len(events), reason)
             if result.process.ok:
-                # Only clean output reaches the graph; scope/wildcard rejects are counted.
-                graph = self._normalize(task, events)
+                graph = self._promote(task, result)
                 self._repo.transition_task(task.task_id, scans.TaskState.SUCCEEDED,
                                            result_summary={"events": len(events), "graph": graph})
                 return StepResult(task.task_id, "succeeded", len(events),
@@ -246,21 +253,42 @@ class ScanCoordinator:
         by_stage: dict[str, list] = {}
         for t in tasks:
             by_stage.setdefault(t.stage_id, []).append(t)
+        progress = {p.task_id: p for p in self._repo.progress_for_scan(scan_id) if p}
 
         def stage_settled(stage_id: str) -> bool:
             members = by_stage.get(stage_id, [])
             return all(scans.TaskState(m.status) in _SETTLED for m in members)
 
+        def stage_events(stage_id: str) -> int:
+            return sum(progress[m.task_id].events
+                       for m in by_stage.get(stage_id, []) if m.task_id in progress)
+
         for t in tasks:
             if t.status != scans.TaskState.QUEUED.value:
                 continue
             stage = stages.get(t.stage_id)
-            deps = stage.depends_on if stage else []
-            if all(stage_settled(dep) for dep in deps):
+            if stage is None:
                 return t
+            if not all(stage_settled(dep) for dep in stage.depends_on):
+                continue
+            # A streaming dependency needs either enough validated events to work
+            # from, or to have finished — partial progress is enough to start.
+            if not all(
+                stage_settled(dep) or stage_events(dep) >= stage.min_stream_events
+                for dep in stage.stream_from
+            ):
+                continue
+            return t
         return None
 
     def _execute(self, task) -> "_Execution":
+        """Run the adapter, streaming validated events as they arrive.
+
+        Each line is parsed and normalized immediately and its observations are
+        written **provisionally**, so a downstream stage can start from partial
+        progress. They only join the asset graph when the task completes cleanly
+        (see ``run_next``) — a quarantined stream is never promoted.
+        """
         adapter = self._adapters[task.adapter]
         envelope = self._build_envelope(task, adapter)
         adapter.validate_envelope(envelope)  # may raise EnvelopeError -> blocked
@@ -269,12 +297,37 @@ class ScanCoordinator:
         cancel = CancelToken()
         if self._is_killed():
             cancel.cancel()
-        process = self._runner.run(argv, limits=envelope.process_limits(), cancel=cancel)
-        events = [
-            ev for line in process.lines
-            if (ev := adapter.parse_line(line, envelope)) is not None
-        ]
-        return _Execution(process=process, events=events)
+
+        normalizer = Normalizer(
+            scope=self._scope, engagement_id=self._config.engagement_id, scan_id=task.scan_id,
+        )
+        execution = _Execution(process=None, events=[])
+
+        def on_line(line: str) -> None:
+            event = adapter.parse_line(line, envelope)
+            if event is None:
+                return
+            execution.events.append(event)
+            result = normalizer.normalize([event])
+            if result.observations:
+                self._repo.record_observations(result.observations, graph_serde.PROVISIONAL)
+                merge_into(execution.assets, result.assets)
+            execution.rejections += len(result.rejections)
+            for rejection in result.rejections:
+                execution.rejection_codes[rejection.reason] = \
+                    execution.rejection_codes.get(rejection.reason, 0) + 1
+            # Progress is recorded separately from completion: the task is still
+            # running, but downstream stages can already see how far it has got.
+            self._repo.record_progress(
+                task.task_id, task.scan_id, stage_id=task.stage_id,
+                events=len(execution.events), assets=len(execution.assets),
+                rejected=execution.rejections,
+            )
+
+        execution.process = self._runner.run(
+            argv, limits=envelope.process_limits(), cancel=cancel, on_line=on_line,
+        )
+        return execution
 
     def _build_envelope(self, task, adapter) -> ExecutionEnvelope:
         return ExecutionEnvelope.for_manifest(
@@ -301,25 +354,22 @@ class ScanCoordinator:
             return True, "invalid output (no terminal event)"
         return False, ""
 
-    def _normalize(self, task, events) -> dict:
-        """Fold a task's events into the durable asset graph.
+    def _promote(self, task, execution: "_Execution") -> dict:
+        """Accept a cleanly-finished task's streamed output into the asset graph.
 
-        Observations are appended immutably; assets are merged into the derived
-        view. Out-of-scope and wildcard emissions are rejected here and counted,
-        never stored.
+        The observations already exist (written provisionally as they streamed);
+        promotion flips their state and merges the derived assets. Out-of-scope
+        and wildcard emissions were rejected during streaming and only counted.
         """
-        normalizer = Normalizer(
-            scope=self._scope, engagement_id=self._config.engagement_id, scan_id=task.scan_id,
-        )
-        result = normalizer.normalize(events)
-        self._repo.record_observations(result.observations)
-        self._repo.upsert_assets(result.assets.values())
-        counts = result.counts
-        by_reason: dict[str, int] = {}
-        for rejection in result.rejections:
-            by_reason[rejection.reason] = by_reason.get(rejection.reason, 0) + 1
-        if by_reason:
-            counts["rejections"] = by_reason
+        promoted = self._repo.set_observation_state(task.task_id, graph_serde.PROMOTED)
+        self._repo.upsert_assets(execution.assets.values())
+        counts = {
+            "observations": promoted,
+            "assets": len(execution.assets),
+            "rejected": execution.rejections,
+        }
+        if execution.rejection_codes:
+            counts["rejections"] = dict(execution.rejection_codes)
         return counts
 
     def snapshot_scan(self, scan_id: str):
@@ -376,6 +426,9 @@ class ScanCoordinator:
 class _Execution:
     process: object
     events: list = field(default_factory=list)
+    assets: dict = field(default_factory=dict)
+    rejections: int = 0
+    rejection_codes: dict = field(default_factory=dict)
 
 
 def _stages_in_dependency_order(stages: list[StageSpec]) -> list[StageSpec]:
@@ -391,7 +444,7 @@ def _stages_in_dependency_order(stages: list[StageSpec]) -> list[StageSpec]:
         if key in visiting:
             raise ValueError(f"cyclic stage dependency at {key!r}")
         visiting.add(key)
-        for dep in by_key[key].depends_on:
+        for dep in (*by_key[key].depends_on, *by_key[key].stream_from):
             if dep not in by_key:
                 raise ValueError(f"stage {key!r} depends on unknown stage {dep!r}")
             visit(dep)

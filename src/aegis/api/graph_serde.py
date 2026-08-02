@@ -14,8 +14,14 @@ from aegis.graph import Asset, AssetKind, AssetSnapshot, Observation
 
 OBSERVATION_COLS = (
     "observation_id, engagement_id, scan_id, task_id, asset_key, kind, source, provider, "
-    "observed_at, data, confidence, raw_ref"
+    "observed_at, data, confidence, raw_ref, state"
 )
+
+# Promotion lifecycle. The observation's *content* never changes; only whether a
+# validated-but-unfinished task's output has been accepted into the asset view.
+PROVISIONAL = "provisional"   # streamed while the producing task is still running
+PROMOTED = "promoted"         # task completed cleanly; counts toward the graph
+QUARANTINED = "quarantined"   # task was quarantined; never counts toward the graph
 ASSET_COLS = (
     "engagement_id, asset_key, kind, attributes, sources, first_seen, last_seen, observation_count"
 )
@@ -30,11 +36,12 @@ def dt_from_iso(value) -> datetime | None:
     return datetime.fromisoformat(value)
 
 
-def observation_values(o: Observation) -> tuple:
+def observation_values(o: Observation, state: str = PROMOTED) -> tuple:
     return (
         o.observation_id, o.engagement_id, o.scan_id, o.task_id, o.asset_key,
         o.kind.value if hasattr(o.kind, "value") else o.kind, o.source, o.provider,
         o.observed_at.isoformat(), json.dumps(o.data, default=str), o.confidence, o.raw_ref,
+        state,
     )
 
 

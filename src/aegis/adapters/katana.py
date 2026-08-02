@@ -18,6 +18,7 @@ from urllib.parse import parse_qsl, urlsplit
 
 from .base import QUOTA_EXHAUSTED, TARGET_UNREACHABLE, JsonLinesAdapter, SchemaMismatch, in_parent_scope
 from .contract import AdapterManifest, CapabilityTier, EventKind, ExecutionEnvelope
+from .session import SessionBoundary
 
 KATANA_MANIFEST = AdapterManifest(
     name="katana",
@@ -68,10 +69,27 @@ class KatanaAdapter(JsonLinesAdapter):
         self._failures: dict[str, int] = {}
         self._backed_off: set[str] = set()
         self._forms = 0
+        self._session: SessionBoundary | None = None
+
+    def open_session(self, envelope: ExecutionEnvelope) -> SessionBoundary:
+        """Session state for this task only; closed when the task ends."""
+        self._session = SessionBoundary(
+            task_id=envelope.task_id,
+            scope_root=envelope.target,
+            # The runner materializes credential *references* to a task-private
+            # file; only its path is ever named, never a cookie value.
+            cookie_file="session-cookies.txt" if envelope.credential_refs else "",
+        )
+        return self._session
+
+    def close_session(self) -> None:
+        if self._session is not None:
+            self._session.close()
+            self._session = None
 
     def build_command(self, envelope: ExecutionEnvelope) -> list[str]:
         cfg = self.config
-        return [
+        argv = [
             self.resolve_executable(),
             "-u", envelope.target,
             "-jsonl", "-silent", "-no-color",
@@ -85,6 +103,11 @@ class KatanaAdapter(JsonLinesAdapter):
             "-headless=false",            # explicit: never the browser engine in Phase 2
             "-disable-redirects",
         ]
+        if envelope.credential_refs:
+            session = self._session or self.open_session(envelope)
+            # A path, never a value: argv is visible in process listings.
+            argv += ["-automatic-form-fill=false", "-cookie-file", session.cookie_file]
+        return argv
 
     def map_record(self, record: dict, envelope: ExecutionEnvelope):
         request = record.get("request")
@@ -99,6 +122,10 @@ class KatanaAdapter(JsonLinesAdapter):
         parts = urlsplit(endpoint if "//" in endpoint else f"//{endpoint}")
         host = (parts.hostname or "").lower()
         method = str(request.get("method") or "GET").upper()
+
+        # Cookies the crawl picked up stay inside the task's session boundary —
+        # kept for in-scope hosts, dropped for anything else, never emitted.
+        self._absorb_cookies(host, response)
 
         # Scope is enforced before enqueue; the gateway enforces it again on the wire.
         if not in_parent_scope(host, envelope.target):
@@ -173,7 +200,17 @@ class KatanaAdapter(JsonLinesAdapter):
             data["body_hash"] = body_hash
         if is_form:
             data["form"] = True
-        return (EventKind.ROUTE, data, 1.0)
+        # Last line of defence: no session material leaves the adapter, even if
+        # the tool echoed a cookie or auth header back at us.
+        return (EventKind.ROUTE, SessionBoundary.redact(data), 1.0)
+
+    def _absorb_cookies(self, host: str, response: dict) -> None:
+        if self._session is None or self._session.closed:
+            return
+        headers = response.get("headers") if isinstance(response.get("headers"), dict) else {}
+        for key, value in list(headers.items()) + [("set-cookie", response.get("set_cookie"))]:
+            if value and str(key).strip().lower() in ("set-cookie", "set_cookie"):
+                self._session.store(host, str(value))
 
     def interpret_result(self, result, envelope: ExecutionEnvelope):
         event = super().interpret_result(result, envelope)

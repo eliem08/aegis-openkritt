@@ -15,6 +15,7 @@ import json
 import sqlite3
 import threading
 import uuid
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 
 from aegis.policy.killswitch import KillSwitchState
@@ -101,6 +102,34 @@ _SESSION_USAGE_SQL = (
 _RES_COLS = "reservation_id, engagement_id, spend, sessions, spend_final, status, idempotency_key, expires_at, created_at"
 
 
+@dataclass(frozen=True)
+class TaskProgress:
+    """Partial progress, deliberately separate from a task's completion status."""
+
+    task_id: str
+    scan_id: str
+    stage_id: str
+    events: int
+    assets: int
+    rejected: int
+    updated_at: datetime | None
+
+
+def _progress_from_row(row) -> TaskProgress | None:
+    if row is None:
+        return None
+    return TaskProgress(row[0], row[1], row[2] or "", row[3] or 0, row[4] or 0, row[5] or 0,
+                        dt_from_iso(row[6]))
+
+
+def _state_clause(states, placeholder: str = "?") -> tuple[str, tuple]:
+    """Optional ``state IN (...)`` filter; ``None`` means every state."""
+    if not states:
+        return "", ()
+    marks = ",".join([placeholder] * len(states))
+    return f" AND state IN ({marks})", tuple(states)
+
+
 # --- SQLite repository ----------------------------------------------------
 
 _SCHEMA = """
@@ -182,11 +211,24 @@ CREATE TABLE IF NOT EXISTS asset_snapshots (
 CREATE INDEX IF NOT EXISTS idx_snap_eng ON asset_snapshots(engagement_id);
 """
 
+_STREAMING_SCHEMA_SQLITE = """
+ALTER TABLE observations ADD COLUMN state TEXT NOT NULL DEFAULT 'promoted';
+CREATE INDEX IF NOT EXISTS idx_obs_state ON observations(task_id, state);
+ALTER TABLE stage_runs ADD COLUMN stream_from TEXT NOT NULL DEFAULT '[]';
+ALTER TABLE stage_runs ADD COLUMN min_stream_events INTEGER NOT NULL DEFAULT 1;
+CREATE TABLE IF NOT EXISTS task_progress (
+    task_id TEXT PRIMARY KEY, scan_id TEXT NOT NULL, stage_id TEXT,
+    events INTEGER, assets INTEGER, rejected INTEGER, updated_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_progress_scan ON task_progress(scan_id);
+"""
+
 # The full baseline schema is migration 0001; later schema changes append here.
 SQLITE_MIGRATIONS = [
     Migration(1, "initial_schema", _SCHEMA),
     Migration(2, "scan_model", _SCAN_SCHEMA_SQLITE),
     Migration(3, "asset_graph", _GRAPH_SCHEMA_SQLITE),
+    Migration(4, "streaming_progress", _STREAMING_SCHEMA_SQLITE),
 ]
 
 
@@ -452,7 +494,7 @@ class SqliteRepository:
         return [scans.scan_from_row(r) for r in rows]
 
     def create_stage(self, stage) -> None:
-        ph = ",".join("?" * 8)
+        ph = ",".join("?" * 10)
         with self._lock:
             self._conn.execute(f"INSERT INTO stage_runs({scans.STAGE_COLS}) VALUES ({ph})", scans.stage_values(stage))
             self._conn.commit()
@@ -638,16 +680,58 @@ class SqliteRepository:
 
     # -- asset graph (observations are append-only; assets are the derived view) --
 
-    def record_observations(self, observations) -> int:
-        rows = [graph_serde.observation_values(o) for o in observations]
+    def record_observations(self, observations, state=graph_serde.PROMOTED) -> int:
+        rows = [graph_serde.observation_values(o, state) for o in observations]
         if not rows:
             return 0
         with self._lock:
             self._conn.executemany(
-                f"INSERT INTO observations({graph_serde.OBSERVATION_COLS}) VALUES ({','.join('?' * 12)})", rows
+                f"INSERT INTO observations({graph_serde.OBSERVATION_COLS}) VALUES ({','.join('?' * 13)})", rows
             )
             self._conn.commit()
         return len(rows)
+
+    def observation_state_counts(self, task_id) -> dict:
+        """``{state: count}`` for a task — the promotion lifecycle lives in the
+        store, not on the immutable observation itself."""
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT state, COUNT(*) FROM observations WHERE task_id=? GROUP BY state", (task_id,)
+            ).fetchall()
+        return {r[0]: r[1] for r in rows}
+
+    def set_observation_state(self, task_id, state, *, only_from=graph_serde.PROVISIONAL) -> int:
+        """Promote or quarantine a task's streamed observations."""
+        with self._lock:
+            cur = self._conn.execute(
+                "UPDATE observations SET state=? WHERE task_id=? AND state=?", (state, task_id, only_from)
+            )
+            self._conn.commit()
+            return cur.rowcount
+
+    def record_progress(self, task_id, scan_id, *, stage_id="", events=0, assets=0, rejected=0) -> None:
+        """Partial progress, recorded separately from task completion."""
+        with self._lock:
+            self._conn.execute(
+                "INSERT OR REPLACE INTO task_progress(task_id, scan_id, stage_id, events, assets, "
+                "rejected, updated_at) VALUES (?,?,?,?,?,?,?)",
+                (task_id, scan_id, stage_id, events, assets, rejected, now_iso()),
+            )
+            self._conn.commit()
+
+    def get_progress(self, task_id):
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT task_id, scan_id, stage_id, events, assets, rejected, updated_at "
+                "FROM task_progress WHERE task_id=?", (task_id,)).fetchone()
+        return _progress_from_row(row)
+
+    def progress_for_scan(self, scan_id):
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT task_id, scan_id, stage_id, events, assets, rejected, updated_at "
+                "FROM task_progress WHERE scan_id=?", (scan_id,)).fetchall()
+        return [_progress_from_row(r) for r in rows]
 
     def upsert_assets(self, assets) -> int:
         """Merge assets into the derived view. Provenance unions; nothing is deleted."""
@@ -683,20 +767,34 @@ class SqliteRepository:
             rows = self._conn.execute(sql + " ORDER BY asset_key", params).fetchall()
         return [graph_serde.asset_from_row(r) for r in rows]
 
-    def observations_for_asset(self, engagement_id, asset_key):
+    def observations_for_asset(self, engagement_id, asset_key, states=(graph_serde.PROMOTED,)):
+        clause, params = _state_clause(states)
         with self._lock:
             rows = self._conn.execute(
                 f"SELECT {graph_serde.OBSERVATION_COLS} FROM observations "
-                "WHERE engagement_id=? AND asset_key=? ORDER BY observed_at",
-                (engagement_id, asset_key),
+                f"WHERE engagement_id=? AND asset_key=?{clause} ORDER BY observed_at",
+                (engagement_id, asset_key, *params),
             ).fetchall()
         return [graph_serde.observation_from_row(r) for r in rows]
 
-    def observations_for_scan(self, scan_id):
+    def observations_for_scan(self, scan_id, states=(graph_serde.PROMOTED,)):
+        clause, params = _state_clause(states)
         with self._lock:
             rows = self._conn.execute(
-                f"SELECT {graph_serde.OBSERVATION_COLS} FROM observations WHERE scan_id=? ORDER BY observed_at",
-                (scan_id,),
+                f"SELECT {graph_serde.OBSERVATION_COLS} FROM observations "
+                f"WHERE scan_id=?{clause} ORDER BY observed_at",
+                (scan_id, *params),
+            ).fetchall()
+        return [graph_serde.observation_from_row(r) for r in rows]
+
+    def observations_for_task(self, task_id, states=None):
+        """A task's own stream — includes provisional rows, for downstream stages."""
+        clause, params = _state_clause(states)
+        with self._lock:
+            rows = self._conn.execute(
+                f"SELECT {graph_serde.OBSERVATION_COLS} FROM observations "
+                f"WHERE task_id=?{clause} ORDER BY observed_at",
+                (task_id, *params),
             ).fetchall()
         return [graph_serde.observation_from_row(r) for r in rows]
 
