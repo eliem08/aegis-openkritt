@@ -13,12 +13,13 @@ from __future__ import annotations
 
 import json
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from psycopg_pool import ConnectionPool
 
 from aegis.policy.killswitch import KillSwitchState
 
+from . import scans
 from .migrations import Migration, run_migrations
 from .persistence import (
     _RES_COLS,
@@ -61,7 +62,42 @@ CREATE TABLE IF NOT EXISTS reservations (
 CREATE INDEX IF NOT EXISTS idx_res_eng ON reservations(engagement_id);
 """
 
-POSTGRES_MIGRATIONS = [Migration(1, "initial_schema", _SCHEMA)]
+_SCAN_SCHEMA_PG = """
+CREATE TABLE IF NOT EXISTS scan_runs (
+    scan_id TEXT PRIMARY KEY, tenant_id TEXT NOT NULL,
+    engagement_id TEXT NOT NULL REFERENCES engagements(id),
+    scope_digest TEXT, config_hash TEXT, status TEXT NOT NULL, manifest_set TEXT,
+    created_at TEXT, updated_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_scan_eng ON scan_runs(engagement_id);
+CREATE TABLE IF NOT EXISTS stage_runs (
+    stage_id TEXT PRIMARY KEY, scan_id TEXT NOT NULL REFERENCES scan_runs(scan_id),
+    stage_type TEXT, depends_on TEXT, input_hash TEXT, status TEXT NOT NULL, retry_policy TEXT, created_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_stage_scan ON stage_runs(scan_id);
+CREATE TABLE IF NOT EXISTS task_runs (
+    task_id TEXT PRIMARY KEY, scan_id TEXT NOT NULL REFERENCES scan_runs(scan_id), stage_id TEXT NOT NULL,
+    target TEXT, adapter TEXT, adapter_version TEXT, capability_tier TEXT, quotas TEXT,
+    idempotency_key TEXT UNIQUE, status TEXT NOT NULL, result_summary TEXT,
+    attempts INTEGER, max_attempts INTEGER, retryable INTEGER, created_at TEXT, updated_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_task_scan ON task_runs(scan_id);
+CREATE TABLE IF NOT EXISTS task_leases (
+    lease_id TEXT PRIMARY KEY, task_id TEXT NOT NULL UNIQUE REFERENCES task_runs(task_id),
+    owner TEXT, heartbeat_at TEXT, expires_at TEXT, cancelled INTEGER, created_at TEXT
+);
+CREATE TABLE IF NOT EXISTS artifacts (
+    artifact_id TEXT PRIMARY KEY, task_id TEXT NOT NULL REFERENCES task_runs(task_id),
+    kind TEXT, classification TEXT, checksum TEXT, storage_ref TEXT, size INTEGER,
+    retention_deadline TEXT, created_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_artifact_task ON artifacts(task_id);
+"""
+
+POSTGRES_MIGRATIONS = [
+    Migration(1, "initial_schema", _SCHEMA),
+    Migration(2, "scan_model", _SCAN_SCHEMA_PG),
+]
 _MIGRATION_LOCK_ID = 8234110001  # arbitrary constant; serialises migration across instances
 
 
@@ -254,6 +290,121 @@ class PostgresRepository:
         spend = self._query(_SPEND_USAGE_SQL.format(ph="%s"), (engagement_id,))[0][0] or 0.0
         sessions = self._query(_SESSION_USAGE_SQL.format(ph="%s"), (engagement_id,))[0][0] or 0
         return (float(spend), int(sessions))
+
+    # -- durable scan model --
+
+    def create_scan(self, scan) -> None:
+        self._exec(f"INSERT INTO scan_runs({scans.SCAN_COLS}) VALUES ({','.join(['%s'] * 9)})", scans.scan_values(scan))
+
+    def get_scan(self, scan_id):
+        rows = self._query(f"SELECT {scans.SCAN_COLS} FROM scan_runs WHERE scan_id=%s", (scan_id,))
+        return scans.scan_from_row(rows[0]) if rows else None
+
+    def create_stage(self, stage) -> None:
+        self._exec(f"INSERT INTO stage_runs({scans.STAGE_COLS}) VALUES ({','.join(['%s'] * 8)})", scans.stage_values(stage))
+
+    def create_task(self, task):
+        with self._pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
+            cur.execute(f"SELECT {scans.TASK_COLS} FROM task_runs WHERE idempotency_key=%s", (task.idempotency_key,))
+            existing = cur.fetchone()
+            if existing is not None:
+                return scans.task_from_row(existing)
+            cur.execute(f"INSERT INTO task_runs({scans.TASK_COLS}) VALUES ({','.join(['%s'] * 16)})", scans.task_values(task))
+            return task
+
+    def get_task(self, task_id):
+        rows = self._query(f"SELECT {scans.TASK_COLS} FROM task_runs WHERE task_id=%s", (task_id,))
+        return scans.task_from_row(rows[0]) if rows else None
+
+    def tasks_for_scan(self, scan_id):
+        return [scans.task_from_row(r) for r in self._query(f"SELECT {scans.TASK_COLS} FROM task_runs WHERE scan_id=%s", (scan_id,))]
+
+    def lease_task(self, task_id, owner, ttl_seconds=300):
+        import uuid as _uuid
+
+        now = datetime.now(timezone.utc)
+        with self._pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
+            cur.execute(f"SELECT {scans.TASK_COLS} FROM task_runs WHERE task_id=%s FOR UPDATE", (task_id,))
+            trow = cur.fetchone()
+            if trow is None or scans.task_from_row(trow).status != scans.TaskState.QUEUED.value:
+                return None
+            cur.execute(f"SELECT {scans.LEASE_COLS} FROM task_leases WHERE task_id=%s FOR UPDATE", (task_id,))
+            lrow = cur.fetchone()
+            if lrow is not None:
+                lease = scans.lease_from_row(lrow)
+                if not lease.cancelled and lease.expires_at > now:
+                    return None
+                cur.execute("DELETE FROM task_leases WHERE task_id=%s", (task_id,))
+            lease = scans.TaskLease(
+                lease_id=_uuid.uuid4().hex, task_id=task_id, owner=owner, heartbeat_at=now,
+                expires_at=now + timedelta(seconds=ttl_seconds), cancelled=False, created_at=now,
+            )
+            cur.execute(f"INSERT INTO task_leases({scans.LEASE_COLS}) VALUES ({','.join(['%s'] * 7)})", scans.lease_values(lease))
+            cur.execute("UPDATE task_runs SET status=%s, updated_at=%s WHERE task_id=%s",
+                        (scans.TaskState.LEASED.value, now.isoformat(), task_id))
+            return lease
+
+    def heartbeat(self, lease_id, ttl_seconds=300) -> bool:
+        now = datetime.now(timezone.utc)
+        with self._pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
+            cur.execute(f"SELECT {scans.LEASE_COLS} FROM task_leases WHERE lease_id=%s FOR UPDATE", (lease_id,))
+            lrow = cur.fetchone()
+            if lrow is None or bool(lrow[5]):
+                return False
+            cur.execute("UPDATE task_leases SET heartbeat_at=%s, expires_at=%s WHERE lease_id=%s",
+                        (now.isoformat(), (now + timedelta(seconds=ttl_seconds)).isoformat(), lease_id))
+            return True
+
+    def transition_task(self, task_id, new_state, result_summary=None):
+        now = datetime.now(timezone.utc)
+        target = scans.TaskState(new_state) if isinstance(new_state, str) else new_state
+        with self._pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
+            cur.execute(f"SELECT {scans.TASK_COLS} FROM task_runs WHERE task_id=%s FOR UPDATE", (task_id,))
+            trow = cur.fetchone()
+            if trow is None:
+                return None
+            task = scans.task_from_row(trow)
+            if not scans.can_transition(scans.TaskState(task.status), target):
+                raise scans.InvalidTaskTransition(f"{task.status} -> {target.value}")
+            cur.execute(
+                "UPDATE task_runs SET status=%s, result_summary=COALESCE(%s, result_summary), updated_at=%s WHERE task_id=%s",
+                (target.value, json.dumps(result_summary) if result_summary is not None else None, now.isoformat(), task_id),
+            )
+            if scans.releases_lease(target):
+                cur.execute("DELETE FROM task_leases WHERE task_id=%s", (task_id,))
+            task.status, task.updated_at = target.value, now
+            if result_summary is not None:
+                task.result_summary = result_summary
+            return task
+
+    def reclaim_expired_leases(self, now=None):
+        now = now or datetime.now(timezone.utc)
+        now_iso_s = now.isoformat()
+        reclaimed = []
+        with self._pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
+            cur.execute(
+                "SELECT tl.task_id, tr.attempts, tr.max_attempts, tr.retryable FROM task_leases tl "
+                "JOIN task_runs tr ON tl.task_id=tr.task_id "
+                "WHERE tl.cancelled=0 AND tl.expires_at <= %s AND tr.status IN ('leased','running') FOR UPDATE",
+                (now_iso_s,),
+            )
+            for task_id, attempts, max_attempts, retryable in cur.fetchall():
+                if retryable and attempts < max_attempts:
+                    cur.execute("UPDATE task_runs SET status='queued', attempts=attempts+1, updated_at=%s WHERE task_id=%s",
+                                (now_iso_s, task_id))
+                    new_status = "queued"
+                else:
+                    cur.execute("UPDATE task_runs SET status='blocked', updated_at=%s WHERE task_id=%s", (now_iso_s, task_id))
+                    new_status = "blocked"
+                cur.execute("DELETE FROM task_leases WHERE task_id=%s", (task_id,))
+                reclaimed.append((task_id, new_status))
+        return reclaimed
+
+    def create_artifact(self, artifact) -> None:
+        self._exec(f"INSERT INTO artifacts({scans.ARTIFACT_COLS}) VALUES ({','.join(['%s'] * 9)})", scans.artifact_values(artifact))
+
+    def artifacts_for_task(self, task_id):
+        return [scans.artifact_from_row(r) for r in self._query(f"SELECT {scans.ARTIFACT_COLS} FROM artifacts WHERE task_id=%s", (task_id,))]
 
     def close(self) -> None:
         self._pool.close()

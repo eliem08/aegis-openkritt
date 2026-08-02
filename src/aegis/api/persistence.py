@@ -15,10 +15,11 @@ import json
 import sqlite3
 import threading
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from aegis.policy.killswitch import KillSwitchState
 
+from . import scans
 from .migrations import Migration, run_migrations
 from .store import ApprovalGrant, EngagementRecord, PolicyReservation
 
@@ -127,8 +128,43 @@ CREATE TABLE IF NOT EXISTS reservations (
 CREATE INDEX IF NOT EXISTS idx_res_eng ON reservations(engagement_id);
 """
 
+_SCAN_SCHEMA_SQLITE = """
+CREATE TABLE IF NOT EXISTS scan_runs (
+    scan_id TEXT PRIMARY KEY, tenant_id TEXT NOT NULL,
+    engagement_id TEXT NOT NULL REFERENCES engagements(id),
+    scope_digest TEXT, config_hash TEXT, status TEXT NOT NULL, manifest_set TEXT,
+    created_at TEXT, updated_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_scan_eng ON scan_runs(engagement_id);
+CREATE TABLE IF NOT EXISTS stage_runs (
+    stage_id TEXT PRIMARY KEY, scan_id TEXT NOT NULL REFERENCES scan_runs(scan_id),
+    stage_type TEXT, depends_on TEXT, input_hash TEXT, status TEXT NOT NULL, retry_policy TEXT, created_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_stage_scan ON stage_runs(scan_id);
+CREATE TABLE IF NOT EXISTS task_runs (
+    task_id TEXT PRIMARY KEY, scan_id TEXT NOT NULL REFERENCES scan_runs(scan_id), stage_id TEXT NOT NULL,
+    target TEXT, adapter TEXT, adapter_version TEXT, capability_tier TEXT, quotas TEXT,
+    idempotency_key TEXT UNIQUE, status TEXT NOT NULL, result_summary TEXT,
+    attempts INTEGER, max_attempts INTEGER, retryable INTEGER, created_at TEXT, updated_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_task_scan ON task_runs(scan_id);
+CREATE TABLE IF NOT EXISTS task_leases (
+    lease_id TEXT PRIMARY KEY, task_id TEXT NOT NULL UNIQUE REFERENCES task_runs(task_id),
+    owner TEXT, heartbeat_at TEXT, expires_at TEXT, cancelled INTEGER, created_at TEXT
+);
+CREATE TABLE IF NOT EXISTS artifacts (
+    artifact_id TEXT PRIMARY KEY, task_id TEXT NOT NULL REFERENCES task_runs(task_id),
+    kind TEXT, classification TEXT, checksum TEXT, storage_ref TEXT, size INTEGER,
+    retention_deadline TEXT, created_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_artifact_task ON artifacts(task_id);
+"""
+
 # The full baseline schema is migration 0001; later schema changes append here.
-SQLITE_MIGRATIONS = [Migration(1, "initial_schema", _SCHEMA)]
+SQLITE_MIGRATIONS = [
+    Migration(1, "initial_schema", _SCHEMA),
+    Migration(2, "scan_model", _SCAN_SCHEMA_SQLITE),
+]
 
 
 class SqliteRepository:
@@ -342,6 +378,184 @@ class SqliteRepository:
                 _SESSION_USAGE_SQL.format(ph="?"), (engagement_id,)
             ).fetchone()[0] or 0
         return (float(spend), int(sessions))
+
+    # -- durable scan model --
+
+    def create_scan(self, scan) -> None:
+        ph = ",".join("?" * 9)
+        with self._lock:
+            self._conn.execute(f"INSERT INTO scan_runs({scans.SCAN_COLS}) VALUES ({ph})", scans.scan_values(scan))
+            self._conn.commit()
+
+    def get_scan(self, scan_id):
+        with self._lock:
+            row = self._conn.execute(f"SELECT {scans.SCAN_COLS} FROM scan_runs WHERE scan_id=?", (scan_id,)).fetchone()
+        return scans.scan_from_row(row) if row else None
+
+    def create_stage(self, stage) -> None:
+        ph = ",".join("?" * 8)
+        with self._lock:
+            self._conn.execute(f"INSERT INTO stage_runs({scans.STAGE_COLS}) VALUES ({ph})", scans.stage_values(stage))
+            self._conn.commit()
+
+    def create_task(self, task):
+        """Idempotent: an existing task with the same idempotency key is returned."""
+        with self._lock:
+            self._conn.execute("BEGIN IMMEDIATE")
+            try:
+                existing = self._conn.execute(
+                    f"SELECT {scans.TASK_COLS} FROM task_runs WHERE idempotency_key=?", (task.idempotency_key,)
+                ).fetchone()
+                if existing is not None:
+                    self._conn.commit()
+                    return scans.task_from_row(existing)
+                self._conn.execute(
+                    f"INSERT INTO task_runs({scans.TASK_COLS}) VALUES ({','.join('?' * 16)})",
+                    scans.task_values(task),
+                )
+                self._conn.commit()
+                return task
+            except Exception:
+                self._conn.rollback()
+                raise
+
+    def get_task(self, task_id):
+        with self._lock:
+            row = self._conn.execute(f"SELECT {scans.TASK_COLS} FROM task_runs WHERE task_id=?", (task_id,)).fetchone()
+        return scans.task_from_row(row) if row else None
+
+    def tasks_for_scan(self, scan_id):
+        with self._lock:
+            rows = self._conn.execute(f"SELECT {scans.TASK_COLS} FROM task_runs WHERE scan_id=?", (scan_id,)).fetchall()
+        return [scans.task_from_row(r) for r in rows]
+
+    def lease_task(self, task_id, owner, ttl_seconds=300):
+        now = datetime.now(timezone.utc)
+        with self._lock:
+            self._conn.execute("BEGIN IMMEDIATE")
+            try:
+                trow = self._conn.execute(f"SELECT {scans.TASK_COLS} FROM task_runs WHERE task_id=?", (task_id,)).fetchone()
+                if trow is None or scans.task_from_row(trow).status != scans.TaskState.QUEUED.value:
+                    self._conn.commit()
+                    return None
+                lrow = self._conn.execute(f"SELECT {scans.LEASE_COLS} FROM task_leases WHERE task_id=?", (task_id,)).fetchone()
+                if lrow is not None:
+                    lease = scans.lease_from_row(lrow)
+                    if not lease.cancelled and lease.expires_at > now:
+                        self._conn.commit()
+                        return None  # a live lease already owns it (compare-and-set fails)
+                    self._conn.execute("DELETE FROM task_leases WHERE task_id=?", (task_id,))
+                lease = scans.TaskLease(
+                    lease_id=uuid.uuid4().hex, task_id=task_id, owner=owner, heartbeat_at=now,
+                    expires_at=now + timedelta(seconds=ttl_seconds), cancelled=False, created_at=now,
+                )
+                self._conn.execute(
+                    f"INSERT INTO task_leases({scans.LEASE_COLS}) VALUES ({','.join('?' * 7)})", scans.lease_values(lease)
+                )
+                self._conn.execute(
+                    "UPDATE task_runs SET status=?, updated_at=? WHERE task_id=?",
+                    (scans.TaskState.LEASED.value, now.isoformat(), task_id),
+                )
+                self._conn.commit()
+                return lease
+            except Exception:
+                self._conn.rollback()
+                raise
+
+    def heartbeat(self, lease_id, ttl_seconds=300) -> bool:
+        now = datetime.now(timezone.utc)
+        with self._lock:
+            self._conn.execute("BEGIN IMMEDIATE")
+            try:
+                lrow = self._conn.execute(f"SELECT {scans.LEASE_COLS} FROM task_leases WHERE lease_id=?", (lease_id,)).fetchone()
+                if lrow is None or bool(lrow[5]):
+                    self._conn.commit()
+                    return False
+                self._conn.execute(
+                    "UPDATE task_leases SET heartbeat_at=?, expires_at=? WHERE lease_id=?",
+                    (now.isoformat(), (now + timedelta(seconds=ttl_seconds)).isoformat(), lease_id),
+                )
+                self._conn.commit()
+                return True
+            except Exception:
+                self._conn.rollback()
+                raise
+
+    def transition_task(self, task_id, new_state, result_summary=None):
+        now = datetime.now(timezone.utc)
+        target = scans.TaskState(new_state) if isinstance(new_state, str) else new_state
+        with self._lock:
+            self._conn.execute("BEGIN IMMEDIATE")
+            try:
+                trow = self._conn.execute(f"SELECT {scans.TASK_COLS} FROM task_runs WHERE task_id=?", (task_id,)).fetchone()
+                if trow is None:
+                    self._conn.commit()
+                    return None
+                task = scans.task_from_row(trow)
+                if not scans.can_transition(scans.TaskState(task.status), target):
+                    self._conn.rollback()
+                    raise scans.InvalidTaskTransition(f"{task.status} -> {target.value}")
+                self._conn.execute(
+                    "UPDATE task_runs SET status=?, result_summary=COALESCE(?, result_summary), updated_at=? WHERE task_id=?",
+                    (target.value, json.dumps(result_summary) if result_summary is not None else None, now.isoformat(), task_id),
+                )
+                if scans.releases_lease(target):
+                    self._conn.execute("DELETE FROM task_leases WHERE task_id=?", (task_id,))
+                self._conn.commit()
+                task.status = target.value
+                task.updated_at = now
+                if result_summary is not None:
+                    task.result_summary = result_summary
+                return task
+            except scans.InvalidTaskTransition:
+                raise
+            except Exception:
+                self._conn.rollback()
+                raise
+
+    def reclaim_expired_leases(self, now=None):
+        now = now or datetime.now(timezone.utc)
+        now_iso_s = now.isoformat()
+        reclaimed = []
+        with self._lock:
+            self._conn.execute("BEGIN IMMEDIATE")
+            try:
+                rows = self._conn.execute(
+                    "SELECT tl.task_id, tr.attempts, tr.max_attempts, tr.retryable FROM task_leases tl "
+                    "JOIN task_runs tr ON tl.task_id=tr.task_id "
+                    "WHERE tl.cancelled=0 AND tl.expires_at <= ? AND tr.status IN ('leased','running')",
+                    (now_iso_s,),
+                ).fetchall()
+                for task_id, attempts, max_attempts, retryable in rows:
+                    if retryable and attempts < max_attempts:
+                        self._conn.execute(
+                            "UPDATE task_runs SET status='queued', attempts=attempts+1, updated_at=? WHERE task_id=?",
+                            (now_iso_s, task_id),
+                        )
+                        new_status = "queued"
+                    else:
+                        self._conn.execute(
+                            "UPDATE task_runs SET status='blocked', updated_at=? WHERE task_id=?", (now_iso_s, task_id)
+                        )
+                        new_status = "blocked"
+                    self._conn.execute("DELETE FROM task_leases WHERE task_id=?", (task_id,))
+                    reclaimed.append((task_id, new_status))
+                self._conn.commit()
+                return reclaimed
+            except Exception:
+                self._conn.rollback()
+                raise
+
+    def create_artifact(self, artifact) -> None:
+        ph = ",".join("?" * 9)
+        with self._lock:
+            self._conn.execute(f"INSERT INTO artifacts({scans.ARTIFACT_COLS}) VALUES ({ph})", scans.artifact_values(artifact))
+            self._conn.commit()
+
+    def artifacts_for_task(self, task_id):
+        with self._lock:
+            rows = self._conn.execute(f"SELECT {scans.ARTIFACT_COLS} FROM artifacts WHERE task_id=?", (task_id,)).fetchall()
+        return [scans.artifact_from_row(r) for r in rows]
 
     def close(self) -> None:
         with self._lock:

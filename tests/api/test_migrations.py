@@ -65,11 +65,12 @@ def test_sqlite_repository_uses_migrations(tmp_path):
     from aegis.api.persistence import SqliteRepository
 
     repo = SqliteRepository(str(tmp_path / "m.db"))
-    rows = repo._conn.execute("SELECT version, name FROM schema_migrations").fetchall()
-    assert rows == [(1, "initial_schema")]
+    rows = dict(repo._conn.execute("SELECT version, name FROM schema_migrations").fetchall())
+    assert rows[1] == "initial_schema" and rows[2] == "scan_model"
+    applied_count = len(rows)
     repo.close()
 
-    # reopen: idempotent, still version 1, tables usable
+    # reopen: idempotent, same migrations, no re-application
     repo2 = SqliteRepository(str(tmp_path / "m.db"))
-    assert repo2._conn.execute("SELECT COUNT(*) FROM schema_migrations").fetchone()[0] == 1
+    assert repo2._conn.execute("SELECT COUNT(*) FROM schema_migrations").fetchone()[0] == applied_count
     repo2.close()

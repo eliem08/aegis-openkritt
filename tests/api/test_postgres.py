@@ -27,7 +27,10 @@ KID, SECRET = "kid-pg", "pg-secret"
 @pytest.fixture(autouse=True)
 def clean():
     repo = PostgresRepository(DSN)
-    repo._exec("TRUNCATE engagements, grants, audit, kill_state, spend, reservations")
+    repo._exec(
+        "TRUNCATE engagements, grants, audit, kill_state, spend, reservations, "
+        "scan_runs, stage_runs, task_runs, task_leases, artifacts CASCADE"
+    )
     repo.close()
     yield
 
@@ -152,3 +155,36 @@ def test_pg_reservation_idempotent_and_finalize():
     assert a.reservation_id == b.reservation_id
     s.finalize(a.reservation_id, 6.0)
     assert s.usage("res-eng2")[0] == 6.0  # actual, remainder released
+
+
+# --- durable scan model against real Postgres ---
+
+def test_pg_scan_model_lease_and_restart_recovery():
+    from datetime import timedelta
+
+    from aegis.api.scans import new_scan, new_stage, new_task
+    from aegis.api.store import EngagementRecord
+
+    repo = PostgresRepository(DSN)
+    repo.save_engagement(EngagementRecord(id="eng-pg", authorization={"customer_id": "t"},
+                                          status="active", created_at=datetime.now(timezone.utc)))
+    scan = new_scan(tenant_id="t", engagement_id="eng-pg")
+    repo.create_scan(scan)
+    stage = new_stage(scan_id=scan.scan_id, stage_type="probe")
+    repo.create_stage(stage)
+
+    t1 = repo.create_task(new_task(scan_id=scan.scan_id, stage_id=stage.stage_id, target="a",
+                                   adapter="f", adapter_version="1", input_hash="h1"))
+    # idempotent create returns the same task
+    again = repo.create_task(new_task(scan_id=scan.scan_id, stage_id=stage.stage_id, target="a",
+                                      adapter="f", adapter_version="1", input_hash="h1"))
+    assert again.task_id == t1.task_id
+
+    assert repo.lease_task(t1.task_id, "w1", ttl_seconds=1) is not None
+    assert repo.lease_task(t1.task_id, "w2", ttl_seconds=1) is None  # compare-and-set
+
+    future = datetime.now(timezone.utc) + timedelta(seconds=60)
+    reclaimed = dict(repo.reclaim_expired_leases(now=future))
+    assert reclaimed.get(t1.task_id) == "queued"
+    assert repo.get_task(t1.task_id).attempts == 1
+    repo.close()
