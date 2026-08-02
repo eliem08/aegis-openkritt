@@ -310,6 +310,11 @@ class Engagement:
     def is_active(self) -> bool:
         return self.status == "active"
 
+    @property
+    def tenant_id(self) -> str:
+        """The engagement's tenant, derived from the signed authorization."""
+        return self.authorization.customer_id
+
     def close(self) -> None:
         self.status = "closed"
         if self._on_status_change is not None:

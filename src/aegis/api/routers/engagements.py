@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from aegis.policy import Authorization
 
+from ..config import ApiPrincipal, ControlPlaneConfig
 from ..dependencies import get_config, get_engagement, get_store
 from ..schemas import EngagementOut
 from ..security import require_agent, require_operator
@@ -18,15 +19,22 @@ router = APIRouter(prefix="/engagements", tags=["engagements"])
     "",
     response_model=EngagementOut,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(require_operator)],
     summary="Register a signed authorization and open an engagement",
 )
 def create_engagement(
     authorization: Authorization,
     request: Request,
     store: EngagementStore = Depends(get_store),
-    config=Depends(get_config),
+    config: ControlPlaneConfig = Depends(get_config),
+    principal: ApiPrincipal = Depends(require_operator),
 ) -> EngagementOut:
+    # An operator may only register engagements for its own tenant. The tenant
+    # is the authorization's customer_id.
+    if not config.is_single_tenant_compat and principal.tenant_id != authorization.customer_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="cannot register an engagement for another tenant",
+        )
     verifier = request.app.state.verifier
     reasons = registration_reasons(authorization, verifier, config.require_signature)
     if reasons:
@@ -50,11 +58,17 @@ def create_engagement(
 @router.get(
     "",
     response_model=list[EngagementOut],
-    dependencies=[Depends(require_agent)],
-    summary="List engagements",
+    summary="List engagements (only the caller's tenant)",
 )
-def list_engagements(store: EngagementStore = Depends(get_store)) -> list[EngagementOut]:
-    return [EngagementOut.from_engagement(e) for e in store.list()]
+def list_engagements(
+    store: EngagementStore = Depends(get_store),
+    config: ControlPlaneConfig = Depends(get_config),
+    principal: ApiPrincipal = Depends(require_agent),
+) -> list[EngagementOut]:
+    items = store.list()
+    if not config.is_single_tenant_compat:
+        items = [e for e in items if e.tenant_id == principal.tenant_id]
+    return [EngagementOut.from_engagement(e) for e in items]
 
 
 @router.get(

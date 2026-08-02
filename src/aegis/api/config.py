@@ -28,16 +28,20 @@ FALSE_VALUES = {"0", "false", "no", "off", ""}
 
 
 class Role(IntEnum):
-    """Ordered roles. Higher value grants a superset of lower privileges."""
+    """Roles. AGENT/OPERATOR are the ordered scan roles (operator ⊇ agent).
+    SYSTEM_ADMIN is a separate operational role that **cannot execute scans**."""
 
     AGENT = 1
     OPERATOR = 2
+    SYSTEM_ADMIN = 3
 
     @classmethod
     def parse(cls, value: str | int) -> "Role":
         if isinstance(value, int):
             return cls(value)
-        key = str(value).strip().upper()
+        key = str(value).strip().upper().replace("-", "_")
+        aliases = {"ADMIN": "SYSTEM_ADMIN", "SYSADMIN": "SYSTEM_ADMIN"}
+        key = aliases.get(key, key)
         try:
             return cls[key]
         except KeyError as exc:
@@ -46,10 +50,14 @@ class Role(IntEnum):
 
 @dataclass(frozen=True)
 class ApiPrincipal:
-    """An authenticated caller. ``name`` never contains the raw token."""
+    """An authenticated caller. ``name`` never contains the raw token.
+
+    ``tenant_id`` scopes the principal to one tenant; ``None`` means the caller
+    is part of the single-tenant compatibility mode (no cross-tenant checks)."""
 
     name: str
     role: Role
+    tenant_id: str | None = None
 
 
 def _principal_name(token: str, role: Role) -> str:
@@ -70,6 +78,12 @@ class ControlPlaneConfig:
     db_path: str | None = None  # SQLite file; None = in-memory (no durability)
     db_url: str | None = None  # Postgres DSN; takes precedence over db_path
     encryption_key: str | None = None  # Fernet key; None = plaintext at rest
+
+    @property
+    def is_single_tenant_compat(self) -> bool:
+        """True when no principal declares a tenant — the legacy single-tenant
+        mode where cross-tenant checks are bypassed. Production must reject it."""
+        return not any(p.tenant_id for p in self.api_keys.values())
 
     def build_repository(self):
         """A durable repository if a DB is configured, else None (in-memory).
@@ -112,10 +126,12 @@ class ControlPlaneConfig:
                 if isinstance(spec, str):
                     role = Role.parse(spec)
                     name = _principal_name(token, role)
+                    tenant = None
                 else:
                     role = Role.parse(spec.get("role", "agent"))
                     name = spec.get("name") or _principal_name(token, role)
-                api_keys[token] = ApiPrincipal(name=name, role=role)
+                    tenant = spec.get("tenant") or spec.get("tenant_id")
+                api_keys[token] = ApiPrincipal(name=name, role=role, tenant_id=tenant)
 
         signing_keys: dict[str, str] = {}
         raw_signing = env.get("AEGIS_SIGNING_KEYS")

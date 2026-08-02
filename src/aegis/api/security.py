@@ -45,14 +45,30 @@ def _authenticate(request: Request, credentials: HTTPAuthorizationCredentials | 
     )
 
 
+def authenticated(
+    request: Request,
+    credentials: HTTPAuthorizationCredentials | None = Depends(_bearer),
+) -> ApiPrincipal:
+    """Any valid principal, regardless of role (used for tenant checks)."""
+    return _authenticate(request, credentials)
+
+
 def require_role(minimum: Role):
-    """Dependency factory: require at least ``minimum`` role."""
+    """Dependency factory: require at least ``minimum`` scan role.
+
+    SYSTEM_ADMIN is an operational role and is explicitly rejected here — it
+    cannot execute scans/engagements."""
 
     def dependency(
         request: Request,
         credentials: HTTPAuthorizationCredentials | None = Depends(_bearer),
     ) -> ApiPrincipal:
         principal = _authenticate(request, credentials)
+        if principal.role == Role.SYSTEM_ADMIN:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="system-admin role cannot execute scans/engagements",
+            )
         if principal.role < minimum:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
