@@ -1,0 +1,78 @@
+# Production readiness
+
+An honest assessment of what is production-grade today and what is not. The
+guiding principle from the operating prompt applies here too: **fail closed, and
+don't overclaim.**
+
+## TL;DR
+
+The **deterministic safety core is production-quality**: the policy engine,
+authorization/signature verification, scope enforcement, consequence tiers,
+budgets, kill switch, and the control-plane API are well-tested (221+ tests),
+fail closed, and auditable. What is **not yet production-ready** is durability
+and operations: state is in-memory, there is no database, and the "intelligent"
+workers/planner/patcher are still deterministic stand-ins. Run it in **staging /
+controlled engagements**, not unattended against production targets.
+
+## Ready for production
+
+- **Policy gate** (`aegis.policy`) — signed authorization objects, wildcard-aware
+  scope, consequence tiers, approvals, rate/spend budgets, kill switch. Fail
+  closed on every error path; 100+ tests.
+- **Control-plane API** (`aegis.api`) — bearer auth with roles, constant-time
+  token checks, signature-verified registration, correlation IDs, structured
+  JSON logs, `/healthz` + `/readyz`. Defaults fail closed (auth on, signatures
+  required).
+- **Orchestrator** (`aegis.orchestrator`) — every action gated before it runs;
+  two-phase gate/commit so denied work costs no budget; kill switch and
+  stop-on-sensitive-data honored; runs in-process or over the API.
+- **Ingestion** (`aegis.ingest`) — read-only HackerOne client with retry/backoff
+  and Retry-After handling; program rules parsed into scope + automation/AI/rate
+  constraints; forbidden-automation programs yield zero permitted actions.
+- **Knowledge** (`aegis.knowledge`) — corpus + historical priors feeding
+  prioritisation and planning.
+- **Packaging** — typed (`py.typed`), pinned build backend, `.env` loader that
+  never overrides the real environment, secrets kept out of logs, CI on 3.11/3.12,
+  Docker image running as non-root with a healthcheck.
+
+## Not yet production-ready (known gaps)
+
+| Gap | Impact | Path |
+|---|---|---|
+| **In-memory store** | Engagements/approvals/audit are lost on restart; no HA | Implement the `EngagementStore` interface over Postgres; encrypt evidence at rest (§12) |
+| **No persistence for audit** | Audit trail is a bounded ring buffer | Ship audit to durable, append-only storage (WORM / OTel backend) |
+| **Stand-in workers/planner/patcher** | No real testing/fix capability yet | Build real `passive_recon`, `api_agent`, …, and the patch protocol |
+| **Single-process** | No horizontal scale; budgets/kill switch are per-process | Externalise budget/kill-switch state (Redis) behind the same interfaces |
+| **Signing = HMAC (symmetric)** | Control plane holds the secret | Swap in an asymmetric `SignatureVerifier` (Ed25519) so the agent verifies with a public key |
+| **Secrets in `.env`/env** | Fine for dev; not for prod | Use a secrets manager (Vault, cloud KMS); never bake into images |
+| **No PII detector wired** | `stop_on_real_pii` is a flag workers must honor | Add a real sensitive-data classifier at the evidence boundary |
+| **Observability is basic** | JSON logs + correlation IDs only | Wire real OpenTelemetry traces/metrics + alerting |
+
+## Deployment (control plane)
+
+```bash
+docker build -t aegis-control-plane .
+docker run -p 8000:8000 --env-file .env aegis-control-plane   # docs at :8000/docs
+```
+
+Behind a TLS-terminating proxy. The network/proxy layer is the **authoritative**
+scope enforcement — the in-process `ScopeGuard` is a mirror (defense in depth),
+per the operating prompt. Put the egress allowlist there too.
+
+## Configuration & secrets
+
+Set via environment (or `.env` for local only — see `.env.example`):
+`AEGIS_API_KEYS`, `AEGIS_SIGNING_KEYS`, `AEGIS_REQUIRE_SIGNATURE`,
+`AEGIS_AUTH_DISABLED` (dev only), `AEGIS_HOST`/`AEGIS_PORT`, and
+`HACKERONE_API_*` for ingestion. Generate strong secrets:
+`python -c "import secrets; print(secrets.token_urlsafe(48))"`.
+
+## Pre-flight checklist
+
+- [ ] Real signing keys set; `AEGIS_REQUIRE_SIGNATURE=1`; `AEGIS_AUTH_DISABLED` unset
+- [ ] Operator/agent tokens are strong and rotated; least privilege per caller
+- [ ] Network egress allowlist configured at the proxy (authoritative scope)
+- [ ] Durable store + encrypted evidence retention wired (replaces in-memory)
+- [ ] Kill-switch channel reachable; escalation contacts monitored
+- [ ] Program rules re-verified by a human before any active testing
+- [ ] TLS in front of the control plane; secrets from a manager, not images

@@ -1,0 +1,33 @@
+{
+  "customer_id": "customer-123",
+  "authorization_id": "auth-2026-001",
+  "ownership_proof": ["dns-txt", "cloud-account-binding", "signed-roe"],
+  "targets": ["api.example.test", "app.example.test"],
+  "environment": "staging",
+  "valid_from": "2026-08-01T00:00:00Z",
+  "valid_until": "2026-08-31T23:59:59Z",
+  "permitted_actions": [
+    "passive_discovery",
+    "authenticated_testing",
+    "synthetic_data_access",
+    "safe_state_change",
+    "cross_tenant_proof"
+  ],
+  "prohibited_actions": [
+    "denial_of_service",
+    "persistence",
+    "production_data_exfiltration",
+    "third_party_targeting"
+  ],
+  "rate_limits": { "requests_per_second": 5, "max_concurrent_sessions": 3 },
+  "approval_required_for": [
+    "cross_tenant_proof",
+    "server_side_request_forgery",
+    "privilege_escalation"
+  ],
+  "test_identities": [{ "role": "user_a", "creds_ref": "vault://engagements/123/user_a" }],
+  "data_handling": { "stop_on_real_pii": true, "evidence_retention_days": 30, "region": "eu" },
+  "escalation_contacts": ["secops@example.test"],
+  "kill_switch_channel": "control-plane://engagement/stop",
+  "spend_budget": 250.0
+}

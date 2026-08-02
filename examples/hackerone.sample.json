@@ -1,0 +1,80 @@
+{
+  "_comment": "Illustrative HackerOne Hacker API shapes (program detail + structured scopes). Not real data.",
+  "program": {
+    "data": {
+      "id": "1337",
+      "type": "program",
+      "attributes": {
+        "handle": "acme",
+        "name": "Acme Corp",
+        "submission_state": "open",
+        "offers_bounties": true,
+        "policy": "Welcome to the Acme bug bounty program. Test only assets listed as in scope. Automated scanning is prohibited; please perform manual testing only. AI-generated reports are not accepted. Please limit requests to 5 requests per second. Do not access other users' data; use your own test accounts."
+      }
+    }
+  },
+  "structured_scopes": {
+    "data": [
+      {
+        "id": "1",
+        "type": "structured-scope",
+        "attributes": {
+          "asset_type": "URL",
+          "asset_identifier": "api.acme.test",
+          "eligible_for_submission": true,
+          "eligible_for_bounty": true,
+          "max_severity": "critical",
+          "instruction": "Primary API surface."
+        }
+      },
+      {
+        "id": "2",
+        "type": "structured-scope",
+        "attributes": {
+          "asset_type": "URL",
+          "asset_identifier": "*.acme.test",
+          "eligible_for_submission": true,
+          "eligible_for_bounty": true,
+          "max_severity": "high",
+          "instruction": "All production subdomains."
+        }
+      },
+      {
+        "id": "3",
+        "type": "structured-scope",
+        "attributes": {
+          "asset_type": "URL",
+          "asset_identifier": "https://legacy.acme.test/app",
+          "eligible_for_submission": false,
+          "eligible_for_bounty": false,
+          "max_severity": "none",
+          "instruction": "Deprecated; out of scope."
+        }
+      },
+      {
+        "id": "4",
+        "type": "structured-scope",
+        "attributes": {
+          "asset_type": "CIDR",
+          "asset_identifier": "203.0.113.0/24",
+          "eligible_for_submission": true,
+          "eligible_for_bounty": false,
+          "max_severity": "medium",
+          "instruction": "Corp network range."
+        }
+      },
+      {
+        "id": "5",
+        "type": "structured-scope",
+        "attributes": {
+          "asset_type": "GOOGLE_PLAY_APP_ID",
+          "asset_identifier": "com.acme.mobile",
+          "eligible_for_submission": true,
+          "eligible_for_bounty": true,
+          "max_severity": "high",
+          "instruction": "Android app."
+        }
+      }
+    ]
+  }
+}

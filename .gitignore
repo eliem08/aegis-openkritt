@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Test / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# Secrets & local config — never commit authorization secrets or signing keys
+*.secret
+*.key
+.env
+.env.*
+!.env.example
+secrets/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+.DS_Store
