@@ -14,11 +14,12 @@ from __future__ import annotations
 import json
 import sqlite3
 import threading
+import uuid
 from datetime import datetime, timezone
 
 from aegis.policy.killswitch import KillSwitchState
 
-from .store import ApprovalGrant, EngagementRecord
+from .store import ApprovalGrant, EngagementRecord, PolicyReservation
 
 # --- pure, DB-agnostic serialization (shared with Postgres, unit-testable) ---
 
@@ -71,6 +72,33 @@ def kill_from_row(row) -> KillSwitchState | None:  # (fired, reason, source, fir
     return KillSwitchState(fired=True, reason=row[1], source=row[2], fired_at=dt_from_iso(row[3]))
 
 
+def reservation_values(r: PolicyReservation) -> tuple:
+    return (
+        r.reservation_id, r.engagement_id, r.spend, r.sessions, r.spend_final, r.status,
+        r.idempotency_key, r.expires_at.isoformat() if r.expires_at else None, r.created_at.isoformat(),
+    )
+
+
+def reservation_from_row(row) -> PolicyReservation:
+    # (reservation_id, engagement_id, spend, sessions, spend_final, status, idempotency_key, expires_at, created_at)
+    return PolicyReservation(
+        reservation_id=row[0], engagement_id=row[1], spend=row[2], sessions=row[3],
+        spend_final=row[4], status=row[5], idempotency_key=row[6],
+        expires_at=dt_from_iso(row[7]), created_at=dt_from_iso(row[8]),
+    )
+
+
+# SQL fragments shared by both engines (usage over non-released reservations).
+_SPEND_USAGE_SQL = (
+    "SELECT COALESCE(SUM(CASE WHEN status='finalized' THEN spend_final ELSE spend END), 0) "
+    "FROM reservations WHERE engagement_id={ph} AND status IN ('reserved','finalized')"
+)
+_SESSION_USAGE_SQL = (
+    "SELECT COALESCE(SUM(sessions), 0) FROM reservations WHERE engagement_id={ph} AND status='reserved'"
+)
+_RES_COLS = "reservation_id, engagement_id, spend, sessions, spend_final, status, idempotency_key, expires_at, created_at"
+
+
 # --- SQLite repository ----------------------------------------------------
 
 _SCHEMA = """
@@ -91,6 +119,11 @@ CREATE TABLE IF NOT EXISTS kill_state (
     engagement_id TEXT PRIMARY KEY, fired INTEGER, reason TEXT, source TEXT, fired_at TEXT
 );
 CREATE TABLE IF NOT EXISTS spend (engagement_id TEXT PRIMARY KEY, spent REAL);
+CREATE TABLE IF NOT EXISTS reservations (
+    reservation_id TEXT PRIMARY KEY, engagement_id TEXT NOT NULL, spend REAL, sessions INTEGER,
+    spend_final REAL, status TEXT NOT NULL, idempotency_key TEXT UNIQUE, expires_at TEXT, created_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_res_eng ON reservations(engagement_id);
 """
 
 
@@ -197,6 +230,107 @@ class SqliteRepository:
                 "SELECT spent FROM spend WHERE engagement_id=?", (engagement_id,)
             ).fetchone()
         return row[0] if row else None
+
+    # -- atomic reservations (BEGIN IMMEDIATE serializes concurrent reserves) --
+
+    def reserve(self, engagement_id, *, spend, sessions, spend_cap, session_cap,
+                idempotency_key, expires_at=None) -> PolicyReservation | None:
+        with self._lock:
+            self._conn.execute("BEGIN IMMEDIATE")
+            try:
+                existing = self._conn.execute(
+                    f"SELECT {_RES_COLS} FROM reservations WHERE idempotency_key=?", (idempotency_key,)
+                ).fetchone()
+                if existing is not None:
+                    self._conn.commit()
+                    return reservation_from_row(existing)
+
+                spend_used = self._conn.execute(
+                    _SPEND_USAGE_SQL.format(ph="?"), (engagement_id,)
+                ).fetchone()[0] or 0.0
+                sessions_used = self._conn.execute(
+                    _SESSION_USAGE_SQL.format(ph="?"), (engagement_id,)
+                ).fetchone()[0] or 0
+
+                if spend_cap is not None and spend_used + spend > spend_cap:
+                    self._conn.rollback()
+                    return None
+                if session_cap is not None and sessions_used + sessions > session_cap:
+                    self._conn.rollback()
+                    return None
+
+                res = PolicyReservation(
+                    reservation_id=uuid.uuid4().hex, engagement_id=engagement_id, spend=spend,
+                    sessions=sessions, spend_final=None, status="reserved",
+                    idempotency_key=idempotency_key, expires_at=expires_at,
+                    created_at=datetime.now(timezone.utc),
+                )
+                self._conn.execute(
+                    f"INSERT INTO reservations({_RES_COLS}) VALUES (?,?,?,?,?,?,?,?,?)",
+                    reservation_values(res),
+                )
+                self._conn.commit()
+                return res
+            except Exception:
+                self._conn.rollback()
+                raise
+
+    def finalize(self, reservation_id, actual_spend) -> PolicyReservation | None:
+        with self._lock:
+            self._conn.execute("BEGIN IMMEDIATE")
+            try:
+                row = self._conn.execute(
+                    f"SELECT {_RES_COLS} FROM reservations WHERE reservation_id=?", (reservation_id,)
+                ).fetchone()
+                if row is None:
+                    self._conn.commit()
+                    return None
+                res = reservation_from_row(row)
+                if res.status != "reserved":  # idempotent
+                    self._conn.commit()
+                    return res
+                self._conn.execute(
+                    "UPDATE reservations SET status='finalized', spend_final=? WHERE reservation_id=?",
+                    (actual_spend, reservation_id),
+                )
+                self._conn.commit()
+                res.status, res.spend_final = "finalized", actual_spend
+                return res
+            except Exception:
+                self._conn.rollback()
+                raise
+
+    def release(self, reservation_id) -> PolicyReservation | None:
+        with self._lock:
+            self._conn.execute("BEGIN IMMEDIATE")
+            try:
+                row = self._conn.execute(
+                    f"SELECT {_RES_COLS} FROM reservations WHERE reservation_id=?", (reservation_id,)
+                ).fetchone()
+                if row is None:
+                    self._conn.commit()
+                    return None
+                res = reservation_from_row(row)
+                if res.status == "reserved":
+                    self._conn.execute(
+                        "UPDATE reservations SET status='released' WHERE reservation_id=?", (reservation_id,)
+                    )
+                    res.status = "released"
+                self._conn.commit()
+                return res
+            except Exception:
+                self._conn.rollback()
+                raise
+
+    def reservation_usage(self, engagement_id) -> tuple[float, int]:
+        with self._lock:
+            spend = self._conn.execute(
+                _SPEND_USAGE_SQL.format(ph="?"), (engagement_id,)
+            ).fetchone()[0] or 0.0
+            sessions = self._conn.execute(
+                _SESSION_USAGE_SQL.format(ph="?"), (engagement_id,)
+            ).fetchone()[0] or 0
+        return (float(spend), int(sessions))
 
     def close(self) -> None:
         with self._lock:

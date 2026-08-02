@@ -27,7 +27,7 @@ KID, SECRET = "kid-pg", "pg-secret"
 @pytest.fixture(autouse=True)
 def clean():
     repo = PostgresRepository(DSN)
-    repo._exec("TRUNCATE engagements, grants, audit, kill_state, spend")
+    repo._exec("TRUNCATE engagements, grants, audit, kill_state, spend, reservations")
     repo.close()
     yield
 
@@ -107,3 +107,48 @@ def test_pg_state_survives_restart():
         ActionRequest(target="api.example.test", action="passive_discovery", estimated_cost=90.0), now=now
     )
     assert over.verdict == Verdict.DENY  # 30 already spent + 90 > 100
+
+
+# --- atomic reservations against real Postgres ---
+
+def test_pg_reservations_no_overbooking():
+    import threading
+    from types import SimpleNamespace
+
+    from aegis.api.reservations import ReservationService
+
+    e = SimpleNamespace(id="res-eng", authorization=SimpleNamespace(
+        spend_budget=100.0, rate_limits=SimpleNamespace(max_concurrent_sessions=10_000)))
+    results: list = []
+    lock = threading.Lock()
+
+    def worker(i):
+        s = ReservationService(PostgresRepository(DSN))  # own pool/connection per thread
+        r = s.reserve(e, spend=10.0, sessions=1, idempotency_key=f"k{i}")
+        with lock:
+            results.append(r)
+        s._repo.close()
+
+    threads = [threading.Thread(target=worker, args=(i,)) for i in range(20)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    assert len([r for r in results if r is not None]) == 10  # advisory lock prevents overbooking
+    assert ReservationService(PostgresRepository(DSN)).usage("res-eng")[0] == 100.0
+
+
+def test_pg_reservation_idempotent_and_finalize():
+    from types import SimpleNamespace
+
+    from aegis.api.reservations import ReservationService
+
+    s = ReservationService(PostgresRepository(DSN))
+    e = SimpleNamespace(id="res-eng2", authorization=SimpleNamespace(
+        spend_budget=100.0, rate_limits=SimpleNamespace(max_concurrent_sessions=5)))
+    a = s.reserve(e, spend=10, idempotency_key="dup")
+    b = s.reserve(e, spend=10, idempotency_key="dup")
+    assert a.reservation_id == b.reservation_id
+    s.finalize(a.reservation_id, 6.0)
+    assert s.usage("res-eng2")[0] == 6.0  # actual, remainder released

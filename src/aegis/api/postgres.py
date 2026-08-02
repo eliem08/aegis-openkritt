@@ -12,12 +12,17 @@ concurrency. Values are stored as TEXT/INTEGER for parity with SQLite.
 from __future__ import annotations
 
 import json
+import uuid
+from datetime import datetime, timezone
 
 from psycopg_pool import ConnectionPool
 
 from aegis.policy.killswitch import KillSwitchState
 
 from .persistence import (
+    _RES_COLS,
+    _SESSION_USAGE_SQL,
+    _SPEND_USAGE_SQL,
     engagement_from_row,
     engagement_values,
     grant_from_row,
@@ -25,8 +30,10 @@ from .persistence import (
     kill_from_row,
     kill_values,
     now_iso,
+    reservation_from_row,
+    reservation_values,
 )
-from .store import ApprovalGrant, EngagementRecord
+from .store import ApprovalGrant, EngagementRecord, PolicyReservation
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS engagements (
@@ -46,6 +53,11 @@ CREATE TABLE IF NOT EXISTS kill_state (
     engagement_id TEXT PRIMARY KEY, fired INTEGER, reason TEXT, source TEXT, fired_at TEXT
 );
 CREATE TABLE IF NOT EXISTS spend (engagement_id TEXT PRIMARY KEY, spent DOUBLE PRECISION);
+CREATE TABLE IF NOT EXISTS reservations (
+    reservation_id TEXT PRIMARY KEY, engagement_id TEXT NOT NULL, spend DOUBLE PRECISION, sessions INTEGER,
+    spend_final DOUBLE PRECISION, status TEXT NOT NULL, idempotency_key TEXT UNIQUE, expires_at TEXT, created_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_res_eng ON reservations(engagement_id);
 """
 
 
@@ -148,6 +160,78 @@ class PostgresRepository:
     def get_spend(self, engagement_id: str) -> float | None:
         rows = self._query("SELECT spent FROM spend WHERE engagement_id=%s", (engagement_id,))
         return rows[0][0] if rows else None
+
+    # -- atomic reservations (per-engagement advisory lock serializes reserves) --
+
+    def reserve(self, engagement_id, *, spend, sessions, spend_cap, session_cap,
+                idempotency_key, expires_at=None) -> PolicyReservation | None:
+        with self._pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
+            cur.execute("SELECT pg_advisory_xact_lock(hashtext(%s))", (engagement_id,))
+            cur.execute(f"SELECT {_RES_COLS} FROM reservations WHERE idempotency_key=%s", (idempotency_key,))
+            existing = cur.fetchone()
+            if existing is not None:
+                return reservation_from_row(existing)
+
+            cur.execute(_SPEND_USAGE_SQL.format(ph="%s"), (engagement_id,))
+            spend_used = cur.fetchone()[0] or 0.0
+            cur.execute(_SESSION_USAGE_SQL.format(ph="%s"), (engagement_id,))
+            sessions_used = cur.fetchone()[0] or 0
+
+            if spend_cap is not None and spend_used + spend > spend_cap:
+                return None
+            if session_cap is not None and sessions_used + sessions > session_cap:
+                return None
+
+            res = PolicyReservation(
+                reservation_id=uuid.uuid4().hex, engagement_id=engagement_id, spend=spend,
+                sessions=sessions, spend_final=None, status="reserved",
+                idempotency_key=idempotency_key, expires_at=expires_at,
+                created_at=datetime.now(timezone.utc),
+            )
+            cur.execute(
+                f"INSERT INTO reservations({_RES_COLS}) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                reservation_values(res),
+            )
+            return res
+
+    def finalize(self, reservation_id, actual_spend) -> PolicyReservation | None:
+        with self._pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
+            cur.execute(
+                f"SELECT {_RES_COLS} FROM reservations WHERE reservation_id=%s FOR UPDATE", (reservation_id,)
+            )
+            row = cur.fetchone()
+            if row is None:
+                return None
+            res = reservation_from_row(row)
+            if res.status != "reserved":
+                return res
+            cur.execute(
+                "UPDATE reservations SET status='finalized', spend_final=%s WHERE reservation_id=%s",
+                (actual_spend, reservation_id),
+            )
+            res.status, res.spend_final = "finalized", actual_spend
+            return res
+
+    def release(self, reservation_id) -> PolicyReservation | None:
+        with self._pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
+            cur.execute(
+                f"SELECT {_RES_COLS} FROM reservations WHERE reservation_id=%s FOR UPDATE", (reservation_id,)
+            )
+            row = cur.fetchone()
+            if row is None:
+                return None
+            res = reservation_from_row(row)
+            if res.status == "reserved":
+                cur.execute(
+                    "UPDATE reservations SET status='released' WHERE reservation_id=%s", (reservation_id,)
+                )
+                res.status = "released"
+            return res
+
+    def reservation_usage(self, engagement_id) -> tuple[float, int]:
+        spend = self._query(_SPEND_USAGE_SQL.format(ph="%s"), (engagement_id,))[0][0] or 0.0
+        sessions = self._query(_SESSION_USAGE_SQL.format(ph="%s"), (engagement_id,))[0][0] or 0
+        return (float(spend), int(sessions))
 
     def close(self) -> None:
         self._pool.close()

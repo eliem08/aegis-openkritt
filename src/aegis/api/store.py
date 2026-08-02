@@ -73,6 +73,23 @@ class EngagementRecord:
     created_at: datetime
 
 
+@dataclass
+class PolicyReservation:
+    """An atomically-held claim on an engagement's spend + a concurrent session
+    slot. ``spend_final`` is set at finalization (actual consumption); the
+    remainder is released. Status: reserved | finalized | released."""
+
+    reservation_id: str
+    engagement_id: str
+    spend: float
+    sessions: int
+    spend_final: float | None
+    status: str
+    idempotency_key: str
+    expires_at: datetime | None
+    created_at: datetime
+
+
 @runtime_checkable
 class Repository(Protocol):
     """Durable backing store. A SQLite implementation lives in
@@ -94,6 +111,21 @@ class Repository(Protocol):
 
     def save_spend(self, engagement_id: str, spent: float) -> None: ...
     def get_spend(self, engagement_id: str) -> float | None: ...
+
+    def reserve(
+        self,
+        engagement_id: str,
+        *,
+        spend: float,
+        sessions: int,
+        spend_cap: float | None,
+        session_cap: int | None,
+        idempotency_key: str,
+        expires_at: datetime | None = None,
+    ) -> "PolicyReservation | None": ...
+    def finalize(self, reservation_id: str, actual_spend: float) -> "PolicyReservation | None": ...
+    def release(self, reservation_id: str) -> "PolicyReservation | None": ...
+    def reservation_usage(self, engagement_id: str) -> tuple[float, int]: ...
 
 
 # --- approvals ------------------------------------------------------------
