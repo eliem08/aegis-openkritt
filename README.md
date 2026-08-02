@@ -10,10 +10,10 @@ action is allowed to run.
 > past a gate — every action is classified and checked by code, not prose.
 
 Status: **Policy + Auth core**, **control-plane API**, the **orchestrator loop**
-(canonical schemas, triage, a gate that runs in-process **or over the API**),
-**HackerOne ingestion**, and a **knowledge base** that learns historical priors
-from past disclosed reports — implemented and tested (**224 tests**). Real worker
-tooling and the patch protocol are not built yet. See [Roadmap](#roadmap) and
+(local **or over the API**), **HackerOne ingestion**, a **knowledge base**, an
+**outbound scope-enforcement proxy**, and a **guardrailed DeepSeek planner** —
+implemented and tested (**257 tests**). Real worker tooling and the patch
+protocol are not built yet. See [Roadmap](#roadmap) and
 [PRODUCTION.md](PRODUCTION.md) for an honest readiness assessment.
 
 ---
@@ -258,6 +258,43 @@ platform-agnostic `ProgramRules`:
 
 ---
 
+## Outbound scope enforcement (`aegis.netgate`)
+
+The network-layer control the operating prompt insists on (§2): *scope is
+enforced by the network, not the agent.* `build_gated_client(scope)` returns an
+`httpx.Client` whose **every** request is checked at the transport — so it also
+catches requests a worker makes internally (§17) and **each redirect hop**:
+
+- host not in the signed scope → `ScopeViolation` (blocked)
+- a redirect that leaves scope → blocked on the next hop
+- a host that resolves to a **private/internal IP** → blocked (SSRF guard)
+- DNS failure → **fail closed** (blocked)
+
+This is defense-in-depth beside the policy gate; every real worker will make its
+requests through it. (Not fully DNS-rebinding-proof — that needs connection-level
+IP pinning; documented in the module.)
+
+## The brain: DeepSeek planner, guardrailed (`aegis.ai`)
+
+The LLM is a **planner/synthesiser, never the source of truth** (§1). DeepSeek
+(OpenAI-compatible) proposes a plan; `LLMPlanner` then **filters it** so only
+actions that are in the permitted vocabulary *and* on in-scope targets survive —
+everything else is dropped and recorded. So a hallucinating or prompt-injected
+model **cannot** emit a prohibited or out-of-scope action, and the policy gate
+re-checks anyway. If DeepSeek is unavailable (no key, API error, bad JSON),
+planning falls back to the deterministic planner — the system never depends on
+the model.
+
+```bash
+DEEPSEEK_API_KEY=… python -c "..."   # or leave unset to run deterministically
+```
+
+Key from the environment (`DEEPSEEK_API_KEY`), never handled by the tool or
+logged. `LLMPlanner` is a drop-in `Planner`, so the orchestrator uses it
+unchanged.
+
+---
+
 ## Learning from past reports
 
 The **LEARN** stage (§3, §8, §12). `aegis.knowledge` ingests past disclosed
@@ -328,7 +365,13 @@ src/aegis/knowledge/
   insights.py        weakness frequency, per-asset priors
   enrichment.py      blend findings with historical priors (§8)
   planner.py         KnowledgeAwarePlanner (history-ordered probes)
-tests/               224 tests (policy, API, orchestrator, ingest, knowledge)
+src/aegis/netgate/
+  scope_transport.py scope-enforcing httpx transport (SSRF + redirect safe)
+src/aegis/ai/
+  config.py          DeepSeek config (key from env)
+  client.py          DeepSeek chat client (OpenAI-compatible, httpx)
+  planner.py         LLMPlanner — guardrailed, deterministic fallback
+tests/               257 tests (+ netgate scope proxy, + ai guardrails)
 examples/            *.py demos + *.sample.json / reports.sample.jsonl
 Dockerfile · PRODUCTION.md · .github/workflows/ci.yml
 ```
@@ -352,9 +395,14 @@ Stages 1–3 are done. What remains of the operating loop (§3):
   rules of engagement → unsigned authorization draft.
 - [x] **Knowledge base / LEARN** — corpus of past reports → historical priors →
   finding enrichment + knowledge-aware planning.
+- [x] **Outbound scope proxy** — per-request + redirect + SSRF enforcement at the
+  transport (`aegis.netgate`).
+- [x] **LLM planner (DeepSeek)** — guardrailed: LLM proposes, deterministic
+  filter + gate dispose; falls back to deterministic planning.
 - [ ] **Real worker classes** — `passive_recon`, `api_agent`, `browser_agent`,
-  `template_scanner`, `code_analysis`, `fuzzer` — replacing the stand-ins,
-  each gated before every request.
+  `template_scanner` — built **on the scope proxy**, each request gated.
+  *(next; the authenticated API/authz worker with 2 test accounts is the #1
+  revenue driver.)*
 - [ ] **Patch protocol** — reproduce → failing test → fix → verify → PR.
 - [ ] **Persistence** — swap the in-memory store for an encrypted, retained
   store (§12) behind the same interface. *(top production gap — see

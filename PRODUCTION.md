@@ -31,6 +31,12 @@ controlled engagements**, not unattended against production targets.
   constraints; forbidden-automation programs yield zero permitted actions.
 - **Knowledge** (`aegis.knowledge`) — corpus + historical priors feeding
   prioritisation and planning.
+- **Outbound scope proxy** (`aegis.netgate`) — every request, redirect hop, and
+  resolved IP checked against scope; SSRF/internal ranges blocked; fails closed.
+  (Caveat: not fully DNS-rebinding-proof — needs connection-level IP pinning.)
+- **LLM planner** (`aegis.ai`) — DeepSeek as a *guardrailed* planner: output
+  filtered to allowed actions + in-scope targets, key from env, deterministic
+  fallback. The model is never trusted; the gate re-checks.
 - **Packaging** — typed (`py.typed`), pinned build backend, `.env` loader that
   never overrides the real environment, secrets kept out of logs, CI on 3.11/3.12,
   Docker image running as non-root with a healthcheck.
