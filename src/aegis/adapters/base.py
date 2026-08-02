@@ -58,8 +58,12 @@ class JsonLinesAdapter:
     #: Set to allow running before a digest is pinned (tests/local dev only).
     allow_unpinned: bool = False
 
-    def __init__(self, executable: str | None = None, *, allow_unpinned: bool | None = None) -> None:
+    def __init__(self, executable: str | None = None, *, allow_unpinned: bool | None = None,
+                 digest: str | None = None) -> None:
         self._executable = executable
+        # A pinned digest injected at runtime (from pins.json) overrides the
+        # code-shipped empty digest, so the package fails closed by default.
+        self._digest = digest
         if allow_unpinned is not None:
             self.allow_unpinned = allow_unpinned
 
@@ -119,7 +123,7 @@ class JsonLinesAdapter:
         path = self._executable or os.environ.get(self._env_var()) or shutil.which(self.tool_name)
         if not path:
             raise ToolUnavailable(f"{self.tool_name!r} not found; set {self._env_var()}")
-        digest = self.manifest.executable_digest
+        digest = self._digest or self.manifest.executable_digest
         if not digest:
             if not self.allow_unpinned:
                 raise ToolUnavailable(

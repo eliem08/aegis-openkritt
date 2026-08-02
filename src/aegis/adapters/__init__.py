@@ -66,12 +66,22 @@ DISCOVERY_MANIFESTS = (
 )
 
 
-def discovery_adapters(**kwargs) -> dict:
-    """Registry of the five discovery adapters, keyed by manifest name."""
-    adapters = [
-        SubfinderAdapter(**kwargs), GauAdapter(**kwargs), HttpProbeAdapter(**kwargs),
-        KatanaAdapter(**kwargs), JsluiceAdapter(**kwargs),
-    ]
+def discovery_adapters(pins=None, **kwargs) -> dict:
+    """Registry of the five discovery adapters, keyed by manifest name.
+
+    ``pins`` is a ``{tool_name: PinnedTool}`` mapping (from ``aegis.tools.pin``);
+    when given, each adapter is constructed with its pinned digest so it verifies
+    the on-disk binary. Without pins, the adapters keep the code-shipped empty
+    digest and fail closed.
+    """
+    classes = [SubfinderAdapter, GauAdapter, HttpProbeAdapter, KatanaAdapter, JsluiceAdapter]
+    adapters = []
+    for cls in classes:
+        digest = None
+        if pins is not None:
+            entry = pins.get(cls.tool_name)
+            digest = entry.sha256 if entry is not None else None
+        adapters.append(cls(digest=digest, **kwargs) if digest else cls(**kwargs))
     return {a.manifest.name: a for a in adapters}
 
 
