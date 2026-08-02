@@ -1,6 +1,6 @@
 # Repository Strengths — Aegis Implementation Ledger
 
-Last reconciled with Aegis commit: `8cfaa3d` on 2026-08-02
+Last reconciled with Aegis commit: `2c206ae` on 2026-08-02
 
 This file is the authoritative delivery ledger for the audited repository
 strengths and the corrections discovered during the Aegis reread. Update a row
@@ -51,7 +51,7 @@ binaries. Obtain distribution-specific legal review before release.
 |---|---|---:|---|---|---|
 | Tenant-bind principals and engagement access | Current agent/operator roles are global | 1 | Cross-tenant API/worker access denied | complete | 65dc710 |
 | Atomic policy/resource reservations | Separate authorize/commit can overbook and double-commit under concurrency | 1 | Concurrent DB tests cannot exceed budgets; finalize is idempotent | complete | a50c281 |
-| Persist scans, stages, tasks, leases, assets, observations, artifacts | Current repositories persist control state only | 1 | SQLite/PostgreSQL contract plus restart recovery | not-started | — |
+| Persist scans, stages, tasks, leases, artifacts (assets/observations land with Phase 2 normalization) | Current repositories persist control state only | 1 | SQLite/PostgreSQL contract plus restart recovery | complete | 2c206ae |
 | Versioned DB migrations and foreign-key integrity | Current startup schema is create-if-not-exists without migration history | 1 | Upgrade/downgrade refusal and migration checksum tests | complete | 8cfaa3d |
 | External-process scoped execution gateway | In-process `httpx` transport cannot constrain CLI tools | 1 | Direct egress, redirect, private-IP, DNS-change tests | not-started | — |
 | Derive report scope from authorization | `prepare_submission` currently trusts a caller boolean | 1 | API cannot override an out-of-scope result | complete | 7a7b252 |
