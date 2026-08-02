@@ -41,6 +41,7 @@ from .model import (
 _NON_ASSET_KINDS = {
     EventKind.DIAGNOSTIC, EventKind.PROGRESS, EventKind.TERMINAL,
     EventKind.SECRET_CANDIDATE,  # handled by quarantine + the sensitive-data policy
+    EventKind.FINDING,           # handled by the evidence/verification pipeline
 }
 
 

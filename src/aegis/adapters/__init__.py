@@ -37,6 +37,19 @@ from .gau import GAU_MANIFEST, GauAdapter, GauConfig
 from .http_probe import HTTP_PROBE_MANIFEST, HttpProbeAdapter, HttpProbeConfig
 from .jsluice import JSLUICE_MANIFEST, CustomMatcher, JsluiceAdapter, JsluiceConfig
 from .katana import KATANA_MANIFEST, HeadlessNotPermitted, KatanaAdapter, KatanaConfig
+from .nuclei import (
+    DEFAULT_ALLOWED_PROTOCOLS,
+    PROHIBITED_PROTOCOLS,
+    ManifestError,
+    NucleiAdapter,
+    NucleiConfig,
+    RejectReason,
+    TemplateEntry,
+    TemplateManifest,
+    TemplateVerdict,
+    new_template_manifest,
+    sign_manifest,
+)
 from .subfinder import SUBFINDER_MANIFEST, SubfinderAdapter, SubfinderConfig
 
 #: The Phase 2 discovery set, in stage order.
@@ -95,4 +108,15 @@ __all__ = [
     "JSLUICE_MANIFEST",
     "DISCOVERY_MANIFESTS",
     "discovery_adapters",
+    "NucleiAdapter",
+    "NucleiConfig",
+    "TemplateManifest",
+    "TemplateEntry",
+    "TemplateVerdict",
+    "ManifestError",
+    "RejectReason",
+    "new_template_manifest",
+    "sign_manifest",
+    "DEFAULT_ALLOWED_PROTOCOLS",
+    "PROHIBITED_PROTOCOLS",
 ]

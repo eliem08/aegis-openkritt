@@ -38,6 +38,7 @@ class EventKind(str, Enum):
     PARAMETER = "parameter"
     TECHNOLOGY = "technology"
     SECRET_CANDIDATE = "secret_candidate"
+    FINDING = "finding"          # an active-testing candidate; not a verified finding
     DIAGNOSTIC = "diagnostic"
     PROGRESS = "progress"
     TERMINAL = "terminal"

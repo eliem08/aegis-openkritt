@@ -1,0 +1,5 @@
+{"template-id":"tech-detect","info":{"name":"Technology Detection","severity":"info","tags":["tech"]},"type":"http","host":"https://api.example.test","matched-at":"https://api.example.test","matcher-name":"nginx"}
+{"template-id":"exposed-config","info":{"name":"Exposed Config File","severity":"medium","tags":["exposure","config"]},"type":"http","host":"https://api.example.test","matched-at":"https://api.example.test/.env"}
+{"template-id":"evil-injected","info":{"name":"Injected Template","severity":"critical"},"type":"http","host":"https://api.example.test","matched-at":"https://api.example.test/x"}
+{"template-id":"portscan","info":{"name":"Port Scan","severity":"info"},"type":"network","host":"api.example.test","matched-at":"api.example.test:22"}
+{"template-id":"../../etc/passwd.yaml","info":{"name":"local file ref"},"type":"http","host":"api.example.test","matched-at":"api.example.test"}
