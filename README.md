@@ -14,7 +14,7 @@ API**), HackerOne ingestion, knowledge base, **outbound scope proxy**,
 **guardrailed DeepSeek planner**, an **extensible vulnerability-detector
 framework** (BOLA/IDOR, exposed files, open redirect), and **acceptance-grade
 reporting** (redact → dedup → quality gates → HackerOne-ready report) —
-implemented and tested (**315 tests**). Full worker fleet and the patch protocol
+implemented and tested (**320 tests**). Full worker fleet and the patch protocol
 are still partial. See [Roadmap](#roadmap) and [PRODUCTION.md](PRODUCTION.md) for
 an honest readiness assessment.
 
@@ -470,8 +470,9 @@ Stages 1–3 are done. What remains of the operating loop (§3):
   verifies with a public key it cannot forge (`AEGIS_ED25519_PUBLIC_KEYS`).
 - [x] **Recon → BOLA auto-wiring** — discovered `/users/{id}` endpoints +
   operator-seeded objects become BOLA targets automatically.
-- [ ] **Postgres repository** — the same `Repository` over Postgres, for HA
-  (needs a live DB + docker-compose to validate).
+- [x] **Postgres repository** — the same `Repository` over Postgres
+  (`AEGIS_DB_URL`), for HA; validated by integration tests against a real DB via
+  `docker-compose.yml`.
 - [ ] **Ingest → control plane wiring** — register a draft authorization for
   operator signing straight from a discovered program.
 

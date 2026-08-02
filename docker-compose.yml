@@ -1,0 +1,40 @@
+# Postgres + the aegis control plane.
+#   docker compose up -d postgres           # just the DB (for local dev / tests)
+#   docker compose up --build               # DB + control plane on :8000
+#
+# Secrets come from your .env (git-ignored). For a real run set AEGIS_API_KEYS,
+# AEGIS_SIGNING_KEYS or AEGIS_ED25519_PUBLIC_KEYS there.
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: aegis
+      POSTGRES_PASSWORD: aegis
+      POSTGRES_DB: aegis
+    ports:
+      # Override if host 5432 is taken:  AEGIS_PG_PORT=5433 docker compose up -d postgres
+      - "${AEGIS_PG_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aegis -d aegis"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  control-plane:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      AEGIS_DB_URL: postgresql://aegis:aegis@postgres:5432/aegis
+      AEGIS_HOST: 0.0.0.0
+      AEGIS_PORT: "8000"
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+
+volumes:
+  pgdata: {}

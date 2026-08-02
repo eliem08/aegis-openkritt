@@ -1,0 +1,110 @@
+"""Postgres integration tests — same durability guarantees as SQLite.
+
+Skipped unless a reachable Postgres is provided via ``AEGIS_TEST_POSTGRES_DSN``
+(the docker-compose ``postgres`` service works). These are the *real* validation
+that the Postgres repository behaves identically to SQLite across a restart.
+"""
+
+from __future__ import annotations
+
+import os
+from datetime import datetime, timedelta, timezone
+
+import pytest
+
+pytest.importorskip("psycopg")
+DSN = os.environ.get("AEGIS_TEST_POSTGRES_DSN")
+pytestmark = pytest.mark.skipif(not DSN, reason="set AEGIS_TEST_POSTGRES_DSN to run")
+
+from aegis.api.postgres import PostgresRepository  # noqa: E402
+from aegis.api.store import ApprovalGrant, EngagementRecord, EngagementStore  # noqa: E402
+from aegis.policy import ActionRequest, Authorization, HmacSignatureVerifier, Verdict  # noqa: E402
+from aegis.policy.killswitch import KillSwitchState  # noqa: E402
+
+KID, SECRET = "kid-pg", "pg-secret"
+
+
+@pytest.fixture(autouse=True)
+def clean():
+    repo = PostgresRepository(DSN)
+    with repo._lock, repo._conn.cursor() as cur:
+        cur.execute("TRUNCATE engagements, grants, audit, kill_state, spend")
+    repo.close()
+    yield
+
+
+def _verifier() -> HmacSignatureVerifier:
+    return HmacSignatureVerifier({KID: SECRET})
+
+
+def signed_auth(aid: str = "auth-pg", spend: float = 100.0) -> Authorization:
+    now = datetime.now(timezone.utc)
+    a = Authorization(
+        customer_id="c", authorization_id=aid, ownership_proof=["dns"],
+        targets=["api.example.test"], valid_from=now - timedelta(days=1), valid_until=now + timedelta(days=10),
+        permitted_actions=["passive_discovery", "cross_tenant_proof"], prohibited_actions=["denial_of_service"],
+        rate_limits={"requests_per_second": 5, "max_concurrent_sessions": 3},
+        approval_required_for=["cross_tenant_proof"], spend_budget=spend,
+    )
+    a.signature = _verifier().sign(a.signing_payload(), KID)
+    a.signing_key_id = KID
+    return a
+
+
+def store() -> EngagementStore:
+    return EngagementStore(verifier=_verifier(), require_signature=True, repository=PostgresRepository(DSN))
+
+
+# --- repository-level ---
+
+def test_pg_engagement_and_grant_roundtrip():
+    repo = PostgresRepository(DSN)
+    repo.save_engagement(EngagementRecord(id="e1", authorization={"x": 1}, status="active",
+                                          created_at=datetime.now(timezone.utc)))
+    assert repo.get_engagement("e1").authorization == {"x": 1}
+    g = ApprovalGrant(grant_id="g1", action="a", target="h", tokens=frozenset({"t"}),
+                      granted_by="op", granted_at=datetime.now(timezone.utc))
+    repo.save_grant("e1", g)
+    assert repo.list_grants("e1")[0].tokens == frozenset({"t"})
+    g.revoked = True
+    repo.save_grant("e1", g)  # upsert via ON CONFLICT
+    assert repo.list_grants("e1")[0].revoked is True
+
+
+def test_pg_kill_spend_audit():
+    repo = PostgresRepository(DSN)
+    assert repo.get_kill_state("e1") is None
+    repo.save_kill_state("e1", KillSwitchState(fired=True, reason="stop", source="op",
+                                               fired_at=datetime.now(timezone.utc)))
+    assert repo.get_kill_state("e1").reason == "stop"
+    repo.save_spend("e1", 42.5)
+    assert repo.get_spend("e1") == 42.5
+    for i in range(5):
+        repo.append_audit("e1", {"n": i})
+    assert [r["n"] for r in repo.recent_audit("e1", 3)] == [2, 3, 4]
+
+
+# --- store-level durability across a 'restart' ---
+
+def test_pg_state_survives_restart():
+    now = datetime.now(timezone.utc)
+    e1 = store().create(signed_auth())
+    e1.approvals.grant(action="cross_tenant_proof", target="api.example.test",
+                       tokens=["cross_tenant_proof", "tier:SENSITIVE"], granted_by="op")
+    req = ActionRequest(target="api.example.test", action="passive_discovery", estimated_cost=30.0)
+    d = e1.engine.authorize(req, now=now)
+    e1.engine.commit(d, request=req, now=now)
+    e1.engine.kill_switch.fire("operator stop")
+
+    e2 = store().get("auth-pg")  # new store + connection = restart
+    assert e2.approvals.tokens_for("cross_tenant_proof", "api.example.test", now) == {
+        "cross_tenant_proof", "tier:SENSITIVE"
+    }
+    denied = e2.engine.authorize(ActionRequest(target="api.example.test", action="passive_discovery"), now=now)
+    assert denied.verdict == Verdict.DENY and "KILL_SWITCH" in denied.incidents
+    assert len(e2.audit.recent()) >= 1
+    e2.engine.kill_switch.reset()
+    over = e2.engine.authorize(
+        ActionRequest(target="api.example.test", action="passive_discovery", estimated_cost=90.0), now=now
+    )
+    assert over.verdict == Verdict.DENY  # 30 already spent + 90 > 100

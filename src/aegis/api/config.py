@@ -68,14 +68,22 @@ class ControlPlaneConfig:
     max_audit_records: int = 1000
     max_decisions_cached: int = 500
     db_path: str | None = None  # SQLite file; None = in-memory (no durability)
+    db_url: str | None = None  # Postgres DSN; takes precedence over db_path
 
     def build_repository(self):
-        """A durable repository if a DB is configured, else None (in-memory)."""
-        if not self.db_path:
-            return None
-        from .persistence import SqliteRepository
+        """A durable repository if a DB is configured, else None (in-memory).
 
-        return SqliteRepository(self.db_path)
+        ``AEGIS_DB_URL`` (Postgres) wins over ``AEGIS_DB_PATH`` (SQLite).
+        """
+        if self.db_url:
+            from .postgres import PostgresRepository
+
+            return PostgresRepository(self.db_url)
+        if self.db_path:
+            from .persistence import SqliteRepository
+
+            return SqliteRepository(self.db_path)
+        return None
 
     def build_verifier(self) -> SignatureVerifier:
         # Prefer asymmetric Ed25519 (the control plane holds the private key;
@@ -124,6 +132,7 @@ class ControlPlaneConfig:
             require_signature=require_signature,
             auth_enabled=auth_enabled,
             db_path=env.get("AEGIS_DB_PATH") or None,
+            db_url=env.get("AEGIS_DB_URL") or None,
         )
 
 

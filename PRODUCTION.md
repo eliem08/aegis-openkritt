@@ -41,11 +41,11 @@ controlled engagements**, not unattended against production targets.
   signatures: the control plane signs with a private key, this process verifies
   with a public key it cannot use to forge. Preferred automatically when
   `AEGIS_ED25519_PUBLIC_KEYS` is set (HMAC remains as a fallback).
-- **Durable persistence** (`aegis.api.persistence`) — SQLite behind the
-  `Repository` protocol. Engagements, approval grants, the append-only audit
-  trail, **kill-switch state**, and spend budget survive a restart (a fired kill
-  switch stays fired — fail-safe). Set `AEGIS_DB_PATH` to enable; Postgres is a
-  drop-in via the same protocol.
+- **Durable persistence** — SQLite (`AEGIS_DB_PATH`) *or* Postgres
+  (`AEGIS_DB_URL`) behind one `Repository` protocol. Engagements, approval
+  grants, the append-only audit trail, **kill-switch state**, and spend budget
+  survive a restart (a fired kill switch stays fired — fail-safe). The Postgres
+  path is validated by integration tests against a real DB (docker-compose).
 - **Packaging** — typed (`py.typed`), pinned build backend, `.env` loader that
   never overrides the real environment, secrets kept out of logs, CI on 3.11/3.12,
   Docker image running as non-root with a healthcheck.
@@ -54,7 +54,7 @@ controlled engagements**, not unattended against production targets.
 
 | Gap | Impact | Path |
 |---|---|---|
-| **Single-node durability** | SQLite persists across restarts (set `AEGIS_DB_PATH`), but no HA / multi-writer | Swap `SqliteRepository` for a Postgres one (same `Repository` protocol); encrypt at rest (§12) |
+| **HA / encryption at rest** | SQLite *and* Postgres are supported (durable across restarts); no read replicas or column-level encryption yet | Run Postgres with replication + backups; encrypt evidence at rest (§12) |
 | **Rate budget not persisted** | Rate/concurrency reset on restart (conservative: no in-flight load after a restart) | Externalise rate state (Redis) when scaling to multiple workers |
 | **Stand-in workers/planner/patcher** | No real testing/fix capability yet | Build real `passive_recon`, `api_agent`, …, and the patch protocol |
 | **Single-process** | No horizontal scale; budgets/kill switch are per-process | Externalise budget/kill-switch state (Redis) behind the same interfaces |
