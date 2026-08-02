@@ -25,6 +25,7 @@ from .persistence import (
     _RES_COLS,
     _SESSION_USAGE_SQL,
     _SPEND_USAGE_SQL,
+    dt_from_iso,
     engagement_from_row,
     engagement_values,
     grant_from_row,
@@ -221,14 +222,31 @@ class PostgresRepository:
 
     # -- atomic reservations (per-engagement advisory lock serializes reserves) --
 
+    @staticmethod
+    def _consume_single_use(cur, engagement_id, consume_approval) -> bool:
+        """Burn the active single-use grant(s) for ``(action, target)`` on the same
+        cursor/transaction. Returns False (fail closed) if none is consumable."""
+        action, target = consume_approval
+        now = datetime.now(timezone.utc)
+        cur.execute(
+            "SELECT grant_id, expires_at FROM grants WHERE engagement_id=%s AND action=%s "
+            "AND target=%s AND single_use=1 AND used=0 AND revoked=0 FOR UPDATE",
+            (engagement_id, action, target),
+        )
+        active = [gid for gid, exp in cur.fetchall() if exp is None or dt_from_iso(exp) >= now]
+        if not active:
+            return False
+        cur.execute("UPDATE grants SET used=1 WHERE grant_id = ANY(%s)", (active,))
+        return True
+
     def reserve(self, engagement_id, *, spend, sessions, spend_cap, session_cap,
-                idempotency_key, expires_at=None) -> PolicyReservation | None:
+                idempotency_key, expires_at=None, consume_approval=None) -> PolicyReservation | None:
         with self._pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
             cur.execute("SELECT pg_advisory_xact_lock(hashtext(%s))", (engagement_id,))
             cur.execute(f"SELECT {_RES_COLS} FROM reservations WHERE idempotency_key=%s", (idempotency_key,))
             existing = cur.fetchone()
             if existing is not None:
-                return reservation_from_row(existing)
+                return reservation_from_row(existing)  # idempotent: never re-consume
 
             cur.execute(_SPEND_USAGE_SQL.format(ph="%s"), (engagement_id,))
             spend_used = cur.fetchone()[0] or 0.0
@@ -236,9 +254,14 @@ class PostgresRepository:
             sessions_used = cur.fetchone()[0] or 0
 
             if spend_cap is not None and spend_used + spend > spend_cap:
-                return None
+                return None  # over cap: nothing claimed, no approval burned
             if session_cap is not None and sessions_used + sessions > session_cap:
                 return None
+
+            # Burn a single-use approval in the SAME transaction (the per-engagement
+            # advisory lock above serializes competing reserves) — never double-spend.
+            if consume_approval is not None and not self._consume_single_use(cur, engagement_id, consume_approval):
+                return None  # fail closed: no consumable single-use approval
 
             res = PolicyReservation(
                 reservation_id=uuid.uuid4().hex, engagement_id=engagement_id, spend=spend,

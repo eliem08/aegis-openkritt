@@ -280,8 +280,26 @@ class SqliteRepository:
 
     # -- atomic reservations (BEGIN IMMEDIATE serializes concurrent reserves) --
 
+    def _consume_single_use(self, engagement_id, consume_approval) -> bool:
+        """Within an open transaction, burn the active single-use grant(s) matching
+        ``(action, target)``. Returns False (fail closed) if none is consumable."""
+        action, target = consume_approval
+        now = datetime.now(timezone.utc)
+        rows = self._conn.execute(
+            "SELECT grant_id, expires_at FROM grants WHERE engagement_id=? AND action=? "
+            "AND target=? AND single_use=1 AND used=0 AND revoked=0",
+            (engagement_id, action, target),
+        ).fetchall()
+        active = [gid for gid, exp in rows if exp is None or dt_from_iso(exp) >= now]
+        if not active:
+            return False
+        self._conn.execute(
+            f"UPDATE grants SET used=1 WHERE grant_id IN ({','.join('?' * len(active))})", active
+        )
+        return True
+
     def reserve(self, engagement_id, *, spend, sessions, spend_cap, session_cap,
-                idempotency_key, expires_at=None) -> PolicyReservation | None:
+                idempotency_key, expires_at=None, consume_approval=None) -> PolicyReservation | None:
         with self._lock:
             self._conn.execute("BEGIN IMMEDIATE")
             try:
@@ -290,7 +308,7 @@ class SqliteRepository:
                 ).fetchone()
                 if existing is not None:
                     self._conn.commit()
-                    return reservation_from_row(existing)
+                    return reservation_from_row(existing)  # idempotent: never re-consume
 
                 spend_used = self._conn.execute(
                     _SPEND_USAGE_SQL.format(ph="?"), (engagement_id,)
@@ -300,10 +318,16 @@ class SqliteRepository:
                 ).fetchone()[0] or 0
 
                 if spend_cap is not None and spend_used + spend > spend_cap:
-                    self._conn.rollback()
+                    self._conn.rollback()  # over cap: nothing claimed, no approval burned
                     return None
                 if session_cap is not None and sessions_used + sessions > session_cap:
                     self._conn.rollback()
+                    return None
+
+                # Burn a single-use approval in the SAME transaction as the claim, so
+                # two concurrent reservations can never both consume one token.
+                if consume_approval is not None and not self._consume_single_use(engagement_id, consume_approval):
+                    self._conn.rollback()  # fail closed: no consumable single-use approval
                     return None
 
                 res = PolicyReservation(

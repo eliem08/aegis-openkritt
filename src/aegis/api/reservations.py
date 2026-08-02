@@ -36,11 +36,17 @@ class ReservationService:
         sessions: int = 1,
         idempotency_key: str,
         ttl_seconds: int = 3600,
+        consume_approval: tuple[str, str] | None = None,
     ) -> PolicyReservation | None:
         """Atomically reserve ``spend`` + ``sessions`` for the engagement.
 
         Returns the reservation, or ``None`` if it would exceed a cap. The same
         ``idempotency_key`` returns the existing reservation without double-charging.
+
+        ``consume_approval`` is an ``(action, target)`` pair: when given, the claim
+        also **burns a single-use approval** for that action/target inside the same
+        transaction, and fails closed (returns ``None``) if none is consumable — so
+        two concurrent reservations can never both spend one single-use token.
         """
         if spend < 0 or sessions < 0:
             raise ReservationError("spend and sessions must be >= 0")
@@ -48,6 +54,11 @@ class ReservationService:
         spend_cap = auth.spend_budget  # None == unlimited
         session_cap = auth.rate_limits.max_concurrent_sessions
         expires_at = datetime.now(timezone.utc) + timedelta(seconds=ttl_seconds)
+        if consume_approval is not None:
+            from .store import _safe_host
+
+            action, target = consume_approval
+            consume_approval = (action, _safe_host(target))  # match how grants store the host
         return self._repo.reserve(
             engagement.id,
             spend=spend,
@@ -56,6 +67,7 @@ class ReservationService:
             session_cap=session_cap,
             idempotency_key=idempotency_key,
             expires_at=expires_at,
+            consume_approval=consume_approval,
         )
 
     def finalize(self, reservation_id: str, actual_spend: float = 0.0) -> PolicyReservation | None:
