@@ -27,6 +27,7 @@ from .model import (
 )
 from .normalizer import (
     OUT_OF_SCOPE,
+    SENSITIVE,
     UNPARSEABLE,
     UNSUPPORTED,
     WILDCARD,
@@ -63,4 +64,5 @@ __all__ = [
     "WILDCARD",
     "UNPARSEABLE",
     "UNSUPPORTED",
+    "SENSITIVE",
 ]

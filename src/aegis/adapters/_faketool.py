@@ -31,6 +31,11 @@ def main(argv: list[str] | None = None) -> int:
     if target == "secret.example.test":
         _emit({"kind": "secret_candidate", "location": "body", "kind_hint": "aws_key",
                "evidence_ref": "line:42"})
+    # Test hook: a marker target emits an ordinary event whose *data* contains a
+    # sensitive value, so the ingestion classifier (not just a secret signal) fires.
+    if target == "leak.example.test":
+        _emit({"kind": "route", "method": "GET", "path": "/dump",
+               "leaked": "AKIAIOSFODNN7EXAMPLE"})
     _emit({"kind": "terminal", "status": "succeeded", "summary": {"assets": 1, "routes": 2}})
     return 0
 

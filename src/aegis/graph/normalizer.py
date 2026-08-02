@@ -50,6 +50,7 @@ OUT_OF_SCOPE = "out_of_scope"
 WILDCARD = "wildcard"
 UNPARSEABLE = "unparseable"
 UNSUPPORTED = "unsupported_kind"
+SENSITIVE = "sensitive_data"     # Phase 4: never store; quarantine + escalate
 
 
 @dataclass(frozen=True)
@@ -64,6 +65,8 @@ class NormalizationResult:
     observations: list[Observation] = field(default_factory=list)
     assets: dict[str, Asset] = field(default_factory=dict)
     rejections: list[Rejection] = field(default_factory=list)
+    sensitive: bool = False                          # a sensitive artifact was hit
+    sensitive_classifications: list = field(default_factory=list)  # redacted; never raw
 
     @property
     def counts(self) -> dict:
@@ -85,10 +88,11 @@ class _Candidate:
 class Normalizer:
     """Normalizes one task's events into the engagement's asset graph."""
 
-    def __init__(self, *, scope: ScopeGuard, engagement_id: str, scan_id: str) -> None:
+    def __init__(self, *, scope: ScopeGuard, engagement_id: str, scan_id: str, classifier=None) -> None:
         self._scope = scope
         self._engagement_id = engagement_id
         self._scan_id = scan_id
+        self._classifier = classifier    # optional sensitive-data ingestion gate
 
     def normalize(self, events: Iterable[AdapterEvent]) -> NormalizationResult:
         result = NormalizationResult()
@@ -117,6 +121,21 @@ class Normalizer:
                 Rejection(WILDCARD, f"wildcard result suppressed: {candidate.host}", candidate.kind.value)
             )
             return
+        # Sensitive-data gate (Phase 4): a match is never stored — record only a
+        # redacted classification, flag the result, and let the caller quarantine.
+        if self._classifier is not None:
+            verdict = self._classifier.classify(candidate.data)
+            if verdict.sensitive:
+                result.sensitive = True
+                result.sensitive_classifications.append({
+                    "kind": candidate.kind.value, "category": verdict.category.value,
+                    "method": verdict.method.value,
+                    "markers": sorted({m.redacted for m in verdict.matches}),
+                })
+                result.rejections.append(
+                    Rejection(SENSITIVE, f"sensitive data ({verdict.category.value}) not stored",
+                              candidate.kind.value))
+                return
         if not self._scope.is_allowed(candidate.host):
             result.rejections.append(
                 Rejection(OUT_OF_SCOPE, f"{candidate.host} is not in the authorized scope", candidate.kind.value)

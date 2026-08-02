@@ -74,6 +74,7 @@ class ScanConfig:
     spend_cap: float | None = None       # None == unlimited
     session_cap: int = 1
     lease_ttl_seconds: int = 300
+    sensitive_markers: tuple[str, ...] = ()   # tenant-configured sensitive canaries
 
 
 @dataclass
@@ -113,6 +114,11 @@ class ScanCoordinator:
         # In-process mirror of the authorized allowlist; the normalizer refuses to
         # store anything outside it (the gateway enforces the same at request time).
         self._scope = ScopeGuard.from_authorization(list(config.scope_targets))
+        # Sensitive-data ingestion gate: a match is quarantined, never normalized.
+        from aegis.sensitive import ClassifierConfig, SensitiveDataClassifier
+
+        self._classifier = SensitiveDataClassifier(
+            ClassifierConfig(tenant_markers=tuple(config.sensitive_markers)))
         # Reservation caps travel with a lightweight, secret-free engagement view.
         self._resv_engagement = SimpleNamespace(
             id=config.engagement_id,
@@ -194,7 +200,8 @@ class ScanCoordinator:
             self._repo.transition_task(task.task_id, scans.TaskState.RUNNING)
             result = self._execute(task)
             events = result.events
-            quarantine, reason = self._should_quarantine(result.process, events)
+            quarantine, reason = self._should_quarantine(result.process, events,
+                                                         sensitive=result.sensitive)
             self._persist(task, events, quarantined=quarantine)
             actual_spend = est_spend if result.process.ok else 0.0
 
@@ -202,8 +209,15 @@ class ScanCoordinator:
                 # The streamed observations are marked quarantined and never
                 # promoted, so nothing from this task reaches the asset graph.
                 self._repo.set_observation_state(task.task_id, graph_serde.QUARANTINED)
+                summary = {"events": len(events), "reason": reason}
+                if result.sensitive:
+                    # Only redacted classifications reach product data; an operator
+                    # escalation is raised and report rendering is blocked.
+                    summary["sensitive"] = result.sensitive_classifications
+                    summary["escalation"] = "operator_review_required"
+                    summary["report_blocked"] = True
                 self._repo.transition_task(task.task_id, scans.TaskState.QUARANTINED,
-                                           result_summary={"events": len(events), "reason": reason})
+                                           result_summary=summary)
                 return StepResult(task.task_id, "quarantined", len(events), reason)
             if result.process.ok:
                 graph = self._promote(task, result)
@@ -300,6 +314,7 @@ class ScanCoordinator:
 
         normalizer = Normalizer(
             scope=self._scope, engagement_id=self._config.engagement_id, scan_id=task.scan_id,
+            classifier=self._classifier,
         )
         execution = _Execution(process=None, events=[])
 
@@ -312,6 +327,11 @@ class ScanCoordinator:
             if result.observations:
                 self._repo.record_observations(result.observations, graph_serde.PROVISIONAL)
                 merge_into(execution.assets, result.assets)
+            if result.sensitive:
+                # Never store the raw artifact; carry only redacted classifications
+                # so run_next can quarantine the task and escalate.
+                execution.sensitive = True
+                execution.sensitive_classifications.extend(result.sensitive_classifications)
             execution.rejections += len(result.rejections)
             for rejection in result.rejections:
                 execution.rejection_codes[rejection.reason] = \
@@ -345,7 +365,9 @@ class ScanCoordinator:
         )
 
     @staticmethod
-    def _should_quarantine(process, events) -> tuple[bool, str]:
+    def _should_quarantine(process, events, *, sensitive: bool = False) -> tuple[bool, str]:
+        if sensitive:
+            return True, "sensitive data encountered (path cancelled)"
         if any(e.kind == EventKind.SECRET_CANDIDATE for e in events):
             return True, "sensitive-data signal (secret candidate)"
         if process.outcome == ProcessOutcome.OUTPUT_LIMIT:
@@ -429,6 +451,8 @@ class _Execution:
     assets: dict = field(default_factory=dict)
     rejections: int = 0
     rejection_codes: dict = field(default_factory=dict)
+    sensitive: bool = False
+    sensitive_classifications: list = field(default_factory=list)
 
 
 def _stages_in_dependency_order(stages: list[StageSpec]) -> list[StageSpec]:
