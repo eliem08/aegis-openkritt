@@ -1,6 +1,6 @@
 # Repository Strengths — Aegis Implementation Ledger
 
-Last reconciled with Aegis commit: `c706c69` on 2026-08-02
+Last reconciled with Aegis commit: `30ecd91` on 2026-08-02
 
 This file is the authoritative delivery ledger for the audited repository
 strengths and the corrections discovered during the Aegis reread. Update a row
@@ -22,7 +22,7 @@ Status values: `existing`, `partial`, `not-started`, `in-progress`, `complete`,
 | s0md3v/Arjun | AGPL-3.0 | Stable baseline, batched anomaly detection, recursive narrowing, individual confirmation | Clean-room native algorithm; no copied source/wordlists | 3 | `active/parameters` | Seeded parameter found efficiently; unstable targets incomplete; license check | partial (algorithm done; stage-wiring + license test pending) | 5a23327 |
 | assetnote/kiterunner | AGPL-3.0 | Method/header/body-aware route schemas, wildcard baselines, target quarantine | Clean-room native schema/enumerator using owned/permissive data | 3 | `active/routes` | Wildcard FP suppression; bounded route enumeration; license check | partial (schema+enumerator done; stage-wiring + license test pending) | c25e347 |
 | projectdiscovery/nuclei | MIT | Versioned signed templates, filters, workflows, protocol work pools | Pinned adapter plus Aegis manifest allowlist | 3 | `adapters/nuclei`, template policy | Unknown/unsigned/prohibited templates rejected; request caps enforced | complete (digest unpinned) | c706c69 |
-| hahwul/dalfox | MIT | Reflection-first XSS, DOM/AST analysis, WAF/session awareness, cancellation, resume, SARIF/JSON | Pinned guarded adapter | 3 | `adapters/dalfox` | Bounded local-lab detection; session-loss/cancel/resume tests | not-started | — |
+| hahwul/dalfox | MIT | Reflection-first XSS, DOM/AST analysis, WAF/session awareness, cancellation, resume, SARIF/JSON | Pinned guarded adapter | 3 | `adapters/dalfox` | Bounded local-lab detection; session-loss/cancel/resume tests | complete (digest unpinned) | 30ecd91 |
 | projectdiscovery/interactsh | MIT | Correlated encrypted OAST sessions, authentication, polling, resumption | Private pinned service and client adapter | 4 | `oast`, `adapters/interactsh` | Encrypted tenant-scoped correlation, expiry, deletion, public-service rejection | not-started | — |
 | yogeshojha/rengine | GPL-3.0 | Durable asset history, stage DAGs, subscans, diffs, task ledger, notifications | Clean-room Aegis architecture; no copied GPL code | 1/4 | scheduler, snapshots, notifications | Durable stage/activity history; accurate diffs; authorized subscans | partial | 7d7cc23 |
 
@@ -128,12 +128,16 @@ binaries. Obtain distribution-specific legal review before release.
     unsigned, locally-referenced, and prohibited-protocol templates rejected;
     auto-update/OAST/headless/fuzzing disabled; results become FINDING candidates
     (unverified) with template/commit provenance.
-  - Remaining: wire the two clean-room engines to `benign_request_mutation` stages
-    through the gateway-enforced transport; the **Dalfox** adapter (reflection-
-    first, bounded, session-loss stop, resume); make recon→BOLA an orchestrator
-    transition (deferred P1 correction); BFLA identity pair; per-detector
-    reservations; and the automated **license test** (no copied AGPL/GPL code or
-    dataset).
+  - **Dalfox** adapter: complete (`30ecd91`) — reflected/DOM only by default,
+    blind/stored refused without OAST authorization, bounded, session-loss stops
+    the host, distinct clean/finding/cancelled/truncated/error/session-loss
+    outcomes, per-target resume, JSON+SARIF parsing, FINDING candidates.
+  - Remaining to close Phase 3: wire the two clean-room engines to
+    `benign_request_mutation` stages through the gateway-enforced transport; make
+    recon→BOLA an orchestrator transition (deferred P1 correction); BFLA identity
+    pair + privileged-response discriminator; per-detector reservations/gating;
+    the automated **license test** (no copied AGPL/GPL code or dataset); and the
+    lab completion gate (seeded bugs found within exact budgets).
 - [ ] Phase 4: private OAST/browser/monitoring and quarantine gates pass.
 - [ ] Phase 5: distributed isolation, load, failover, restore, and rotation drills pass.
 - [ ] Production documentation matches only tested and enabled capabilities.
