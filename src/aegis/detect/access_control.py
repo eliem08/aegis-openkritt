@@ -61,6 +61,67 @@ def build_bola_objects(surface: AttackSurface, seeds: list[ObjectSeed]) -> list[
     return objects
 
 
+class BflaDetector:
+    """Broken Function-Level Authorization — BFLA (CWE-285).
+
+    The function-level pair to BOLA: a *low-privilege* owned account calling a
+    *privileged* endpoint. Config lists endpoints that should require elevation,
+    each with the low-privilege identity name and a signature proving the
+    privileged response. If the low-priv account gets 200 + signature, the
+    function is not properly restricted.
+    """
+
+    name = "bfla"
+    action = "authenticated_testing"
+    cwe = "CWE-285"
+
+    def __init__(self, endpoints: list[dict] | None = None) -> None:
+        self._endpoints = endpoints
+
+    def _refs(self, ctx: DetectorContext) -> list[dict]:
+        return self._endpoints if self._endpoints is not None else ctx.params.get("privileged_endpoints", [])
+
+    def applicable(self, ctx: DetectorContext) -> bool:
+        return bool(self._refs(ctx)) and len(ctx.identities) >= 1
+
+    def run(self, ctx: DetectorContext) -> DetectionResult:
+        result = DetectionResult()
+        for ref in self._refs(ctx):
+            url = ref.get("url")
+            signature = ref.get("signature", "")
+            low = ctx.identity(ref.get("low_identity", "")) if ref.get("low_identity") else None
+            if not url:
+                continue
+            resp = ctx.get(url, identity=low)
+            if resp.status_code == 200 and (not signature or signature in resp.text):
+                result.add(*self._finding(ctx, url, ref.get("low_identity", "low-priv"), signature, resp))
+        return result
+
+    def _finding(self, ctx, url, low_name, signature, resp):
+        route = path_of(url)
+        evidence = EvidenceBundle(
+            steps=[InteractionStep(
+                summary=f"GET {route} as low-priv '{low_name}' -> {resp.status_code} (privileged data)",
+                request=f"GET {url} (identity={low_name})",
+                response=f"{resp.status_code} … signature '{signature}' present" if signature else str(resp.status_code),
+            )],
+            canary=Canary(kind=CanaryKind.SYNTHETIC_MARKER, value=signature or "privileged-200",
+                          note="privileged function reachable by a low-privilege account"),
+            observed=f"low-privilege account '{low_name}' invoked a privileged function",
+            expected="403 Forbidden for non-privileged roles",
+            confidence=0.85,
+            replay_ref=f"replay://{ctx.host}{route}/bfla",
+        )
+        candidate = Candidate(
+            asset=ctx.host, route=route, action=self.action, worker="detector:bfla",
+            observed="broken function-level authorization", expected="role check enforced server-side",
+            impact="privilege escalation: low-privilege users can call privileged functions",
+            cwe=self.cwe, confidence=0.85, evidence_id=evidence.evidence_id,
+            p_exploit=0.8, business_impact=0.9, asset_criticality=0.9,
+        )
+        return candidate, evidence
+
+
 class BolaDetector:
     name = "bola"
     action = "authenticated_testing"

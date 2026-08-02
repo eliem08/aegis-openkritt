@@ -6,6 +6,7 @@ writing a :class:`Detector` and registering it. Requires ``httpx``.
 """
 
 from .access_control import (
+    BflaDetector,
     BolaDetector,
     ObjectRef,
     ObjectSeed,
@@ -22,7 +23,7 @@ from .base import (
     Identity,
 )
 from .cors import CorsMisconfigDetector
-from .exposure import ExposedFileDetector
+from .exposure import ErrorDisclosureDetector, ExposedFileDetector
 from .recon import ReconWorker, parse_openapi
 from .redirects import OpenRedirectDetector
 from .worker import DetectorWorker
@@ -32,10 +33,12 @@ def default_registry() -> DetectorRegistry:
     """A registry with the shipped high-value detectors."""
     reg = DetectorRegistry()
     reg.register(BolaDetector())
+    reg.register(BflaDetector())
     reg.register(MissingAuthDetector())
     reg.register(ExposedFileDetector())
     reg.register(CorsMisconfigDetector())
     reg.register(OpenRedirectDetector())
+    reg.register(ErrorDisclosureDetector())
     return reg
 
 
@@ -47,12 +50,14 @@ __all__ = [
     "GateBlocked",
     "Identity",
     "BolaDetector",
+    "BflaDetector",
     "ObjectRef",
     "ObjectSeed",
     "build_bola_objects",
     "route_signature",
     "MissingAuthDetector",
     "ExposedFileDetector",
+    "ErrorDisclosureDetector",
     "CorsMisconfigDetector",
     "OpenRedirectDetector",
     "DetectorWorker",

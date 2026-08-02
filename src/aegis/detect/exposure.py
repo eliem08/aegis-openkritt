@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from aegis.model import Canary, CanaryKind, Candidate, EvidenceBundle, InteractionStep
 
-from .base import DetectionResult, DetectorContext
+from .base import DetectionResult, DetectorContext, path_of
 
 # path -> (signature that must appear in the body, cwe)
 SENSITIVE_PATHS: dict[str, tuple[str, str]] = {
@@ -73,5 +73,81 @@ class ExposedFileDetector:
             p_exploit=0.6,
             business_impact=0.8,
             asset_criticality=0.7,
+        )
+        return candidate, evidence
+
+
+# Specific framework/DB error signatures (chosen to avoid false positives).
+_ERROR_SIGNATURES = [
+    "Traceback (most recent call last)",
+    "java.lang.",
+    "SQLSTATE[",
+    "ORA-0",
+    ".php on line",
+    "org.postgresql.util.PSQLException",
+    "com.mysql.jdbc",
+    "psycopg2.errors",
+    "System.NullReferenceException",
+    "Microsoft OLE DB Provider",
+]
+# Odd input likely to trip weak error handling (non-destructive).
+_PROBE_VALUE = "%27%22%5B%5D%00"  # ' " [ ] NUL, url-encoded
+
+
+class ErrorDisclosureDetector:
+    """Verbose error / stack-trace disclosure (CWE-209).
+
+    Sends a benign malformed value and flags responses that leak a framework or
+    database stack trace. GET-only; the probe value is inert.
+    """
+
+    name = "error_disclosure"
+    action = "benign_request_mutation"
+    cwe = "CWE-209"
+
+    def __init__(self, paths: list[str] | None = None) -> None:
+        self._paths = paths
+
+    def _target_paths(self, ctx: DetectorContext) -> list[str]:
+        return self._paths if self._paths is not None else ctx.params.get("error_paths", ["/", "/search", "/api"])
+
+    def applicable(self, ctx: DetectorContext) -> bool:
+        return True
+
+    def run(self, ctx: DetectorContext) -> DetectionResult:
+        result = DetectionResult()
+        for path in self._target_paths(ctx):
+            url = f"{path}?aegisprobe={_PROBE_VALUE}"
+            try:
+                resp = ctx.get(url)
+            except Exception:
+                continue
+            hit = next((s for s in _ERROR_SIGNATURES if s in resp.text), None)
+            if hit:
+                result.add(*self._finding(ctx, path, hit, resp))
+                return result
+        return result
+
+    def _finding(self, ctx, path, signature, resp):
+        evidence = EvidenceBundle(
+            steps=[InteractionStep(
+                summary=f"GET {path} with malformed input -> {resp.status_code} leaking '{signature}'",
+                request=f"GET {path}?aegisprobe={_PROBE_VALUE}",
+                response=f"{resp.status_code} … contains error signature '{signature}'",
+            )],
+            canary=Canary(kind=CanaryKind.SYNTHETIC_MARKER, value=signature,
+                          note="framework/DB error signature in response"),
+            observed="verbose error / stack trace disclosed to the client",
+            expected="generic error page; internals not leaked",
+            confidence=0.7,
+            replay_ref=f"replay://{ctx.host}{path}/error-disclosure",
+        )
+        candidate = Candidate(
+            asset=ctx.host, route=path_of(path), parameter="aegisprobe",
+            action=self.action, worker="detector:error_disclosure",
+            observed="stack trace / internal error disclosed", expected="no internal detail in errors",
+            impact="information disclosure aiding further attacks", cwe=self.cwe,
+            confidence=0.7, evidence_id=evidence.evidence_id,
+            p_exploit=0.5, business_impact=0.5, asset_criticality=0.5,
         )
         return candidate, evidence

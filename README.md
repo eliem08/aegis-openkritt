@@ -14,7 +14,7 @@ API**), HackerOne ingestion, knowledge base, **outbound scope proxy**,
 **guardrailed DeepSeek planner**, an **extensible vulnerability-detector
 framework** (BOLA/IDOR, exposed files, open redirect), and **acceptance-grade
 reporting** (redact → dedup → quality gates → HackerOne-ready report) —
-implemented and tested (**320 tests**). Full worker fleet and the patch protocol
+implemented and tested (**331 tests**). Full worker fleet and the patch protocol
 are still partial. See [Roadmap](#roadmap) and [PRODUCTION.md](PRODUCTION.md) for
 an honest readiness assessment.
 
@@ -306,10 +306,12 @@ reach out of scope. Shipped detectors:
 | Detector | Class | How it proves impact safely |
 |---|---|---|
 | `BolaDetector` | IDOR/BOLA (CWE-639) | two **owned** test accounts + a canary — proves cross-account read without touching a real user (§18) |
+| `BflaDetector` | function-level authz (CWE-285) | low-privilege owned account reaches a privileged function |
 | `MissingAuthDetector` | missing auth (CWE-306) | request a protected endpoint with **no credentials**; flag 200 + signature |
 | `ExposedFileDetector` | VCS/config/creds (CWE-538/200) | GET known paths, require a content signature (no SPA false positives) |
 | `CorsMisconfigDetector` | CORS (CWE-942) | canary `Origin` reflected **with credentials** — headers only |
 | `OpenRedirectDetector` | open redirect (CWE-601) | canary host in `Location`, checked **without following** the redirect |
+| `ErrorDisclosureDetector` | verbose errors (CWE-209) | benign malformed input; flag framework/DB stack-trace signatures |
 
 A **`ReconWorker`** discovers endpoints (robots/sitemap/JS/OpenAPI spec) through
 the scope proxy and builds the attack surface, so the pipeline maps its own
@@ -472,7 +474,13 @@ Stages 1–3 are done. What remains of the operating loop (§3):
   operator-seeded objects become BOLA targets automatically.
 - [x] **Postgres repository** — the same `Repository` over Postgres
   (`AEGIS_DB_URL`), for HA; validated by integration tests against a real DB via
-  `docker-compose.yml`.
+  `docker-compose.yml`. Connection-pooled (`psycopg_pool`).
+- [x] **Encryption at rest** — audit trail + authorization encrypted with Fernet
+  when `AEGIS_ENCRYPTION_KEY` is set (§12).
+- [x] **Pilot prep** — [PILOT.md](PILOT.md) runbook + `examples/pilot_preflight.py`
+  (validates scope/gate plumbing before any real target).
+- [ ] **Run a supervised pilot** — the only step that moves "proven revenue"; a
+  human decision, not more code.
 - [ ] **Ingest → control plane wiring** — register a draft authorization for
   operator signing straight from a discovered program.
 
