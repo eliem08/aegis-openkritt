@@ -16,6 +16,18 @@ from .parameters import (
     ProbeResponse,
     UnsupportedMethod,
 )
+from .routes import (
+    EnumConfig,
+    EnumerationResult,
+    HostHealth,
+    RouteEnumerator,
+    RouteField,
+    RouteObservation,
+    RouteRisk,
+    RouteSchema,
+    RouteSource,
+    RouteSpec,
+)
 
 __all__ = [
     "ParameterDiscovery",
@@ -27,4 +39,14 @@ __all__ = [
     "FORM",
     "JSON",
     "XML",
+    "RouteSchema",
+    "RouteSpec",
+    "RouteField",
+    "RouteSource",
+    "RouteRisk",
+    "RouteEnumerator",
+    "EnumConfig",
+    "EnumerationResult",
+    "RouteObservation",
+    "HostHealth",
 ]
