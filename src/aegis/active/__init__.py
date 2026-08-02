@@ -38,6 +38,7 @@ from .auth_posture import (
     classify_posture,
 )
 from .enumeration import IdentifierKind, IdentifierProfile, analyze_identifiers
+from .ssrf import SSRF_PARAM_HINTS, SsrfFinding, candidate_ssrf_params, run_ssrf_probes
 from .routes import (
     EnumConfig,
     EnumerationResult,
@@ -101,4 +102,8 @@ __all__ = [
     "AuthPosture",
     "AuthAnomaly",
     "RouteAuthObservation",
+    "run_ssrf_probes",
+    "candidate_ssrf_params",
+    "SsrfFinding",
+    "SSRF_PARAM_HINTS",
 ]
