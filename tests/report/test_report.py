@@ -136,3 +136,21 @@ def test_pipeline_blocks_out_of_scope_hypothesis():
     pkg = prepare_submission(_finding(status=FindingStatus.CANDIDATE), None, in_scope=False)
     assert not pkg.submittable
     assert set(pkg.blocking_reasons) >= {"reproducible", "verified", "in_scope"}
+
+
+def test_scope_derived_from_authorization_cannot_be_widened():
+    # Caller lies in_scope=True, but the authorization does not cover the asset.
+    from types import SimpleNamespace
+
+    auth = SimpleNamespace(targets=["api.acme.test", "*.acme.test"])
+    out = _finding(asset="evil.example.com")
+    pkg = prepare_submission(out, _evidence(), authorization=auth, in_scope=True)
+    assert "in_scope" in pkg.blocking_reasons and not pkg.submittable
+
+
+def test_scope_derived_authorization_allows_in_scope_asset():
+    from types import SimpleNamespace
+
+    auth = SimpleNamespace(targets=["api.acme.test"])
+    pkg = prepare_submission(_finding(asset="api.acme.test"), _evidence(), authorization=auth, in_scope=True)
+    assert "in_scope" not in pkg.blocking_reasons

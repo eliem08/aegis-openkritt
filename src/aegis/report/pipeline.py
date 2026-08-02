@@ -30,11 +30,20 @@ class SubmissionPackage(BaseModel):
     blocking_reasons: list[str] = Field(default_factory=list)
 
 
+def resolve_in_scope(finding: Finding, authorization) -> bool:
+    """Derive scope from the signed authorization (wildcard-aware), not a caller
+    boolean. The finding's asset host must be covered by the authorization."""
+    from aegis.policy import ScopeGuard
+
+    return ScopeGuard(list(authorization.targets)).is_allowed(finding.asset)
+
+
 def prepare_submission(
     finding: Finding,
     evidence: EvidenceBundle | None = None,
     *,
     program_handle: str | None = None,
+    authorization=None,
     in_scope: bool = True,
     prior_findings: Iterable[Finding] | None = None,
     corpus: Iterable | None = None,
@@ -42,12 +51,19 @@ def prepare_submission(
 ) -> SubmissionPackage:
     redacted_evidence = redact_evidence(evidence) if evidence is not None else None
 
+    # When an authorization is supplied it is authoritative: the caller boolean
+    # can only narrow, never widen, a derived out-of-scope result (§ report scope).
+    if authorization is not None:
+        effective_in_scope = resolve_in_scope(finding, authorization) and in_scope
+    else:
+        effective_in_scope = in_scope
+
     dup: DuplicateResult = is_duplicate(finding, prior_findings=prior_findings, corpus=corpus)
 
     gates: list[QualityGate] = evaluate_quality(
         finding,
         redacted_evidence,
-        in_scope=in_scope,
+        in_scope=effective_in_scope,
         redacted=True,
         is_duplicate=dup.is_duplicate,
         min_priority=min_priority,

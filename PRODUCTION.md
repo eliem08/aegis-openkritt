@@ -7,12 +7,15 @@ don't overclaim.**
 ## TL;DR
 
 The **deterministic safety core is production-quality**: the policy engine,
-authorization/signature verification, scope enforcement, consequence tiers,
-budgets, kill switch, and the control-plane API are well-tested (221+ tests),
-fail closed, and auditable. What is **not yet production-ready** is durability
-and operations: state is in-memory, there is no database, and the "intelligent"
-workers/planner/patcher are still deterministic stand-ins. Run it in **staging /
-controlled engagements**, not unattended against production targets.
+authorization/signature verification (HMAC or Ed25519), scope enforcement,
+consequence tiers, budgets, kill switch, and the control-plane API are
+well-tested (330+ tests), fail closed, and auditable. Control state is **durable**
+(SQLite or pooled Postgres, encrypted at rest). What is **not yet
+production-ready**: scan/asset/observation state is not yet persisted, external
+CLI tools have no enforced network sandbox, principals are not tenant-bound,
+authorize/commit is not yet atomic, and the discovery/active-testing tool
+integrations are unbuilt (see the phase specs in `docs/`). Run it in **staging /
+supervised engagements**, not unattended against production targets.
 
 ## Ready for production
 

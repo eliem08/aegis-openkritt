@@ -45,6 +45,34 @@ def test_bfla_not_applicable_without_config():
     assert not BflaDetector().applicable(ctx(lambda r: httpx.Response(404)))
 
 
+def test_bfla_missing_identity_is_inapplicable():
+    # names an identity that does not exist -> inapplicable (not weak evidence)
+    det = BflaDetector([{"url": "/admin/export", "low_identity": "ghost", "signature": "x"}])
+    assert not det.applicable(ctx(lambda r: httpx.Response(200, text="x")))
+
+
+def test_bfla_differential_match_without_signature():
+    # low-priv and elevated get an identical privileged response -> BFLA
+    det = BflaDetector([{"url": "/admin/export", "low_identity": "user_low", "elevated_identity": "admin"}])
+    res = det.run(ctx(lambda r: httpx.Response(200, text='{"all_users":[1,2,3]}')))
+    assert len(res.candidates) == 1 and res.candidates[0].cwe == "CWE-285"
+
+
+def test_bfla_generic_200_rejected_without_signature_or_baseline():
+    # a plain 200 with no signature and no elevated baseline is NOT evidence
+    det = BflaDetector([{"url": "/admin/export", "low_identity": "user_low"}])
+    assert det.run(ctx(lambda r: httpx.Response(200, text='{"ok":true}'))).candidates == []
+
+
+def test_bfla_no_finding_when_low_sees_only_its_own_data():
+    def handler(request):
+        if request.headers.get("authorization") == "Bearer LOW":
+            return httpx.Response(200, text='{"me":1}')       # low-priv sees its own view
+        return httpx.Response(200, text='{"all_users":[1,2]}')  # elevated sees more
+    det = BflaDetector([{"url": "/admin/export", "low_identity": "user_low", "elevated_identity": "admin"}])
+    assert det.run(ctx(handler)).candidates == []  # responses differ -> correctly restricted
+
+
 # --- error disclosure ---
 
 def test_error_disclosure_detected():

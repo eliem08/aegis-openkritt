@@ -470,8 +470,9 @@ Stages 1–3 are done. What remains of the operating loop (§3):
   behind a `Repository` protocol. Postgres is a drop-in for HA.
 - [x] **Ed25519 signing** — asymmetric authorization signatures; the agent
   verifies with a public key it cannot forge (`AEGIS_ED25519_PUBLIC_KEYS`).
-- [x] **Recon → BOLA auto-wiring** — discovered `/users/{id}` endpoints +
-  operator-seeded objects become BOLA targets automatically.
+- [~] **Recon → BOLA wiring** — `build_bola_objects()` turns discovered
+  `/users/{id}` endpoints + operator-seeded objects into BOLA targets. This is a
+  helper today; making it an automatic orchestrator transition is Phase 3.
 - [x] **Postgres repository** — the same `Repository` over Postgres
   (`AEGIS_DB_URL`), for HA; validated by integration tests against a real DB via
   `docker-compose.yml`. Connection-pooled (`psycopg_pool`).

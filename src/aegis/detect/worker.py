@@ -51,19 +51,24 @@ class DetectorWorker:
             else f"https://{_host(action.target)}"
         )
         client = self._client_factory(action.target)
-        dctx = DetectorContext(
-            base_url=base_url,
-            client=client,
-            identities=self._identities,
-            action=action.action,
-            gate=self._gate,
-            params=action.params,
-        )
+
+        def make_ctx(det_action: str) -> DetectorContext:
+            return DetectorContext(
+                base_url=base_url,
+                client=client,
+                identities=self._identities,
+                action=det_action,
+                gate=self._gate,
+                params=action.params,
+            )
+
         result = DetectionResult()
         try:
-            for detector in self._registry.applicable(dctx):
+            # Applicability is action-agnostic; gate each detector by its OWN
+            # declared action so the policy engine sees the real consequence tier.
+            for detector in self._registry.applicable(make_ctx(action.action)):
                 try:
-                    result.extend(detector.run(dctx))
+                    result.extend(detector.run(make_ctx(detector.action)))
                 except (GateBlocked, ScopeViolation):
                     continue  # blocked request; skip this detector safely
         finally:

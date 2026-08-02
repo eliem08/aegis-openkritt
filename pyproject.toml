@@ -35,6 +35,11 @@ aegis = ["py.typed"]
 pythonpath = ["src"]
 testpaths = ["tests"]
 addopts = "-q"
+filterwarnings = [
+    # Upstream Starlette TestClient deprecation (httpx -> httpx2); no action for
+    # us until the replacement is released. Suppress so the suite is clean.
+    "ignore:Using .httpx. with .starlette.testclient. is deprecated",
+]
 
 [tool.ruff]
 line-length = 100

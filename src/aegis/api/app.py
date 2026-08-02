@@ -82,8 +82,8 @@ def _warn_on_insecure_config(config: ControlPlaneConfig) -> None:
         logger.warning("AUTH DISABLED: every caller is treated as operator. Dev only.")
     elif not config.api_keys:
         logger.warning("auth is enabled but no API keys are configured: all requests will 401.")
-    if config.require_signature and not config.signing_keys:
+    if config.require_signature and not (config.signing_keys or config.signing_public_keys):
         logger.warning(
-            "require_signature is on but no signing keys are configured: "
-            "authorization registration and every active action will be rejected."
+            "require_signature is on but no signing keys (HMAC or Ed25519) are "
+            "configured: authorization registration and every active action will be rejected."
         )

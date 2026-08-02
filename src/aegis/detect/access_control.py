@@ -82,30 +82,56 @@ class BflaDetector:
         return self._endpoints if self._endpoints is not None else ctx.params.get("privileged_endpoints", [])
 
     def applicable(self, ctx: DetectorContext) -> bool:
-        return bool(self._refs(ctx)) and len(ctx.identities) >= 1
+        # Only applicable when at least one endpoint names a *resolvable*
+        # low-privilege identity — a missing identity is inapplicable, not weak.
+        return any(ctx.identity(r.get("low_identity", "")) for r in self._refs(ctx))
 
     def run(self, ctx: DetectorContext) -> DetectionResult:
         result = DetectionResult()
         for ref in self._refs(ctx):
+            low = ctx.identity(ref.get("low_identity", ""))
             url = ref.get("url")
+            if low is None or not url:
+                continue  # need a real low-priv identity and a target
+
+            low_resp = ctx.get(url, identity=low)
+            if low_resp.status_code != 200:
+                continue  # correctly denied / not present
+
             signature = ref.get("signature", "")
-            low = ctx.identity(ref.get("low_identity", "")) if ref.get("low_identity") else None
-            if not url:
+            if signature:
+                if signature in low_resp.text:  # strong discriminator
+                    result.add(*self._finding(ctx, url, ref, low_resp, None))
                 continue
-            resp = ctx.get(url, identity=low)
-            if resp.status_code == 200 and (not signature or signature in resp.text):
-                result.add(*self._finding(ctx, url, ref.get("low_identity", "low-priv"), signature, resp))
+
+            # No signature: require an elevated baseline + a differential match,
+            # so a generic 200 alone can never become evidence.
+            elevated = ctx.identity(ref.get("elevated_identity", "")) if ref.get("elevated_identity") else None
+            if elevated is None:
+                continue
+            base_resp = ctx.get(url, identity=elevated)
+            if base_resp.status_code == 200 and low_resp.text.strip() and base_resp.text == low_resp.text:
+                result.add(*self._finding(ctx, url, ref, low_resp, base_resp))
         return result
 
-    def _finding(self, ctx, url, low_name, signature, resp):
+    def _finding(self, ctx, url, ref, low_resp, base_resp):
         route = path_of(url)
+        low_name = ref.get("low_identity", "low-priv")
+        signature = ref.get("signature", "")
+        steps = [InteractionStep(
+            summary=f"GET {route} as low-priv '{low_name}' -> {low_resp.status_code} (privileged data)",
+            request=f"GET {url} (identity={low_name})",
+            response=f"{low_resp.status_code} … signature '{signature}' present" if signature else str(low_resp.status_code),
+        )]
+        if base_resp is not None:
+            steps.insert(0, InteractionStep(
+                summary=f"GET {route} as elevated '{ref.get('elevated_identity')}' -> {base_resp.status_code} (baseline)",
+                request=f"GET {url} (identity={ref.get('elevated_identity')})",
+                response=f"{base_resp.status_code} (privileged baseline; low-priv response is identical)",
+            ))
         evidence = EvidenceBundle(
-            steps=[InteractionStep(
-                summary=f"GET {route} as low-priv '{low_name}' -> {resp.status_code} (privileged data)",
-                request=f"GET {url} (identity={low_name})",
-                response=f"{resp.status_code} … signature '{signature}' present" if signature else str(resp.status_code),
-            )],
-            canary=Canary(kind=CanaryKind.SYNTHETIC_MARKER, value=signature or "privileged-200",
+            steps=steps,
+            canary=Canary(kind=CanaryKind.SYNTHETIC_MARKER, value=signature or "differential-match",
                           note="privileged function reachable by a low-privilege account"),
             observed=f"low-privilege account '{low_name}' invoked a privileged function",
             expected="403 Forbidden for non-privileged roles",
