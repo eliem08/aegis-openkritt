@@ -16,6 +16,20 @@ from .parameters import (
     ProbeResponse,
     UnsupportedMethod,
 )
+from .detectors import (
+    DETECTOR_ACTIONS,
+    BflaEndpoint,
+    DetectorPlan,
+    DetectorTask,
+    Route,
+    Seed,
+    classify_candidate,
+    is_differential,
+    passes_report_gate,
+    plan_detectors,
+    reserve_plan,
+    routes_from_assets,
+)
 from .routes import (
     EnumConfig,
     EnumerationResult,
@@ -49,4 +63,16 @@ __all__ = [
     "EnumerationResult",
     "RouteObservation",
     "HostHealth",
+    "plan_detectors",
+    "routes_from_assets",
+    "reserve_plan",
+    "classify_candidate",
+    "is_differential",
+    "passes_report_gate",
+    "DetectorPlan",
+    "DetectorTask",
+    "Route",
+    "Seed",
+    "BflaEndpoint",
+    "DETECTOR_ACTIONS",
 ]
