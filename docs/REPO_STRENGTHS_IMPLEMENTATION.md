@@ -1,6 +1,6 @@
 # Repository Strengths — Aegis Implementation Ledger
 
-Last reconciled with Aegis commit: `5c8de76` on 2026-08-02
+Last reconciled with Aegis commit: `2fd909b` on 2026-08-02
 
 This file is the authoritative delivery ledger for the audited repository
 strengths and the corrections discovered during the Aegis reread. Update a row
@@ -16,7 +16,7 @@ Status values: `existing`, `partial`, `not-started`, `in-progress`, `complete`,
 |---|---|---|---|---:|---|---|---|---|
 | projectdiscovery/subfinder | MIT | Concurrent passive providers, provenance, provider quotas, cancellation, wildcard filtering | Pinned adapter | 2 | `adapters/subfinder`, discovery stages | Multi-provider fixture preserves source; wildcard/out-of-scope results rejected | complete (digest unpinned) | 5c8de76 |
 | projectdiscovery/httpx | MIT | Typed HTTP/TLS/service observations, retries, hashes, resumable probing | Pinned `HttpProbeAdapter` | 2 | `adapters/http_probe`, observations | Golden JSON fixtures; typed service snapshot; retry and hash tests | complete (digest unpinned) | 5c8de76 |
-| projectdiscovery/katana | MIT | Standard/headless split, bounded queues, session state, dedup, logout avoidance | Pinned adapter; headless enabled in Phase 4 | 2/4 | `adapters/katana`, browser worker | Queue/scope/logout/session tests; direct-egress denial | partial (no cookie/session boundary) | 5c8de76 |
+| projectdiscovery/katana | MIT | Standard/headless split, bounded queues, session state, dedup, logout avoidance | Pinned adapter; headless enabled in Phase 4 | 2/4 | `adapters/katana`, browser worker | Queue/scope/logout/session tests; direct-egress denial | complete (digest unpinned) | 2fd909b |
 | lc/gau | MIT | Pluggable passive historical-URL providers and streaming filters | Pinned adapter | 2 | `adapters/gau`, discovery stages | Provider/timestamp provenance; zero target traffic | complete (digest unpinned) | 5c8de76 |
 | BishopFox/jsluice | MIT | AST-based endpoint/secret extraction with context and FP discipline | Pinned adapter over acquired JS | 2 | `adapters/jsluice`, classifier | AST golden fixtures; contextual events; secret candidates quarantined | complete (digest unpinned) | 5c8de76 |
 | s0md3v/Arjun | AGPL-3.0 | Stable baseline, batched anomaly detection, recursive narrowing, individual confirmation | Clean-room native algorithm; no copied source/wordlists | 3 | `discovery/parameters` | Seeded parameter found efficiently; unstable targets incomplete; license check | not-started | — |
@@ -105,12 +105,13 @@ binaries. Obtain distribution-specific legal review before release.
     2. **No adapter has been run against its real binary.** Parsing is proven only
        against recorded fixtures, so a live-output mismatch is possible until a
        pinned run happens.
-    3. **Katana cookie/session boundary** is not implemented (spec: preserve cookie
-       state only inside the task's credential/session boundary).
-    4. **Streaming stage handoff** is not implemented — a downstream stage cannot
-       yet start from validated incremental events while its producer is running.
-    5. **Gateway-audited egress for external binaries** remains deployment-level
+    3. **Gateway-audited egress for external binaries** remains deployment-level
        (network-namespace) enforcement, as the Phase 1 gateway row already notes.
+  - Closed since (`2fd909b`): the katana **cookie/session boundary** (task-scoped,
+    host-confined, never in argv or output, wiped on close) and **streaming stage
+    handoff** (provisional observations + a separate task_progress record, so a
+    consumer can start from validated partial events while completion stays
+    distinct; a quarantined stream is never promoted into the graph).
 - [ ] Phase 3: guarded active pipeline finds seeded lab bugs within exact limits.
 - [ ] Phase 4: private OAST/browser/monitoring and quarantine gates pass.
 - [ ] Phase 5: distributed isolation, load, failover, restore, and rotation drills pass.
