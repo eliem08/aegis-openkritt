@@ -38,6 +38,7 @@ from .auth_posture import (
     classify_posture,
 )
 from .enumeration import IdentifierKind, IdentifierProfile, analyze_identifiers
+from .js_secrets import HIGH_VALUE_CATEGORIES, JsSecretFinding, analyze_javascript_secrets
 from .ssrf import SSRF_PARAM_HINTS, SsrfFinding, candidate_ssrf_params, run_ssrf_probes
 from .routes import (
     EnumConfig,
@@ -106,4 +107,7 @@ __all__ = [
     "candidate_ssrf_params",
     "SsrfFinding",
     "SSRF_PARAM_HINTS",
+    "analyze_javascript_secrets",
+    "JsSecretFinding",
+    "HIGH_VALUE_CATEGORIES",
 ]
