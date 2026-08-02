@@ -303,6 +303,9 @@ class PostgresRepository:
     def create_stage(self, stage) -> None:
         self._exec(f"INSERT INTO stage_runs({scans.STAGE_COLS}) VALUES ({','.join(['%s'] * 8)})", scans.stage_values(stage))
 
+    def stages_for_scan(self, scan_id):
+        return [scans.stage_from_row(r) for r in self._query(f"SELECT {scans.STAGE_COLS} FROM stage_runs WHERE scan_id=%s", (scan_id,))]
+
     def create_task(self, task):
         with self._pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
             cur.execute(f"SELECT {scans.TASK_COLS} FROM task_runs WHERE idempotency_key=%s", (task.idempotency_key,))

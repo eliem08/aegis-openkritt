@@ -52,7 +52,7 @@ VALID_TRANSITIONS: dict[TaskState, set[TaskState]] = {
     TaskState.QUEUED: {TaskState.LEASED, TaskState.CANCELLED, TaskState.BLOCKED},
     TaskState.LEASED: {
         TaskState.RUNNING, TaskState.QUEUED, TaskState.CANCELLED,
-        TaskState.QUARANTINED, TaskState.RETRYABLE_FAILED,
+        TaskState.QUARANTINED, TaskState.RETRYABLE_FAILED, TaskState.BLOCKED,
     },
     TaskState.RUNNING: {
         TaskState.SUCCEEDED, TaskState.RETRYABLE_FAILED, TaskState.BLOCKED,

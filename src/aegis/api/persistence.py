@@ -398,6 +398,11 @@ class SqliteRepository:
             self._conn.execute(f"INSERT INTO stage_runs({scans.STAGE_COLS}) VALUES ({ph})", scans.stage_values(stage))
             self._conn.commit()
 
+    def stages_for_scan(self, scan_id):
+        with self._lock:
+            rows = self._conn.execute(f"SELECT {scans.STAGE_COLS} FROM stage_runs WHERE scan_id=?", (scan_id,)).fetchall()
+        return [scans.stage_from_row(r) for r in rows]
+
     def create_task(self, task):
         """Idempotent: an existing task with the same idempotency key is returned."""
         with self._lock:

@@ -26,6 +26,11 @@ def main(argv: list[str] | None = None) -> int:
     _emit({"kind": "route", "method": "GET", "path": "/users/{id}",
            "parameters": [{"name": "id", "location": "path"}]})
     _emit({"kind": "technology", "name": "nginx"})
+    # Test hook: a marker target makes the tool surface a sensitive-data signal,
+    # so the coordinator's quarantine path can be exercised end-to-end.
+    if target == "secret.example.test":
+        _emit({"kind": "secret_candidate", "location": "body", "kind_hint": "aws_key",
+               "evidence_ref": "line:42"})
     _emit({"kind": "terminal", "status": "succeeded", "summary": {"assets": 1, "routes": 2}})
     return 0
 
