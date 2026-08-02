@@ -1,6 +1,6 @@
 # Repository Strengths — Aegis Implementation Ledger
 
-Last reconciled with Aegis commit: `d3b6410` on 2026-08-02
+Last reconciled with Aegis commit: `6ca7699` on 2026-08-02
 
 This file is the authoritative delivery ledger for the audited repository
 strengths and the corrections discovered during the Aegis reread. Update a row
@@ -60,7 +60,7 @@ binaries. Obtain distribution-specific legal review before release.
 | Strengthen BFLA differential proof | Missing identity/signature can turn a generic 200 into weak evidence | 1/3 | Missing identity is inapplicable; baseline/differential required | complete | 7a7b252 |
 | Fix insecure-config warning for Ed25519 | Warning currently checks HMAC keys but not configured public keys | 1 | Ed25519-only production config emits no false missing-key warning | complete | 7a7b252 |
 | Correct roadmap and production claims | Documentation currently overstates automatic wiring and has a stale TL;DR | 1 | Documentation consistency check/manual review | complete | 7a7b252 |
-| Add sensitive-data classifier at ingestion boundary | Current worker flag relies on detector behavior and regex redaction is downstream | 4 | Sensitive fixture never reaches normal DB/API/report | not-started | — |
+| Add sensitive-data classifier at ingestion boundary | Current worker flag relies on detector behavior and regex redaction is downstream | 4 | Sensitive fixture never reaches normal DB/API/report | complete | 6ca7699 |
 | Replace dev Compose database defaults for production | Default password/host port are suitable only for local development | 5 | Production config validation rejects dev credentials/exposure | not-started | — |
 | Resolve FastAPI TestClient dependency deprecation | Current suite emits a Starlette/httpx compatibility warning | 1 | Default test suite has no compatibility deprecation | complete | 7a7b252 |
 
@@ -159,6 +159,19 @@ binaries. Obtain distribution-specific legal review before release.
     run remain blocked on the outstanding legal/license review for the exact
     distributed versions.
 - [ ] Phase 4: private OAST/browser/monitoring and quarantine gates pass.
+  - **Sensitive-data classifier + quarantine boundary**: complete (`6ca7699`) —
+    deterministic/structured/entropy/context/tenant-marker classification into
+    credential/token/key/financial/identifier categories; ML cannot downgrade a
+    deterministic match; on a hit the path cancels, the raw artifact is quarantined
+    encrypted at rest, only a redacted event reaches product data, an operator
+    escalation is raised, and report rendering is blocked. Wired as the normalizer
+    ingestion gate + coordinator quarantine (sensitive fixture never reaches the
+    graph/observations/summary).
+  - Remaining: private Interactsh OAST (tenant-scoped, encrypted, unmatched->
+    quarantine, public-server rejection); browser worker (declarative schema, scope-
+    checked navigation/subresources, quarantined downloads, ephemeral contexts);
+    session-loss monitoring; continuous monitoring/subscans (parent scope digest,
+    no widening) + idempotent notifications; and the Phase 4 lab completion gate.
 - [ ] Phase 5: distributed isolation, load, failover, restore, and rotation drills pass.
 - [ ] Production documentation matches only tested and enabled capabilities.
 - [ ] Legal/license review completed for the exact distributed versions.
