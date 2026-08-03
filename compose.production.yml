@@ -21,7 +21,7 @@ services:
       POSTGRES_USER: svc_aegis
       POSTGRES_DB: aegis
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
-      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256 --auth-local=peer
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256 --auth-local=trust
     secrets:
       - postgres_password
       - postgres_ca
@@ -36,7 +36,7 @@ services:
       control_internal:
         aliases: [pg.prod.internal]
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U svc_aegis -d aegis"]
+      test: ["CMD-SHELL", "PGPASSWORD=$$(cat /run/secrets/postgres_password) psql \"host=pg.prod.internal dbname=aegis user=svc_aegis sslmode=verify-full sslrootcert=/run/secrets/postgres_ca\" -Atqc \"SELECT 1\""]
       interval: 5s
       timeout: 3s
       retries: 20

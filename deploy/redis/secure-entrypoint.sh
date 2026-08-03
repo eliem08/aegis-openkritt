@@ -22,4 +22,4 @@ EOF
 unset password
 chown redis:redis /run/aegis-redis/redis.conf
 chmod 0600 /run/aegis-redis/redis.conf
-exec su-exec redis redis-server /run/aegis-redis/redis.conf
+exec docker-entrypoint.sh redis-server /run/aegis-redis/redis.conf

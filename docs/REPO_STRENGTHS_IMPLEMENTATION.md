@@ -325,7 +325,8 @@ single-server recovery:
 | Machine-readable production drill verdict | complete | `fbf6520`; required `not_configured` gates fail the verdict |
 | Digest-pinned Chromium workflow in an isolated worker | not-configured | requires reviewed image digest and live browser drill |
 | Private OAST registration/callback/expiry/teardown | not-configured | requires user-controlled domain, TLS, and deployed endpoint |
-| Container image builds and direct-egress denial proof | not-run | Docker engine unavailable during this implementation run |
+| PostgreSQL, Redis, and application image builds | live-pass | pinned bases; TLS/auth/health/restart persistence verified on Docker Desktop |
+| Worker/browser direct-egress denial proof | not-run | requires approved worker/browser image and local authorized-lab drill |
 | HA Postgres/Redis, PITR, KMS/HSM/Vault, rolling upgrades | blocked | distributed infrastructure, outside single-server scope |
 
 The repository remains fail-closed: no placeholder digest, fake browser, public

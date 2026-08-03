@@ -13,12 +13,15 @@ PostgreSQL and Redis paths, signed scoped egress, file-mounted secrets, runtime
 release pins, encrypted backups, isolated restore verification, and executable
 readiness reports.
 
-The hardened stack is **not yet live-verified on this machine**. Docker Compose is
-installed, but the Docker engine was unavailable during the implementation run,
-and the repository deliberately does not invent third-party image/binary digests,
-a private OAST domain, or its TLS certificate. Until those gates pass, use the
-development stack or an authorized supervised lab; do not claim unattended
-production readiness.
+The stack is **partially live-verified on this machine**. The digest-pinned
+PostgreSQL and Redis images built and started successfully; authenticated
+verify-full PostgreSQL TLS, zero remaining trust rules, authenticated Redis,
+unpublished host ports, health checks, and restart persistence all passed. The
+digest-pinned application image also built successfully. The full stack remains
+blocked because the repository deliberately does not invent scanner/browser
+release approvals, a private OAST domain, or its certificate. Until those gates
+pass, use the development stack or an authorized supervised lab; do not claim
+unattended production readiness.
 
 ## Implemented production boundaries
 
@@ -123,7 +126,7 @@ It produces JSON and Markdown reports. Skips never count as production passes.
 
 ## Still external or unproven
 
-- Docker image builds and container-level direct-egress denial on the selected host.
+- Full worker/browser image builds and container-level direct-egress denial on the selected host.
 - Live approved scanner binaries and their legal/license review.
 - Chromium running a scoped workflow through the isolated browser boundary.
 - A real privately operated OAST endpoint and callback lifecycle.

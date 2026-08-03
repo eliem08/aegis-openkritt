@@ -3,6 +3,28 @@
 The drill runner records `pass`, `fail`, or `not_configured`. Every required gate
 must be `pass` for a production verdict; missing infrastructure is never a skip.
 
+## Live hardened-service evidence (2026-08-03)
+
+Using the locally cached official registry digests for PostgreSQL 16 Alpine and
+Redis 7 Alpine:
+
+- both custom images built and reached healthy state;
+- PostgreSQL created the intended `aegis` database, accepted a
+  `sslmode=verify-full` connection, reported `ssl=true`, and had zero
+  `trust` HBA rules after bootstrap;
+- Redis required its generated password and returned `PONG`;
+- Docker reported no host-published ports for either service;
+- a forced Redis snapshot plus PostgreSQL committed row both survived container
+  restart; the drill key/table were removed afterward;
+- the application image built from the official immutable Python 3.12-slim
+  manifest digest.
+
+The first live attempt correctly failed: Redis referenced unavailable `su-exec`,
+and PostgreSQL peer auth prevented creation of the service-owned database.
+Those entrypoint defects were fixed and regression tests were added. Worker
+direct-egress, browser, scanner, OAST, backup/restore, and failure-injection drills
+remain pending their real approved inputs.
+
 ## Code-backed and tested
 
 The repository test suite covers:
