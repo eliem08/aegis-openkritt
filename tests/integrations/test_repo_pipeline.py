@@ -82,6 +82,19 @@ def test_gated_when_ai_forbidden():
     assert scope.gated and "AI" in scope.reason
 
 
+def test_bounty_only_keeps_paying_repos():
+    rules = ProgramRules(handle="acme", in_scope=[
+        ScopeAsset(identifier="acme/paid", asset_type=AssetType.SOURCE_CODE,
+                   raw_asset_type="SOURCE_CODE", eligible_for_bounty=True, max_severity="critical"),
+        ScopeAsset(identifier="acme/vdp", asset_type=AssetType.SOURCE_CODE,
+                   raw_asset_type="SOURCE_CODE", eligible_for_bounty=False)])
+    both = repos_in_scope(rules)
+    paid = repos_in_scope(rules, bounty_only=True)
+    assert {r.repo_full for r in both.repos} == {"acme/paid", "acme/vdp"}
+    assert [r.repo_full for r in paid.repos] == ["acme/paid"]
+    assert paid.repos[0].max_severity == "critical" and paid.repos[0].eligible_for_bounty
+
+
 def test_no_repos_reported_cleanly():
     web_only = ProgramRules(handle="x", in_scope=[
         ScopeAsset(identifier="app.x.com", asset_type=AssetType.URL, raw_asset_type="URL")])

@@ -42,7 +42,7 @@ class HuntConfig:
     interval_seconds: float = 3600.0
     dry_run: bool = True                     # SAFE DEFAULT: plan, launch nothing
     inspect_limit: int = 20                  # how many programs to inspect when auto-selecting
-    prefer_bounties: bool = True             # rank bounty programs ahead of VDP
+    require_bounty: bool = True              # only profitable programs: bounty-eligible code only
 
 
 @dataclass
@@ -60,8 +60,9 @@ class HuntReport:
         gated = [p.handle for p in self.programs if p.gated]
         return {
             "dry_run": self.dry_run,
-            "auto_selected": [{"handle": c.handle, "repos": c.repo_count,
-                               "bounties": c.offers_bounties} for c in self.selected],
+            "auto_selected": [{"handle": c.handle, "bounty_repos": c.repo_count,
+                               "top_severity": c.top_severity,
+                               "profitability": c.profitability} for c in self.selected],
             "programs_considered": len(self.programs),
             "programs_gated_out": gated,
             "repos_in_scope": sum(len(p.repos) for p in self.programs),
@@ -90,7 +91,7 @@ class HuntOrchestrator:
 
         self._selected = select_programs(
             self._h1, want=self._cfg.max_programs, inspect_limit=self._cfg.inspect_limit,
-            prefer_bounties=self._cfg.prefer_bounties)
+            require_bounty=self._cfg.require_bounty)
         return [c.handle for c in self._selected]
 
     def cycle(self) -> HuntReport:
@@ -101,7 +102,7 @@ class HuntOrchestrator:
         for handle in self._handles()[: cfg.max_programs]:
             result = run_repo_pipeline(
                 self._h1, self._ok, handle, model=cfg.model,
-                fallbacks=(cfg.fallback_models or None),
+                fallbacks=(cfg.fallback_models or None), bounty_only=cfg.require_bounty,
                 launch=not cfg.dry_run, max_repos=cfg.max_repos_per_program)
             programs.append(result)
             for launch in result.launches:

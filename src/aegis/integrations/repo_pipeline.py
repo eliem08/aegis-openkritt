@@ -34,6 +34,8 @@ class RepoTarget:
     repo_full: str            # "org/repo" — what open·kritt's repo_full expects
     identifier: str           # the original scope identifier
     asset_type: str = ""
+    max_severity: str = ""    # payout ceiling for this asset (critical/high/…)
+    eligible_for_bounty: bool = False
 
 
 @dataclass
@@ -97,8 +99,12 @@ class PipelineResult:
 
 # --- scope -> repos ---------------------------------------------------------
 
-def repos_in_scope(rules) -> RepoScope:
-    """In-scope repositories, gated by the program's automation/AI policy."""
+def repos_in_scope(rules, *, bounty_only: bool = False) -> RepoScope:
+    """In-scope repositories, gated by the program's automation/AI policy.
+
+    ``bounty_only`` keeps only bounty-eligible repos (so the hunter spends effort
+    where it can actually pay out).
+    """
     if not rules.automation_allowed:
         return RepoScope(gated=True, reason="program policy prohibits automated tooling")
     if not rules.ai_allowed:
@@ -107,13 +113,20 @@ def repos_in_scope(rules) -> RepoScope:
     repos: list[RepoTarget] = []
     seen: set[str] = set()
     for asset in rules.source_code_assets():
+        if bounty_only and not asset.eligible_for_bounty:
+            continue
         repo_full = _to_repo_full(asset.identifier)
         if repo_full and repo_full.lower() not in seen:
             seen.add(repo_full.lower())
-            repos.append(RepoTarget(repo_full=repo_full, identifier=asset.identifier,
-                                    asset_type=asset.asset_type.value))
+            repos.append(RepoTarget(
+                repo_full=repo_full, identifier=asset.identifier,
+                asset_type=asset.asset_type.value,
+                max_severity=str(asset.max_severity or ""),
+                eligible_for_bounty=bool(asset.eligible_for_bounty)))
     if not repos:
-        return RepoScope(reason="no in-scope source-code repositories found")
+        reason = ("no bounty-eligible source-code repositories found" if bounty_only
+                  else "no in-scope source-code repositories found")
+        return RepoScope(reason=reason)
     return RepoScope(repos=repos)
 
 
@@ -218,18 +231,19 @@ def console_for_scans(client, scan_ids, *, calibration=None, **ingest_kwargs) ->
 
 def run_repo_pipeline(h1_client, ok_client, handle: str, *, model: str,
                       template: ScanTemplate | None = None, launch: bool = True,
-                      max_repos: int | None = None, fallbacks=None) -> PipelineResult:
+                      max_repos: int | None = None, fallbacks=None,
+                      bounty_only: bool = False) -> PipelineResult:
     """Discover a program's repos and (optionally) launch an open·kritt scan on each.
 
     ``launch=False`` plans only — it returns the in-scope repos without touching
     open·kritt (used by the hunter's dry-run). ``max_repos`` caps how many repos are
-    launched.
+    launched. ``bounty_only`` restricts to bounty-eligible repos.
     """
     program = h1_client.get_program(handle)
     scopes = h1_client.get_structured_scopes(handle)
     rules = map_program(program, scopes)
 
-    scope = repos_in_scope(rules)
+    scope = repos_in_scope(rules, bounty_only=bounty_only)
     repos = scope.repos[:max_repos] if max_repos else scope.repos
     result = PipelineResult(handle=rules.handle or handle, program_name=rules.name,
                             repos=repos, gated=scope.gated, reason=scope.reason)

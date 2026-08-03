@@ -12,7 +12,8 @@ from aegis.model import Candidate
 
 REPO_SCOPE = [{"attributes": {"asset_type": "SOURCE_CODE",
                               "asset_identifier": "https://github.com/acme/api",
-                              "eligible_for_submission": True}}]
+                              "eligible_for_submission": True,
+                              "eligible_for_bounty": True, "max_severity": "high"}}]
 
 
 class FakeH1:
@@ -108,7 +109,8 @@ def test_program_forbidding_automation_is_gated_out():
 def test_caps_limit_programs_and_repos():
     programs = [{"attributes": {"handle": f"p{i}"}} for i in range(10)]
     scopes = {f"p{i}": [{"attributes": {"asset_type": "SOURCE_CODE",
-                        "asset_identifier": f"https://github.com/p{i}/{j}", "eligible_for_submission": True}}
+                        "asset_identifier": f"https://github.com/p{i}/{j}", "eligible_for_submission": True,
+                        "eligible_for_bounty": True, "max_severity": "high"}}
                         for j in range(10)] for i in range(10)}
     h1 = FakeH1(programs, scopes)
     ok = FakeOK()

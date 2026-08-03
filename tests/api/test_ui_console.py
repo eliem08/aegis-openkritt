@@ -156,7 +156,8 @@ def test_hunt_endpoint_dry_run_plans_without_launching(monkeypatch):
         def get_program(self, h): return {"data": {"attributes": {"handle": h, "policy": ""}}}
         def get_structured_scopes(self, h):
             return [{"attributes": {"asset_type": "SOURCE_CODE",
-                     "asset_identifier": "https://github.com/acme/api", "eligible_for_submission": True}}]
+                     "asset_identifier": "https://github.com/acme/api", "eligible_for_submission": True,
+                     "eligible_for_bounty": True, "max_severity": "high"}}]
         def list_my_reports(self): return []
         def close(self): pass
 

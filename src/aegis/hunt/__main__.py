@@ -66,6 +66,7 @@ def main() -> int:
         max_programs=_int("AEGIS_HUNT_MAX_PROGRAMS", 3),
         max_repos_per_program=_int("AEGIS_HUNT_MAX_REPOS", 3),
         inspect_limit=_int("AEGIS_HUNT_INSPECT_LIMIT", 20),
+        require_bounty=os.environ.get("AEGIS_HUNT_REQUIRE_BOUNTY", "1").strip() not in ("0", "false", "no"),
         interval_seconds=float(_int("AEGIS_HUNT_INTERVAL", 3600)))
     cycles = _int("AEGIS_HUNT_CYCLES", 0) or None
 
