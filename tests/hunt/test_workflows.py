@@ -29,7 +29,9 @@ def test_prompts_reference_the_repo_and_demand_falsification():
 
 def test_covers_the_core_corpus_classes():
     names = " ".join(s["name"].lower() for s in WORKFLOWS)
-    for cls in ("access control", "injection", "secrets", "contract"):
+    # every detector family we built is represented as a playbook
+    for cls in ("access control", "injection", "secrets", "contract",
+                "systems", "memory safety", "misconfiguration"):
         assert cls in names
 
 

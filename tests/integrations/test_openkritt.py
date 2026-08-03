@@ -110,6 +110,38 @@ def test_wired_into_surface_reporting():
     assert candidates and all(c.worker == "integration:openkritt" for c in candidates)
 
 
+def test_distinct_injection_types_get_distinct_cwes():
+    # the coarse "everything is CWE-89" bug: these must NOT collapse together
+    from aegis.integrations.openkritt import _cwe_for
+    assert _cwe_for("Command Injection") == "CWE-78"
+    assert _cwe_for("NoSQL Injection") == "CWE-943"
+    assert _cwe_for("SQL Injection") == "CWE-89"
+    assert _cwe_for("Path Traversal (Zip Slip)") == "CWE-22"
+    assert _cwe_for("Some novel injection") == "CWE-74"       # generic fallback, not CWE-89
+
+
+def test_systems_and_crypto_types_map():
+    from aegis.integrations.openkritt import _cwe_for
+    assert _cwe_for("Use-after-free in packet handler") == "CWE-416"
+    assert _cwe_for("Integer overflow in length field") == "CWE-190"
+    assert _cwe_for("Data race on session map") == "CWE-362"
+    assert _cwe_for("Weak crypto: MD5 used for signing") == "CWE-327"
+    assert _cwe_for("TLS certificate validation disabled (InsecureSkipVerify)") == "CWE-295"
+
+
+def test_command_and_nosql_no_longer_dedup_together():
+    # regression for the nodejs-goof console over-collapse
+    from aegis.model.finding import Candidate
+    from aegis.report import build_console
+    cmd = ingest_openkritt_findings([{"vulnerability_type": "Command Injection",
+        "file_path": "routes/index.js", "line": 174, "summary": "cmd", "jsonAnswer": {}}])[0]
+    nosql = ingest_openkritt_findings([{"vulnerability_type": "NoSQL Injection",
+        "file_path": "routes/index.js", "line": 52, "summary": "nosql", "jsonAnswer": {}}])[0]
+    model = build_console([cmd, nosql])
+    assert model["totals"]["candidates"] == 2                 # two distinct findings, not one
+    assert {i["cwe"] for i in model["items"]} == {"CWE-78", "CWE-943"}
+
+
 def test_ingests_the_serialized_api_shape():
     # GET /api/scans/{id}/vulnerabilities flattens the keys and nests dedupe/impact
     serialized = [{

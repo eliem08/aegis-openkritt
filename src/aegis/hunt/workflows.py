@@ -99,6 +99,53 @@ WORKFLOWS = [
         "For each, show where the secret lives or the untrusted value flows to the sink.",
     ),
     _spec(
+        "Aegis · Systems, Memory Safety & Crypto",
+        "For systems code (Go, C/C++, Rust): memory-safety, integer, concurrency, "
+        "untrusted-input parsing, resource-exhaustion, and cryptographic-misuse bugs.",
+        "You are a whitehat auditing the systems code in {{repo_full}} (Go, C/C++, Rust, "
+        "and similar). Find:\n"
+        "1. Memory safety — buffer/stack/heap overflows, out-of-bounds read/write, "
+        "use-after-free, double-free, null/nil dereference, uninitialized memory; "
+        "misuse of `unsafe`, cgo, raw pointers, or manual length/index math on "
+        "attacker-influenced data.\n"
+        "2. Integer bugs — overflow/underflow or signedness errors that feed a length, "
+        "index, allocation size, or security decision.\n"
+        "3. Concurrency — data races or TOCTOU on security-relevant state.\n"
+        "4. Untrusted-input parsing — packet/protocol/file decoders that trust "
+        "length/offset fields, enabling OOB or panic on malformed input.\n"
+        "5. Resource exhaustion / DoS — unbounded allocation, decompression bombs, or "
+        "panics reachable from remote input.\n"
+        "6. Cryptographic misuse — weak algorithms (MD5/SHA1/DES/RC4/ECB), insecure or "
+        "predictable randomness for security, hardcoded keys/IVs, nonce/IV reuse, "
+        "missing or incorrect signature/MAC verification, disabled certificate/hostname "
+        "validation (e.g. InsecureSkipVerify), and non-constant-time comparison of "
+        "secrets.\n"
+        "Prefer bugs reachable from remote or attacker-controlled input.",
+    ),
+    _spec(
+        "Aegis · Web Security Misconfiguration",
+        "Transport/response and API misconfigurations: CORS, CSP, security headers, "
+        "cookie flags, open redirect, CSRF, cacheable secrets, GraphQL exposure.",
+        "You are a whitehat auditing {{repo_full}} for web security misconfigurations. "
+        "Find:\n"
+        "1. CORS — a credentialed response that reflects an arbitrary Origin, or "
+        "Access-Control-Allow-Origin '*' with credentials.\n"
+        "2. CSP — missing, or weakened by unsafe-inline / unsafe-eval on a page that "
+        "renders untrusted content.\n"
+        "3. Missing security headers — no X-Content-Type-Options nosniff, no frame "
+        "protection (X-Frame-Options / frame-ancestors) enabling clickjacking, no HSTS.\n"
+        "4. Cookie flags — session/auth cookies set without HttpOnly, Secure, or "
+        "SameSite.\n"
+        "5. Open redirect — a redirect target taken from user input without an "
+        "allowlist.\n"
+        "6. CSRF — state-changing endpoints with no CSRF token / SameSite protection.\n"
+        "7. Cacheable sensitive responses — authenticated/PII responses returned "
+        "cacheable.\n"
+        "8. GraphQL — introspection enabled in production, missing field-level "
+        "authorization, or no query depth/complexity limit.\n"
+        "Point to the config/handler/middleware where the setting is made (or missing).",
+    ),
+    _spec(
         "Aegis · Smart Contract (Solidity)",
         "On-chain value-drain vectors for Solidity repos: reentrancy, missing access "
         "control, unsafe arithmetic, unchecked calls, tx.origin, unguarded destruct.",

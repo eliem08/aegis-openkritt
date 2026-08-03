@@ -41,21 +41,58 @@ OPENKRITT_FINDING_KEYS = (
     "summary", "trigger_flow", "vulnerability_type", "malicious_actor",
 )
 
-# vulnerability_type keyword -> CWE. First hit wins; unknown types still surface.
+# vulnerability_type keyword -> CWE. FIRST HIT WINS, so specific patterns come
+# before generic ones (e.g. "command injection" -> CWE-78 before "injection" -> CWE-74),
+# and distinct classes get distinct CWEs so they don't dedup together.
 _CWE_RULES: tuple[tuple[tuple[str, ...], str], ...] = (
+    # web3
     (("reentran",), "CWE-841"),
-    (("overflow", "underflow", "arithmetic"), "CWE-190"),
-    (("unchecked", "return value", "low-level call"), "CWE-252"),
-    (("selfdestruct", "self-destruct", "delegatecall", "tx.origin",
-      "access control", "unprotected", "missing auth", "unauthor", "privileg"), "CWE-284"),
-    (("idor", "bola", "object reference", "object-level"), "CWE-639"),
-    (("bfla", "function level", "function-level"), "CWE-285"),
-    (("ssrf", "server-side request"), "CWE-918"),
     (("price", "oracle", "manipulat", "rounding", "slippage"), "CWE-682"),
-    (("signature", "replay", "ecrecover"), "CWE-347"),
-    (("sql", "injection"), "CWE-89"),
+    (("signature malleab", "replay", "ecrecover"), "CWE-347"),
+    # memory safety / systems
+    (("use after free", "use-after-free", "double free", "double-free"), "CWE-416"),
+    (("buffer overflow", "out-of-bounds", "out of bounds", "oob read", "oob write",
+      "stack overflow", "heap overflow"), "CWE-787"),
+    (("null pointer", "nil pointer", "null deref", "nil deref"), "CWE-476"),
+    (("integer overflow", "integer underflow", "overflow", "underflow", "arithmetic"), "CWE-190"),
+    (("race condition", "data race", "toctou", "time-of-check", "time of check"), "CWE-362"),
+    (("uninitialized", "uninitialised"), "CWE-457"),
+    # injection family (specific before generic)
+    (("command injection", "os command", "shell injection", "argument injection",
+      "code execution", "rce"), "CWE-78"),
+    (("nosql",), "CWE-943"),
+    (("ldap injection",), "CWE-90"),
+    (("sql injection", "sqli"), "CWE-89"),
+    (("xxe", "xml external"), "CWE-611"),
+    (("server-side template", "ssti", "template injection"), "CWE-1336"),
+    (("deserial",), "CWE-502"),
+    (("prototype pollution",), "CWE-1321"),
+    (("path travers", "directory travers", "zip slip", "arbitrary file"), "CWE-22"),
+    (("ssrf", "server-side request"), "CWE-918"),
+    (("open redirect",), "CWE-601"),
+    (("csrf", "cross-site request forgery"), "CWE-352"),
     (("xss", "cross-site scripting"), "CWE-79"),
-    (("path travers", "directory travers"), "CWE-22"),
+    (("postmessage", "cross-window", "event.origin"), "CWE-346"),
+    # crypto
+    (("weak crypto", "weak cipher", "insecure random", "predictable random", "weak random",
+      "md5", "sha1", "des ", "rc4", "ecb", "nonce reuse", "iv reuse"), "CWE-327"),
+    (("certificate valid", "hostname verif", "tls verif", "insecureskipverify"), "CWE-295"),
+    (("timing attack", "timing side", "side channel", "side-channel", "non-constant-time"), "CWE-208"),
+    # access control
+    (("bfla", "function level", "function-level"), "CWE-285"),
+    (("idor", "bola", "object reference", "object-level", "insecure direct"), "CWE-639"),
+    (("selfdestruct", "self-destruct", "delegatecall", "tx.origin", "access control",
+      "unprotected", "missing auth", "unauthenticated", "unauthor", "privileg", "broken access"), "CWE-284"),
+    # secrets / misconfig / dos
+    (("hardcoded", "hard-coded", "secret", "credential", "api key", "private key", "token"), "CWE-798"),
+    (("credentialed cors", "cors"), "CWE-942"),
+    (("clickjack", "missing security header", "unsafe csp", "missing csp", "nosniff",
+      "frame-ancestors", "x-frame"), "CWE-693"),
+    (("denial of service", "resource exhaustion", "unbounded", "decompression bomb",
+      "panic", "dos"), "CWE-400"),
+    (("unchecked", "return value", "low-level call"), "CWE-252"),
+    # generic fallbacks (last)
+    (("injection",), "CWE-74"),
 )
 
 _IMPACT_WEIGHT = {"critical": 0.95, "high": 0.8, "medium": 0.55, "low": 0.3, "info": 0.2}
