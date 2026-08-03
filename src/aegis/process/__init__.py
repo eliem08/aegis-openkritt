@@ -10,6 +10,7 @@ from .container import (
     ContainerPolicyError,
     HardenedDockerCommandBuilder,
     ReadOnlyMount,
+    directory_sha256,
 )
 from .runner import (
     BinaryVerificationError,
@@ -33,4 +34,5 @@ __all__ = [
     "ContainerPolicyError",
     "HardenedDockerCommandBuilder",
     "ReadOnlyMount",
+    "directory_sha256",
 ]

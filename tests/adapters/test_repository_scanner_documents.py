@@ -7,7 +7,7 @@ import json
 import pytest
 
 from aegis.adapters import EventKind, ExecutionEnvelope
-from aegis.process import HardenedDockerCommandBuilder, ProcessOutcome, ProcessResult
+from aegis.process import HardenedDockerCommandBuilder, ProcessOutcome, ProcessResult, directory_sha256
 from aegis.adapters.repository_scanners import (
     GitleaksDocumentAdapter,
     OsvScannerDocumentAdapter,
@@ -134,7 +134,7 @@ def test_semgrep_and_gitleaks_commands_use_hardened_digest_boundary(tmp_path):
         str(repos), approved_mount_roots=(str(approved),),
     )
 
-    semgrep = SemgrepDocumentAdapter(builder, rules_path=str(rules))
+    semgrep = SemgrepDocumentAdapter(builder, rules_path=str(rules), rules_digest=directory_sha256(rules))
     semgrep_argv = semgrep.build_command(_envelope(semgrep).__class__.for_manifest(
         semgrep.manifest,
         tenant_id="tenant", engagement_id="eng", scan_id="scan", stage_id="stage",

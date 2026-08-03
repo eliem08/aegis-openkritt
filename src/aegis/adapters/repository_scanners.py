@@ -120,13 +120,15 @@ class SemgrepDocumentAdapter(_ContainerOnlyDocumentAdapter):
         container_builder: HardenedDockerCommandBuilder | None = None,
         *,
         rules_path: str | None = None,
+        rules_digest: str | None = None,
     ) -> None:
         super().__init__(container_builder)
         self._rules_path = rules_path
+        self._rules_digest = rules_digest
 
     def build_command(self, envelope: ExecutionEnvelope) -> list[str]:
-        if not self._rules_path:
-            raise ToolUnavailable("Semgrep requires an approved local rule bundle")
+        if not self._rules_path or not self._rules_digest:
+            raise ToolUnavailable("Semgrep requires an approved digest-pinned local rule bundle")
         return self._build_container(
             envelope,
             (
@@ -136,7 +138,7 @@ class SemgrepDocumentAdapter(_ContainerOnlyDocumentAdapter):
                 "--timeout", "10", "--timeout-threshold", "1",
                 "--config", "/rules", "/src",
             ),
-            (ReadOnlyMount(self._rules_path, "/rules"),),
+            (ReadOnlyMount(self._rules_path, "/rules", self._rules_digest),),
         )
 
     def map_document(self, root, envelope):

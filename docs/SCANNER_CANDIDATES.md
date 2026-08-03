@@ -18,6 +18,12 @@ quarantine, and a live authorized-lab run.
 - Executing each image by digest returned the expected embedded version.
 - No image was run against a target or repository during verification.
 
+## Live drill evidence
+
+- Gitleaks 8.30.1 ran by immutable digest through the hardened builder against
+  local test fixtures with `--network none`: exit 0, semantic success, zero
+  findings, and zero stderr bytes. Raw report output was not printed.
+
 ## Implementation status and changes still needed
 
 - [x] Add bounded whole-document output to the coordinator without changing
@@ -38,8 +44,11 @@ quarantine, and a live authorized-lab run.
   decoding/archive expansion.
 - [ ] Wire OSV-Scanner after its offline DB snapshot/cache location is pinned;
   prove cancellation cleanup and run the local container drill for all three.
-- [ ] Disable Semgrep telemetry, remote configuration, login, version checks, and
-  auto-update; mount only an approved commit-and-digest-pinned local rule bundle.
+- [x] Disable Semgrep telemetry, remote configuration, login, version checks,
+  autofix, and Pro mode at the runtime boundary. Additional read-only mounts are
+  deterministically content-hashed and rejected after any byte-level change.
+- [ ] Curate and pin the initial Aegis-owned Semgrep security rule bundle; validate
+  it against positive/negative local fixtures before enabling Semgrep execution.
 - [x] Treat OSV exit code 1 as vulnerabilities found, not an infrastructure
   failure, while preserving failure semantics for every other non-zero exit.
 - [ ] Pin an offline OSV database snapshot for egress-free dependency matching.

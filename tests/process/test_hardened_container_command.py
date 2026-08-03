@@ -9,6 +9,7 @@ from aegis.process.container import (
     ContainerPolicyError,
     HardenedDockerCommandBuilder,
     ReadOnlyMount,
+    directory_sha256,
 )
 
 DIGEST = "a" * 64
@@ -35,7 +36,7 @@ def test_builder_forces_digest_no_egress_read_only_non_root_and_limits(tmp_path)
         image=IMAGE,
         repository=str(repo),
         command=("scanner", "--json", "/src"),
-        mounts=(ReadOnlyMount(str(rules), "/rules"),),
+        mounts=(ReadOnlyMount(str(rules), "/rules", directory_sha256(rules)),),
     )
     joined = " ".join(argv)
 
@@ -85,17 +86,36 @@ def test_extra_mounts_need_approved_root_and_safe_unique_destination(tmp_path):
     with pytest.raises(ContainerPolicyError, match="outside approved"):
         builder.build(
             image=IMAGE, repository=str(repo), command=("scan",),
-            mounts=(ReadOnlyMount(str(outside), "/rules"),),
+            mounts=(ReadOnlyMount(str(outside), "/rules", "0" * 64),),
         )
     with pytest.raises(ContainerPolicyError, match="forbidden"):
         builder.build(
             image=IMAGE, repository=str(repo), command=("scan",),
-            mounts=(ReadOnlyMount(str(rules), "/var/run/docker.sock"),),
+            mounts=(ReadOnlyMount(str(rules), "/var/run/docker.sock", directory_sha256(rules)),),
         )
     with pytest.raises(ContainerPolicyError, match="duplicate"):
         builder.build(
             image=IMAGE, repository=str(repo), command=("scan",),
-            mounts=(ReadOnlyMount(str(rules), "/rules"), ReadOnlyMount(str(rules), "/rules")),
+            mounts=(ReadOnlyMount(str(rules), "/rules", directory_sha256(rules)), ReadOnlyMount(str(rules), "/rules", directory_sha256(rules))),
+        )
+
+
+def test_read_only_mount_content_must_match_approved_digest(tmp_path):
+    repos, repo, approved, rules = _tree(tmp_path)
+    (rules / "rule.yml").write_text("rules: []")
+    builder = HardenedDockerCommandBuilder(
+        str(repos), approved_mount_roots=(str(approved),),
+    )
+    good = directory_sha256(rules)
+    builder.build(
+        image=IMAGE, repository=str(repo), command=("scan",),
+        mounts=(ReadOnlyMount(str(rules), "/rules", good),),
+    )
+    (rules / "rule.yml").write_text("rules: [changed]")
+    with pytest.raises(ContainerPolicyError, match="checksum mismatch"):
+        builder.build(
+            image=IMAGE, repository=str(repo), command=("scan",),
+            mounts=(ReadOnlyMount(str(rules), "/rules", good),),
         )
 
 

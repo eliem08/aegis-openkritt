@@ -8,6 +8,8 @@ prevents adapters from widening the runtime profile.
 
 from __future__ import annotations
 
+import hashlib
+
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 
@@ -40,6 +42,7 @@ class ContainerLimits:
 class ReadOnlyMount:
     source: str
     destination: str
+    sha256: str
 
 
 class HardenedDockerCommandBuilder:
@@ -99,6 +102,9 @@ class HardenedDockerCommandBuilder:
         destinations = {"/src"}
         for mount in mounts:
             source = self._approved_mount(mount.source)
+            actual_digest = directory_sha256(source)
+            if not _valid_sha256(mount.sha256) or actual_digest != mount.sha256.lower():
+                raise ContainerPolicyError("read-only mount checksum mismatch")
             destination = self._destination(mount.destination)
             if destination in destinations:
                 raise ContainerPolicyError(f"duplicate container mount destination: {destination}")
@@ -203,3 +209,29 @@ class HardenedDockerCommandBuilder:
             return path != root
         except ValueError:
             return False
+
+def _valid_sha256(value: str) -> bool:
+    return (
+        isinstance(value, str)
+        and len(value) == 64
+        and all(character in "0123456789abcdefABCDEF" for character in value)
+    )
+
+
+def directory_sha256(path_value: str | Path) -> str:
+    """Hash a directory tree by relative path and file bytes, rejecting symlinks."""
+    root = Path(path_value).resolve(strict=True)
+    if not root.is_dir():
+        raise ContainerPolicyError("digest source must be a directory")
+    digest = hashlib.sha256()
+    files = sorted((path for path in root.rglob("*") if path.is_file()), key=lambda p: p.as_posix())
+    for path in files:
+        if path.is_symlink():
+            raise ContainerPolicyError("digest-pinned mount cannot contain symlinks")
+        relative = path.relative_to(root).as_posix().encode("utf-8")
+        digest.update(len(relative).to_bytes(8, "big"))
+        digest.update(relative)
+        with path.open("rb") as handle:
+            for chunk in iter(lambda: handle.read(65536), b""):
+                digest.update(chunk)
+    return digest.hexdigest()
