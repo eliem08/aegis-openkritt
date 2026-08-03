@@ -41,6 +41,27 @@ It is **not** weight training — DeepSeek/Claude are used as-is. Learning is:
   its prompt then carries `learned_from_past_outcomes` with confirmed vs.
   false-positive examples and the prior precision.
 
+## Closing the loop with real HackerOne outcomes
+
+Human review verdicts are one teacher; the program's own resolution is the ground
+truth. `aegis.learn.hackerone_sync` folds that in, in two steps:
+
+1. **Link a submission:** `POST /ui/submission`
+   `{ "report_id": "5551", "detector": "...", "cwe": "CWE-841" }` — call this when
+   you submit a report, so its eventual resolution is attributed to the finding that
+   produced it (`SubmissionLedger`).
+2. **Sync outcomes:** `POST /ui/hackerone-sync` reads the states of your submitted
+   reports (`GET /v1/hackers/me/reports`, read-only) and records verdicts:
+   `resolved → confirmed`, `duplicate → duplicate`, `not-applicable`/`spam →
+   false_positive`. Non-decisive states (triaged, informative, needs-more-info, …)
+   are left pending. It is **idempotent per report** — re-syncing never double-counts,
+   and a report that only becomes decisive later is recorded once, then.
+
+So a detector whose reports keep getting **resolved** rises in the ranking and in the
+planner's few-shot memory; one whose reports keep coming back **not-applicable**
+sinks — learned from real bounty results, automatically. This path only *reads*
+HackerOne; it never submits or changes anything there.
+
 ## Persistence & safety
 
 - Set `AEGIS_LEARN_DB=<path>` to persist what's learned across restarts; unset keeps

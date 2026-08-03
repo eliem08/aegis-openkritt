@@ -99,6 +99,47 @@ def test_feedback_rejects_a_bad_verdict():
     assert "error" in r.json()
 
 
+def test_hackerone_sync_folds_report_outcomes_into_the_loop(monkeypatch):
+    app = create_app(ControlPlaneConfig(auth_enabled=False, require_signature=False))
+    client = TestClient(app)
+
+    # 1) link a submitted report to the finding it came from
+    assert client.post("/ui/submission", json={
+        "report_id": "5551", "detector": "integration:openkritt", "cwe": "CWE-841"}).json()["linked"] == "5551"
+
+    # 2) HackerOne says it resolved -> confirmed. Stub the client's reports fetch.
+    import aegis.ingest.hackerone as h1mod
+
+    class FakeH1:
+        @classmethod
+        def from_env(cls, *a, **k):
+            return cls()
+
+        def list_my_reports(self):
+            return [{"id": "5551", "attributes": {"state": "resolved"}}]
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr(h1mod, "HackerOneClient", FakeH1)
+
+    body = client.post("/ui/hackerone-sync").json()
+    assert body["recorded"] == 1 and body["by_verdict"] == {"confirmed": 1}
+
+    # the confirmed outcome now lifts that detector's learned prior
+    from aegis.learn import Calibration
+    cal = Calibration.from_outcomes(app.state.outcomes.all())
+    assert cal.prior(detector="integration:openkritt") > 0.5
+
+
+def test_hackerone_sync_reports_missing_credentials(monkeypatch):
+    monkeypatch.delenv("HACKERONE_API_USERNAME", raising=False)
+    monkeypatch.delenv("HACKERONE_API_TOKEN", raising=False)
+    body = _app().post("/ui/hackerone-sync").json()
+    # no HACKERONE creds -> a clear error, not a crash or a network call
+    assert "error" in body and "HackerOne" in body["error"]
+
+
 def test_review_degrades_when_backend_configured_but_unreachable():
     cfg = ControlPlaneConfig(auth_enabled=False, require_signature=False,
                              openkritt_url="http://127.0.0.1:3002")

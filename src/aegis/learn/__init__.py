@@ -15,6 +15,13 @@ ranking and the LLM's plans shift toward what has actually worked.
 """
 
 from .calibration import Calibration
+from .hackerone_sync import (
+    SubmissionLedger,
+    SyncResult,
+    map_report_state,
+    sync_hackerone_outcomes,
+    sync_submission_outcomes,
+)
 from .memory import PlannerKnowledge, learned_context, recall
 from .store import Outcome, OutcomeStore, Verdict
 
@@ -26,4 +33,9 @@ __all__ = [
     "recall",
     "learned_context",
     "PlannerKnowledge",
+    "SubmissionLedger",
+    "SyncResult",
+    "map_report_state",
+    "sync_submission_outcomes",
+    "sync_hackerone_outcomes",
 ]

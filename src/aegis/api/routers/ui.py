@@ -143,6 +143,56 @@ def _calibration(request: Request):
     return Calibration.from_outcomes(store.all()) if store is not None else None
 
 
+@router.post("/ui/submission", summary="Link a submitted HackerOne report to its finding")
+def link_submission(request: Request, payload=Body(...)) -> dict:
+    """Record that HackerOne report ``report_id`` came from this finding, so its
+    eventual resolution can be attributed to the right detector/CWE. Call this when
+    you submit a report."""
+    ledger = getattr(request.app.state, "submissions", None)
+    if ledger is None:
+        return {"error": "submission ledger not available"}
+    data = payload if isinstance(payload, dict) else {}
+    report_id = str(data.get("report_id") or "").strip()
+    if not report_id:
+        return {"error": "report_id is required"}
+    ledger.record_link(
+        report_id, detector=str(data.get("detector") or data.get("worker") or ""),
+        cwe=str(data.get("cwe") or ""), fingerprint=str(data.get("fingerprint") or ""),
+        asset=str(data.get("asset") or ""), program=str(data.get("program") or ""),
+        summary=str(data.get("summary") or ""))
+    return {"linked": report_id}
+
+
+@router.post("/ui/hackerone-sync", summary="Fold HackerOne report outcomes into the learning loop")
+def hackerone_sync(request: Request) -> dict:
+    """Read the states of your submitted reports and record resolved/duplicate/N-A
+    as verdicts. Read-only on HackerOne; idempotent; teaches calibration + memory
+    from real bounty outcomes."""
+    from aegis.ingest.hackerone import HackerOneAuthError, HackerOneClient
+    from aegis.learn import sync_hackerone_outcomes
+
+    outcomes = getattr(request.app.state, "outcomes", None)
+    ledger = getattr(request.app.state, "submissions", None)
+    if outcomes is None or ledger is None:
+        return {"error": "learning store not available"}
+    try:
+        h1 = HackerOneClient.from_env()
+    except HackerOneAuthError:
+        return {"error": "HackerOne credentials not set "
+                         "(HACKERONE_API_USERNAME / HACKERONE_API_TOKEN)."}
+    try:
+        result = sync_hackerone_outcomes(h1, ledger, outcomes)
+    except httpx.HTTPError as exc:
+        return {"error": f"HackerOne request failed: {exc}"}
+    finally:
+        h1.close()
+    return {"recorded": result.recorded, "by_verdict": result.by_verdict,
+            "skipped_pending": result.skipped_pending,
+            "skipped_unlinked": result.skipped_unlinked,
+            "already_recorded": result.already_recorded,
+            "total_outcomes": outcomes.count()}
+
+
 def _empty(note: str, *, backend: bool = False) -> dict:
     model = build_console([])
     model["note"] = note

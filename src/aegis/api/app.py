@@ -61,9 +61,10 @@ def create_app(config: ControlPlaneConfig | None = None) -> FastAPI:
     from aegis.observ import Telemetry
 
     app.state.telemetry = Telemetry()      # pseudonymous, redacting facade for hot paths
-    from aegis.learn import OutcomeStore
+    from aegis.learn import OutcomeStore, SubmissionLedger
 
     app.state.outcomes = OutcomeStore(config.learn_db_path)  # learning loop (in-memory unless set)
+    app.state.submissions = SubmissionLedger(config.learn_db_path)  # report -> finding links
     app.state.store = EngagementStore(
         verifier=verifier,
         require_signature=config.require_signature,

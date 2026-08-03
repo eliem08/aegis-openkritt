@@ -131,6 +131,23 @@ class HackerOneClient:
             pages += 1
         return items
 
+    def list_my_reports(self, max_pages: int = 20) -> list[dict]:
+        """GET /v1/hackers/me/reports — the authenticated hacker's own reports.
+
+        Read-only. Each report carries ``attributes.state`` (resolved, duplicate,
+        not-applicable, informative, triaged, …), which the learning loop maps to a
+        verdict. Paginated like the other Hacker-API endpoints.
+        """
+        items: list[dict] = []
+        path: str | None = "/v1/hackers/me/reports"
+        pages = 0
+        while path and pages < max_pages:
+            body = self._get(path).json()
+            items.extend(body.get("data", []))
+            path = (body.get("links") or {}).get("next")
+            pages += 1
+        return items
+
     def fetch_program_rules(self, handle: str) -> ProgramRules:
         """Convenience: detail + scopes -> ProgramRules in one call."""
         detail = self.get_program(handle)
