@@ -39,8 +39,19 @@ _FALSIFY = (
 )
 
 
+_SCOPE_NOTE = (
+    "\n\nScope: analyze production/library/application code. IGNORE findings whose only "
+    "location is non-production code — tests, examples, demos, fixtures, mocks, "
+    "benchmarks, local developer/setup CLI scripts, build/CI tooling, or generated "
+    "code (paths like test/, tests/, __tests__/, spec/, example(s)/, demo/, "
+    "fixtures/, mocks/, scripts/, tools/, benchmarks/, and *.test.*/*.spec.* files) — "
+    "unless the repository's shipped product IS that tool. A flaw only reachable when "
+    "a developer runs a local helper by hand is not a product vulnerability."
+)
+
+
 def _spec(name, description, prompt):
-    return {"name": name, "description": description, "prompt": prompt + _FALSIFY}
+    return {"name": name, "description": description, "prompt": prompt + _FALSIFY + _SCOPE_NOTE}
 
 
 #: The playbooks, most-impactful class first (access control dominates the corpus).
@@ -241,14 +252,30 @@ def build_workflow(spec: dict) -> dict:
     }
 
 
-def publish_workflows(client, specs=WORKFLOWS) -> dict:
-    """Create each workflow that doesn't already exist (idempotent by name)."""
-    existing = {str(w.get("name")) for w in client.list_workflows()}
-    created, skipped = [], []
+def publish_workflows(client, specs=WORKFLOWS, *, update: bool = False) -> dict:
+    """Create each workflow that doesn't exist. With ``update=True``, existing ones
+    (matched by name) are re-PUT with the current prompt. A workflow already used by
+    scans is locked by open·kritt (409) and reported as ``locked`` rather than raising
+    — duplicate or reset it to pick up the new prompt."""
+    import httpx
+
+    by_name = {str(w.get("name")): w for w in client.list_workflows()}
+    created, updated, skipped, locked = [], [], [], []
     for spec in specs:
-        if spec["name"] in existing:
-            skipped.append(spec["name"])
+        existing = by_name.get(spec["name"])
+        if existing is not None:
+            if not update:
+                skipped.append(spec["name"])
+                continue
+            try:
+                client.update_workflow(existing.get("id"), build_workflow(spec))
+                updated.append({"id": existing.get("id"), "name": spec["name"]})
+            except httpx.HTTPStatusError as exc:
+                if getattr(exc.response, "status_code", None) == 409:
+                    locked.append(spec["name"])   # in use by scans; can't edit in place
+                else:
+                    raise
             continue
         resp = client.create_workflow(build_workflow(spec))
         created.append({"id": resp.get("id"), "name": spec["name"]})
-    return {"created": created, "skipped": skipped}
+    return {"created": created, "updated": updated, "skipped": skipped, "locked": locked}

@@ -77,6 +77,13 @@ class OpenKrittClient:
         """POST /api/workflows — create a research playbook (levels + steps)."""
         return self._post("/api/workflows", payload)
 
+    def update_workflow(self, workflow_id, payload: dict) -> dict:
+        """PUT /api/workflows/{id} — replace an existing playbook's content."""
+        resp = self._client.put(self._base + f"/api/workflows/{workflow_id}",
+                                json=payload, headers=self._headers)
+        resp.raise_for_status()
+        return resp.json()
+
     # --- plumbing -----------------------------------------------------------
 
     def _get(self, path: str, *, params=None):

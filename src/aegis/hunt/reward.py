@@ -83,6 +83,23 @@ def reward_factor(policy: RewardPolicy | None) -> float:
     return factor
 
 
+def acceptance_factor(policy: RewardPolicy | None) -> float:
+    """How likely a *typical* (often Medium / hard-to-exploit) finding is accepted,
+    given the program's floor. Feeds the portfolio model's p_accepted."""
+    if policy is None:
+        return 1.0
+    by_floor = {0: 1.0, 1: 0.9, 2: 0.7, 3: 0.4, 4: 0.2, 5: 0.1}
+    factor = by_floor.get(sev_rank(policy.min_severity), 0.7)
+    if policy.excludes_hard_to_exploit:
+        factor *= 0.6
+    return factor
+
+
+def accept_probability(base: float, policy: RewardPolicy | None) -> float:
+    """Base acceptance prior scaled by the program's reward floor, clamped to [0,1]."""
+    return max(0.0, min(1.0, base * acceptance_factor(policy)))
+
+
 def eligibility(severity: str, hard_to_exploit: bool, policy: RewardPolicy | None) -> str:
     """Human-readable submit/skip verdict for a finding against a program's policy."""
     if policy is None:

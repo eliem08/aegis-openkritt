@@ -7,6 +7,8 @@ from decimal import Decimal
 
 from aegis.scheduler.profit import Opportunity, ProfitFeatures, ProfitScore, allocate, score
 
+from .reward import accept_probability
+
 
 @dataclass(frozen=True)
 class PortfolioDecision:
@@ -42,21 +44,30 @@ def plan_portfolio(
     scanner_cost: Decimal = Decimal("0.05"),
     verification_time_cost: Decimal = Decimal("0.50"),
     exploration_fraction: float = 0.2,
+    reward_policies: dict | None = None,
 ) -> list[PortfolioDecision]:
-    """Rank discovered repositories without fabricating missing payout amounts."""
+    """Rank discovered repositories without fabricating missing payout amounts.
+
+    ``reward_policies`` (handle -> RewardPolicy) scales each program's acceptance
+    probability by its reward floor, so programs that only pay for easily-exploitable
+    high/critical (e.g. Coinbase cb-mpc) are deprioritized versus programs that pay
+    for the severities our scans realistically produce.
+    """
     payouts = {
         str(handle): Decimal(str(amount))
         for handle, amount in (expected_bounties or {}).items()
     }
+    policies = reward_policies or {}
     metadata = {}
     opportunities = []
     for program in programs:
+        program_p_accepted = accept_probability(p_accepted, policies.get(program.handle))
         for repo in program.repos:
             opportunity_id = f"{program.handle}:{repo.repo_full}"
             expected = payouts.get(program.handle)
             features = ProfitFeatures(
                 p_valid=p_valid,
-                p_accepted=p_accepted,
+                p_accepted=program_p_accepted,
                 expected_bounty=expected,
                 uniqueness=1.0,
                 model_cost=model_cost,

@@ -40,6 +40,7 @@ class HuntConfig:
     estimated_model_cost: Decimal = Decimal("0.02")
     estimated_scanner_cost: Decimal = Decimal("0.05")
     estimated_verification_time_cost: Decimal = Decimal("0.50")
+    reward_policies: dict = field(default_factory=dict)  # handle -> RewardPolicy (floors)
 
     def __post_init__(self) -> None:
         if self.max_programs < 0 or self.max_repos_per_program < 0 or self.portfolio_capacity < 0:
@@ -139,6 +140,7 @@ class HuntOrchestrator:
             want=self._cfg.max_programs,
             inspect_limit=self._cfg.inspect_limit,
             require_bounty=self._cfg.require_bounty,
+            reward_policies=(self._cfg.reward_policies or None),
         )
         return [candidate.handle for candidate in self._selected]
 
@@ -180,6 +182,7 @@ class HuntOrchestrator:
             scanner_cost=cfg.estimated_scanner_cost,
             verification_time_cost=cfg.estimated_verification_time_cost,
             exploration_fraction=cfg.exploration_fraction,
+            reward_policies=(cfg.reward_policies or None),
         )
         selected_by_handle: dict[str, set[str]] = {}
         for decision in portfolio:

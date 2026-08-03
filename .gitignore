@@ -34,3 +34,6 @@ secrets/
 # Local production artifacts
 backups/
 drill-reports/
+
+# learning-loop store
+aegis-learn.db

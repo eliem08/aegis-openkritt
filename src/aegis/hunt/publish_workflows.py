@@ -20,15 +20,21 @@ def main() -> int:
     if client is None:
         print("error: set AEGIS_OPENKRITT_URL to a running open·kritt backend.", file=sys.stderr)
         return 2
+    update = "--update" in sys.argv
     try:
-        result = publish_workflows(client)
+        result = publish_workflows(client, update=update)
     finally:
         client.close()
     for w in result["created"]:
         print(f"created workflow {w['id']}: {w['name']}")
+    for w in result.get("updated", []):
+        print(f"updated workflow {w['id']}: {w['name']}")
+    for name in result.get("locked", []):
+        print(f"locked (in use by scans — duplicate/reset to update): {name}")
     for name in result["skipped"]:
         print(f"skipped (exists): {name}")
-    print(f"{len(result['created'])} created, {len(result['skipped'])} skipped")
+    print(f"{len(result['created'])} created, {len(result.get('updated', []))} updated, "
+          f"{len(result.get('locked', []))} locked, {len(result['skipped'])} skipped")
     return 0
 
 

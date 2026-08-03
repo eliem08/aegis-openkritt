@@ -25,6 +25,7 @@ def test_prompts_reference_the_repo_and_demand_falsification():
         content = build_workflow(spec)["levels"][0]["steps"][0]["content"]
         assert "{{repo_full}}" in content          # scoped to the scanned repo
         assert "falsif" in content.lower()          # candidate != verification
+        assert "non-production" in content.lower()  # dev-tooling / test code excluded
 
 
 def test_covers_the_core_corpus_classes():
@@ -62,4 +63,33 @@ def test_publish_is_idempotent_by_name():
     result = publish_workflows(c)
     assert first in result["skipped"]
     assert first not in [w["name"] for w in result["created"]]
+    assert len(c.created) == len(WORKFLOWS) - 1
+
+
+# --- update path -------------------------------------------------------------
+
+class FakeUpdatableClient:
+    def __init__(self, existing):
+        self._existing = existing            # [{id,name}]
+        self.created, self.updated = [], []
+
+    def list_workflows(self):
+        return self._existing
+
+    def create_workflow(self, payload):
+        self.created.append(payload)
+        return {"id": "new", "name": payload["name"]}
+
+    def update_workflow(self, wid, payload):
+        self.updated.append((wid, payload["name"]))
+        return {"id": wid}
+
+
+def test_publish_update_reputs_existing_by_name():
+    first = WORKFLOWS[0]["name"]
+    c = FakeUpdatableClient([{"id": "7", "name": first}])
+    result = publish_workflows(c, update=True)
+    assert (result["updated"] and result["updated"][0]["id"] == "7")
+    assert first not in result["skipped"]
+    # the rest (not yet existing) are created
     assert len(c.created) == len(WORKFLOWS) - 1

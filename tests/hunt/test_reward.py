@@ -81,3 +81,28 @@ def test_selector_drops_program_whose_ceiling_cannot_reach_floor():
     h1 = FakeH1({"hopeless": [_repo("hopeless", sev="low")]})
     pols = {"hopeless": RewardPolicy("hopeless", min_severity="high")}
     assert select_programs(h1, want=5, reward_policies=pols) == []
+
+
+# --- reward floors feed the portfolio EV model ------------------------------
+
+def test_reward_floor_lowers_portfolio_acceptance():
+    from decimal import Decimal
+    from types import SimpleNamespace
+    from aegis.hunt.portfolio import plan_portfolio
+    from aegis.integrations.repo_pipeline import RepoTarget
+
+    prog = SimpleNamespace(handle="brutal", gated=False,
+                           repos=[RepoTarget(repo_full="brutal/r", identifier="brutal/r",
+                                             max_severity="critical", eligible_for_bounty=True)])
+    pols = {"brutal": RewardPolicy("brutal", min_severity="high", excludes_hard_to_exploit=True)}
+    with_policy = plan_portfolio([prog], capacity=1, p_accepted=0.5, reward_policies=pols)
+    without = plan_portfolio([prog], capacity=1, p_accepted=0.5)
+    # the brutal reward floor drags expected value below the unconstrained case
+    assert with_policy[0].score.gross_expected_value <= without[0].score.gross_expected_value
+
+
+def test_accept_probability_scales_with_floor():
+    from aegis.hunt.reward import accept_probability
+    assert accept_probability(0.5, None) == 0.5
+    assert accept_probability(0.5, RewardPolicy("x", min_severity="high",
+                                                excludes_hard_to_exploit=True)) < 0.2
