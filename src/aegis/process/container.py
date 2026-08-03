@@ -137,6 +137,12 @@ class HardenedDockerCommandBuilder:
             f"/tmp:rw,noexec,nosuid,nodev,size={limits.tmpfs_bytes}",
             "--workdir",
             "/src",
+            "--env",
+            "HOME=/tmp",
+            "--env",
+            "XDG_CACHE_HOME=/tmp/.cache",
+            "--env",
+            "TMPDIR=/tmp",
             "--log-driver",
             "none",
         ]

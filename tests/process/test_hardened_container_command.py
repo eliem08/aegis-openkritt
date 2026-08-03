@@ -54,7 +54,10 @@ def test_builder_forces_digest_no_egress_read_only_non_root_and_limits(tmp_path)
     assert f"src={repo.resolve()},dst=/src,readonly" in joined
     assert f"src={rules.resolve()},dst=/rules,readonly" in joined
     assert argv[-4:] == [IMAGE, "scanner", "--json", "/src"]
-    assert "--env" not in argv and "/var/run/docker.sock" not in joined
+    assert "--env HOME=/tmp" in joined
+    assert "--env XDG_CACHE_HOME=/tmp/.cache" in joined
+    assert "--env TMPDIR=/tmp" in joined
+    assert "SECRET" not in joined and "/var/run/docker.sock" not in joined
 
 
 @pytest.mark.parametrize("image", ["scanner:latest", "scanner", "scanner@sha256:bad"])

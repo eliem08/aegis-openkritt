@@ -23,6 +23,11 @@ quarantine, and a live authorized-lab run.
 - Gitleaks 8.30.1 ran by immutable digest through the hardened builder against
   local test fixtures with `--network none`: exit 0, semantic success, zero
   findings, and zero stderr bytes. Raw report output was not printed.
+- Semgrep 1.164.0 ran by immutable digest through the same boundary against the
+  synthetic Python web lab. The final content-pinned Aegis rules produced exactly
+  three candidates (command injection, SSRF, SQL injection) in `vulnerable.py`,
+  zero in `safe.py`, and no parser diagnostics. The opt-in test is
+  `tests/adapters/test_semgrep_live_image.py`.
 
 ## Implementation status and changes still needed
 
@@ -47,8 +52,9 @@ quarantine, and a live authorized-lab run.
 - [x] Disable Semgrep telemetry, remote configuration, login, version checks,
   autofix, and Pro mode at the runtime boundary. Additional read-only mounts are
   deterministically content-hashed and rejected after any byte-level change.
-- [ ] Curate and pin the initial Aegis-owned Semgrep security rule bundle; validate
-  it against positive/negative local fixtures before enabling Semgrep execution.
+- [x] Curate and content-pin the initial Aegis-owned Semgrep rules for Flask
+  request data reaching command, outbound URL, and raw SQL sinks. Positive and
+  safe parameterized/allowlisted negative fixtures pass the live image gate.
 - [x] Treat OSV exit code 1 as vulnerabilities found, not an infrastructure
   failure, while preserving failure semantics for every other non-zero exit.
 - [ ] Pin an offline OSV database snapshot for egress-free dependency matching.

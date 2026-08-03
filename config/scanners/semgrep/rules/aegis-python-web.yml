@@ -1,0 +1,93 @@
+rules:
+  - id: aegis.python.flask-command-injection
+    mode: taint
+    languages: [python]
+    message: Untrusted Flask request data reaches a command-execution sink.
+    severity: ERROR
+    metadata:
+      category: security
+      confidence: HIGH
+      likelihood: HIGH
+      impact: HIGH
+      cwe: CWE-78
+      technology: [flask]
+      source: aegis-owned
+    pattern-sources:
+      - pattern-either:
+          - pattern: flask.request.args.get(...)
+          - pattern: flask.request.form.get(...)
+          - pattern: flask.request.json.get(...)
+          - pattern: request.args.get(...)
+          - pattern: request.form.get(...)
+          - pattern: request.json.get(...)
+    pattern-sinks:
+      - pattern-either:
+          - pattern: os.system(...)
+          - pattern: os.popen(...)
+          - pattern: subprocess.$FUNC(..., shell=True, ...)
+          - pattern: eval(...)
+          - pattern: exec(...)
+
+  - id: aegis.python.flask-ssrf
+    mode: taint
+    languages: [python]
+    message: Untrusted Flask request data controls an outbound HTTP destination.
+    severity: ERROR
+    metadata:
+      category: security
+      confidence: HIGH
+      likelihood: HIGH
+      impact: HIGH
+      cwe: CWE-918
+      technology: [flask]
+      source: aegis-owned
+    pattern-sources:
+      - pattern-either:
+          - pattern: flask.request.args.get(...)
+          - pattern: flask.request.form.get(...)
+          - pattern: flask.request.json.get(...)
+          - pattern: request.args.get(...)
+          - pattern: request.form.get(...)
+          - pattern: request.json.get(...)
+    pattern-sanitizers:
+      - pattern: $ALLOWLIST[$KEY]
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: requests.get($URL, ...)
+              - pattern: requests.post($URL, ...)
+              - pattern: requests.request($METHOD, $URL, ...)
+              - pattern: httpx.get($URL, ...)
+              - pattern: httpx.post($URL, ...)
+              - pattern: httpx.request($METHOD, $URL, ...)
+              - pattern: urllib.request.urlopen($URL, ...)
+          - focus-metavariable: $URL
+
+  - id: aegis.python.flask-sql-injection
+    mode: taint
+    languages: [python]
+    message: Untrusted Flask request data reaches a raw database execute call.
+    severity: ERROR
+    metadata:
+      category: security
+      confidence: HIGH
+      likelihood: HIGH
+      impact: HIGH
+      cwe: CWE-89
+      technology: [flask]
+      source: aegis-owned
+    pattern-sources:
+      - pattern-either:
+          - pattern: flask.request.args.get(...)
+          - pattern: flask.request.form.get(...)
+          - pattern: flask.request.json.get(...)
+          - pattern: request.args.get(...)
+          - pattern: request.form.get(...)
+          - pattern: request.json.get(...)
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: $CURSOR.execute($QUERY, ...)
+              - pattern: $CURSOR.executemany($QUERY, ...)
+              - pattern: $DB.execute($QUERY, ...)
+          - focus-metavariable: $QUERY
