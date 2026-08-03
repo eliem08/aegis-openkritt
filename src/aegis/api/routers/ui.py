@@ -10,6 +10,7 @@ keeping with the human-supervised model.
 
 from __future__ import annotations
 
+import httpx
 from fastapi import APIRouter, Body, Request
 from fastapi.responses import HTMLResponse
 
@@ -30,20 +31,22 @@ def review(request: Request, scan: str = "") -> dict:
     if client is None:
         return _empty("No open·kritt backend connected. Set AEGIS_OPENKRITT_URL, or "
                       "upload an open·kritt export below.")
-    if not scan:
-        try:
-            scans = client.list_scans()
-        finally:
-            client.close()
-        return _empty(f"open·kritt backend connected ({len(scans)} scans). "
-                      "Enter a scan id to load its findings.", backend=True)
+    url = getattr(config, "openkritt_url", "")
     try:
+        if not scan:
+            scans = client.list_scans()
+            return _empty(f"open·kritt backend connected ({len(scans)} scans). "
+                          "Enter a scan id to load its findings.", backend=True)
         candidates = client.import_candidates(scan)
+        model = build_console(candidates, scan_id=str(scan))
+        model["backend_connected"] = True
+        return model
+    except httpx.HTTPError as exc:
+        # Configured but unreachable/erroring: degrade to a clear message, not a 500.
+        return _empty(f"open·kritt is configured ({url}) but not reachable: {exc}. "
+                      "Start it (./kritt setup) or upload an export below.")
     finally:
         client.close()
-    model = build_console(candidates, scan_id=str(scan))
-    model["backend_connected"] = True
-    return model
 
 
 @router.post("/ui/review", summary="Build a review model from an uploaded open·kritt export")

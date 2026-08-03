@@ -69,3 +69,21 @@ def test_review_live_from_connected_backend(monkeypatch):
     assert body["backend_connected"] is True and body["scan_id"] == "7"
     assert body["totals"]["candidates"] == 1
     assert body["items"][0]["cwe"] == "CWE-284"
+
+
+def test_review_degrades_when_backend_configured_but_unreachable():
+    cfg = ControlPlaneConfig(auth_enabled=False, require_signature=False,
+                             openkritt_url="http://127.0.0.1:3002")
+
+    def down(req):
+        raise httpx.ConnectError("connection refused", request=req)
+
+    def fake_client():
+        return OpenKrittClient("http://127.0.0.1:3002",
+                               client=httpx.Client(transport=httpx.MockTransport(down)))
+
+    app = create_app(cfg)
+    app.state.config.build_openkritt_client = fake_client
+    r = TestClient(app).get("/ui/review")
+    assert r.status_code == 200                              # not a 500
+    assert "not reachable" in r.json()["note"]
