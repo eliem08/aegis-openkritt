@@ -83,6 +83,49 @@ def test_no_artifacts_yields_no_candidates():
     assert surface_candidates() == []
 
 
+# --- contract review: planning + surfacing ----------------------------------
+
+VULN_CONTRACT = """
+pragma solidity ^0.7.0;
+contract Vault {
+    mapping(address => uint256) public balances;
+    function withdraw(uint256 amount) public {
+        require(balances[msg.sender] >= amount);
+        (bool ok,) = msg.sender.call{value: amount}("");
+        balances[msg.sender] -= amount;
+    }
+    function emergencyDrain(address to) public {
+        payable(to).transfer(address(this).balance);
+    }
+}
+"""
+
+
+def test_contract_review_task_planned_only_when_source_is_provided():
+    without = plan_detectors([Route("GET", "/health", "api.example.test")], identities=IDS)
+    assert not without.has("contract_review")             # contracts are supplied, not discovered
+    assert "contract_review" not in without.skipped
+
+    with_src = plan_detectors(
+        [Route("GET", "/health", "api.example.test")], identities=IDS,
+        contracts=[{"name": "Vault.sol", "source": VULN_CONTRACT}])
+    task = with_src.by_detector("contract_review")
+    assert task is not None and task.targets == ("Vault.sol",)
+    assert task.action == "passive_discovery" and task.est_requests == 0  # offline
+
+
+def test_contract_findings_become_candidates():
+    candidates = surface_candidates(contracts=[{"name": "Vault.sol", "source": VULN_CONTRACT}])
+    contract = [c for c in candidates if c.worker == "analyzer:contract"]
+    assert contract, "expected contract candidates"
+    cwes = {c.cwe for c in contract}
+    assert "CWE-841" in cwes                               # reentrancy (withdraw)
+    assert "CWE-284" in cwes                               # missing access control (emergencyDrain)
+    reentrancy = next(c for c in contract if c.cwe == "CWE-841")
+    assert reentrancy.code_location.startswith("Vault.sol:")
+    assert reentrancy.business_impact == 0.95 and reentrancy.evidence_id is None
+
+
 def test_surfaced_items_are_candidates_pending_verification():
     from aegis.model import Candidate
 

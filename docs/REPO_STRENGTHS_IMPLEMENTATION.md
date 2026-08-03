@@ -245,6 +245,21 @@ into detector-planning + `surface_candidates` (reporting). Commits:
   arithmetic, unchecked `.call`, `tx.origin` auth, unguarded `selfdestruct`/
   `delegatecall`. Every hit is a candidate (`verified=False`) for a human + a real
   prover to confirm; it touches no live protocol and asserts no disclosure.
+  Wired into detector-planning (`plan_detectors(contracts=...)` → a static, offline
+  `contract_review` task) and reporting (`surface_candidates(contracts=...)`).
+
+## open·kritt integration — arm's-length, AGPL-safe (see `docs/OPENKRITT_INTEGRATION.md`)
+
+[open·kritt](https://github.com/Kritt-ai/open-kritt) is **AGPL-3.0**, so its source
+is *not* vendored — that would relicense all of Aegis under the AGPL (incl. §13's
+network-source clause), the exact clean-room line the reference-tool policy holds.
+Instead `aegis.integrations.openkritt` talks to it over its public finding contract:
+`ingest_openkritt_findings(...)` maps its `vulnerabilities` export (the eight-key
+`json_answer` + dedupe/rank wrapper) into unverified Aegis candidates, respecting
+open·kritt's own dedup/severity and mapping `vulnerability_type` → CWE; wired into
+reporting via `surface_candidates(openkritt_findings=...)`. Two boundaries kept:
+imported rows stay candidates (must pass Aegis's verification gate, not open·kritt's
+`exploitable`/rank), and the `malicious_input_example` payload is never surfaced.
 
 ## Phase 5 operational drills — executed where runnable (see `docs/DRILLS.md`)
 
@@ -259,7 +274,7 @@ upgrade) stay honestly marked blocked — not faked.
 ## Program status (as of `af3f341`, 2026-08-03)
 
 All corrections complete; all 11 reference-tool rows complete. Phases 1-4 pass their
-in-process gates; Phase 5's in-process pieces are complete. **925 tests pass on
+in-process gates; Phase 5's in-process pieces are complete. **935 tests pass on
 SQLite; the full gated suite passes on PostgreSQL.** The two things that remain are
 NOT code and cannot be ticked here: (a) pinning + live-running the real third-party
 binaries (blocked on the outstanding legal/license review — every such adapter fails

@@ -41,6 +41,8 @@ DETECTOR_ACTIONS = {
     "ssrf": "benign_request_mutation",
     "graphql": "benign_request_mutation",
     "path_bypass": "benign_request_mutation",
+    # Static, offline analysis over operator-provided contract source — no network.
+    "contract_review": "passive_discovery",
 }
 
 # Detectors whose target set is the discovered route set.
@@ -120,13 +122,18 @@ def routes_from_assets(assets) -> list[Route]:
 def plan_detectors(
     routes: list[Route], *, host: str = "", seeds=(), identities=(), privileged_endpoints=(),
     enabled=None, per_target_requests: int = 2, max_targets_per_detector: int = 200,
-    identifier_samples=None,
+    identifier_samples=None, contracts=(),
 ) -> DetectorPlan:
     """Derive detector tasks from discovered routes + owned seeds + identities.
 
     ``identifier_samples`` maps a route template to observed object ids; when given,
     a BOLA task is annotated with the id's enumeration risk so a sequential-id IDOR
     is flagged with its true (mass-exposure) impact.
+
+    ``contracts`` is an operator-provided set of contract sources
+    (``{"name", "source"}`` mappings or objects) for an authorized engagement; each
+    queues a static, offline ``contract_review`` task. Contracts are supplied
+    evidence, never discovered — with none provided, no task is planned.
     """
     plan = DetectorPlan()
     enabled = set(enabled) if enabled is not None else set(DETECTOR_ACTIONS)
@@ -199,6 +206,18 @@ def plan_detectors(
                 est_requests=len(endpoints) * 3))
         else:
             plan.skipped["graphql"] = "no GraphQL endpoint discovered"
+
+    # --- contract review: static analysis over operator-provided source only ---
+    if "contract_review" in enabled and contracts:
+        named = [(_contract_name(c, i), _contract_source(c)) for i, c in enumerate(contracts)]
+        analyzable = [(name, src) for name, src in named if src]
+        if analyzable:
+            plan.tasks.append(DetectorTask(
+                "contract_review", DETECTOR_ACTIONS["contract_review"],
+                tuple(name for name, _ in analyzable),
+                {"contracts": len(analyzable)}, est_requests=0))  # offline: no requests
+        else:
+            plan.skipped["contract_review"] = "no contract source provided"
 
     # --- route-target detectors: explicit targets from discovery only ---
     for detector in ROUTE_TARGET_DETECTORS:
@@ -285,6 +304,18 @@ def _bola_objects(seeds, discovered_sigs) -> list[ObjectRef]:
 
 def _param_name(param) -> str:
     return str(param.get("name") if isinstance(param, dict) else param or "")
+
+
+def _contract_name(contract, index: int) -> str:
+    if isinstance(contract, dict):
+        return str(contract.get("name") or contract.get("path") or f"contract-{index}")
+    return str(getattr(contract, "name", None) or getattr(contract, "path", None) or f"contract-{index}")
+
+
+def _contract_source(contract) -> str:
+    if isinstance(contract, dict):
+        return str(contract.get("source") or contract.get("text") or "")
+    return str(getattr(contract, "source", None) or getattr(contract, "text", None) or "")
 
 
 def _names(identities) -> set:
