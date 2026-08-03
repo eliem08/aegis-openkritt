@@ -35,6 +35,7 @@ from aegis.report import build_console
 @dataclass
 class HuntConfig:
     model: str = ""
+    fallback_models: tuple[str, ...] = ()   # empty -> auto-derive from the catalog
     only_handles: tuple[str, ...] = ()      # empty -> discover via list_programs()
     max_programs: int = 3
     max_repos_per_program: int = 3
@@ -93,6 +94,7 @@ class HuntOrchestrator:
         for handle in self._handles()[: cfg.max_programs]:
             result = run_repo_pipeline(
                 self._h1, self._ok, handle, model=cfg.model,
+                fallbacks=(cfg.fallback_models or None),
                 launch=not cfg.dry_run, max_repos=cfg.max_repos_per_program)
             programs.append(result)
             for launch in result.launches:

@@ -56,6 +56,14 @@ class OpenKrittClient:
     def list_severity_rankers(self) -> list[dict]:
         return self._get("/api/severity-rankers") or []
 
+    def list_models(self, provider: str = "claude") -> list[str]:
+        """Model ids available for a provider, in catalog order (primary-first)."""
+        catalog = self._get("/api/model-catalog") or {}
+        for p in catalog.get("providers", []):
+            if p.get("provider") == provider:
+                return [m.get("id") for m in p.get("models", []) if m.get("id")]
+        return []
+
     # --- write: drive a scan (operator action) ------------------------------
 
     def create_scan(self, payload: dict) -> dict:

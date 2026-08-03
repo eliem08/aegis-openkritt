@@ -4,7 +4,9 @@ Configuration (environment; a local .env is loaded):
   AEGIS_OPENKRITT_URL     open·kritt backend (required)
   HACKERONE_API_USERNAME  HackerOne Hacker-API creds (required)
   HACKERONE_API_TOKEN
-  AEGIS_HUNT_MODEL        model id for scans, e.g. a Claude model (required to launch)
+  AEGIS_HUNT_MODEL        primary model id for scans, e.g. claude-opus-5 (required to launch)
+  AEGIS_HUNT_FALLBACKS    comma-separated fallback model ids, tried in order if the
+                          primary is unavailable (default: auto-derived from the catalog)
   AEGIS_HUNT_ARM=1        ARM it — actually launch scans. Unset/0 = dry-run (plan only)
   AEGIS_HUNT_HANDLES      comma-separated program handles (default: all authorized)
   AEGIS_HUNT_INTERVAL     seconds between cycles (default 3600)
@@ -57,8 +59,9 @@ def main() -> int:
         return 2
 
     handles = tuple(h.strip() for h in os.environ.get("AEGIS_HUNT_HANDLES", "").split(",") if h.strip())
+    fallbacks = tuple(m.strip() for m in os.environ.get("AEGIS_HUNT_FALLBACKS", "").split(",") if m.strip())
     cfg = HuntConfig(
-        model=model, only_handles=handles, dry_run=not armed,
+        model=model, fallback_models=fallbacks, only_handles=handles, dry_run=not armed,
         max_programs=_int("AEGIS_HUNT_MAX_PROGRAMS", 3),
         max_repos_per_program=_int("AEGIS_HUNT_MAX_REPOS", 3),
         interval_seconds=float(_int("AEGIS_HUNT_INTERVAL", 3600)))

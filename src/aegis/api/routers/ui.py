@@ -158,8 +158,9 @@ def hunt_cycle(request: Request, payload=Body(None)) -> dict:
         return {"error": "HackerOne credentials not set "
                          "(HACKERONE_API_USERNAME / HACKERONE_API_TOKEN)."}
     handles = tuple(str(h).strip() for h in (data.get("handles") or []) if str(h).strip())
-    cfg = HuntConfig(model=model, only_handles=handles, dry_run=not armed,
-                     max_programs=int(data.get("max_programs") or 3),
+    fallbacks = tuple(str(m).strip() for m in (data.get("fallbacks") or []) if str(m).strip())
+    cfg = HuntConfig(model=model, fallback_models=fallbacks, only_handles=handles,
+                     dry_run=not armed, max_programs=int(data.get("max_programs") or 3),
                      max_repos_per_program=int(data.get("max_repos") or 3))
     hunter = HuntOrchestrator(h1, ok, request.app.state.outcomes,
                               request.app.state.submissions, config=cfg)

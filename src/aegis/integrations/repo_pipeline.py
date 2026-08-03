@@ -42,12 +42,24 @@ class ScanTemplate:
     workflow_id: str
     post_script_id: str
     severity_ranker: str                       # the ranker's markdown content
-    model: str                                 # a model id from the connected account
+    model: str                                 # primary model id from the connected account
     harness: str = "claude-code"               # matches a connected Claude login
     model_provider: str = "claude"
     repo_scope: str = "full repository"
     launch_policy: str = "queue"               # don't preempt a running scan
     agent_skill_ids: tuple[str, ...] = ()
+    fallback_models: tuple[str, ...] = ()      # tried in order if the primary is unavailable
+
+    @property
+    def models(self) -> list[str]:
+        """Primary then fallbacks, de-duplicated, empties dropped."""
+        seen: set[str] = set()
+        out: list[str] = []
+        for m in (self.model, *self.fallback_models):
+            if m and m not in seen:
+                seen.add(m)
+                out.append(m)
+        return out
 
 
 @dataclass(frozen=True)
@@ -55,6 +67,7 @@ class ScanLaunch:
     repo: RepoTarget
     scan_id: str | None = None
     error: str | None = None
+    model: str | None = None                   # which model actually launched it
 
     @property
     def ok(self) -> bool:
@@ -117,9 +130,15 @@ def _to_repo_full(identifier: str) -> str | None:
 # --- discover the scan template from a live backend -------------------------
 
 def discover_scan_template(client, *, model: str, harness: str = "claude-code",
-                           model_provider: str = "claude", **overrides) -> ScanTemplate:
+                           model_provider: str = "claude", fallbacks=None,
+                           **overrides) -> ScanTemplate:
     """Fill workflow / post-script / severity-ranker from the backend's configured
-    resources (open·kritt ships defaults). Raises if a required resource is absent."""
+    resources (open·kritt ships defaults). Raises if a required resource is absent.
+
+    ``fallbacks`` are model ids tried in order if the primary is unavailable at
+    launch. When ``None``, they are auto-derived from the account's model catalog
+    (every other model for that provider, catalog order).
+    """
     workflows = client.list_workflows()
     post_scripts = client.list_post_scripts()
     rankers = client.list_severity_rankers()
@@ -129,23 +148,29 @@ def discover_scan_template(client, *, model: str, harness: str = "claude-code",
         raise PipelineError("open·kritt has no post-script configured")
     if not rankers:
         raise PipelineError("open·kritt has no severity ranker configured")
+    if fallbacks is None:
+        try:
+            fallbacks = tuple(m for m in client.list_models(model_provider) if m != model)
+        except Exception:
+            fallbacks = ()
     return ScanTemplate(
         workflow_id=str(_first_id(workflows)),
         post_script_id=str(_first_id(post_scripts)),
         severity_ranker=str(rankers[0].get("content") or rankers[0].get("markdown") or ""),
-        model=model, harness=harness, model_provider=model_provider, **overrides)
+        model=model, harness=harness, model_provider=model_provider,
+        fallback_models=tuple(fallbacks), **overrides)
 
 
 # --- launch scans -----------------------------------------------------------
 
-def build_scan_payload(repo: RepoTarget, t: ScanTemplate) -> dict:
+def build_scan_payload(repo: RepoTarget, t: ScanTemplate, *, model: str | None = None) -> dict:
     return {
         "workflowId": t.workflow_id,
         "postScriptId": t.post_script_id,
         "repo_kind": "remote",
         "repo_full": repo.repo_full,
         "repo_scope": t.repo_scope,
-        "model": t.model,
+        "model": model or t.model,
         "harness": t.harness,
         "model_provider": t.model_provider,
         "severity_ranker": t.severity_ranker,
@@ -155,15 +180,25 @@ def build_scan_payload(repo: RepoTarget, t: ScanTemplate) -> dict:
 
 
 def launch_repo_scans(client, repos, template: ScanTemplate) -> list[ScanLaunch]:
+    """Launch one scan per repo, falling back through ``template.models`` in order
+    when the primary model is rejected or unavailable at launch time."""
+    models = template.models or [template.model]
     launches: list[ScanLaunch] = []
     for repo in repos:
-        try:
-            resp = client.create_scan(build_scan_payload(repo, template))
-            scan_id = str(resp.get("id") or resp.get("scanId") or "")
-            launches.append(ScanLaunch(repo, scan_id=scan_id or None,
-                                       error=None if scan_id else "no scan id in response"))
-        except Exception as exc:                 # network / validation error -> report, keep going
-            launches.append(ScanLaunch(repo, error=str(exc)))
+        scan_id = used = None
+        last_error = "no models configured"
+        for model in models:
+            try:
+                resp = client.create_scan(build_scan_payload(repo, template, model=model))
+                sid = str(resp.get("id") or resp.get("scanId") or "")
+                if sid:
+                    scan_id, used = sid, model
+                    break
+                last_error = f"{model}: no scan id in response"
+            except Exception as exc:             # capacity / validation / network -> try next
+                last_error = f"{model}: {exc}"
+        launches.append(ScanLaunch(repo, scan_id=scan_id, model=used,
+                                   error=None if scan_id else last_error))
     return launches
 
 
@@ -183,7 +218,7 @@ def console_for_scans(client, scan_ids, *, calibration=None, **ingest_kwargs) ->
 
 def run_repo_pipeline(h1_client, ok_client, handle: str, *, model: str,
                       template: ScanTemplate | None = None, launch: bool = True,
-                      max_repos: int | None = None) -> PipelineResult:
+                      max_repos: int | None = None, fallbacks=None) -> PipelineResult:
     """Discover a program's repos and (optionally) launch an open·kritt scan on each.
 
     ``launch=False`` plans only — it returns the in-scope repos without touching
@@ -201,7 +236,7 @@ def run_repo_pipeline(h1_client, ok_client, handle: str, *, model: str,
     if scope.gated or not repos or not launch:
         return result
 
-    template = template or discover_scan_template(ok_client, model=model)
+    template = template or discover_scan_template(ok_client, model=model, fallbacks=fallbacks)
     result.launches = launch_repo_scans(ok_client, repos, template)
     return result
 

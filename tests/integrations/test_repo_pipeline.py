@@ -116,6 +116,44 @@ def test_discover_template_fills_from_backend():
     assert t.workflow_id == "1" and t.post_script_id == "2" and t.severity_ranker == "# ranker rules"
 
 
+def test_launch_falls_back_when_primary_model_unavailable():
+    from aegis.integrations.repo_pipeline import RepoTarget
+
+    class Flaky(FakeOK):
+        def create_scan(self, payload):
+            if payload["model"] == "claude-opus-5":
+                raise RuntimeError("model at capacity")     # primary unavailable
+            return {"id": "42"}
+
+    t = ScanTemplate(workflow_id="1", post_script_id="2", severity_ranker="# r",
+                     model="claude-opus-5", fallback_models=("claude-opus-4-8", "claude-sonnet-5"))
+    [launch] = launch_repo_scans(Flaky(), [RepoTarget(repo_full="a/b", identifier="…")], t)
+    assert launch.ok and launch.scan_id == "42" and launch.model == "claude-opus-4-8"
+
+
+def test_launch_reports_error_when_all_models_fail():
+    from aegis.integrations.repo_pipeline import RepoTarget
+
+    class Down(FakeOK):
+        def create_scan(self, payload):
+            raise RuntimeError("nope")
+
+    t = ScanTemplate(workflow_id="1", post_script_id="2", severity_ranker="# r",
+                     model="claude-opus-5", fallback_models=("claude-opus-4-8",))
+    [launch] = launch_repo_scans(Down(), [RepoTarget(repo_full="a/b", identifier="…")], t)
+    assert not launch.ok and "claude-opus-4-8" in launch.error       # last model tried is reported
+
+
+def test_discover_auto_derives_fallbacks_from_catalog():
+    class WithCatalog(FakeOK):
+        def list_models(self, provider="claude"):
+            return ["claude-opus-5", "claude-opus-4-8", "claude-sonnet-5"]
+
+    t = discover_scan_template(WithCatalog(), model="claude-opus-5")
+    assert t.fallback_models == ("claude-opus-4-8", "claude-sonnet-5")   # primary excluded
+    assert t.models == ["claude-opus-5", "claude-opus-4-8", "claude-sonnet-5"]
+
+
 def test_discover_template_raises_without_resources():
     class Empty(FakeOK):
         def list_workflows(self): return []
