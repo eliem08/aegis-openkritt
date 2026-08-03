@@ -1,24 +1,39 @@
-"""Minimal DeepSeek chat client (OpenAI-compatible, httpx-based).
-
-Kept dependency-light (httpx only, already required) rather than pulling the
-openai SDK. Any ``httpx.Client`` can be injected — including a MockTransport
-client for tests — so no live calls are needed to exercise callers.
-"""
+"""Minimal OpenAI-compatible DeepSeek client with sanitized usage metadata."""
 
 from __future__ import annotations
 
 import json
 import re
+import time
+from dataclasses import dataclass, field
 
 import httpx
 
 from .config import DeepSeekConfig
 
 _JSON_OBJECT_RE = re.compile(r"\{.*\}", re.DOTALL)
+_USAGE_KEYS = frozenset({
+    "prompt_tokens",
+    "completion_tokens",
+    "total_tokens",
+    "prompt_cache_hit_tokens",
+    "prompt_cache_miss_tokens",
+})
 
 
 class DeepSeekError(RuntimeError):
     """Any failure talking to DeepSeek or parsing its response."""
+
+
+@dataclass(frozen=True)
+class DeepSeekCompletion:
+    """Final content plus non-sensitive provider accounting metadata."""
+
+    content: str
+    model: str
+    usage: dict[str, int | float] = field(default_factory=dict)
+    request_id: str = ""
+    latency_ms: int = 0
 
 
 class DeepSeekClient:
@@ -35,24 +50,46 @@ class DeepSeekClient:
     def from_env(cls, env: dict | None = None, **kwargs) -> "DeepSeekClient":
         return cls(DeepSeekConfig.from_env(env), **kwargs)
 
-    def complete(
+    def _payload(
+        self,
+        messages: list[dict],
+        *,
+        json_mode: bool,
+        temperature: float | None,
+        max_tokens: int | None,
+    ) -> dict:
+        payload: dict = {
+            "model": self._config.model,
+            "messages": messages,
+            "stream": False,
+            "max_tokens": self._config.max_tokens if max_tokens is None else max_tokens,
+            "thinking": {"type": self._config.thinking},
+        }
+        if self._config.thinking == "enabled":
+            payload["reasoning_effort"] = self._config.reasoning_effort
+        else:
+            payload["temperature"] = (
+                self._config.temperature if temperature is None else temperature
+            )
+        if json_mode:
+            payload["response_format"] = {"type": "json_object"}
+        return payload
+
+    def complete_result(
         self,
         messages: list[dict],
         *,
         json_mode: bool = False,
         temperature: float | None = None,
         max_tokens: int | None = None,
-    ) -> str:
-        payload: dict = {
-            "model": self._config.model,
-            "messages": messages,
-            "stream": False,
-            "temperature": self._config.temperature if temperature is None else temperature,
-            "max_tokens": self._config.max_tokens if max_tokens is None else max_tokens,
-        }
-        if json_mode:
-            payload["response_format"] = {"type": "json_object"}
-
+    ) -> DeepSeekCompletion:
+        payload = self._payload(
+            messages,
+            json_mode=json_mode,
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
+        started = time.monotonic()
         try:
             resp = self._client.post("/chat/completions", json=payload, headers=self._headers)
             resp.raise_for_status()
@@ -62,20 +99,51 @@ class DeepSeekClient:
             raise DeepSeekError(f"DeepSeek request failed: {exc}") from exc
 
         try:
-            return resp.json()["choices"][0]["message"]["content"]
+            body = resp.json()
+            content = body["choices"][0]["message"]["content"]
+            if not isinstance(content, str):
+                raise TypeError("content is not text")
         except (KeyError, IndexError, ValueError, TypeError) as exc:
             raise DeepSeekError("unexpected DeepSeek response shape") from exc
+
+        raw_usage = body.get("usage") if isinstance(body, dict) else None
+        usage = {
+            key: value
+            for key, value in (raw_usage or {}).items()
+            if key in _USAGE_KEYS and isinstance(value, (int, float)) and not isinstance(value, bool)
+        }
+        return DeepSeekCompletion(
+            content=content,
+            model=str(body.get("model") or self._config.model),
+            usage=usage,
+            request_id=resp.headers.get("x-request-id", ""),
+            latency_ms=max(0, round((time.monotonic() - started) * 1000)),
+        )
+
+    def complete(
+        self,
+        messages: list[dict],
+        *,
+        json_mode: bool = False,
+        temperature: float | None = None,
+        max_tokens: int | None = None,
+    ) -> str:
+        return self.complete_result(
+            messages,
+            json_mode=json_mode,
+            temperature=temperature,
+            max_tokens=max_tokens,
+        ).content
 
     def complete_json(self, messages: list[dict], **kwargs) -> dict:
         content = self.complete(messages, json_mode=True, **kwargs)
         try:
             return json.loads(content)
         except json.JSONDecodeError:
-            # Some models wrap JSON in prose; salvage the first object.
-            m = _JSON_OBJECT_RE.search(content or "")
-            if m:
+            match = _JSON_OBJECT_RE.search(content or "")
+            if match:
                 try:
-                    return json.loads(m.group(0))
+                    return json.loads(match.group(0))
                 except json.JSONDecodeError:
                     pass
             raise DeepSeekError("DeepSeek did not return valid JSON")

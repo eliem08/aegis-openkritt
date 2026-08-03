@@ -59,7 +59,7 @@ def test_sends_auth_model_and_json_mode():
 
     _client(handler).complete([{"role": "user", "content": "x"}], json_mode=True)
     assert seen["auth"] == "Bearer k"
-    assert seen["body"]["model"] == "deepseek-chat"
+    assert seen["body"]["model"] == "deepseek-v4-flash"
     assert seen["body"]["stream"] is False
     assert seen["body"]["response_format"] == {"type": "json_object"}
 
@@ -69,4 +69,4 @@ def test_from_env_requires_key():
         DeepSeekConfig.from_env(env={})
     assert DeepSeekConfig.maybe_from_env(env={}) is None
     cfg = DeepSeekConfig.from_env(env={"DEEPSEEK_API_KEY": "abc"})
-    assert cfg.api_key == "abc" and cfg.model == "deepseek-chat"
+    assert cfg.api_key == "abc" and cfg.model == "deepseek-v4-flash"
