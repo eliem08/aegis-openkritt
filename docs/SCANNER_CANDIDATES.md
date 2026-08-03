@@ -28,9 +28,12 @@ quarantine, and a live authorized-lab run.
 - [x] Never persist Gitleaks `Secret`, `Match`, `Line`, author, email, or commit
   message values. Emit only rule, normalized path, line, commit hash, and stable
   fingerprint into the sensitive-data quarantine flow.
-- [ ] Add the hardened container executor. It must run these exact image digests
-  as non-root with a read-only root filesystem, temporary workspace, no target
-  egress, dropped capabilities, and CPU/memory/process/output/time caps.
+- [x] Add a fail-closed Docker command boundary that accepts only digest images
+  and repositories under the configured clone root, with non-root identity,
+  read-only source/root, no network, dropped capabilities, no-new-privileges,
+  and CPU/memory/PID/tmpfs limits.
+- [ ] Wire each scanner's exact command and approved read-only data mounts through
+  that boundary, prove cancellation cleanup, and run the local container drill.
 - [ ] Disable Semgrep telemetry, remote configuration, login, version checks, and
   auto-update; mount only an approved commit-and-digest-pinned local rule bundle.
 - [x] Treat OSV exit code 1 as vulnerabilities found, not an infrastructure
