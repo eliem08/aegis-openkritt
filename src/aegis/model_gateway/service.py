@@ -5,6 +5,7 @@ from __future__ import annotations
 import hmac
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
+from decimal import Decimal
 
 from fastapi import FastAPI, Header, HTTPException
 
@@ -13,7 +14,7 @@ from aegis.ai.pricing import DEEPSEEK_V4_FLASH_PRICE, ModelPrice
 from .budget import AtomicModelBudget, ModelBudgetError
 from .cache import ExactModelCache
 from .config import ModelGatewayConfig
-from .models import ModelGatewayRequest, ModelGatewayResponse
+from .models import ModelGatewayRequest, ModelGatewayResponse, ModelUsage
 from .provider import DeepSeekProvider, ProviderError
 
 
@@ -28,6 +29,7 @@ def create_model_gateway_app(
     provider: DeepSeekProvider | None = None,
     cache: ExactModelCache | None = None,
     budget: AtomicModelBudget | None = None,
+    ledger=None,
     price: ModelPrice = DEEPSEEK_V4_FLASH_PRICE,
     day_provider=lambda: datetime.now(timezone.utc).date().isoformat(),
 ) -> FastAPI:
@@ -37,6 +39,8 @@ def create_model_gateway_app(
     async def lifespan(_app):
         yield
         model_provider.close()
+        if ledger is not None:
+            ledger.close()
 
     app = FastAPI(
         title="aegis model gateway",
@@ -71,28 +75,73 @@ def create_model_gateway_app(
         maximum = price.reserve_maximum(
             _maximum_input_tokens(request), request.max_tokens,
         )
+        usage_day = day_provider()
         try:
             cost_budget.reserve(
                 reservation_id,
                 tenant_id=request.tenant_id,
                 cycle_id=request.budget_id,
-                day=day_provider(),
+                day=usage_day,
                 maximum=maximum,
             )
         except ModelBudgetError as exc:
             raise HTTPException(status_code=402, detail=str(exc)) from None
 
+        if ledger is not None:
+            try:
+                ledger.reserve(
+                    reservation_id,
+                    tenant_id=request.tenant_id,
+                    engagement_id=request.engagement_id,
+                    cycle_id=request.budget_id,
+                    day=usage_day,
+                    model=request.model,
+                    price_version=price.version,
+                    maximum=maximum,
+                )
+            except ModelBudgetError:
+                cost_budget.release(reservation_id, tenant_id=request.tenant_id)
+                raise HTTPException(status_code=503, detail="usage_ledger_unavailable") from None
+
         try:
             response = model_provider.complete(request)
         except ProviderError as exc:
-            cost_budget.release(reservation_id)
+            reconciliation_failed = False
+            if ledger is not None:
+                try:
+                    ledger.finalize(
+                        reservation_id,
+                        Decimal("0"),
+                        usage=ModelUsage(),
+                        provider_request_id="",
+                    )
+                except ModelBudgetError:
+                    reconciliation_failed = True
+            try:
+                cost_budget.release(reservation_id, tenant_id=request.tenant_id)
+            except ModelBudgetError:
+                reconciliation_failed = True
+            if reconciliation_failed:
+                raise HTTPException(status_code=503, detail="usage_reconciliation_failed") from None
             status = 429 if exc.code == "rate_limited" else 503
             raise HTTPException(status_code=status, detail=exc.code) from None
 
+        actual = price.cost(response.usage, peak=True)
         try:
-            cost_budget.finalize(reservation_id, price.cost(response.usage, peak=True))
+            if ledger is not None:
+                ledger.finalize(
+                    reservation_id,
+                    actual,
+                    usage=response.usage,
+                    provider_request_id=response.request_id,
+                )
+            cost_budget.finalize(
+                reservation_id,
+                actual,
+                tenant_id=request.tenant_id,
+            )
         except ModelBudgetError:
-            raise HTTPException(status_code=503, detail="budget_reconciliation_failed") from None
+            raise HTTPException(status_code=503, detail="usage_reconciliation_failed") from None
         result_cache.put(request, response)
         return response
 

@@ -3,11 +3,42 @@
 import uvicorn
 
 from .config import ModelGatewayConfig
+from .ledger import PostgresModelUsageLedger
+from .redis_budget import RedisModelBudget
 from .service import create_model_gateway_app
 
 
 def factory():
-    return create_model_gateway_app(ModelGatewayConfig.from_env())
+    config = ModelGatewayConfig.from_env()
+    budget = None
+    ledger = None
+    if config.redis_url:
+        try:
+            import redis
+
+            client = redis.Redis.from_url(
+                config.redis_url,
+                decode_responses=True,
+                socket_connect_timeout=2,
+                socket_timeout=2,
+                health_check_interval=30,
+            )
+            client.ping()
+        except Exception as exc:
+            raise RuntimeError("durable model budget storage is unavailable") from exc
+        budget = RedisModelBudget(client, namespace=config.budget_namespace)
+    if config.database_url:
+        try:
+            from psycopg_pool import ConnectionPool
+
+            pool = ConnectionPool(config.database_url, min_size=1, max_size=4, timeout=5)
+            ledger = PostgresModelUsageLedger(pool)
+        except Exception as exc:
+            close = getattr(locals().get("pool"), "close", None)
+            if close is not None:
+                close()
+            raise RuntimeError("durable model usage ledger is unavailable") from exc
+    return create_model_gateway_app(config, budget=budget, ledger=ledger)
 
 
 def main() -> None:

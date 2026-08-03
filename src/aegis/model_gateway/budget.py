@@ -76,7 +76,9 @@ class AtomicModelBudget:
             self._daily[day_key] = self._daily.get(day_key, Decimal(0)) + maximum
             return reservation
 
-    def finalize(self, reservation_id: str, actual: Decimal) -> CostReservation:
+    def finalize(
+        self, reservation_id: str, actual: Decimal, *, tenant_id: str | None = None,
+    ) -> CostReservation:
         if actual < 0:
             raise ValueError("actual model cost cannot be negative")
         with self._lock:
@@ -100,8 +102,10 @@ class AtomicModelBudget:
             self._reservations[reservation_id] = finalized
             return finalized
 
-    def release(self, reservation_id: str) -> CostReservation:
-        return self.finalize(reservation_id, Decimal(0))
+    def release(
+        self, reservation_id: str, *, tenant_id: str | None = None,
+    ) -> CostReservation:
+        return self.finalize(reservation_id, Decimal(0), tenant_id=tenant_id)
 
     def spent(self, tenant_id: str, *, cycle_id: str | None = None, day: str | None = None):
         with self._lock:

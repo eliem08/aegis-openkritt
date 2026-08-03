@@ -6,7 +6,7 @@ import math
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlsplit
 
 
 class ModelGatewayConfigError(ValueError):
@@ -30,6 +30,12 @@ def _secret(source: dict, file_name: str, direct_name: str) -> str:
     return value
 
 
+def _optional_secret(source: dict, file_name: str, direct_name: str) -> str | None:
+    if not str(source.get(file_name, "")).strip() and not str(source.get(direct_name, "")).strip():
+        return None
+    return _secret(source, file_name, direct_name)
+
+
 def _float(source: dict, name: str, default: float, low: float, high: float) -> float:
     try:
         value = float(source.get(name, default))
@@ -51,6 +57,10 @@ class ModelGatewayConfig:
     circuit_failures: int = 5
     circuit_cooldown: float = 30.0
     cache_ttl: float = 300.0
+    redis_url: str | None = None
+    database_url: str | None = None
+    budget_namespace: str = "aegis-prod:model-cost"
+    require_durable_budget: bool = False
 
     def __post_init__(self) -> None:
         origin = self.provider_origin.rstrip("/")
@@ -73,6 +83,28 @@ class ModelGatewayConfig:
             raise ModelGatewayConfigError("max attempts must be in [1, 5]")
         if not 1 <= self.circuit_failures <= 100:
             raise ModelGatewayConfigError("circuit failures must be in [1, 100]")
+        if self.require_durable_budget and (not self.redis_url or not self.database_url):
+            raise ModelGatewayConfigError(
+                "production model gateway requires Redis and PostgreSQL ledgers"
+            )
+        if self.redis_url:
+            redis = urlsplit(self.redis_url)
+            if redis.scheme not in {"redis", "rediss"} or not redis.hostname or not redis.password:
+                raise ModelGatewayConfigError("Redis URL must be authenticated redis:// or rediss://")
+        if self.database_url:
+            database = urlsplit(self.database_url)
+            query = parse_qs(database.query)
+            if (
+                database.scheme not in {"postgres", "postgresql"}
+                or not database.hostname
+                or not database.password
+                or query.get("sslmode") != ["verify-full"]
+            ):
+                raise ModelGatewayConfigError(
+                    "PostgreSQL URL must be authenticated with sslmode=verify-full"
+                )
+        if not self.budget_namespace.strip(" :"):
+            raise ModelGatewayConfigError("budget namespace cannot be empty")
         object.__setattr__(self, "provider_origin", origin)
 
     @classmethod
@@ -105,4 +137,15 @@ class ModelGatewayConfig:
                 source, "AEGIS_MODEL_CIRCUIT_COOLDOWN", 30.0, 1.0, 3600.0,
             ),
             cache_ttl=_float(source, "AEGIS_MODEL_CACHE_TTL", 300.0, 0.0, 86400.0),
+            redis_url=_optional_secret(
+                source, "AEGIS_REDIS_URL_FILE", "AEGIS_REDIS_URL",
+            ),
+            database_url=_optional_secret(
+                source, "AEGIS_DB_URL_FILE", "AEGIS_DB_URL",
+            ),
+            budget_namespace=str(
+                source.get("AEGIS_MODEL_BUDGET_NAMESPACE", "aegis-prod:model-cost")
+            ),
+            require_durable_budget=str(source.get("AEGIS_PRODUCTION", "")).lower()
+            in {"1", "true", "yes"},
         )

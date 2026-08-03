@@ -42,17 +42,31 @@ docker compose --env-file secrets/production.env `
   -f compose.production.yml -f compose.production.model.yml config --quiet
 ```
 
-The gateway is dual-homed on `model_internal` and `model_egress`. The control
-plane joins only `model_internal`; workers join neither model egress nor the
-provider secret. No gateway port is published on the host.
+The gateway joins `model_internal`, `model_egress`, and the internal-only
+`budget_internal` network. Only the gateway receives the provider key. Redis and
+PostgreSQL join `budget_internal` for cost reservations and usage audit records;
+they do not join model egress. The control plane receives only the caller token,
+and no gateway port is published on the host.
 
 ## Cost and resilience
 
 The configured V4 Flash price table tracks cache-hit input, cache-miss input, and
 output tokens with Decimal arithmetic. Reservations assume cache misses and the
 2x peak multiplier. Defaults are USD 2 per hunting cycle and USD 10 per UTC day.
-Missing trustworthy usage is intended to charge the reservation maximum once the
-durable Redis/PostgreSQL backend is enabled.
+
+Production fails startup unless both authenticated Redis and verified-TLS
+PostgreSQL URLs are present. Redis atomically enforces shared cycle/day ceilings;
+PostgreSQL records the reservation, model, price version, token breakdown,
+provider request ID, and actual cost. A ledger outage prevents the paid request.
+
+Validate the live ledgers without exposing credentials. The command uses a
+unique namespace and reservation, verifies both stores, and removes only its own
+validation data:
+
+```powershell
+python -m aegis.model_gateway.validate_ledgers `
+  --redis-file /run/secrets/redis_url --database-file /run/secrets/database_url
+```
 
 The gateway currently implements:
 
@@ -62,15 +76,16 @@ The gateway currently implements:
 - a circuit breaker;
 - sanitized provider errors;
 - thinking-mode controls;
-- atomic in-process cost reservations;
+- atomic Redis cross-replica cost reservations with replay protection;
+- durable PostgreSQL usage and reconciliation records;
 - deterministic planner fallback.
 
 ## Current production limitations
 
-The live single-container gateway boundary has been validated, but the overall
-system is not yet approved for unattended production. Remaining gates include:
+The live gateway boundary and durable ledgers have been validated, but the
+overall system is not yet approved for unattended production. Remaining gates
+include:
 
-- Redis-backed cross-replica cost reservations and PostgreSQL usage history;
 - control-plane orchestration wired to the three-pass profitability scheduler;
 - real approved scanner release pins and expanded static/dependency/secret tools;
 - live worker direct-egress denial on the intended host;
