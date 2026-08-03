@@ -25,20 +25,24 @@ def console_page() -> HTMLResponse:
 
 
 @router.get("/ui/review", summary="Merged review model (live from open·kritt if connected)")
-def review(request: Request, scan: str = "") -> dict:
+def review(request: Request, scan: str = "", scans: str = "") -> dict:
     config = request.app.state.config
     client = config.build_openkritt_client()
     if client is None:
         return _empty("No open·kritt backend connected. Set AEGIS_OPENKRITT_URL, or "
                       "upload an open·kritt export below.")
     url = getattr(config, "openkritt_url", "")
+    scan_ids = [s.strip() for s in scans.split(",") if s.strip()] or ([scan] if scan else [])
     try:
-        if not scan:
-            scans = client.list_scans()
-            return _empty(f"open·kritt backend connected ({len(scans)} scans). "
+        if not scan_ids:
+            found = client.list_scans()
+            return _empty(f"open·kritt backend connected ({len(found)} scans). "
                           "Enter a scan id to load its findings.", backend=True)
-        candidates = client.import_candidates(scan)
-        model = build_console(candidates, scan_id=str(scan))
+        if len(scan_ids) == 1:
+            model = build_console(client.import_candidates(scan_ids[0]), scan_id=scan_ids[0])
+        else:
+            from aegis.integrations import console_for_scans
+            model = console_for_scans(client, scan_ids)
         model["backend_connected"] = True
         return model
     except httpx.HTTPError as exc:
@@ -47,6 +51,49 @@ def review(request: Request, scan: str = "") -> dict:
                       "Start it (./kritt setup) or upload an export below.")
     finally:
         client.close()
+
+
+@router.post("/ui/h1-scan", summary="HackerOne program -> open·kritt scans (code-repo programs)")
+def h1_scan(request: Request, payload=Body(...)) -> dict:
+    """Discover a HackerOne program's in-scope repos and launch an open·kritt scan
+    on each. Read-only on HackerOne; launches on authorized targets only; never
+    exploits and never auto-submits."""
+    from aegis.ingest.hackerone import HackerOneAuthError, HackerOneClient
+    from aegis.integrations import PipelineError, run_repo_pipeline
+
+    config = request.app.state.config
+    ok_client = config.build_openkritt_client()
+    if ok_client is None:
+        return {"error": "No open·kritt backend connected. Set AEGIS_OPENKRITT_URL."}
+    handle = str((payload or {}).get("handle") or "").strip()
+    model = str((payload or {}).get("model") or "").strip()
+    if not handle:
+        return {"error": "A HackerOne program handle is required."}
+    if not model:
+        return {"error": "A model id is required (from your open·kritt account, e.g. a Claude model)."}
+    try:
+        h1 = HackerOneClient.from_env()
+    except HackerOneAuthError:
+        return {"error": "HackerOne credentials not set "
+                         "(HACKERONE_API_USERNAME / HACKERONE_API_TOKEN)."}
+    try:
+        result = run_repo_pipeline(h1, ok_client, handle, model=model)
+    except PipelineError as exc:
+        return {"error": str(exc)}
+    except httpx.HTTPError as exc:
+        return {"error": f"request failed: {exc}"}
+    finally:
+        ok_client.close()
+
+    return {
+        "handle": result.handle, "program_name": result.program_name,
+        "gated": result.gated, "reason": result.reason,
+        "repos": [{"repo_full": r.repo_full, "identifier": r.identifier} for r in result.repos],
+        "launches": [{"repo_full": l.repo.repo_full, "scan_id": l.scan_id, "error": l.error}
+                     for l in result.launches],
+        "scan_ids": result.scan_ids,
+        "review_url": ("/ui/review?scans=" + ",".join(result.scan_ids)) if result.scan_ids else "",
+    }
 
 
 @router.post("/ui/review", summary="Build a review model from an uploaded open·kritt export")

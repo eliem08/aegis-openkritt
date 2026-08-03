@@ -12,10 +12,30 @@ from .openkritt import (
     to_openkritt_output_format,
 )
 from .openkritt_client import OpenKrittClient
+from .repo_pipeline import (
+    PipelineError,
+    PipelineResult,
+    RepoTarget,
+    ScanTemplate,
+    console_for_scans,
+    discover_scan_template,
+    launch_repo_scans,
+    repos_in_scope,
+    run_repo_pipeline,
+)
 
 __all__ = [
     "OPENKRITT_FINDING_KEYS",
     "ingest_openkritt_findings",
     "to_openkritt_output_format",
     "OpenKrittClient",
+    "run_repo_pipeline",
+    "repos_in_scope",
+    "launch_repo_scans",
+    "console_for_scans",
+    "discover_scan_template",
+    "RepoTarget",
+    "ScanTemplate",
+    "PipelineResult",
+    "PipelineError",
 ]

@@ -47,6 +47,15 @@ class OpenKrittClient:
         ingest_kwargs.setdefault("only_canonical", not include_duplicates)
         return ingest_openkritt_findings(rows, **ingest_kwargs)
 
+    def list_workflows(self) -> list[dict]:
+        return self._get("/api/workflows") or []
+
+    def list_post_scripts(self) -> list[dict]:
+        return self._get("/api/post-scripts") or []
+
+    def list_severity_rankers(self) -> list[dict]:
+        return self._get("/api/severity-rankers") or []
+
     # --- write: drive a scan (operator action) ------------------------------
 
     def create_scan(self, payload: dict) -> dict:

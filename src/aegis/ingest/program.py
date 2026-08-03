@@ -56,6 +56,20 @@ def classify_asset_type(raw: str, identifier: str) -> AssetType:
     return base
 
 
+_GIT_HOSTS = ("github.com", "gitlab.com", "bitbucket.org")
+
+
+def _looks_like_repo(identifier: str) -> bool:
+    """A scope identifier that points at a specific git repository (host + org/repo)."""
+    s = (identifier or "").strip().lower()
+    for host in _GIT_HOSTS:
+        marker = host + "/"
+        if marker in s:
+            tail = s.split(marker, 1)[1].strip("/")
+            return tail.count("/") >= 1 and bool(tail.split("/")[0]) and bool(tail.split("/")[1])
+    return False
+
+
 def identifier_to_host(identifier: str) -> str | None:
     """Reduce a scope identifier (URL/host/wildcard) to a bare host.
 
@@ -202,6 +216,21 @@ class ProgramRules(BaseModel):
 
     def eligible_web_assets(self) -> list[ScopeAsset]:
         return [a for a in self.in_scope if a.is_web and a.eligible_for_submission]
+
+    def source_code_assets(self) -> list[ScopeAsset]:
+        """In-scope, submittable source-code repositories.
+
+        Includes assets HackerOne typed ``SOURCE_CODE`` and any URL asset pointing
+        at a git host (github/gitlab/bitbucket) — the targets a code scanner like
+        open·kritt can actually analyze.
+        """
+        out = []
+        for a in self.in_scope:
+            if not a.eligible_for_submission:
+                continue
+            if a.asset_type is AssetType.SOURCE_CODE or _looks_like_repo(a.identifier):
+                out.append(a)
+        return out
 
     def scope_guard_entries(self) -> list[str]:
         """Host / ``*.host`` entries for a ScopeGuard, deduplicated."""
