@@ -1,96 +1,107 @@
-# Automatic hunting
+# Automatic profit-aware hunting
 
-`python -m aegis.hunt` runs the whole pipeline on a loop:
+`python -m aegis.hunt` runs a bounded three-pass loop:
 
-```
-authorized HackerOne programs
-        │  (gate: automation + AI permitted, in-scope SOURCE code repos)
-        ▼
-launch open·kritt scans on each repo
-        ▼
-collect findings → review console (ranked by everything learned so far)
-        ▼
-sync HackerOne report outcomes back into calibration + planner memory
-        ▼
-     sleep, repeat
+```text
+authorized program scope
+  -> pass 1: discover automation/AI-permitted bounty repositories
+  -> pass 2: rank expected net value and reserve exploration capacity
+  -> pass 3: launch scans only for allocated repositories
+  -> collect candidates for human review
+  -> sync report outcomes into calibration
 ```
 
-## Automatic target selection
+Dry-run remains the default. The hunter never exploits and never submits reports.
 
-You don't name a program. With `AEGIS_HUNT_HANDLES` unset, the hunter inspects your
-authorized programs and **auto-selects** the ones a code scanner can actually work
-on — open for submissions, automation + AI permitted, and carrying in-scope
-source-code repos — ranked with bounty programs and more repos first
-(`aegis.hunt.selector`). Each cycle reports which programs it picked and why. It can
-never auto-select a program that forbids automated/AI tooling. Set
-`AEGIS_HUNT_HANDLES` only if you want to pin it to specific programs;
-`AEGIS_HUNT_INSPECT_LIMIT` bounds how many it looks at.
+## Portfolio calculation
 
-## What it will and won't do
+Each repository is scored as:
 
-**Will:** discover authorized programs, launch scans on their in-scope code repos,
-pull findings into the console, and fold report outcomes back into the learning loop.
+```text
+p_valid × p_accepted × expected_bounty × uniqueness
+  - model_cost - scanner_cost - verification_time_cost
+```
 
-**Won't — and can't, by construction:**
-- **Exploit.** It runs scanners; it never runs exploits.
-- **Submit.** It never submits to HackerOne. A human reviews the console and submits.
-  (The only HackerOne writes anywhere in the platform are none — every HackerOne call
-  is a read.)
-- **Touch out-of-scope or automation-forbidden targets.** A program is skipped unless
-  its policy permits automated **and** AI tooling and it has in-scope source-code
-  repos. Skips are reported with a reason.
-- **Surprise-launch.** It is **dry-run by default** — it plans what it *would* scan
-  and launches nothing until you set `AEGIS_HUNT_ARM=1`.
+The cycle summary exposes every component, selection/skip reason, estimated cost,
+net expected value, and whether the bounty amount is missing. A bounty-eligible
+flag is not converted into a fictional dollar amount. Provide operator-verified
+program payout estimates explicitly:
+
+```powershell
+$env:AEGIS_HUNT_EXPECTED_BOUNTIES_JSON='{"program-a":"750","program-b":"1500"}'
+```
+
+Known positive-value work ranks before unknown payout work. The exploration
+fraction preserves a deterministic slice for new programs and weakness classes;
+unknown payouts selected through that slice are labeled
+`exploration_missing_bounty`.
+
+Useful controls:
+
+- `AEGIS_HUNT_PORTFOLIO_CAPACITY`: maximum repositories selected per cycle; `0`
+  means all repositories that survived discovery caps.
+- `AEGIS_HUNT_EXPLORATION_FRACTION`: capacity reserved for uncertain work.
+- `AEGIS_HUNT_VALID_PROBABILITY` and `AEGIS_HUNT_ACCEPTANCE_PROBABILITY`:
+  operator/calibration priors in `[0,1]`.
+- `AEGIS_HUNT_MODEL_COST`, `AEGIS_HUNT_SCANNER_COST`, and
+  `AEGIS_HUNT_VERIFICATION_TIME_COST`: estimated USD cost per repository.
+
+## Automatic target selection and authorization
+
+With `AEGIS_HUNT_HANDLES` unset, the hunter inspects authorized programs and
+keeps only programs open for submissions whose policy permits automated and AI
+tooling and whose structured scope contains bounty-eligible source repositories.
+`AEGIS_HUNT_INSPECT_LIMIT`, `AEGIS_HUNT_MAX_PROGRAMS`, and
+`AEGIS_HUNT_MAX_REPOS` bound discovery.
+
+Forcing a handle does not bypass policy. The repository pipeline re-reads the
+program and structured scope before both discovery and launch. Out-of-scope,
+non-submittable, non-code, automation-forbidden, and AI-forbidden assets do not
+launch.
 
 ## Run it
 
-Dry-run first (plans only, launches nothing) — from the project dir:
+Start with one dry-run cycle:
 
-```bash
-AEGIS_HUNT_CYCLES=1 ./.venv/Scripts/python -m aegis.hunt
+```powershell
+$env:AEGIS_HUNT_CYCLES='1'
+.\.venv\Scripts\python.exe -m aegis.hunt
 ```
 
-You'll see, per cycle, how many programs were considered, which were gated out, how
-many repos are in scope, and (armed) how many scans launched. When you're happy with
-the plan, arm it:
+Inspect the `portfolio` section in the cycle summary. It lists selected and
+skipped repositories, missing payout data, and estimated economics. Then arm a
+small portfolio:
 
-```bash
-AEGIS_HUNT_ARM=1 AEGIS_HUNT_MODEL=<claude-model-id> ./.venv/Scripts/python -m aegis.hunt
+```powershell
+$env:AEGIS_HUNT_ARM='1'
+$env:AEGIS_HUNT_MODEL='<model-id configured in open-kritt>'
+$env:AEGIS_HUNT_PORTFOLIO_CAPACITY='2'
+$env:AEGIS_HUNT_HANDLES='program-a'
+.\.venv\Scripts\python.exe -m aegis.hunt
 ```
 
-Scope it to specific programs and pace it:
+Prerequisites are a running `AEGIS_OPENKRITT_URL`, read-only HackerOne API
+credentials, and a model configured in open·kritt. The dedicated Aegis DeepSeek
+gateway is a separate production boundary; an open·kritt model identifier is not
+automatically routed through it. Do not assume `deepseek-v4-flash` works in
+open·kritt until that backend/provider is explicitly configured and tested.
 
-```bash
-AEGIS_HUNT_ARM=1 AEGIS_HUNT_MODEL=<model> \
-AEGIS_HUNT_HANDLES=some-program,another \
-AEGIS_HUNT_INTERVAL=1800 AEGIS_HUNT_MAX_PROGRAMS=2 AEGIS_HUNT_MAX_REPOS=2 \
-  ./.venv/Scripts/python -m aegis.hunt
+## Console API
+
+`POST /ui/hunt` runs one cycle. It is dry-run unless `arm` is true. Portfolio
+fields can be supplied without changing server environment:
+
+```json
+{
+  "arm": false,
+  "handles": ["program-a"],
+  "max_programs": 1,
+  "max_repos": 3,
+  "portfolio_capacity": 1,
+  "exploration_fraction": 0.2,
+  "expected_bounties": {"program-a": "750"}
+}
 ```
 
-Prerequisites: `AEGIS_OPENKRITT_URL` (running open·kritt) and
-`HACKERONE_API_USERNAME` / `HACKERONE_API_TOKEN` in `.env`. Set `AEGIS_LEARN_DB` to
-persist what it learns across runs.
-
-## Or trigger one cycle from the console
-
-`POST /ui/hunt` runs a single cycle and returns the summary:
-
-```bash
-curl -s -X POST http://127.0.0.1:8000/ui/hunt -H "Content-Type: application/json" -d '{}'
-```
-
-Dry-run unless you pass `{"arm": true, "model": "<model>"}`. Optional
-`handles`, `max_programs`, `max_repos`.
-
-## Watch it work
-
-While it hunts, open the console at `http://127.0.0.1:8000/ui` — findings accumulate,
-ranked by the learned priors, and reorder as you record verdicts and as HackerOne
-resolutions sync in. The hunter fills the queue; you decide what's real and what ships.
-
-## A word on running it unattended
-
-Armed, this launches real scans against real programs and consumes your model
-budget (e.g. a Claude subscription — heavier than interactive use). Start with a
-dry-run, arm with small caps and a specific handle list, and keep the human-review /
-human-submit boundary: that's the line that keeps automated hunting authorized.
+The response explains all three passes. Human review and human submission remain
+mandatory even when armed.

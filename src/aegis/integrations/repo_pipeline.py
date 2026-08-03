@@ -299,7 +299,8 @@ def run_repo_pipeline(h1_client, ok_client, handle: str, *, model: str,
                       template: ScanTemplate | None = None, launch: bool = True,
                       max_repos: int | None = None, fallbacks=None,
                       bounty_only: bool = False, workflow_id=None,
-                      post_script_id=None) -> PipelineResult:
+                      post_script_id=None,
+                      repo_allowlist: set[str] | None = None) -> PipelineResult:
     """Discover a program's repos and (optionally) launch an open·kritt scan on each.
 
     ``launch=False`` plans only — it returns the in-scope repos without touching
@@ -311,7 +312,10 @@ def run_repo_pipeline(h1_client, ok_client, handle: str, *, model: str,
     rules = map_program(program, scopes)
 
     scope = repos_in_scope(rules, bounty_only=bounty_only)
-    repos = scope.repos[:max_repos] if max_repos else scope.repos
+    repos = scope.repos
+    if repo_allowlist is not None:
+        repos = [repo for repo in repos if repo.repo_full in repo_allowlist]
+    repos = repos[:max_repos] if max_repos else repos
     result = PipelineResult(handle=rules.handle or handle, program_name=rules.name,
                             repos=repos, gated=scope.gated, reason=scope.reason)
     if scope.gated or not repos or not launch:

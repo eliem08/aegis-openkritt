@@ -86,7 +86,7 @@ The live gateway boundary and durable ledgers have been validated, but the
 overall system is not yet approved for unattended production. Remaining gates
 include:
 
-- control-plane orchestration wired to the three-pass profitability scheduler;
+- explicit, tested routing from open·kritt repository scans to the DeepSeek gateway;
 - real approved scanner release pins and expanded static/dependency/secret tools;
 - live worker direct-egress denial on the intended host;
 - private OAST and isolated Chromium workflows;

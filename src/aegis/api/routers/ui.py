@@ -159,9 +159,27 @@ def hunt_cycle(request: Request, payload=Body(None)) -> dict:
                          "(HACKERONE_API_USERNAME / HACKERONE_API_TOKEN)."}
     handles = tuple(str(h).strip() for h in (data.get("handles") or []) if str(h).strip())
     fallbacks = tuple(str(m).strip() for m in (data.get("fallbacks") or []) if str(m).strip())
-    cfg = HuntConfig(model=model, fallback_models=fallbacks, only_handles=handles,
-                     dry_run=not armed, max_programs=int(data.get("max_programs") or 3),
-                     max_repos_per_program=int(data.get("max_repos") or 3))
+    try:
+        from decimal import Decimal
+
+        payout_data = data.get("expected_bounties") or {}
+        if not isinstance(payout_data, dict):
+            raise ValueError("expected_bounties must be an object")
+        expected_bounties = {
+            str(handle).strip(): Decimal(str(amount))
+            for handle, amount in payout_data.items()
+            if str(handle).strip()
+        }
+        cfg = HuntConfig(
+            model=model, fallback_models=fallbacks, only_handles=handles,
+            dry_run=not armed, max_programs=int(data.get("max_programs") or 3),
+            max_repos_per_program=int(data.get("max_repos") or 3),
+            portfolio_capacity=int(data.get("portfolio_capacity") or 0),
+            exploration_fraction=float(data.get("exploration_fraction", 0.2)),
+            expected_bounties=expected_bounties,
+        )
+    except (TypeError, ValueError) as exc:
+        ok.close()
     hunter = HuntOrchestrator(h1, ok, request.app.state.outcomes,
                               request.app.state.submissions, config=cfg)
     try:
