@@ -66,6 +66,26 @@ git-ignored. Without it, Aegis plans deterministically — nothing breaks. Note 
 Aegis planner is DeepSeek/OpenAI-compatible; it does **not** use the Claude login
 (that's open·kritt's).
 
+## Windows / Docker Desktop notes (applied to the local `../open-kritt/.env`)
+
+Two host-specific fixes were needed to bring the stack up on this machine; both are
+in `../open-kritt/.env` (git-ignored, out of tree):
+
+- **DB host port.** Host `:5432` was already occupied, so `POSTGRES_PORT=5442`
+  (the internal `db:5432` is unchanged, so nothing else needed touching).
+- **Engine host path.** The engine spawns sibling scan containers and needs a real
+  Docker-host path, so `ENGINE_DOCKER_DATA_DIR_HOST` must be an **absolute** path.
+  Compose defaults it to `${PWD}/.data/engine`; run `docker compose` **from the
+  open-kritt directory in Git Bash** so `${PWD}` is `/c/Users/.../open-kritt`, or set
+  it explicitly (done here:
+  `ENGINE_DOCKER_DATA_DIR_HOST=/c/Users/21263/Downloads/open-kritt/.data/engine`).
+  If it's blank/relative the engine exits with code 2
+  (`ENGINE_DOCKER_DATA_DIR_HOST must be an absolute host path`).
+
+Status after these fixes: all five services (`db`, `backend`, `engine`,
+`executor-view`, `frontend`) come up, and Aegis's `/ui/review` reports
+`backend_connected: true`. Scans still require the Claude login (step 1 above).
+
 ## Boundaries kept
 
 - open·kritt stays a separate process under its own AGPL obligations; Aegis only
