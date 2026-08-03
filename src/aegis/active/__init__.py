@@ -39,6 +39,7 @@ from .auth_posture import (
 )
 from .enumeration import IdentifierKind, IdentifierProfile, analyze_identifiers
 from .client_analysis import ClientFinding, ClientIssue, analyze_client_script
+from .contract_props import ContractFinding, ContractProperty, analyze_solidity
 from .graphql import GraphqlFinding, GraphqlIssue, GraphqlResponse, analyze_graphql
 from .http_hardening import HardeningFinding, HardeningIssue, analyze_response_hardening
 from .js_secrets import HIGH_VALUE_CATEGORIES, JsSecretFinding, analyze_javascript_secrets
@@ -129,4 +130,7 @@ __all__ = [
     "normalization_variants",
     "PathBypassFinding",
     "surface_candidates",
+    "analyze_solidity",
+    "ContractFinding",
+    "ContractProperty",
 ]

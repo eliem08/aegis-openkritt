@@ -236,11 +236,30 @@ into detector-planning + `surface_candidates` (reporting). Commits:
 - **Deliberately excluded** (state-changing → held behind the human-approval
   boundary, never auto-exploited): business-logic/price tampering, gift-card/
   entitlement races, mutable-identity-claim ATO.
+- lab-only Solidity safety-property analysis (`aegis.active.contract_props`) — a
+  static, property-checking pass (no compile/execute/chain) over source the
+  operator supplied for an authorized engagement. States the invariants a
+  value-holding contract must hold and flags the TVL-drain vectors that violate
+  them: reentrancy (external call before the balance settles), missing access
+  control on high-authority ops / arbitrary-recipient transfers, unsafe value
+  arithmetic, unchecked `.call`, `tx.origin` auth, unguarded `selfdestruct`/
+  `delegatecall`. Every hit is a candidate (`verified=False`) for a human + a real
+  prover to confirm; it touches no live protocol and asserts no disclosure.
+
+## Phase 5 operational drills — executed where runnable (see `docs/DRILLS.md`)
+
+Previously-"blocked" drills made real and passing (`0101ee3`): a Redis outage
+fails closed and reconciles from durable leases on recovery; 80 concurrent
+reservations never overbook a cap of 10; the kill switch drains in-flight work;
+and a **live** Postgres backup/restore (`pg_dump -Fc` → wipe → `pg_restore
+--clean` → verify) round-trips cleanly. Genuinely infra-bound drills (HA failover,
+live KMS rotation, production-scale load/SLO, seccomp image builds, rolling
+upgrade) stay honestly marked blocked — not faked.
 
 ## Program status (as of `af3f341`, 2026-08-03)
 
 All corrections complete; all 11 reference-tool rows complete. Phases 1-4 pass their
-in-process gates; Phase 5's in-process pieces are complete. **~905 tests pass on
+in-process gates; Phase 5's in-process pieces are complete. **925 tests pass on
 SQLite; the full gated suite passes on PostgreSQL.** The two things that remain are
 NOT code and cannot be ticked here: (a) pinning + live-running the real third-party
 binaries (blocked on the outstanding legal/license review — every such adapter fails
