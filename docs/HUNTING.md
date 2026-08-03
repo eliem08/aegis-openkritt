@@ -15,6 +15,17 @@ sync HackerOne report outcomes back into calibration + planner memory
      sleep, repeat
 ```
 
+## Automatic target selection
+
+You don't name a program. With `AEGIS_HUNT_HANDLES` unset, the hunter inspects your
+authorized programs and **auto-selects** the ones a code scanner can actually work
+on — open for submissions, automation + AI permitted, and carrying in-scope
+source-code repos — ranked with bounty programs and more repos first
+(`aegis.hunt.selector`). Each cycle reports which programs it picked and why. It can
+never auto-select a program that forbids automated/AI tooling. Set
+`AEGIS_HUNT_HANDLES` only if you want to pin it to specific programs;
+`AEGIS_HUNT_INSPECT_LIMIT` bounds how many it looks at.
+
 ## What it will and won't do
 
 **Will:** discover authorized programs, launch scans on their in-scope code repos,

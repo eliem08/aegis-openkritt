@@ -41,6 +41,8 @@ class HuntConfig:
     max_repos_per_program: int = 3
     interval_seconds: float = 3600.0
     dry_run: bool = True                     # SAFE DEFAULT: plan, launch nothing
+    inspect_limit: int = 20                  # how many programs to inspect when auto-selecting
+    prefer_bounties: bool = True             # rank bounty programs ahead of VDP
 
 
 @dataclass
@@ -51,11 +53,15 @@ class HuntReport:
     console: dict = field(default_factory=dict)
     sync: object = None                             # SyncResult
 
+    selected: list = field(default_factory=list)   # auto-selected program candidates
+
     def summary(self) -> dict:
         launched = sum(len([l for l in p.launches if l.ok]) for p in self.programs)
         gated = [p.handle for p in self.programs if p.gated]
         return {
             "dry_run": self.dry_run,
+            "auto_selected": [{"handle": c.handle, "repos": c.repo_count,
+                               "bounties": c.offers_bounties} for c in self.selected],
             "programs_considered": len(self.programs),
             "programs_gated_out": gated,
             "repos_in_scope": sum(len(p.repos) for p in self.programs),
@@ -74,17 +80,18 @@ class HuntOrchestrator:
         self._ledger = ledger
         self._cfg = config
         self._tracked: set[str] = set()      # scan ids launched across cycles
+        self._selected: list = []            # last cycle's auto-selected programs
 
     def _handles(self) -> list[str]:
         if self._cfg.only_handles:
             return list(self._cfg.only_handles)
-        handles = []
-        for p in self._h1.list_programs():
-            attrs = p.get("attributes") or {} if isinstance(p, dict) else {}
-            h = attrs.get("handle") or (p.get("id") if isinstance(p, dict) else None)
-            if h:
-                handles.append(h)
-        return handles
+        # Automatic: inspect authorized programs and pick the best code-repo targets.
+        from .selector import select_programs
+
+        self._selected = select_programs(
+            self._h1, want=self._cfg.max_programs, inspect_limit=self._cfg.inspect_limit,
+            prefer_bounties=self._cfg.prefer_bounties)
+        return [c.handle for c in self._selected]
 
     def cycle(self) -> HuntReport:
         cfg = self._cfg
@@ -107,7 +114,8 @@ class HuntOrchestrator:
         sync = sync_hackerone_outcomes(self._h1, self._ledger, self._outcomes)
 
         return HuntReport(dry_run=cfg.dry_run, programs=programs,
-                          launched_scans=sorted(self._tracked), console=console, sync=sync)
+                          launched_scans=sorted(self._tracked), console=console, sync=sync,
+                          selected=list(self._selected))
 
     def run(self, *, cycles: int | None = None, sleep=time.sleep):
         """Yield a HuntReport per cycle, sleeping ``interval_seconds`` between them.

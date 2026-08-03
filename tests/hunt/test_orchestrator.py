@@ -93,11 +93,12 @@ def test_armed_launches_scans_and_collects_findings():
 # --- scope gate is honored --------------------------------------------------
 
 def test_program_forbidding_automation_is_gated_out():
-    # a policy that reads as "no automated tools" should gate the program out
+    # forcing an automation-forbidden program in (bypassing auto-select) still gates
+    # it at the pipeline level -> nothing is launched.
     h1 = FakeH1([{"attributes": {"handle": "noauto"}}], {"noauto": REPO_SCOPE},
                 policy_by_handle={"noauto": "Automated scanning and automated tools are prohibited."})
     ok = FakeOK()
-    report = _orch(h1, ok, dry_run=False).cycle()
+    report = _orch(h1, ok, dry_run=False, only_handles=("noauto",)).cycle()
     assert "noauto" in report.summary()["programs_gated_out"]
     assert ok.created == []                                            # gated -> never launched
 

@@ -12,6 +12,7 @@ Configuration (environment; a local .env is loaded):
   AEGIS_HUNT_INTERVAL     seconds between cycles (default 3600)
   AEGIS_HUNT_MAX_PROGRAMS per-cycle program cap (default 3)
   AEGIS_HUNT_MAX_REPOS    per-program repo cap (default 3)
+  AEGIS_HUNT_INSPECT_LIMIT programs to inspect when auto-selecting (default 20)
   AEGIS_HUNT_CYCLES       stop after N cycles (default: run until interrupted)
   AEGIS_LEARN_DB          persist what's learned (default in-memory)
 
@@ -64,6 +65,7 @@ def main() -> int:
         model=model, fallback_models=fallbacks, only_handles=handles, dry_run=not armed,
         max_programs=_int("AEGIS_HUNT_MAX_PROGRAMS", 3),
         max_repos_per_program=_int("AEGIS_HUNT_MAX_REPOS", 3),
+        inspect_limit=_int("AEGIS_HUNT_INSPECT_LIMIT", 20),
         interval_seconds=float(_int("AEGIS_HUNT_INTERVAL", 3600)))
     cycles = _int("AEGIS_HUNT_CYCLES", 0) or None
 
