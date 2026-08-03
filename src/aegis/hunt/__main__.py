@@ -69,7 +69,7 @@ def main() -> int:
     hunter = HuntOrchestrator(h1, ok, outcomes, ledger, config=cfg)
 
     mode = "ARMED (launching scans)" if armed else "DRY-RUN (planning only; set AEGIS_HUNT_ARM=1 to launch)"
-    print(f"aegis hunter — {mode}; interval {cfg.interval_seconds:.0f}s; "
+    print(f"aegis hunter - {mode}; interval {cfg.interval_seconds:.0f}s; "
           f"caps {cfg.max_programs} programs x {cfg.max_repos_per_program} repos")
     try:
         for i, report in enumerate(hunter.run(cycles=cycles), start=1):
