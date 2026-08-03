@@ -179,6 +179,7 @@ def hunt_cycle(request: Request, payload=Body(None)) -> dict:
             expected_bounties=expected_bounties,
             verify_model=str(data.get("verify_model") or ""),
             verify_threshold=float(data.get("verify_threshold", 0.35)),
+            use_deepseek_fallback=bool(data.get("deepseek_fallback")),
         )
     except (TypeError, ValueError) as exc:
         ok.close()
@@ -331,6 +332,19 @@ CONSOLE_HTML = r"""<!doctype html>
   .spacer { flex: 1; }
   .note { background: var(--panel); border: 1px dashed var(--line); border-radius: 10px;
     padding: 12px 14px; color: var(--muted); margin-bottom: 14px; font-size: 13px; }
+  .hunt { background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    padding: 4px 14px 14px; margin-bottom: 14px; }
+  .hunt summary { cursor: pointer; padding: 10px 0; font-weight: 620; color: var(--fg);
+    font-size: 13px; }
+  .hunt-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px; align-items: end; margin-top: 6px; }
+  .hunt-grid label { display: flex; flex-direction: column; gap: 4px; font-size: 11.5px;
+    color: var(--muted); }
+  .hunt-grid label.chk { flex-direction: row; align-items: center; font-size: 12.5px; }
+  .hunt-grid input[type=text], .hunt-grid input:not([type]) { width: 100%; }
+  .hunt-out { margin: 10px 0 0; padding: 10px 12px; background: var(--panel2);
+    border-radius: 8px; font: 12px/1.5 var(--mono); white-space: pre-wrap;
+    max-height: 260px; overflow: auto; color: var(--muted); }
 
   .overflow { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
   table { width: 100%; border-collapse: collapse; min-width: 720px; }
@@ -390,6 +404,19 @@ CONSOLE_HTML = r"""<!doctype html>
       <option value="verified">verified</option><option value="hypothesis">hypothesis</option>
     </select>
   </div>
+
+  <details class="hunt">
+    <summary>Hunt — run a cycle (dry-run unless armed)</summary>
+    <div class="hunt-grid">
+      <label>Model<input id="huntModel" placeholder="claude-sonnet-5" value="claude-sonnet-5" /></label>
+      <label>Verify model (Opus, optional)<input id="huntVerifyModel" placeholder="claude-opus-5" /></label>
+      <label>Handles (comma-separated, optional)<input id="huntHandles" placeholder="auto-select if blank" /></label>
+      <label class="chk"><input id="huntDeepseek" type="checkbox" />Add DeepSeek (via OpenRouter) as a cheap fallback model</label>
+      <label class="chk"><input id="huntArm" type="checkbox" />Arm — actually launch scans</label>
+      <button class="primary" id="huntRunBtn">Run cycle</button>
+    </div>
+    <pre id="huntOut" class="hunt-out"></pre>
+  </details>
 
   <div class="note" id="note" style="display:none"></div>
 
@@ -514,7 +541,39 @@ CONSOLE_HTML = r"""<!doctype html>
     rd.readAsText(f);
   });
 
-  if (STATIC) { document.getElementById("live").style.display = "none"; render(); }
+  var huntBtn = document.getElementById("huntRunBtn");
+  if (huntBtn) {
+    huntBtn.addEventListener("click", function () {
+      var handles = document.getElementById("huntHandles").value.split(",")
+        .map(function (s) { return s.trim(); }).filter(Boolean);
+      var body = {
+        model: document.getElementById("huntModel").value.trim(),
+        verify_model: document.getElementById("huntVerifyModel").value.trim(),
+        deepseek_fallback: document.getElementById("huntDeepseek").checked,
+        arm: document.getElementById("huntArm").checked,
+        handles: handles,
+      };
+      var out = document.getElementById("huntOut");
+      out.textContent = "running...";
+      huntBtn.disabled = true;
+      fetch("/ui/hunt", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body) })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          out.textContent = JSON.stringify(data, null, 2);
+          huntBtn.disabled = false;
+          if (!data.error) loadReview("");   // pick up anything newly tracked
+        })
+        .catch(function (err) { out.textContent = "Hunt request failed: " + err; huntBtn.disabled = false; });
+    });
+  }
+
+  if (STATIC) {
+    document.getElementById("live").style.display = "none";
+    var huntPanel = document.querySelector(".hunt");
+    if (huntPanel) huntPanel.style.display = "none";
+    render();
+  }
   else { loadReview(""); }
 })();
 </script>

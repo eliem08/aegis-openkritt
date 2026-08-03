@@ -13,6 +13,8 @@ from .openkritt import (
 )
 from .openkritt_client import OpenKrittClient
 from .repo_pipeline import (
+    DEEPSEEK_MODEL,
+    with_deepseek_fallback,
     PipelineError,
     PipelineResult,
     RepoTarget,
@@ -36,6 +38,8 @@ __all__ = [
     "discover_scan_template",
     "RepoTarget",
     "ScanTemplate",
+    "DEEPSEEK_MODEL",
+    "with_deepseek_fallback",
     "PipelineResult",
     "PipelineError",
 ]

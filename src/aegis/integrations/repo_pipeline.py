@@ -18,7 +18,7 @@ Boundaries kept, on purpose:
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from aegis.ingest.hackerone import map_program
 from aegis.report import build_console
@@ -51,6 +51,8 @@ class ScanTemplate:
     launch_policy: str = "queue"               # don't preempt a running scan
     agent_skill_ids: tuple[str, ...] = ()
     fallback_models: tuple[str, ...] = ()      # tried in order if the primary is unavailable
+    model_providers: dict = field(default_factory=dict)  # model id -> provider override
+    # (e.g. {"deepseek/deepseek-chat": "openrouter"} when the primary model_provider is "claude")
     required_extra_keys: tuple[str, ...] = ()  # extra.* keys the workflow/post-script need
     extra: dict = field(default_factory=dict)  # static extra values (merged per launch)
     thinking_effort: str = ""                  # low/medium/high/xhigh/max (blank = backend default)
@@ -216,15 +218,16 @@ def _required_extra_keys(client, workflow_id, post_script) -> tuple[str, ...]:
 
 def build_scan_payload(repo: RepoTarget, t: ScanTemplate, *, model: str | None = None,
                        extra: dict | None = None) -> dict:
+    chosen_model = model or t.model
     payload = {
         "workflowId": t.workflow_id,
         "postScriptId": t.post_script_id,
         "repo_kind": "remote",
         "repo_full": repo.repo_full,
         "repo_scope": t.repo_scope,
-        "model": model or t.model,
+        "model": chosen_model,
         "harness": t.harness,
-        "model_provider": t.model_provider,
+        "model_provider": t.model_providers.get(chosen_model, t.model_provider),
         "severity_ranker": t.severity_ranker,
         "launchPolicy": t.launch_policy,
         "agentSkillIds": list(t.agent_skill_ids),
@@ -247,6 +250,22 @@ def scan_one_repo(ok_client, repo_full: str, *, model: str, workflow_id=None, ha
     template.thinking_effort = thinking_effort or template.thinking_effort
     repo = RepoTarget(repo_full=repo_full, identifier=repo_full)
     return launch_repo_scans(ok_client, [repo], template, handle=handle)[0]
+
+
+#: open·kritt has no native DeepSeek provider slot, but its OpenRouter integration
+#: proxies real DeepSeek models cheaply. Use as a fallback (or primary) model with
+#: ``model_providers={DEEPSEEK_MODEL: "openrouter"}`` — requires OPENROUTER_API_KEY
+#: configured in open·kritt, not a DeepSeek key.
+DEEPSEEK_MODEL = "deepseek/deepseek-chat"
+
+
+def with_deepseek_fallback(template: ScanTemplate, *, deepseek_model: str = DEEPSEEK_MODEL) -> ScanTemplate:
+    """Return a copy of ``template`` with a cheap DeepSeek-via-OpenRouter model
+    appended to its fallback chain (tried last, after the primary/Claude fallbacks)."""
+    providers = dict(template.model_providers)
+    providers[deepseek_model] = "openrouter"
+    fallbacks = tuple(m for m in template.fallback_models if m != deepseek_model) + (deepseek_model,)
+    return replace(template, fallback_models=fallbacks, model_providers=providers)
 
 
 def resolve_extra(keys, *, handle: str = "", repo: RepoTarget | None = None) -> dict:
@@ -317,7 +336,7 @@ def run_repo_pipeline(h1_client, ok_client, handle: str, *, model: str,
                       template: ScanTemplate | None = None, launch: bool = True,
                       max_repos: int | None = None, fallbacks=None,
                       bounty_only: bool = False, workflow_id=None,
-                      post_script_id=None,
+                      post_script_id=None, use_deepseek_fallback: bool = False,
                       repo_allowlist: set[str] | None = None) -> PipelineResult:
     """Discover a program's repos and (optionally) launch an open·kritt scan on each.
 
@@ -342,6 +361,8 @@ def run_repo_pipeline(h1_client, ok_client, handle: str, *, model: str,
     template = template or discover_scan_template(
         ok_client, model=model, fallbacks=fallbacks,
         workflow_id=workflow_id, post_script_id=post_script_id)
+    if use_deepseek_fallback:
+        template = with_deepseek_fallback(template)
     result.launches = launch_repo_scans(ok_client, repos, template, handle=rules.handle or handle)
     return result
 

@@ -247,3 +247,45 @@ def test_run_pipeline_launches_scans_for_repo_scope():
     assert not result.gated
     assert [r.repo_full for r in result.repos] == ["acme/api"]
     assert result.scan_ids == ["55"]
+
+
+# --- DeepSeek via OpenRouter fallback ---------------------------------------
+
+def test_with_deepseek_fallback_appends_openrouter_model():
+    from aegis.integrations.repo_pipeline import DEEPSEEK_MODEL, with_deepseek_fallback
+
+    base = ScanTemplate(workflow_id="1", post_script_id="2", severity_ranker="# r",
+                        model="claude-opus-5", fallback_models=("claude-sonnet-5",))
+    t = with_deepseek_fallback(base)
+    assert t.models == ["claude-opus-5", "claude-sonnet-5", DEEPSEEK_MODEL]
+    assert t.model_providers[DEEPSEEK_MODEL] == "openrouter"
+    # original template untouched
+    assert DEEPSEEK_MODEL not in base.fallback_models
+
+
+def test_deepseek_fallback_payload_uses_openrouter_provider():
+    from aegis.integrations.repo_pipeline import DEEPSEEK_MODEL, RepoTarget, with_deepseek_fallback
+
+    base = ScanTemplate(workflow_id="1", post_script_id="2", severity_ranker="# r",
+                        model="claude-opus-5", model_provider="claude")
+    t = with_deepseek_fallback(base)
+    payload = build_scan_payload(RepoTarget(repo_full="a/b", identifier="a/b"), t, model=DEEPSEEK_MODEL)
+    assert payload["model"] == DEEPSEEK_MODEL and payload["model_provider"] == "openrouter"
+    # the primary model still gets the original provider
+    primary_payload = build_scan_payload(RepoTarget(repo_full="a/b", identifier="a/b"), t, model="claude-opus-5")
+    assert primary_payload["model_provider"] == "claude"
+
+
+def test_launch_falls_back_to_deepseek_when_claude_models_fail():
+    from aegis.integrations.repo_pipeline import DEEPSEEK_MODEL, RepoTarget, with_deepseek_fallback
+
+    class Flaky(FakeOK):
+        def create_scan(self, payload):
+            if payload["model"] != DEEPSEEK_MODEL:
+                raise RuntimeError("no capacity")
+            return {"id": "55"}
+
+    t = with_deepseek_fallback(ScanTemplate(workflow_id="1", post_script_id="2", severity_ranker="# r",
+                                            model="claude-opus-5", fallback_models=("claude-sonnet-5",)))
+    [launch] = launch_repo_scans(Flaky(), [RepoTarget(repo_full="a/b", identifier="a/b")], t)
+    assert launch.ok and launch.model == DEEPSEEK_MODEL

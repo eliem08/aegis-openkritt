@@ -12,6 +12,11 @@ Core environment variables:
   AEGIS_HUNT_EXPECTED_BOUNTIES_JSON explicit program-to-USD map, for example
                                     {"program":"750"}; missing amounts stay missing
   AEGIS_HUNT_EXPLORATION_FRACTION  capacity reserved for uncertainty (default 0.2)
+  AEGIS_HUNT_VERIFY_MODEL          two-stage: promote hot findings to this model (e.g. Opus)
+  AEGIS_HUNT_DEEPSEEK_FALLBACK=1   append deepseek/deepseek-chat via OpenRouter as a cheap
+                                    last-resort fallback model (needs OPENROUTER_API_KEY
+                                    configured in open·kritt; open·kritt has no native
+                                    DeepSeek provider slot, so this only works via OpenRouter)
 
 It never exploits and never submits; a human reviews the console and submits.
 """
@@ -116,6 +121,8 @@ def main() -> int:
             workflow_id=os.environ.get("AEGIS_HUNT_WORKFLOW_ID", "").strip(),
             post_script_id=os.environ.get("AEGIS_HUNT_POST_SCRIPT_ID", "").strip(),
             verify_model=os.environ.get("AEGIS_HUNT_VERIFY_MODEL", "").strip(),
+            use_deepseek_fallback=os.environ.get("AEGIS_HUNT_DEEPSEEK_FALLBACK", "").strip()
+            in ("1", "true", "yes"),
             verify_thinking_effort=os.environ.get("AEGIS_HUNT_VERIFY_EFFORT", "high").strip(),
             verify_threshold=float(os.environ.get("AEGIS_HUNT_VERIFY_THRESHOLD", "0.35")),
             interval_seconds=float(_int("AEGIS_HUNT_INTERVAL", 3600)),

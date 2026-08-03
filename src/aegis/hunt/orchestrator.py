@@ -45,6 +45,7 @@ class HuntConfig:
     # Two-stage (wide/narrow): scan wide on `model` (cheap), then promote only
     # high-priority candidates to a focused verify pass on `verify_model` (Opus).
     verify_model: str = ""                     # blank = single-stage (no promotion)
+    use_deepseek_fallback: bool = False        # append a cheap DeepSeek-via-OpenRouter fallback
     verify_threshold: float = 0.35             # min candidate priority to promote
     verify_thinking_effort: str = "high"       # deeper reasoning for the narrow pass
     max_verify_per_cycle: int = 3              # cap Opus verify launches per cycle
@@ -217,6 +218,7 @@ class HuntOrchestrator:
                     bounty_only=cfg.require_bounty,
                     workflow_id=(cfg.workflow_id or None),
                     post_script_id=(cfg.post_script_id or None),
+                    use_deepseek_fallback=cfg.use_deepseek_fallback,
                     launch=True,
                     repo_allowlist=allowlist,
                 )
