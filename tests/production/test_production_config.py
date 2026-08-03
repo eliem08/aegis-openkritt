@@ -89,11 +89,10 @@ def test_every_production_fallback_is_reported(tmp_path):
     env.pop("AEGIS_BROWSER_IMAGE")
     env.pop("AEGIS_SCANNER_LOCK")
     env.pop("AEGIS_OAST_DOMAIN")
-    env.pop("AEGIS_LEARN_DB")
     settings = ProductionSettings.from_env(env)
     found = codes(settings)
     assert {"no_redis", "egress_not_enforced", "browser_image_missing",
-            "no_scanner_lock", "private_oast_missing", "learning_store_ephemeral"} <= found
+            "no_scanner_lock", "private_oast_missing"} <= found
     with pytest.raises(ProductionReadinessError):
         require_production_deployment(settings)
 

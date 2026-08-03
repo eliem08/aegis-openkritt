@@ -13,6 +13,15 @@ def create_production_app(settings: ProductionSettings | None = None):
     require_production_deployment(settings)
     coordinator = settings.build_coordinator()
     app = create_app(settings.control)
+    pool = getattr(app.state.repository, "_pool", None)
+    if pool is None:
+        raise RuntimeError("production learning storage requires the PostgreSQL repository")
+    from .postgres_learning import PostgresOutcomeStore, PostgresSubmissionLedger
+
+    app.state.outcomes.close()
+    app.state.submissions.close()
+    app.state.outcomes = PostgresOutcomeStore(pool)
+    app.state.submissions = PostgresSubmissionLedger(pool)
     app.state.coordinator = coordinator
     app.state.production_settings = settings
     return app

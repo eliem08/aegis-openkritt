@@ -11,6 +11,7 @@ x-hardened: &hardened
 services:
   pg.prod.internal:
     <<: *hardened
+    cap_add: [CHOWN, FOWNER, SETGID, SETUID, DAC_OVERRIDE]
     build:
       context: .
       dockerfile: deploy/postgres/Dockerfile
@@ -45,6 +46,7 @@ services:
 
   redis.prod.internal:
     <<: *hardened
+    cap_add: [CHOWN, FOWNER, SETGID, SETUID, DAC_OVERRIDE]
     build:
       context: .
       dockerfile: deploy/redis/Dockerfile
@@ -97,7 +99,6 @@ services:
       AEGIS_BROWSER_IMAGE: "${AEGIS_BROWSER_IMAGE:?set a digest-pinned browser image}"
       AEGIS_SCANNER_LOCK: /run/config/scanner-releases.lock.json
       AEGIS_OAST_DOMAIN: "${AEGIS_OAST_DOMAIN:?set the private OAST domain}"
-      AEGIS_LEARN_DB: /var/lib/aegis/learning.db
     secrets:
       - api_keys
       - signing_keys
@@ -107,8 +108,6 @@ services:
       - postgres_ca
     configs:
       - scanner_releases
-    volumes:
-      - learningdata:/var/lib/aegis
     tmpfs:
       - /tmp:mode=1777,size=128m
     networks:
@@ -183,7 +182,6 @@ networks:
 volumes:
   pgdata: {}
   redisdata: {}
-  learningdata: {}
 
 secrets:
   api_keys:

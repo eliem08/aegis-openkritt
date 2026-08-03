@@ -12,7 +12,7 @@ from aegis.production.bootstrap import BootstrapRefused, bootstrap, main
 def test_bootstrap_creates_complete_nonempty_secret_set(tmp_path, capsys):
     root = tmp_path / "secrets"
     paths = bootstrap(root)
-    assert len(paths) == 12
+    assert len(paths) == 13
     assert all(path.is_file() and path.stat().st_size > 0 for path in paths)
     api_keys = json.loads((root / "api_keys.json").read_text())
     assert len(api_keys) == 1

@@ -1,0 +1,35 @@
+services:
+  restore-drill:
+    profiles: [ops]
+    build:
+      context: .
+      dockerfile: deploy/ops/Dockerfile
+      args:
+        PYTHON_IMAGE: "${AEGIS_PYTHON_IMAGE:?set a digest-pinned Python image}"
+    command:
+      - aegis.production.restore
+      - --dsn-file=/run/secrets/database_url
+      - --key-file=/run/secrets/backup_encryption_key
+      - --backup=/backups/${AEGIS_BACKUP_NAME:-aegis.dump.enc}
+      - --verification-database=${AEGIS_VERIFY_DATABASE:-aegis_verify_restore_drill}
+      - --report=/reports/restore-drill.json
+    read_only: true
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    depends_on:
+      pg.prod.internal:
+        condition: service_healthy
+    secrets:
+      - database_url
+      - postgres_ca
+      - backup_encryption_key
+    volumes:
+      - ./backups:/backups:ro
+      - ./drill-reports:/reports
+    tmpfs:
+      - /tmp:mode=1777,size=512m
+    networks: [control_internal]
+    restart: "no"
+    pids_limit: 128
+    mem_limit: 1g
+    cpus: 1.0

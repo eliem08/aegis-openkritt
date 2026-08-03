@@ -17,7 +17,7 @@ env/
 htmlcov/
 coverage.xml
 
-# Secrets & local config — never commit authorization secrets or signing keys
+# Secrets & local config â€” never commit authorization secrets or signing keys
 *.secret
 *.key
 .env
@@ -30,3 +30,7 @@ secrets/
 .idea/
 *.swp
 .DS_Store
+
+# Local production artifacts
+backups/
+drill-reports/

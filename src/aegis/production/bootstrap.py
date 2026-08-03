@@ -99,6 +99,7 @@ def bootstrap(output: str | Path = "secrets", *, force: bool = False) -> list[Pa
         }, separators=(",", ":")),
         "signing_keys.json": json.dumps({"bootstrap-hmac-v1": signing_secret}, separators=(",", ":")),
         "encryption_key": Fernet.generate_key(),
+        "backup_encryption_key": Fernet.generate_key(),
         "egress_signing_key": egress_secret,
         "database_url": (
             "postgresql://svc_aegis:"

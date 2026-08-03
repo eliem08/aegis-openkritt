@@ -1,0 +1,115 @@
+services:
+  backup:
+    profiles: [ops]
+    build:
+      context: .
+      dockerfile: deploy/ops/Dockerfile
+      args:
+        PYTHON_IMAGE: "${AEGIS_PYTHON_IMAGE:?set a digest-pinned Python image}"
+    command:
+      - aegis.production.backup
+      - create
+      - --dsn-file=/run/secrets/database_url
+      - --key-file=/run/secrets/backup_encryption_key
+      - --output=/backups/${AEGIS_BACKUP_NAME:-aegis.dump.enc}
+    read_only: true
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    depends_on:
+      pg.prod.internal:
+        condition: service_healthy
+    secrets:
+      - database_url
+      - postgres_ca
+      - backup_encryption_key
+    volumes:
+      - ./backups:/backups
+    tmpfs:
+      - /tmp:mode=1777,size=128m
+    networks: [control_internal]
+    restart: "no"
+    pids_limit: 128
+    mem_limit: 512m
+    cpus: 1.0
+
+  verify-backup:
+    profiles: [ops]
+    build:
+      context: .
+      dockerfile: deploy/ops/Dockerfile
+      args:
+        PYTHON_IMAGE: "${AEGIS_PYTHON_IMAGE:?set a digest-pinned Python image}"
+    command:
+      - aegis.production.backup
+      - verify
+      - --key-file=/run/secrets/backup_encryption_key
+      - --backup=/backups/${AEGIS_BACKUP_NAME:-aegis.dump.enc}
+    read_only: true
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    secrets: [backup_encryption_key]
+    volumes:
+      - ./backups:/backups:ro
+    tmpfs:
+      - /tmp:mode=1777,size=256m
+    networks: [control_internal]
+    restart: "no"
+    pids_limit: 128
+    mem_limit: 512m
+    cpus: 1.0
+
+  production-drills:
+    profiles: [drills]
+    build:
+      context: .
+      dockerfile: deploy/ops/Dockerfile
+      args:
+        PYTHON_IMAGE: "${AEGIS_PYTHON_IMAGE:?set a digest-pinned Python image}"
+    command:
+      - aegis.production.drills
+      - --json=/reports/production-drills.json
+      - --markdown=/reports/production-drills.md
+    read_only: true
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    depends_on:
+      pg.prod.internal:
+        condition: service_healthy
+      redis.prod.internal:
+        condition: service_healthy
+      egress.prod.internal:
+        condition: service_healthy
+    environment:
+      AEGIS_PRODUCTION: "1"
+      AEGIS_API_KEYS_FILE: /run/secrets/api_keys
+      AEGIS_SIGNING_KEYS_FILE: /run/secrets/signing_keys
+      AEGIS_ENCRYPTION_KEY_FILE: /run/secrets/encryption_key
+      AEGIS_DB_URL_FILE: /run/secrets/database_url
+      AEGIS_REDIS_URL_FILE: /run/secrets/redis_url
+      AEGIS_COORD_NAMESPACE: "${AEGIS_COORD_NAMESPACE:-aegis-prod}"
+      AEGIS_EGRESS_ENFORCED: "1"
+      AEGIS_EGRESS_URL: http://egress.prod.internal:8080
+      AEGIS_BROWSER_IMAGE: "${AEGIS_BROWSER_IMAGE:?set a digest-pinned browser image}"
+      AEGIS_SCANNER_LOCK: /run/config/scanner-releases.lock.json
+      AEGIS_OAST_DOMAIN: "${AEGIS_OAST_DOMAIN:?set the private OAST domain}"
+    secrets:
+      - api_keys
+      - signing_keys
+      - encryption_key
+      - database_url
+      - redis_url
+      - postgres_ca
+    configs: [scanner_releases]
+    volumes:
+      - ./drill-reports:/reports
+    tmpfs:
+      - /tmp:mode=1777,size=128m
+    networks: [control_internal]
+    restart: "no"
+    pids_limit: 128
+    mem_limit: 512m
+    cpus: 1.0
+
+secrets:
+  backup_encryption_key:
+    file: ./secrets/backup_encryption_key

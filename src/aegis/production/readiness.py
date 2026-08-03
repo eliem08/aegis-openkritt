@@ -85,8 +85,6 @@ def production_deployment_issues(settings: ProductionSettings) -> list[Issue]:
             issues.append(Issue("private_oast_missing", "private OAST is required but not configured"))
         elif _is_public(settings.oast_domain):
             issues.append(Issue("public_oast", "a public OAST provider is forbidden"))
-    if not settings.control.learn_db_path:
-        issues.append(Issue("learning_store_ephemeral", "learning outcomes would use in-memory storage"))
     return issues
 
 
