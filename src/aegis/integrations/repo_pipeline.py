@@ -182,20 +182,27 @@ def console_for_scans(client, scan_ids, *, calibration=None, **ingest_kwargs) ->
 # --- orchestration ----------------------------------------------------------
 
 def run_repo_pipeline(h1_client, ok_client, handle: str, *, model: str,
-                      template: ScanTemplate | None = None) -> PipelineResult:
-    """Discover a program's repos and launch an open·kritt scan on each."""
+                      template: ScanTemplate | None = None, launch: bool = True,
+                      max_repos: int | None = None) -> PipelineResult:
+    """Discover a program's repos and (optionally) launch an open·kritt scan on each.
+
+    ``launch=False`` plans only — it returns the in-scope repos without touching
+    open·kritt (used by the hunter's dry-run). ``max_repos`` caps how many repos are
+    launched.
+    """
     program = h1_client.get_program(handle)
     scopes = h1_client.get_structured_scopes(handle)
     rules = map_program(program, scopes)
 
     scope = repos_in_scope(rules)
+    repos = scope.repos[:max_repos] if max_repos else scope.repos
     result = PipelineResult(handle=rules.handle or handle, program_name=rules.name,
-                            repos=scope.repos, gated=scope.gated, reason=scope.reason)
-    if scope.gated or not scope.repos:
+                            repos=repos, gated=scope.gated, reason=scope.reason)
+    if scope.gated or not repos or not launch:
         return result
 
     template = template or discover_scan_template(ok_client, model=model)
-    result.launches = launch_repo_scans(ok_client, scope.repos, template)
+    result.launches = launch_repo_scans(ok_client, repos, template)
     return result
 
 

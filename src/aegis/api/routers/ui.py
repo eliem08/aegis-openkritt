@@ -135,6 +135,44 @@ def feedback(request: Request, payload=Body(...)) -> dict:
             "learned_prior": round(cal.prior(detector=detector, cwe=cwe), 3)}
 
 
+@router.post("/ui/hunt", summary="Run one automatic-hunting cycle (dry-run unless armed)")
+def hunt_cycle(request: Request, payload=Body(None)) -> dict:
+    """One pass of the hunter: authorized programs -> scan in-scope repos -> collect
+    findings -> fold in report outcomes. Dry-run by default (plans, launches nothing);
+    pass ``{"arm": true, "model": "..."}`` to actually launch. Never submits."""
+    from aegis.ingest.hackerone import HackerOneAuthError, HackerOneClient
+    from aegis.hunt import HuntConfig, HuntOrchestrator
+
+    config = request.app.state.config
+    ok = config.build_openkritt_client()
+    if ok is None:
+        return {"error": "No open·kritt backend connected. Set AEGIS_OPENKRITT_URL."}
+    data = payload if isinstance(payload, dict) else {}
+    armed = bool(data.get("arm"))
+    model = str(data.get("model") or "")
+    if armed and not model:
+        return {"error": "model is required to arm (launch) scans."}
+    try:
+        h1 = HackerOneClient.from_env()
+    except HackerOneAuthError:
+        return {"error": "HackerOne credentials not set "
+                         "(HACKERONE_API_USERNAME / HACKERONE_API_TOKEN)."}
+    handles = tuple(str(h).strip() for h in (data.get("handles") or []) if str(h).strip())
+    cfg = HuntConfig(model=model, only_handles=handles, dry_run=not armed,
+                     max_programs=int(data.get("max_programs") or 3),
+                     max_repos_per_program=int(data.get("max_repos") or 3))
+    hunter = HuntOrchestrator(h1, ok, request.app.state.outcomes,
+                              request.app.state.submissions, config=cfg)
+    try:
+        report = hunter.cycle()
+    except httpx.HTTPError as exc:
+        return {"error": f"request failed: {exc}"}
+    finally:
+        ok.close()
+        h1.close()
+    return report.summary()
+
+
 def _calibration(request: Request):
     """Calibration built from all recorded verdicts (neutral when none yet)."""
     from aegis.learn import Calibration

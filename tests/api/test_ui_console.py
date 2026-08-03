@@ -140,6 +140,42 @@ def test_hackerone_sync_reports_missing_credentials(monkeypatch):
     assert "error" in body and "HackerOne" in body["error"]
 
 
+def test_hunt_endpoint_requires_a_backend():
+    body = _app().post("/ui/hunt", json={}).json()
+    assert "error" in body and "open·kritt" in body["error"]
+
+
+def test_hunt_endpoint_dry_run_plans_without_launching(monkeypatch):
+    cfg = ControlPlaneConfig(auth_enabled=False, require_signature=False,
+                             openkritt_url="http://okritt.local")
+
+    class FakeH1:
+        @classmethod
+        def from_env(cls, *a, **k): return cls()
+        def list_programs(self): return [{"attributes": {"handle": "acme"}}]
+        def get_program(self, h): return {"data": {"attributes": {"handle": h, "policy": ""}}}
+        def get_structured_scopes(self, h):
+            return [{"attributes": {"asset_type": "SOURCE_CODE",
+                     "asset_identifier": "https://github.com/acme/api", "eligible_for_submission": True}}]
+        def list_my_reports(self): return []
+        def close(self): pass
+
+    class FakeOK:
+        def list_scans(self): return []
+        def create_scan(self, p): raise AssertionError("dry-run must not launch")
+        def import_candidates(self, s, **k): return []
+        def close(self): pass
+
+    import aegis.ingest.hackerone as h1mod
+    monkeypatch.setattr(h1mod, "HackerOneClient", FakeH1)
+    app = create_app(cfg)
+    app.state.config.build_openkritt_client = lambda: FakeOK()
+
+    body = TestClient(app).post("/ui/hunt", json={}).json()      # dry-run (not armed)
+    assert body["dry_run"] is True and body["repos_in_scope"] == 1
+    assert body["scans_launched_this_cycle"] == 0
+
+
 def test_review_degrades_when_backend_configured_but_unreachable():
     cfg = ControlPlaneConfig(auth_enabled=False, require_signature=False,
                              openkritt_url="http://127.0.0.1:3002")
