@@ -31,7 +31,8 @@ def test_covers_the_core_corpus_classes():
     names = " ".join(s["name"].lower() for s in WORKFLOWS)
     # every detector family we built is represented as a playbook
     for cls in ("access control", "injection", "secrets", "contract",
-                "systems", "memory safety", "misconfiguration"):
+                "systems", "memory safety", "misconfiguration",
+                "authentication", "business logic", "dependencies"):
         assert cls in names
 
 

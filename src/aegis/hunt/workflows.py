@@ -163,6 +163,66 @@ WORKFLOWS = [
         "selfdestruct/delegatecall without access control.\n"
         "Only report if it is reachable by an external caller and moves or locks value.",
     ),
+    _spec(
+        "Aegis · Authentication, Session & JWT",
+        "Authentication, session, and token flaws: auth bypass, JWT alg/none confusion, "
+        "weak session tokens, and broken password-reset / OTP flows.",
+        "You are a whitehat auditing {{repo_full}} for authentication and session flaws. "
+        "Find:\n"
+        "1. Authentication bypass — routes/middleware where an auth check is missing, "
+        "misordered (executed after the sensitive action), or trivially satisfiable "
+        "(e.g. comparing to a client-supplied value).\n"
+        "2. JWT handling — accepting `alg: none`, allowing algorithm confusion "
+        "(HS256 verified with an RS256 public key), skipping signature/expiry/audience "
+        "verification, or a hardcoded/weak signing secret.\n"
+        "3. Session tokens — predictable, low-entropy, or non-rotated session/reset "
+        "identifiers; tokens generated without a CSPRNG; missing invalidation on "
+        "logout/password-change.\n"
+        "4. Password reset / OTP — reset tokens that are guessable, not single-use, not "
+        "expiring, or bound to a user id taken from the request; OTP without rate limit "
+        "or verification.\n"
+        "Trace the credential/token from where it is created to where it is trusted, and "
+        "show the missing or bypassable check.",
+    ),
+    _spec(
+        "Aegis · Business Logic & Race Conditions",
+        "State-integrity flaws: TOCTOU / concurrency races on money and entitlements, "
+        "and value/quantity tampering. STATIC DETECTION ONLY — flags, never exploits.",
+        "You are a whitehat auditing {{repo_full}} for business-logic and concurrency "
+        "flaws that affect money, balances, or entitlements. Find:\n"
+        "1. Race conditions / TOCTOU — a check and the dependent state change that are "
+        "not atomic (e.g. read balance → external call → write balance; redeem "
+        "gift-card/coupon/voucher without a single-use lock; withdraw without row "
+        "locking), letting concurrent requests double-spend or double-redeem.\n"
+        "2. Value/quantity tampering — price, amount, quantity, discount, or fee taken "
+        "from the request and trusted without server-side re-validation; negative or "
+        "overflowing quantities; client-controlled totals.\n"
+        "3. Broken sequencing — steps in a purchase/transfer/withdrawal flow that can be "
+        "skipped, reordered, or replayed.\n"
+        "Identify the missing atomicity/lock or the trusted client value and the "
+        "resulting integrity impact. This is a REPORTING pass only: describe the flaw; "
+        "do not attempt or script exploitation.",
+    ),
+    _spec(
+        "Aegis · Dependencies & Supply Chain",
+        "Dependency and supply-chain risk: known-vulnerable/outdated packages, risky "
+        "install scripts, and lockfile/integrity gaps.",
+        "You are a whitehat auditing the dependency posture of {{repo_full}}. Inspect "
+        "manifests and lockfiles (package.json/package-lock.json, requirements.txt/"
+        "poetry.lock, go.mod/go.sum, Cargo.toml/Cargo.lock, pom.xml, Gemfile.lock, etc.) "
+        "and find:\n"
+        "1. Known-vulnerable or clearly outdated dependencies with a security impact — "
+        "name the package, the pinned version, and the class of known issue.\n"
+        "2. Risky acquisition — dependencies from a git URL/HTTP (non-registry) source, "
+        "unpinned/floating versions on security-relevant packages, or a missing/"
+        "inconsistent lockfile that permits substitution.\n"
+        "3. Dangerous install/build hooks — `postinstall`/`preinstall`/build scripts that "
+        "fetch and execute remote code, or Makefile/CI steps piping curl into a shell.\n"
+        "4. Dependency-confusion exposure — internal-looking package names not claimed on "
+        "the public registry.\n"
+        "For each, cite the manifest/lockfile location and the concrete risk; prefer "
+        "issues with a realistic security impact over routine version drift.",
+    ),
 ]
 
 
