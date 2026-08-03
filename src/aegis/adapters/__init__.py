@@ -15,6 +15,7 @@ from .base import (
     PROVIDER_ERROR,
     QUOTA_EXHAUSTED,
     TARGET_UNREACHABLE,
+    JsonDocumentAdapter,
     JsonLinesAdapter,
     SchemaMismatch,
     ToolUnavailable,
@@ -25,6 +26,7 @@ from .contract import (
     AdapterEvent,
     AdapterManifest,
     CapabilityTier,
+    DocumentAdapter,
     EnvelopeError,
     EnvelopeLimits,
     EventKind,
@@ -58,6 +60,16 @@ from .nuclei import (
     new_template_manifest,
     sign_manifest,
 )
+from .repository_scanners import (
+    GITLEAKS_MANIFEST,
+    OSV_SCANNER_MANIFEST,
+    SEMGREP_MANIFEST,
+    SOURCE_SCANNER_MANIFESTS,
+    GitleaksDocumentAdapter,
+    OsvScannerDocumentAdapter,
+    SemgrepDocumentAdapter,
+    source_scanner_parsers,
+)
 from .subfinder import SUBFINDER_MANIFEST, SubfinderAdapter, SubfinderConfig
 
 #: The Phase 2 discovery set, in stage order.
@@ -89,6 +101,7 @@ __all__ = [
     "Adapter",
     "AdapterEvent",
     "AdapterManifest",
+    "DocumentAdapter",
     "CapabilityTier",
     "EnvelopeError",
     "EnvelopeLimits",
@@ -98,6 +111,7 @@ __all__ = [
     "validate_against_manifest",
     "FakeDiscoveryAdapter",
     "FAKE_MANIFEST",
+    "JsonDocumentAdapter",
     "JsonLinesAdapter",
     "SchemaMismatch",
     "ToolUnavailable",
@@ -143,4 +157,12 @@ __all__ = [
     "DalfoxOutcome",
     "DangerousModeNotAuthorized",
     "DALFOX_MANIFEST",
+    "SemgrepDocumentAdapter",
+    "GitleaksDocumentAdapter",
+    "OsvScannerDocumentAdapter",
+    "SEMGREP_MANIFEST",
+    "GITLEAKS_MANIFEST",
+    "OSV_SCANNER_MANIFEST",
+    "SOURCE_SCANNER_MANIFESTS",
+    "source_scanner_parsers",
 ]

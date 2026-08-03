@@ -145,6 +145,44 @@ class JsonLinesAdapter:
                           source=self.manifest.name, confidence=0.0)
 
 
+class JsonDocumentAdapter(JsonLinesAdapter):
+    """Base for pinned tools that emit one JSON document instead of JSONL.
+
+    Subclasses validate the version-specific root schema in ``map_document``.
+    A malformed or incompatible document becomes one blocking diagnostic and is
+    therefore quarantined by the coordinator; raw output is never persisted.
+    """
+
+    def parse_line(self, line: str, envelope: ExecutionEnvelope) -> AdapterEvent | None:
+        # Document adapters are parsed exactly once by ScanCoordinator.
+        return None
+
+    def parse_document(self, document: str, envelope: ExecutionEnvelope) -> list[AdapterEvent]:
+        try:
+            root = json.loads(document)
+        except json.JSONDecodeError:
+            return [self._diagnostic(
+                envelope, PARSER_INCOMPATIBLE, "unparseable JSON document", blocking=True,
+            )]
+        try:
+            mapped = self.map_document(root, envelope)
+        except SchemaMismatch as exc:
+            return [self._diagnostic(
+                envelope, PARSER_INCOMPATIBLE, str(exc), blocking=True,
+            )]
+
+        events: list[AdapterEvent] = []
+        for kind, data, confidence in mapped:
+            events.append(event_from(
+                kind, envelope, data, source=self.manifest.name, confidence=confidence,
+            ))
+        return events
+
+    def map_document(self, root, envelope: ExecutionEnvelope):
+        """Return an iterable of ``(kind, data, confidence)`` tuples."""
+        raise NotImplementedError
+
+
 def in_parent_scope(host: str, parent: str) -> bool:
     """True when ``host`` is the parent domain or a subdomain of it.
 

@@ -35,6 +35,7 @@ from typing import Callable
 
 from aegis.adapters import (
     Adapter,
+    DocumentAdapter,
     EnvelopeError,
     EnvelopeLimits,
     EventKind,
@@ -360,8 +361,7 @@ class ScanCoordinator:
         )
         execution = _Execution(process=None, events=[])
 
-        def on_line(line: str) -> None:
-            event = adapter.parse_line(line, envelope)
+        def consume(event) -> None:
             if event is None:
                 return
             execution.events.append(event)
@@ -386,9 +386,22 @@ class ScanCoordinator:
                 rejected=execution.rejections,
             )
 
+        is_document = isinstance(adapter, DocumentAdapter)
+
+        def on_line(line: str) -> None:
+            if not is_document:
+                consume(adapter.parse_line(line, envelope))
+
         execution.process = self._runner.run(
             argv, limits=envelope.process_limits(), cancel=cancel, on_line=on_line,
         )
+        if is_document:
+            # SafeProcessRunner has already enforced the envelope's output caps.
+            document = "\n".join(execution.process.lines)
+            for event in adapter.parse_document(document, envelope):
+                consume(event)
+        if not any(event.kind == EventKind.TERMINAL for event in execution.events):
+            consume(adapter.interpret_result(execution.process, envelope))
         return execution
 
     def _build_envelope(self, task, adapter) -> ExecutionEnvelope:
@@ -412,6 +425,11 @@ class ScanCoordinator:
             return True, "sensitive data encountered (path cancelled)"
         if any(e.kind == EventKind.SECRET_CANDIDATE for e in events):
             return True, "sensitive-data signal (secret candidate)"
+        if any(
+            e.kind == EventKind.DIAGNOSTIC and bool(e.data.get("blocking"))
+            for e in events
+        ):
+            return True, "invalid output (blocking parser diagnostic)"
         if process.outcome == ProcessOutcome.OUTPUT_LIMIT:
             return True, "output limit exceeded (possible malformed flood)"
         if process.ok and not any(e.kind == EventKind.TERMINAL for e in events):

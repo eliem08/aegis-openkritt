@@ -191,3 +191,18 @@ class Adapter(Protocol):
 
     def interpret_result(self, result, envelope: ExecutionEnvelope) -> AdapterEvent:
         ...
+
+
+@runtime_checkable
+class DocumentAdapter(Protocol):
+    """Optional contract for tools that emit one bounded JSON/SARIF document.
+
+    The coordinator detects this protocol and delays parsing until the process
+    runner has completed. The runner still owns all byte, line, event, and time
+    limits, so document parsing never creates an unbounded buffering path.
+    """
+
+    def parse_document(
+        self, document: str, envelope: ExecutionEnvelope,
+    ) -> list[AdapterEvent]:
+        ...
