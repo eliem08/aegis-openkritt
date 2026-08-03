@@ -11,8 +11,16 @@ from __future__ import annotations
 
 from pathlib import PurePath, PurePosixPath
 
+from aegis.process import HardenedDockerCommandBuilder, ReadOnlyMount
+from aegis.supply import verify_image_pin
+
 from .base import JsonDocumentAdapter, SchemaMismatch, ToolUnavailable
 from .contract import AdapterManifest, CapabilityTier, EventKind, ExecutionEnvelope
+
+
+SEMGREP_IMAGE = "docker.io/semgrep/semgrep@sha256:207983631beecdbe7fa29196c7f4a7a5f29033933cdb76c687ce4a672e07618d"
+GITLEAKS_IMAGE = "ghcr.io/gitleaks/gitleaks@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f"
+OSV_SCANNER_IMAGE = "ghcr.io/google/osv-scanner@sha256:5116601dedc01c1c580eb92371883ec052fc4c13c3fbc109d621a63ac416d475"
 
 
 SEMGREP_MANIFEST = AdapterManifest(
@@ -74,15 +82,62 @@ def _positive_int(value, field: str) -> int:
 
 
 class _ContainerOnlyDocumentAdapter(JsonDocumentAdapter):
-    def build_command(self, envelope: ExecutionEnvelope) -> list[str]:
-        raise ToolUnavailable(
-            f"{self.manifest.name} is parser-ready but disabled until the hardened "
-            "digest-pinned container executor is configured"
+    image: str = ""
+
+    def __init__(self, container_builder: HardenedDockerCommandBuilder | None = None) -> None:
+        super().__init__()
+        self._container_builder = container_builder
+
+    def result_succeeded(self, result) -> bool:
+        # These pinned CLIs all document exit code 1 as "findings found".
+        return getattr(result, "exit_code", None) in (0, 1)
+
+    def _build_container(self, envelope, command, mounts=()) -> list[str]:
+        if self._container_builder is None:
+            raise ToolUnavailable(
+                f"{self.manifest.name} is parser-ready but disabled until the hardened "
+                "digest-pinned container executor is configured"
+            )
+        if verify_image_pin(self.image) != self.manifest.executable_digest:
+            raise ToolUnavailable(f"{self.manifest.name} image/manifest digest mismatch")
+        return self._container_builder.build(
+            image=self.image,
+            repository=envelope.target,
+            command=command,
+            mounts=tuple(mounts),
         )
+
+    def build_command(self, envelope: ExecutionEnvelope) -> list[str]:
+        raise ToolUnavailable(f"{self.manifest.name} container command is not configured")
 
 
 class SemgrepDocumentAdapter(_ContainerOnlyDocumentAdapter):
     manifest = SEMGREP_MANIFEST
+    image = SEMGREP_IMAGE
+
+    def __init__(
+        self,
+        container_builder: HardenedDockerCommandBuilder | None = None,
+        *,
+        rules_path: str | None = None,
+    ) -> None:
+        super().__init__(container_builder)
+        self._rules_path = rules_path
+
+    def build_command(self, envelope: ExecutionEnvelope) -> list[str]:
+        if not self._rules_path:
+            raise ToolUnavailable("Semgrep requires an approved local rule bundle")
+        return self._build_container(
+            envelope,
+            (
+                "semgrep", "scan", "--json", "--metrics", "off",
+                "--disable-version-check", "--no-autofix", "--oss-only", "--strict",
+                "--jobs", "1", "--max-memory", "768", "--max-target-bytes", "1000000",
+                "--timeout", "10", "--timeout-threshold", "1",
+                "--config", "/rules", "/src",
+            ),
+            (ReadOnlyMount(self._rules_path, "/rules"),),
+        )
 
     def map_document(self, root, envelope):
         if not isinstance(root, dict) or not isinstance(root.get("results"), list):
@@ -129,6 +184,18 @@ class SemgrepDocumentAdapter(_ContainerOnlyDocumentAdapter):
 
 class GitleaksDocumentAdapter(_ContainerOnlyDocumentAdapter):
     manifest = GITLEAKS_MANIFEST
+    image = GITLEAKS_IMAGE
+
+    def build_command(self, envelope: ExecutionEnvelope) -> list[str]:
+        return self._build_container(
+            envelope,
+            (
+                "dir", "/src", "--report-format", "json", "--report-path", "-",
+                "--redact=100", "--no-banner", "--no-color", "--log-level", "error",
+                "--exit-code", "1", "--max-archive-depth", "0", "--max-decode-depth", "0",
+                "--max-target-megabytes", "10",
+            ),
+        )
 
     def map_document(self, root, envelope):
         if not isinstance(root, list):
@@ -160,11 +227,10 @@ class GitleaksDocumentAdapter(_ContainerOnlyDocumentAdapter):
 
 class OsvScannerDocumentAdapter(_ContainerOnlyDocumentAdapter):
     manifest = OSV_SCANNER_MANIFEST
+    image = OSV_SCANNER_IMAGE
 
-    def result_succeeded(self, result) -> bool:
-        # OSV-Scanner documents exit code 1 as "vulnerabilities/findings found".
-        # Other non-zero values remain failures; timeouts/limits have no exit code.
-        return getattr(result, "exit_code", None) in (0, 1)
+    def build_command(self, envelope: ExecutionEnvelope) -> list[str]:
+        raise ToolUnavailable("OSV-Scanner requires a pinned offline database snapshot")
 
     def map_document(self, root, envelope):
         if not isinstance(root, dict) or not isinstance(root.get("results"), list):

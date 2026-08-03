@@ -7,7 +7,7 @@ import json
 import pytest
 
 from aegis.adapters import EventKind, ExecutionEnvelope
-from aegis.process import ProcessOutcome, ProcessResult
+from aegis.process import HardenedDockerCommandBuilder, ProcessOutcome, ProcessResult
 from aegis.adapters.repository_scanners import (
     GitleaksDocumentAdapter,
     OsvScannerDocumentAdapter,
@@ -108,14 +108,68 @@ def test_osv_document_expands_vulnerabilities_into_dependency_candidates():
     SemgrepDocumentAdapter(), GitleaksDocumentAdapter(), OsvScannerDocumentAdapter(),
 ])
 def test_repository_scanners_refuse_host_execution_until_container_gate(adapter):
-    with pytest.raises(Exception, match="hardened.*container executor"):
+    with pytest.raises(Exception, match="requires|disabled"):
         adapter.build_command(_envelope(adapter))
 
-def test_osv_exit_one_is_findings_success_but_other_failures_are_not():
-    adapter = OsvScannerDocumentAdapter()
+@pytest.mark.parametrize("adapter", [
+    SemgrepDocumentAdapter(), GitleaksDocumentAdapter(), OsvScannerDocumentAdapter(),
+])
+def test_scanner_exit_one_is_findings_success_but_other_failures_are_not(adapter):
     found = ProcessResult(ProcessOutcome.FAILED, exit_code=1)
     broken = ProcessResult(ProcessOutcome.FAILED, exit_code=127)
     timed_out = ProcessResult(ProcessOutcome.TIMED_OUT, exit_code=None)
     assert adapter.result_succeeded(found) is True
     assert adapter.result_succeeded(broken) is False
     assert adapter.result_succeeded(timed_out) is False
+
+
+def test_semgrep_and_gitleaks_commands_use_hardened_digest_boundary(tmp_path):
+    repos = tmp_path / "repos"
+    repo = repos / "owner" / "project"
+    repo.mkdir(parents=True)
+    approved = tmp_path / "approved"
+    rules = approved / "rules"
+    rules.mkdir(parents=True)
+    builder = HardenedDockerCommandBuilder(
+        str(repos), approved_mount_roots=(str(approved),),
+    )
+
+    semgrep = SemgrepDocumentAdapter(builder, rules_path=str(rules))
+    semgrep_argv = semgrep.build_command(_envelope(semgrep).__class__.for_manifest(
+        semgrep.manifest,
+        tenant_id="tenant", engagement_id="eng", scan_id="scan", stage_id="stage",
+        task_id="task", target=str(repo), scope_digest="scope", idempotency_key="idem",
+    ))
+    gitleaks = GitleaksDocumentAdapter(builder)
+    gitleaks_argv = gitleaks.build_command(_envelope(gitleaks).__class__.for_manifest(
+        gitleaks.manifest,
+        tenant_id="tenant", engagement_id="eng", scan_id="scan", stage_id="stage",
+        task_id="task", target=str(repo), scope_digest="scope", idempotency_key="idem",
+    ))
+
+    semgrep_cmd = " ".join(semgrep_argv)
+    gitleaks_cmd = " ".join(gitleaks_argv)
+    for command in (semgrep_cmd, gitleaks_cmd):
+        assert "--network none" in command
+        assert "--read-only" in command
+        assert "--pull never" in command
+    assert "--metrics off" in semgrep_cmd
+    assert "--disable-version-check" in semgrep_cmd
+    assert "--config /rules /src" in semgrep_cmd
+    assert "--redact=100" in gitleaks_cmd
+    assert "--report-path -" in gitleaks_cmd
+    assert "--max-decode-depth 0" in gitleaks_cmd
+
+
+def test_osv_execution_stays_closed_without_pinned_offline_database(tmp_path):
+    repos = tmp_path / "repos"
+    repo = repos / "owner" / "project"
+    repo.mkdir(parents=True)
+    adapter = OsvScannerDocumentAdapter(HardenedDockerCommandBuilder(str(repos)))
+    envelope = ExecutionEnvelope.for_manifest(
+        adapter.manifest,
+        tenant_id="tenant", engagement_id="eng", scan_id="scan", stage_id="stage",
+        task_id="task", target=str(repo), scope_digest="scope", idempotency_key="idem",
+    )
+    with pytest.raises(Exception, match="pinned offline database"):
+        adapter.build_command(envelope)

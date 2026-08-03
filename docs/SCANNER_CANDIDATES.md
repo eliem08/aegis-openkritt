@@ -32,8 +32,12 @@ quarantine, and a live authorized-lab run.
   and repositories under the configured clone root, with non-root identity,
   read-only source/root, no network, dropped capabilities, no-new-privileges,
   and CPU/memory/PID/tmpfs limits.
-- [ ] Wire each scanner's exact command and approved read-only data mounts through
-  that boundary, prove cancellation cleanup, and run the local container drill.
+- [x] Wire the exact pinned Semgrep and Gitleaks commands through the hardened
+  boundary. Semgrep uses only mounted local rules with metrics/version checks/
+  autofix disabled; Gitleaks emits fully redacted JSON to stdout and disables
+  decoding/archive expansion.
+- [ ] Wire OSV-Scanner after its offline DB snapshot/cache location is pinned;
+  prove cancellation cleanup and run the local container drill for all three.
 - [ ] Disable Semgrep telemetry, remote configuration, login, version checks, and
   auto-update; mount only an approved commit-and-digest-pinned local rule bundle.
 - [x] Treat OSV exit code 1 as vulnerabilities found, not an infrastructure
