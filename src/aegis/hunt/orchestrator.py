@@ -43,6 +43,8 @@ class HuntConfig:
     dry_run: bool = True                     # SAFE DEFAULT: plan, launch nothing
     inspect_limit: int = 20                  # how many programs to inspect when auto-selecting
     require_bounty: bool = True              # only profitable programs: bounty-eligible code only
+    workflow_id: str = ""                    # open·kritt workflow to run (default: the account default)
+    post_script_id: str = ""                 # open·kritt post-script (default: the account default)
 
 
 @dataclass
@@ -58,6 +60,7 @@ class HuntReport:
     def summary(self) -> dict:
         launched = sum(len([l for l in p.launches if l.ok]) for p in self.programs)
         gated = [p.handle for p in self.programs if p.gated]
+        launch_errors = [l.error for p in self.programs for l in p.launches if l.error][:5]
         return {
             "dry_run": self.dry_run,
             "auto_selected": [{"handle": c.handle, "bounty_repos": c.repo_count,
@@ -67,6 +70,7 @@ class HuntReport:
             "programs_gated_out": gated,
             "repos_in_scope": sum(len(p.repos) for p in self.programs),
             "scans_launched_this_cycle": launched,
+            "launch_errors": launch_errors,     # why nothing launched, if it didn't
             "scans_tracked": len(self.launched_scans),
             "findings": (self.console or {}).get("totals", {}).get("candidates", 0),
             "outcomes_synced": getattr(self.sync, "recorded", 0),
@@ -103,6 +107,7 @@ class HuntOrchestrator:
             result = run_repo_pipeline(
                 self._h1, self._ok, handle, model=cfg.model,
                 fallbacks=(cfg.fallback_models or None), bounty_only=cfg.require_bounty,
+                workflow_id=(cfg.workflow_id or None), post_script_id=(cfg.post_script_id or None),
                 launch=not cfg.dry_run, max_repos=cfg.max_repos_per_program)
             programs.append(result)
             for launch in result.launches:

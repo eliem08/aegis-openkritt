@@ -51,6 +51,8 @@ class ScanTemplate:
     launch_policy: str = "queue"               # don't preempt a running scan
     agent_skill_ids: tuple[str, ...] = ()
     fallback_models: tuple[str, ...] = ()      # tried in order if the primary is unavailable
+    required_extra_keys: tuple[str, ...] = ()  # extra.* keys the workflow/post-script need
+    extra: dict = field(default_factory=dict)  # static extra values (merged per launch)
 
     @property
     def models(self) -> list[str]:
@@ -142,15 +144,20 @@ def _to_repo_full(identifier: str) -> str | None:
 
 # --- discover the scan template from a live backend -------------------------
 
+_EXTRA_REF = re.compile(r"extra\.([a-zA-Z0-9_]+)")
+
+
 def discover_scan_template(client, *, model: str, harness: str = "claude-code",
                            model_provider: str = "claude", fallbacks=None,
+                           workflow_id=None, post_script_id=None,
                            **overrides) -> ScanTemplate:
     """Fill workflow / post-script / severity-ranker from the backend's configured
-    resources (open·kritt ships defaults). Raises if a required resource is absent.
+    resources. Prefers the default of each; ``workflow_id`` / ``post_script_id``
+    override the choice. Also discovers the ``extra.*`` keys the chosen workflow and
+    post-script require, so a launch validates.
 
-    ``fallbacks`` are model ids tried in order if the primary is unavailable at
-    launch. When ``None``, they are auto-derived from the account's model catalog
-    (every other model for that provider, catalog order).
+    ``fallbacks`` are model ids tried in order if the primary is unavailable; when
+    ``None`` they are auto-derived from the account's model catalog.
     """
     workflows = client.list_workflows()
     post_scripts = client.list_post_scripts()
@@ -161,22 +168,53 @@ def discover_scan_template(client, *, model: str, harness: str = "claude-code",
         raise PipelineError("open·kritt has no post-script configured")
     if not rankers:
         raise PipelineError("open·kritt has no severity ranker configured")
+
+    workflow = _pick(workflows, workflow_id)
+    post_script = _pick(post_scripts, post_script_id)
+    ranker = _pick(rankers, None)
     if fallbacks is None:
         try:
             fallbacks = tuple(m for m in client.list_models(model_provider) if m != model)
         except Exception:
             fallbacks = ()
+    required = _required_extra_keys(client, workflow.get("id"), post_script)
     return ScanTemplate(
-        workflow_id=str(_first_id(workflows)),
-        post_script_id=str(_first_id(post_scripts)),
-        severity_ranker=str(rankers[0].get("content") or rankers[0].get("markdown") or ""),
+        workflow_id=str(workflow.get("id")),
+        post_script_id=str(post_script.get("id")),
+        severity_ranker=str(ranker.get("content") or ranker.get("markdown") or ""),
         model=model, harness=harness, model_provider=model_provider,
-        fallback_models=tuple(fallbacks), **overrides)
+        fallback_models=tuple(fallbacks), required_extra_keys=required, **overrides)
+
+
+def _pick(items: list, chosen_id) -> dict:
+    """The chosen item by id, else the one flagged default, else the first."""
+    if chosen_id is not None:
+        for it in items:
+            if str(it.get("id")) == str(chosen_id):
+                return it
+    for it in items:
+        if it.get("isDefault"):
+            return it
+    return items[0]
+
+
+def _required_extra_keys(client, workflow_id, post_script) -> tuple[str, ...]:
+    """The extra.* keys referenced by the workflow's steps and the post-script."""
+    keys: set[str] = set()
+    try:
+        wf = client.get_workflow(workflow_id)
+        for step in (wf.get("steps") or []):
+            keys.update(_EXTRA_REF.findall(str(step.get("content") or "")))
+    except Exception:
+        pass
+    keys.update(_EXTRA_REF.findall(str((post_script or {}).get("content") or "")))
+    return tuple(sorted(keys))
 
 
 # --- launch scans -----------------------------------------------------------
 
-def build_scan_payload(repo: RepoTarget, t: ScanTemplate, *, model: str | None = None) -> dict:
+def build_scan_payload(repo: RepoTarget, t: ScanTemplate, *, model: str | None = None,
+                       extra: dict | None = None) -> dict:
     return {
         "workflowId": t.workflow_id,
         "postScriptId": t.post_script_id,
@@ -189,30 +227,58 @@ def build_scan_payload(repo: RepoTarget, t: ScanTemplate, *, model: str | None =
         "severity_ranker": t.severity_ranker,
         "launchPolicy": t.launch_policy,
         "agentSkillIds": list(t.agent_skill_ids),
+        "extra": {**t.extra, **(extra or {})},
     }
 
 
-def launch_repo_scans(client, repos, template: ScanTemplate) -> list[ScanLaunch]:
-    """Launch one scan per repo, falling back through ``template.models`` in order
-    when the primary model is rejected or unavailable at launch time."""
+def resolve_extra(keys, *, handle: str = "", repo: RepoTarget | None = None) -> dict:
+    """Best-effort values for a workflow's required ``extra.*`` keys.
+
+    Known keys map to real context (the program's HackerOne URL, the repo);
+    anything else gets the program URL so the launch still validates.
+    """
+    url = f"https://hackerone.com/{handle}" if handle else ""
+    repo_full = repo.repo_full if repo else ""
+    known = {
+        "bug_bounty_url": url, "program_url": url, "program": handle, "handle": handle,
+        "target": repo_full, "repo": repo_full, "repo_full": repo_full, "scope": repo_full,
+    }
+    return {k: (known.get(k) or url or repo_full) for k in keys}
+
+
+def launch_repo_scans(client, repos, template: ScanTemplate, *, handle: str = "") -> list[ScanLaunch]:
+    """Launch one scan per repo, filling required extra keys and falling back through
+    ``template.models`` in order when the primary is rejected or unavailable."""
     models = template.models or [template.model]
     launches: list[ScanLaunch] = []
     for repo in repos:
+        extra = resolve_extra(template.required_extra_keys, handle=handle, repo=repo)
         scan_id = used = None
         last_error = "no models configured"
         for model in models:
             try:
-                resp = client.create_scan(build_scan_payload(repo, template, model=model))
+                resp = client.create_scan(build_scan_payload(repo, template, model=model, extra=extra))
                 sid = str(resp.get("id") or resp.get("scanId") or "")
                 if sid:
                     scan_id, used = sid, model
                     break
                 last_error = f"{model}: no scan id in response"
             except Exception as exc:             # capacity / validation / network -> try next
-                last_error = f"{model}: {exc}"
+                last_error = f"{model}: {_err(exc)}"
         launches.append(ScanLaunch(repo, scan_id=scan_id, model=used,
                                    error=None if scan_id else last_error))
     return launches
+
+
+def _err(exc: Exception) -> str:
+    """A useful message even for httpx errors (surface the response body)."""
+    resp = getattr(exc, "response", None)
+    if resp is not None:
+        try:
+            return f"HTTP {resp.status_code}: {resp.text[:300]}"
+        except Exception:
+            return f"HTTP {resp.status_code}"
+    return str(exc)
 
 
 # --- collect findings into one console --------------------------------------
@@ -232,7 +298,8 @@ def console_for_scans(client, scan_ids, *, calibration=None, **ingest_kwargs) ->
 def run_repo_pipeline(h1_client, ok_client, handle: str, *, model: str,
                       template: ScanTemplate | None = None, launch: bool = True,
                       max_repos: int | None = None, fallbacks=None,
-                      bounty_only: bool = False) -> PipelineResult:
+                      bounty_only: bool = False, workflow_id=None,
+                      post_script_id=None) -> PipelineResult:
     """Discover a program's repos and (optionally) launch an open·kritt scan on each.
 
     ``launch=False`` plans only — it returns the in-scope repos without touching
@@ -250,8 +317,10 @@ def run_repo_pipeline(h1_client, ok_client, handle: str, *, model: str,
     if scope.gated or not repos or not launch:
         return result
 
-    template = template or discover_scan_template(ok_client, model=model, fallbacks=fallbacks)
-    result.launches = launch_repo_scans(ok_client, repos, template)
+    template = template or discover_scan_template(
+        ok_client, model=model, fallbacks=fallbacks,
+        workflow_id=workflow_id, post_script_id=post_script_id)
+    result.launches = launch_repo_scans(ok_client, repos, template, handle=rules.handle or handle)
     return result
 
 

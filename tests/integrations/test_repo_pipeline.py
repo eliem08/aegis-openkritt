@@ -157,6 +157,58 @@ def test_launch_reports_error_when_all_models_fail():
     assert not launch.ok and "claude-opus-4-8" in launch.error       # last model tried is reported
 
 
+def test_discover_fills_required_extra_keys_and_prefers_default_workflow():
+    from aegis.integrations.repo_pipeline import RepoTarget, build_scan_payload, resolve_extra
+
+    class WithWorkflows(FakeOK):
+        def list_workflows(self):
+            return [{"id": "1"}, {"id": "2", "isDefault": True}]      # default is #2
+        def get_workflow(self, wid):
+            return {"id": wid, "steps": [{"content": "analyze {{extra.bug_bounty_url}} for {{repo_full}}"}]}
+        def list_post_scripts(self):
+            return [{"id": "9", "content": "report to {{extra.bug_bounty_url}}"}]
+
+    t = discover_scan_template(WithWorkflows(), model="claude-opus-5")
+    assert t.workflow_id == "2"                                        # default preferred over first
+    assert t.required_extra_keys == ("bug_bounty_url",)
+    extra = resolve_extra(t.required_extra_keys, handle="cloudflare",
+                          repo=RepoTarget(repo_full="cloudflare/workerd", identifier="…"))
+    assert extra["bug_bounty_url"] == "https://hackerone.com/cloudflare"
+    payload = build_scan_payload(RepoTarget(repo_full="cloudflare/workerd", identifier="…"), t,
+                                 model="claude-opus-5", extra=extra)
+    assert payload["extra"]["bug_bounty_url"] == "https://hackerone.com/cloudflare"
+
+
+def test_launch_fills_extra_so_the_payload_validates():
+    from aegis.integrations.repo_pipeline import RepoTarget
+    seen = {}
+
+    class Capture(FakeOK):
+        def create_scan(self, payload):
+            seen.update(payload)
+            return {"id": "77"}
+
+    t = ScanTemplate(workflow_id="1", post_script_id="2", severity_ranker="# r",
+                     model="claude-opus-5", required_extra_keys=("bug_bounty_url",))
+    launch_repo_scans(Capture(), [RepoTarget(repo_full="acme/api", identifier="…")], t, handle="acme")
+    assert seen["extra"] == {"bug_bounty_url": "https://hackerone.com/acme"}
+
+
+def test_launch_error_surfaces_the_http_body():
+    import httpx
+    from aegis.integrations.repo_pipeline import RepoTarget
+
+    class Rejecting(FakeOK):
+        def create_scan(self, payload):
+            req = httpx.Request("POST", "http://x/api/scans")
+            resp = httpx.Response(422, json={"error": "Validation failed."}, request=req)
+            raise httpx.HTTPStatusError("422", request=req, response=resp)
+
+    t = ScanTemplate(workflow_id="1", post_script_id="2", severity_ranker="# r", model="m")
+    [launch] = launch_repo_scans(Rejecting(), [RepoTarget(repo_full="a/b", identifier="…")], t)
+    assert not launch.ok and "422" in launch.error and "Validation failed" in launch.error
+
+
 def test_discover_auto_derives_fallbacks_from_catalog():
     class WithCatalog(FakeOK):
         def list_models(self, provider="claude"):

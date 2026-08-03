@@ -50,6 +50,9 @@ class OpenKrittClient:
     def list_workflows(self) -> list[dict]:
         return self._get("/api/workflows") or []
 
+    def get_workflow(self, workflow_id) -> dict:
+        return self._get(f"/api/workflows/{workflow_id}") or {}
+
     def list_post_scripts(self) -> list[dict]:
         return self._get("/api/post-scripts") or []
 
