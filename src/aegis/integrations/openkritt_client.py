@@ -73,6 +73,10 @@ class OpenKrittClient:
         """POST /api/scans — queue an open·kritt research run. Operator-initiated."""
         return self._post("/api/scans", payload)
 
+    def create_workflow(self, payload: dict) -> dict:
+        """POST /api/workflows — create a research playbook (levels + steps)."""
+        return self._post("/api/workflows", payload)
+
     # --- plumbing -----------------------------------------------------------
 
     def _get(self, path: str, *, params=None):
