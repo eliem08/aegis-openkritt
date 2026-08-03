@@ -20,6 +20,8 @@ from dataclasses import dataclass
 from aegis.ingest.hackerone import map_program
 from aegis.integrations.repo_pipeline import repos_in_scope
 
+from .reward import DEFAULT_REWARD_POLICIES, reward_factor, sev_rank
+
 # Payout-ceiling weight by scope max_severity. Unknown -> medium (don't zero it out).
 _SEVERITY_WEIGHT = {"critical": 4.0, "high": 3.0, "medium": 2.0, "low": 1.0, "none": 0.0}
 
@@ -35,13 +37,20 @@ class ProgramCandidate:
     offers_bounties: bool
     repo_count: int              # bounty-eligible code repos considered
     top_severity: str            # highest payout ceiling among them
-    profitability: float         # severity-weighted sum across those repos
+    profitability: float         # reward-adjusted, severity-weighted score
+    reward_floor: str = "low"    # lowest severity the program actually pays
+    reward_note: str = ""        # why (from the reward policy overlay)
 
 
 def select_programs(h1_client, *, want: int = 3, inspect_limit: int = 20,
-                    require_bounty: bool = True, skip_handles=()) -> list[ProgramCandidate]:
+                    require_bounty: bool = True, skip_handles=(),
+                    reward_policies=None) -> list[ProgramCandidate]:
     """Inspect up to ``inspect_limit`` authorized programs; return the top ``want``
-    by profitability. ``require_bounty`` drops programs with no bounty-eligible code."""
+    by REWARD-ADJUSTED profitability. ``require_bounty`` drops programs with no
+    bounty-eligible code; programs whose severity ceiling can't clear their reward
+    floor are dropped, and high-floor / hard-to-exploit-excluding programs are
+    deprioritized (so we don't chase targets whose realistic findings won't pay)."""
+    policies = DEFAULT_REWARD_POLICIES if reward_policies is None else reward_policies
     skip = {str(h).lower() for h in skip_handles}
     candidates: list[ProgramCandidate] = []
     for program in (h1_client.list_programs() or [])[:inspect_limit]:
@@ -62,14 +71,21 @@ def select_programs(h1_client, *, want: int = 3, inspect_limit: int = 20,
         if require_bounty and not bounty_repos:
             continue                                  # no payout here -> not profitable
         rated = bounty_repos or scope.repos
-        profitability = sum(_severity_weight(r.max_severity) for r in rated)
         top = max(rated, key=lambda r: _severity_weight(r.max_severity)).max_severity
+
+        policy = policies.get(rules.handle or handle)
+        # ceiling can't even reach the reward floor -> can never pay, drop it
+        if policy and sev_rank(top) < sev_rank(policy.min_severity):
+            continue
+        raw = sum(_severity_weight(r.max_severity) for r in rated)
+        profitability = raw * reward_factor(policy)     # reward-adjusted
         candidates.append(ProgramCandidate(
             handle=rules.handle or handle, name=rules.name,
             offers_bounties=bool(bounty_repos), repo_count=len(rated),
-            top_severity=top or "unspecified", profitability=round(profitability, 2)))
+            top_severity=top or "unspecified", profitability=round(profitability, 2),
+            reward_floor=policy.min_severity if policy else "low",
+            reward_note=policy.notes if policy else ""))
 
-    # most profitable first, then higher ceiling, then more repos
     candidates.sort(key=lambda c: (c.profitability, _severity_weight(c.top_severity),
                                    c.repo_count), reverse=True)
     return candidates[:want]

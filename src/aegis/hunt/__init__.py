@@ -6,5 +6,16 @@ authorized automation-permitted code-repo scope, and is dry-run until armed. See
 """
 
 from .orchestrator import HuntConfig, HuntOrchestrator, HuntReport
+from .reward import (
+    DEFAULT_REWARD_POLICIES,
+    RewardPolicy,
+    eligibility,
+    load_reward_policies,
+    meets_floor,
+)
 
-__all__ = ["HuntConfig", "HuntOrchestrator", "HuntReport"]
+__all__ = [
+    "HuntConfig", "HuntOrchestrator", "HuntReport",
+    "RewardPolicy", "DEFAULT_REWARD_POLICIES", "load_reward_policies",
+    "meets_floor", "eligibility",
+]
