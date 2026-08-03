@@ -9,14 +9,12 @@ in code, whether any proposed action may run.
 > The agent is a planner; this layer is the law. The LLM can never talk its way
 > past a gate — every action is classified and checked by code, not prose.
 
-Status: safety core, control-plane API, orchestrator loop (local **or over the
-API**), HackerOne ingestion, knowledge base, **outbound scope proxy**,
-**guardrailed DeepSeek planner**, an **extensible vulnerability-detector
-framework** (BOLA/IDOR, exposed files, open redirect), and **acceptance-grade
-reporting** (redact → dedup → quality gates → HackerOne-ready report) —
-implemented and tested (**331 tests**). Full worker fleet and the patch protocol
-are still partial. See [Roadmap](#roadmap) and [PRODUCTION.md](PRODUCTION.md) for
-an honest readiness assessment.
+Status: the safety core, tenant-aware control plane, durable scan/graph/learning
+state, detector and reporting pipelines, automatic supervised hunting loop, real
+Redis coordination, signed scoped egress, and hardened single-server deployment
+artifacts are implemented and tested. Live production approval still requires
+reviewed image/binary pins, a running Docker host, a private OAST endpoint, and
+the executable drills in [PRODUCTION.md](PRODUCTION.md).
 
 ---
 

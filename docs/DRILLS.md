@@ -1,57 +1,58 @@
-# Phase 5 Failure Drills — Runbook and Status
+# Hardened production drills
 
-The Phase 5 completion gate requires load, isolation, failover, restore, rotation,
-supply-chain, and kill-switch drills. Drills split into two groups: those runnable
-against the local single-node stack (run and recorded here), and those that need
-real production infrastructure (HA Postgres, Redis, KMS, a load harness) which is
-**not** provisioned in this environment. Nothing below is claimed unless it was
-actually executed.
+The drill runner records `pass`, `fail`, or `not_configured`. Every required gate
+must be `pass` for a production verdict; missing infrastructure is never a skip.
 
-## Runnable locally — EXECUTED, results recorded
+## Code-backed and tested
 
-**Live against the compose Postgres** (`scratchpad/drill_pg.py`,
-`scratchpad/drill_restore.py`), latest run 2026-08-03:
+The repository test suite covers:
 
-| Drill | Result | Evidence |
-|---|---|---|
-| Durability + reconnect across a DB **restart** | **PASS** | state survived `docker restart`; fresh pool reconnected (`task=queued`, `spend=5.0`) |
-| Stale-lease reclaim after a **crashed worker** | **PASS** | expired lease on a `running` task reclaimed → requeued |
-| **Idempotent** reservation finalize (no double-commit) | **PASS** | repeat finalize left usage unchanged |
-| **Backup / restore** (`pg_dump -Fc` → wipe → `pg_restore --clean`) | **PASS** | 26 KB dump; data wiped then fully restored & consistent (`task=queued`, `spend=7.5`, `rc=0`) |
+- atomic Redis rate windows, semaphores, deduplication, expiry, namespacing, and
+  fail-closed outage behavior;
+- signed egress authorization, destination/method binding, scope/private-IP
+  denial, redirect reauthorization, response limits, and global request budgets;
+- production configuration and `_FILE` secret inputs;
+- release-lock schema, immutable images, legal-review flags, and executable
+  checksum tamper rejection;
+- secret/TLS bootstrap without secret disclosure or accidental overwrite;
+- chunk-authenticated encrypted backup round trips and tamper rejection;
+- strictly bounded disposable restore-database names;
+- drill verdicts that reject both failure and missing configuration.
 
-**In-process, CI-covered drills** (`tests/tools/test_drills.py` — real threads/logic):
+## Live single-server sequence
 
-| Drill | Result |
-|---|---|
-| **Redis outage** fails closed (active DENY, passive PAUSE, cancellation assumed) + reconciles from durable leases on recovery | **PASS** |
-| **Load**: 80 concurrent reservations against a cap of 10 → exactly 10 win, no overbooking | **PASS** |
-| **Kill switch under load**: fires mid-scan → queued work drained, no new claims | **PASS** |
+Run these only against the hardened stack and local/authorized targets:
 
-Plus the broader suite: multi-worker lease/reservation/approval races
-(`test_reservations.py`, 20 racing threads), tenant isolation across API/queues/
-artifacts, key rotation/revocation/wrong-key fail-closed (`test_keyring.py`),
-supply-chain severity/image-pin policy (`tests/supply/`), and binary pinning +
-tamper rejection (`tests/tools/test_pin.py`).
+1. Start the production stack and confirm PostgreSQL, Redis, egress, and control
+   plane health.
+2. Run `production-drills`; retain its JSON and Markdown output.
+3. Stop Redis. Confirm new active work is denied, passive work pauses, and running
+   work treats cancellation as active. Restart Redis and reconcile durable leases.
+4. Start the opt-in authorized lab. From a worker-only container, prove direct
+   target connectivity is impossible. Then run an authorized request through the
+   signed egress boundary and prove out-of-scope/private/expired/over-budget
+   requests fail.
+5. Create an encrypted backup, verify its archive, restore it into the generated
+   `aegis_verify_*` database, validate migrations/tables, and confirm the
+   verification database was removed.
+6. Start the digest-pinned browser worker, execute the authorized lab workflow,
+   and confirm downloads are quarantined and out-of-scope browser events blocked.
+7. Register a private OAST session, observe a lab callback, reject an unmatched
+   callback, expire and deregister the session, then verify retention cleanup.
+8. Fire the kill switch during bounded lab traffic and confirm queued work drains
+   and no new lease is granted.
+9. Run bounded load, record latency/error summaries, and set alerts from evidence.
 
-## Still NOT runnable here — genuinely require real infrastructure (blocked, not faked)
+## Historical evidence
 
-| Drill | Needs | Why not here |
-|---|---|---|
-| PostgreSQL **failover** (primary → replica promotion) | A replicated PG cluster with automated failover | Local compose is single-node; a restart (done above) is recovery, not failover |
-| **KMS/HSM/Vault** live rotation against a real key service | A cloud KMS/Vault | The key-ring rotation/revocation mechanism is tested; live KMS integration is a deployment step |
-| **Load at production scale** with SLO derivation | A load harness + the lab at scale | The concurrency-safety load drill runs above; deriving published SLOs needs sustained load-test evidence, not invented targets |
-| Minimal non-root **seccomp images** + image egress/privilege/filesystem | Built container images + a runtime | Images are a deployment artifact; the SBOM/severity/pin policy is tested, the images are not built here |
-| Rolling-upgrade / rollback | A deployment target | No deployment target |
+Earlier development-stack drills passed PostgreSQL restart durability,
+`pg_dump`/`pg_restore`, reservation idempotency, stale-lease reclaim, concurrent
+budget admission, and kill-switch behavior. Those results remain useful regression
+evidence but do not substitute for the hardened Compose gate.
 
-## To run the full gate
+## Not covered by a single-server drill
 
-1. Provision the production topology (HA Postgres, Redis, KMS, deployed control/data
-   planes) per the Phase 5 spec.
-2. Pin binaries with `python -m aegis.tools.pin <release-file> --tool <name>
-   --version <v> --expected <publisher-sha256>` (fails closed on mismatch) after the
-   **legal/license review** for the exact distributed versions.
-3. Drive each drill above against the live stack, capturing evidence, and record the
-   alert thresholds + on-call runbook entries the gate requires.
-
-This gate permits a **human-supervised** production launch only — never unattended
-exploitation or automatic submission.
+Replication promotion, point-in-time recovery, multi-node Redis failover,
+KMS/HSM/Vault rotation, rolling upgrades, and production-scale SLO validation
+require the future distributed deployment. They remain blocked until real
+infrastructure and operator evidence exist.

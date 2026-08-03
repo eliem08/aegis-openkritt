@@ -306,3 +306,28 @@ pilot; it permits neither unattended exploitation nor automatic submission.
 6. A disabled feature may be implemented but is not complete until its enablement
    gate and operational documentation pass.
 
+## Hardened single-server production update (2026-08-03)
+
+The earlier program-status paragraph is historical. The following implementation
+supersedes its claims about Redis, worker egress, learning persistence, and
+single-server recovery:
+
+| Capability | Status | Evidence |
+|---|---|---|
+| Real Redis coordination with atomic rate/semaphore operations | complete | `c67da61`; fail-closed unit coverage |
+| Production-only configuration and file-mounted secret validation | complete | `c67da61` |
+| Signed scoped HTTP egress service | code-complete | `c67da61`; live container isolation still requires Docker drill |
+| Hardened Compose networks, TLS bootstrap, non-root/read-only app services | statically complete | `c67da61`; Compose config validates |
+| Runtime scanner release lock and executable checksum verification | complete | `fbf6520`; real releases remain operator/legal-review supplied |
+| PostgreSQL learning outcomes and submission ledger | complete | `fbf6520`; live integration test is DSN-gated |
+| Authenticated encrypted backup and archive verification | complete | `fbf6520` |
+| Disposable isolated database restore and integrity verification | complete | `fbf6520`; live run requires the production PostgreSQL service |
+| Machine-readable production drill verdict | complete | `fbf6520`; required `not_configured` gates fail the verdict |
+| Digest-pinned Chromium workflow in an isolated worker | not-configured | requires reviewed image digest and live browser drill |
+| Private OAST registration/callback/expiry/teardown | not-configured | requires user-controlled domain, TLS, and deployed endpoint |
+| Container image builds and direct-egress denial proof | not-run | Docker engine unavailable during this implementation run |
+| HA Postgres/Redis, PITR, KMS/HSM/Vault, rolling upgrades | blocked | distributed infrastructure, outside single-server scope |
+
+The repository remains fail-closed: no placeholder digest, fake browser, public
+OAST, missing executable, or skipped infrastructure check can produce a production
+pass. See `PRODUCTION.md` and `docs/DRILLS.md` for the executable gate.

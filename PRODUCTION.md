@@ -1,99 +1,137 @@
 # Production readiness
 
-An honest assessment of what is production-grade today and what is not. The
-guiding principle from the operating prompt applies here too: **fail closed, and
-don't overclaim.**
+This document distinguishes implemented controls from infrastructure that has
+actually passed a live drill. A configuration value or test double is not a
+production result.
 
-## TL;DR
+## Current verdict
 
-The **deterministic safety core is production-quality**: the policy engine,
-authorization/signature verification (HMAC or Ed25519), scope enforcement,
-consequence tiers, budgets, kill switch, and the control-plane API are
-well-tested (330+ tests), fail closed, and auditable. Control state is **durable**
-(SQLite or pooled Postgres, encrypted at rest). What is **not yet
-production-ready**: scan/asset/observation state is not yet persisted, external
-CLI tools have no enforced network sandbox, principals are not tenant-bound,
-authorize/commit is not yet atomic, and the discovery/active-testing tool
-integrations are unbuilt (see the phase specs in `docs/`). Run it in **staging /
-supervised engagements**, not unattended against production targets.
+The deterministic policy, authorization, tenancy, budget, reservation, evidence,
+detector, reporting, and persistence layers are suitable for supervised use. The
+repository now also contains a hardened single-server deployment with real
+PostgreSQL and Redis paths, signed scoped egress, file-mounted secrets, runtime
+release pins, encrypted backups, isolated restore verification, and executable
+readiness reports.
 
-## Ready for production
+The hardened stack is **not yet live-verified on this machine**. Docker Compose is
+installed, but the Docker engine was unavailable during the implementation run,
+and the repository deliberately does not invent third-party image/binary digests,
+a private OAST domain, or its TLS certificate. Until those gates pass, use the
+development stack or an authorized supervised lab; do not claim unattended
+production readiness.
 
-- **Policy gate** (`aegis.policy`) — signed authorization objects, wildcard-aware
-  scope, consequence tiers, approvals, rate/spend budgets, kill switch. Fail
-  closed on every error path; 100+ tests.
-- **Control-plane API** (`aegis.api`) — bearer auth with roles, constant-time
-  token checks, signature-verified registration, correlation IDs, structured
-  JSON logs, `/healthz` + `/readyz`. Defaults fail closed (auth on, signatures
-  required).
-- **Orchestrator** (`aegis.orchestrator`) — every action gated before it runs;
-  two-phase gate/commit so denied work costs no budget; kill switch and
-  stop-on-sensitive-data honored; runs in-process or over the API.
-- **Ingestion** (`aegis.ingest`) — read-only HackerOne client with retry/backoff
-  and Retry-After handling; program rules parsed into scope + automation/AI/rate
-  constraints; forbidden-automation programs yield zero permitted actions.
-- **Knowledge** (`aegis.knowledge`) — corpus + historical priors feeding
-  prioritisation and planning.
-- **Outbound scope proxy** (`aegis.netgate`) — every request, redirect hop, and
-  resolved IP checked against scope; SSRF/internal ranges blocked; fails closed.
-  (Caveat: not fully DNS-rebinding-proof — needs connection-level IP pinning.)
-- **LLM planner** (`aegis.ai`) — DeepSeek as a *guardrailed* planner: output
-  filtered to allowed actions + in-scope targets, key from env, deterministic
-  fallback. The model is never trusted; the gate re-checks.
-- **Ed25519 signing** (`aegis.policy.signing`) — asymmetric authorization
-  signatures: the control plane signs with a private key, this process verifies
-  with a public key it cannot use to forge. Preferred automatically when
-  `AEGIS_ED25519_PUBLIC_KEYS` is set (HMAC remains as a fallback).
-- **Durable persistence** — SQLite (`AEGIS_DB_PATH`) *or* pooled Postgres
-  (`AEGIS_DB_URL`) behind one `Repository` protocol. Engagements, approval
-  grants, the append-only audit trail, **kill-switch state**, and spend budget
-  survive a restart (a fired kill switch stays fired — fail-safe). The Postgres
-  path is validated by integration tests against a real DB (docker-compose).
-- **Encryption at rest** (`aegis.api.crypto`) — the audit trail and the
-  authorization JSON are Fernet-encrypted when `AEGIS_ENCRYPTION_KEY` is set;
-  ciphertext on disk, plaintext only in memory.
-- **Packaging** — typed (`py.typed`), pinned build backend, `.env` loader that
-  never overrides the real environment, secrets kept out of logs, CI on 3.11/3.12,
-  Docker image running as non-root with a healthcheck.
+## Implemented production boundaries
 
-## Not yet production-ready (known gaps)
+- `aegis.production` is a production-only entrypoint. It rejects missing
+  PostgreSQL, authenticated Redis, file-mounted secrets, egress enforcement,
+  private OAST, and digest-pinned scanner/browser configuration.
+- PostgreSQL stores control-plane state, scans, graph data, learning outcomes,
+  and HackerOne submission links. Production does not retain the SQLite learning
+  fallback.
+- Redis uses atomic Lua operations for rate windows and semaphore admission.
+  Coordination loss denies active work, pauses eligible passive work, and assumes
+  cancellation.
+- Worker networks are internal-only. The scoped egress service is the sole
+  dual-homed service and accepts only short-lived signed HTTP authorizations.
+- Egress rechecks scope, methods, DNS/private addresses, redirects, and a global
+  Redis-backed request budget. It is not a general CONNECT proxy.
+- Scanner releases require an approved lock entry containing an executable hash,
+  immutable image digest, schema, and license-review result. Runtime startup can
+  verify the installed executable bytes.
+- Browser and infrastructure images are supplied by immutable digest. A pin alone
+  does not pass the browser drill; Chromium must run in the isolated worker image.
+- Private OAST rejects known public providers. Its gate remains incomplete until a
+  real private endpoint passes health, registration, callback, expiry, and teardown.
+- Secret bootstrap generates independent API, signing, encryption, backup,
+  database, Redis, gateway, and PostgreSQL TLS material without printing values.
+- Backups are chunk-authenticated and checksummed. Restore verification is allowed
+  only into a disposable `aegis_verify_*` database, validates migrations/tables,
+  and removes that database afterward.
 
-| Gap | Impact | Path |
-|---|---|---|
-| **HA topology** | SQLite + Postgres (pooled) are durable; audit + authorization are encrypted at rest (Fernet); no read-replicas/failover config or HSM-backed keys yet | Run Postgres with replication + backups; hold the Fernet/Ed25519 keys in a KMS/HSM with rotation |
-| **Rate budget not persisted** | Rate/concurrency reset on restart (conservative: no in-flight load after a restart) | Externalise rate state (Redis) when scaling to multiple workers |
-| **Stand-in workers/planner/patcher** | No real testing/fix capability yet | Build real `passive_recon`, `api_agent`, …, and the patch protocol |
-| **Single-process** | No horizontal scale; budgets/kill switch are per-process | Externalise budget/kill-switch state (Redis) behind the same interfaces |
-| **Key management** | Ed25519 signing is available; rotation/HSM storage of the private key is not built | Store the private key in an HSM/KMS; implement key rotation with overlapping `key_id`s |
-| **Secrets in `.env`/env** | Fine for dev; not for prod | Use a secrets manager (Vault, cloud KMS); never bake into images |
-| **No PII detector wired** | `stop_on_real_pii` is a flag workers must honor | Add a real sensitive-data classifier at the evidence boundary |
-| **Observability is basic** | JSON logs + correlation IDs only | Wire real OpenTelemetry traces/metrics + alerting |
+## Development versus production
 
-## Deployment (control plane)
+`docker-compose.yml` remains local development only. It uses development database
+credentials and must never be presented as hardened deployment evidence.
+
+The production deployment is composed from:
+
+- `compose.production.yml` — PostgreSQL, Redis, control plane, scoped egress, and
+  the opt-in authorized lab;
+- `compose.production.ops.yml` — encrypted backup, archive verification, and
+  production-gate report jobs;
+- `compose.production.restore.yml` — disposable database restore drill.
+
+## Bootstrap
+
+Install the production Python dependencies locally, then create ignored secret
+files:
 
 ```bash
-docker build -t aegis-control-plane .
-docker run -p 8000:8000 --env-file .env aegis-control-plane   # docs at :8000/docs
+python -m aegis.production.bootstrap
+cp production.env.example secrets/production.env
 ```
 
-Behind a TLS-terminating proxy. The network/proxy layer is the **authoritative**
-scope enforcement — the in-process `ScopeGuard` is a mirror (defense in depth),
-per the operating prompt. Put the egress allowlist there too.
+The bootstrap creates `secrets/scanner-releases.lock.json` with an empty release
+list. That is intentional: populate it only after reviewing the exact release,
+license, publisher checksum/signature, executable path, immutable image digest,
+and output schema.
 
-## Configuration & secrets
+Replace every `REPLACE_WITH_64_HEX_DIGEST` value in
+`secrets/production.env`. Configure a privately controlled OAST domain. Do not use
+a public shared OAST provider.
 
-Set via environment (or `.env` for local only — see `.env.example`):
-`AEGIS_API_KEYS`, `AEGIS_SIGNING_KEYS`, `AEGIS_REQUIRE_SIGNATURE`,
-`AEGIS_AUTH_DISABLED` (dev only), `AEGIS_HOST`/`AEGIS_PORT`, and
-`HACKERONE_API_*` for ingestion. Generate strong secrets:
-`python -c "import secrets; print(secrets.token_urlsafe(48))"`.
+## Start
 
-## Pre-flight checklist
+```bash
+docker compose --env-file secrets/production.env \
+  -f compose.production.yml up --build -d
+```
 
-- [ ] Real signing keys set; `AEGIS_REQUIRE_SIGNATURE=1`; `AEGIS_AUTH_DISABLED` unset
-- [ ] Operator/agent tokens are strong and rotated; least privilege per caller
-- [ ] Network egress allowlist configured at the proxy (authoritative scope)
-- [ ] Durable store + encrypted evidence retention wired (replaces in-memory)
-- [ ] Kill-switch channel reachable; escalation contacts monitored
-- [ ] Program rules re-verified by a human before any active testing
-- [ ] TLS in front of the control plane; secrets from a manager, not images
+The control plane binds to loopback by default. Put a reviewed TLS reverse proxy
+in front only when remote operator access is required.
+
+## Backup and recovery
+
+```bash
+docker compose --env-file secrets/production.env \
+  -f compose.production.yml -f compose.production.ops.yml \
+  --profile ops run --rm backup
+
+docker compose --env-file secrets/production.env \
+  -f compose.production.yml -f compose.production.ops.yml \
+  --profile ops run --rm verify-backup
+
+docker compose --env-file secrets/production.env \
+  -f compose.production.yml -f compose.production.ops.yml \
+  -f compose.production.restore.yml \
+  --profile ops run --rm restore-drill
+```
+
+Backups and reports are written to ignored `backups/` and `drill-reports/`
+directories. Preserve them outside the host after reviewing access controls.
+
+## Production gate
+
+```bash
+docker compose --env-file secrets/production.env \
+  -f compose.production.yml -f compose.production.ops.yml \
+  --profile drills run --rm production-drills
+```
+
+The command exits non-zero when a required check is `fail` or `not_configured`.
+It produces JSON and Markdown reports. Skips never count as production passes.
+
+## Still external or unproven
+
+- Docker image builds and container-level direct-egress denial on the selected host.
+- Live approved scanner binaries and their legal/license review.
+- Chromium running a scoped workflow through the isolated browser boundary.
+- A real privately operated OAST endpoint and callback lifecycle.
+- Sustained load evidence and derived alert/SLO thresholds.
+- PostgreSQL replication/failover/PITR, Redis failover, and rolling upgrades.
+- Cloud KMS/HSM/Vault key custody and live rotation.
+- Real bug-bounty payout evidence. The software can support revenue; it cannot
+  guarantee a valid finding or payment.
+
+Passing the single-server gate permits a **human-supervised authorized pilot**.
+It never permits unattended exploitation or automatic report submission.

@@ -92,23 +92,30 @@ def create_backup(dsn: str, output: str, key_file: str, *, pg_dump="pg_dump") ->
     if destination.exists():
         raise BackupError("refusing to overwrite an existing backup")
     env, database = _pg_environment(dsn)
-    process = subprocess.Popen(
-        [pg_dump, "--format=custom", "--no-owner", "--no-privileges", database],
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env,
-    )
-    assert process.stdout is not None
-    try:
-        with destination.open("xb") as handle:
-            checksum = encrypt_stream(process.stdout, handle, _key(key_file))
-        stderr = process.communicate()[1]
-        if process.returncode:
+    with tempfile.TemporaryFile() as error_output:
+        process = subprocess.Popen(
+            [pg_dump, "--format=custom", "--no-owner", "--no-privileges", database],
+            stdout=subprocess.PIPE, stderr=error_output, env=env,
+        )
+        assert process.stdout is not None
+        try:
+            with destination.open("xb") as handle:
+                checksum = encrypt_stream(process.stdout, handle, _key(key_file))
+            returncode = process.wait()
+            error_output.seek(0)
+            stderr = error_output.read()
+            if returncode:
+                destination.unlink(missing_ok=True)
+                raise BackupError(
+                    f"pg_dump failed with exit code {returncode}: "
+                    f"{stderr.decode(errors='replace')[:240]}"
+                )
+        except Exception:
+            if process.poll() is None:
+                process.kill()
+                process.wait()
             destination.unlink(missing_ok=True)
-            raise BackupError(f"pg_dump failed with exit code {process.returncode}: {stderr.decode(errors='replace')[:240]}")
-    except Exception:
-        process.kill()
-        process.wait()
-        destination.unlink(missing_ok=True)
-        raise
+            raise
     destination.with_suffix(destination.suffix + ".sha256").write_text(
         f"{checksum}  {destination.name}\n", encoding="ascii",
     )

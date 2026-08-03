@@ -93,3 +93,37 @@ Status after these fixes: all five services (`db`, `backend`, `engine`,
 - Imported findings are **candidates**, not verdicts — they still pass Aegis's
   verification gate, and exploit payloads (`malicious_input_example`) never reach
   the console. Submission stays human-approved.
+
+## Hardened single-server Aegis deployment
+
+This is separate from the development/open-kritt workflow above. It requires
+reviewed immutable image digests, approved scanner releases, and a private OAST
+domain.
+
+```bash
+python -m aegis.production.bootstrap
+cp production.env.example secrets/production.env
+# Fill real image digests, OAST domain, and scanner release lock.
+docker compose --env-file secrets/production.env -f compose.production.yml up --build -d
+```
+
+The bootstrap never prints secret values and refuses to replace existing secret
+files unless the operator explicitly passes `--force`. PostgreSQL and Redis have
+no host ports. The control plane binds to `127.0.0.1`; workers use internal
+networks and target HTTP traffic must traverse the signed egress service.
+
+Run the static/live gate and retain its reports:
+
+```bash
+docker compose --env-file secrets/production.env \
+  -f compose.production.yml -f compose.production.ops.yml \
+  --profile drills run --rm production-drills
+```
+
+Backup and restore commands are documented in `PRODUCTION.md`. A restore drill
+may touch only a disposable database matching `aegis_verify_[a-z0-9_]{1,40}`;
+the tool refuses every other name and removes the disposable database afterward.
+
+If the gate reports `not_configured` for scanners, Chromium, or OAST, do not
+override it. Supply the real approved artifact or endpoint and rerun the drill.
+The hardened deployment is for human-supervised authorized work only.
