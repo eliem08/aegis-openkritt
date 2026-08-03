@@ -1,0 +1,61 @@
+services:
+  control-plane:
+    environment:
+      AEGIS_MODEL_GATEWAY_URL: http://model.prod.internal:8090
+      AEGIS_MODEL_GATEWAY_TOKEN_FILE: /run/secrets/model_gateway_token
+    secrets:
+      - model_gateway_token
+    networks:
+      - control_internal
+      - model_internal
+
+  model.prod.internal:
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    init: true
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+      args:
+        PYTHON_IMAGE: "${AEGIS_PYTHON_IMAGE:?set a digest-pinned Python image}"
+    command: ["python", "-m", "aegis.model_gateway"]
+    read_only: true
+    environment:
+      AEGIS_MODEL_PROVIDER_KEY_FILE: /run/secrets/deepseek_api_key
+      AEGIS_MODEL_GATEWAY_TOKEN_FILE: /run/secrets/model_gateway_token
+      AEGIS_MODEL_PROVIDER_ORIGIN: https://api.deepseek.com
+      AEGIS_MODEL_MAX_ATTEMPTS: "3"
+      AEGIS_MODEL_CIRCUIT_FAILURES: "5"
+      AEGIS_MODEL_CIRCUIT_COOLDOWN: "30"
+      AEGIS_MODEL_CACHE_TTL: "300"
+    secrets:
+      - deepseek_api_key
+      - model_gateway_token
+    tmpfs:
+      - /tmp:mode=1777,size=64m
+    networks:
+      model_internal:
+        aliases: [model.prod.internal]
+      model_egress: {}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/healthz',timeout=2)"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    pids_limit: 128
+    mem_limit: 512m
+    cpus: 1.0
+
+networks:
+  model_internal:
+    internal: true
+  model_egress: {}
+
+secrets:
+  deepseek_api_key:
+    file: ./secrets/deepseek_api_key
+  model_gateway_token:
+    file: ./secrets/model_gateway_token
