@@ -1,6 +1,6 @@
 """API routers, aggregated for registration in ``create_app``."""
 
-from . import approvals, audit, control, decisions, engagements, scans, system
+from . import approvals, audit, control, decisions, engagements, scans, system, ui
 
 ALL_ROUTERS = [
     system.router,
@@ -10,6 +10,7 @@ ALL_ROUTERS = [
     control.router,
     audit.router,
     scans.router,
+    ui.router,
 ]
 
 __all__ = ["ALL_ROUTERS"]

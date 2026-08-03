@@ -260,6 +260,20 @@ open·kritt's own dedup/severity and mapping `vulnerability_type` → CWE; wired
 reporting via `surface_candidates(openkritt_findings=...)`. Two boundaries kept:
 imported rows stay candidates (must pass Aegis's verification gate, not open·kritt's
 `exploitable`/rank), and the `malicious_input_example` payload is never surfaced.
+A live connector `OpenKrittClient` (arm's-length HTTP, `httpx`, mock-transport
+tested) pulls a running backend's `/api/scans/{id}/vulnerabilities` through the same
+ingest; `AEGIS_OPENKRITT_URL` configures it.
+
+## Review console UI (`GET /ui`)
+
+The control plane serves a self-contained **review console** — one ranked,
+source-labeled, de-duplicated view over candidates from every source (native
+analyzers, the contract-property pass, imported open·kritt findings), built by
+`aegis.report.build_console`. Data loads live from a connected open·kritt backend
+(`GET /ui/review?scan=`) or an uploaded export (`POST /ui/review`). Cross-source
+duplicates collapse by fingerprint (an open·kritt reentrancy finding merges with
+Aegis's own contract-pass reentrancy). It is a human-review surface: every row
+carries its verification status and no exploit payload reaches it.
 
 ## Phase 5 operational drills — executed where runnable (see `docs/DRILLS.md`)
 
@@ -274,7 +288,7 @@ upgrade) stay honestly marked blocked — not faked.
 ## Program status (as of `af3f341`, 2026-08-03)
 
 All corrections complete; all 11 reference-tool rows complete. Phases 1-4 pass their
-in-process gates; Phase 5's in-process pieces are complete. **935 tests pass on
+in-process gates; Phase 5's in-process pieces are complete. **949 tests pass on
 SQLite; the full gated suite passes on PostgreSQL.** The two things that remain are
 NOT code and cannot be ticked here: (a) pinning + live-running the real third-party
 binaries (blocked on the outstanding legal/license review — every such adapter fails

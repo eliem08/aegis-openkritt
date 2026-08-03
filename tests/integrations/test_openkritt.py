@@ -110,6 +110,19 @@ def test_wired_into_surface_reporting():
     assert candidates and all(c.worker == "integration:openkritt" for c in candidates)
 
 
+def test_ingests_the_serialized_api_shape():
+    # GET /api/scans/{id}/vulnerabilities flattens the keys and nests dedupe/impact
+    serialized = [{
+        "id": "1", "vulnerability_type": "Reentrancy", "file_path": "contracts/Vault.sol",
+        "line": 42, "summary": "reentrant withdraw", "explanation": "call before write",
+        "jsonAnswer": {"vulnerability_type": "Reentrancy"},
+        "dedupe": {"isCanonical": True}, "bountyRank": {"impactLevel": "critical"},
+    }]
+    candidates = ingest_openkritt_findings(serialized)
+    assert len(candidates) == 1
+    assert candidates[0].cwe == "CWE-841" and candidates[0].impact == "critical"
+
+
 def test_empty_export_is_safe():
     assert ingest_openkritt_findings(None) == []
     assert ingest_openkritt_findings([]) == []

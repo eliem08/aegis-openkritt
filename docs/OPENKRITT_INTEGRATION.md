@@ -51,6 +51,27 @@ Wired into reporting via `surface_candidates(openkritt_findings=...)`, so an ext
 open·kritt run flows through the **same** triage/verification pipeline as native
 detectors.
 
+## Live connector and the review console
+
+`aegis.integrations.OpenKrittClient` talks to a **running** open·kritt backend over
+the endpoints it actually exposes — `GET /api/scans`,
+`GET /api/scans/{id}/vulnerabilities`, `POST /api/scans` — and funnels the result
+through `ingest_openkritt_findings`. The `httpx.Client` is injectable, so the test
+suite drives it with a mock transport and never crosses the network. Configure it
+with `AEGIS_OPENKRITT_URL` (+ optional `AEGIS_OPENKRITT_API_KEY`); unset, everything
+degrades to "no backend connected" rather than erroring.
+
+The control plane serves a **review console** at `GET /ui` — one ranked, source-
+labeled, de-duplicated view over candidates from every source (native Aegis
+analyzers, the contract-property pass, and imported open·kritt findings), built by
+`aegis.report.build_console`. It loads data live from a connected backend
+(`GET /ui/review?scan=<id>`) or from an uploaded open·kritt export
+(`POST /ui/review`). Because everything lands as an Aegis `Candidate`, cross-source
+duplicates collapse by fingerprint — an open·kritt reentrancy finding and Aegis's
+own contract-pass reentrancy finding merge into a single row. The console is a
+human-review surface: each row shows its verification status and no exploit payload
+reaches it.
+
 ## Two boundaries kept on ingest
 
 1. **Candidate, not verdict.** An imported row is an unverified hypothesis

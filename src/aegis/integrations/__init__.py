@@ -11,9 +11,11 @@ from .openkritt import (
     ingest_openkritt_findings,
     to_openkritt_output_format,
 )
+from .openkritt_client import OpenKrittClient
 
 __all__ = [
     "OPENKRITT_FINDING_KEYS",
     "ingest_openkritt_findings",
     "to_openkritt_output_format",
+    "OpenKrittClient",
 ]

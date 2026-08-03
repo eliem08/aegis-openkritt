@@ -78,17 +78,19 @@ def ingest_openkritt_findings(
     for rec in _records(export):
         if not isinstance(rec, dict):
             continue
-        answer = rec.get("json_answer") or rec.get("jsonAnswer") or {}
+        answer = rec.get("json_answer") or rec.get("jsonAnswer")
         if not isinstance(answer, dict) or not answer:
+            answer = rec                        # serialized API shape flattens the keys
+        if not answer.get("file_path") and not answer.get("summary") and not answer.get("vulnerability_type"):
             continue
         # Respect open·kritt's own dedup: an explicit non-canonical row is a
         # duplicate of a canonical one we'll also see. Rows with no verdict are kept.
         if only_canonical and _canonical(rec) is False:
             continue
 
-        vtype = str(answer.get("vulnerability_type") or "").strip()
-        impact = str(rec.get("bounty_rank_impact_level")
-                     or answer.get("severity") or "").strip().lower()
+        vtype = str(answer.get("vulnerability_type")
+                    or rec.get("vulnerability_type") or "").strip()
+        impact = _impact_level(rec, answer)
         if floor is not None and _IMPACT_RANK.get(impact, 2) < floor:
             continue
 
@@ -141,9 +143,23 @@ def _records(export):
 
 def _canonical(rec) -> bool | None:
     for key in ("dedupe_is_canonical", "dedupeIsCanonical"):
-        if key in rec:
+        if key in rec and rec[key] is not None:
             return bool(rec[key])
+    dedupe = rec.get("dedupe")               # serialized API nests it
+    if isinstance(dedupe, dict) and dedupe.get("isCanonical") is not None:
+        return bool(dedupe["isCanonical"])
     return None
+
+
+def _impact_level(rec, answer) -> str:
+    """Severity, tolerant of the flat DB shape and the nested serialized shape."""
+    bounty = rec.get("bountyRank")
+    nested = bounty.get("impactLevel") if isinstance(bounty, dict) else None
+    for value in (rec.get("bounty_rank_impact_level"), nested,
+                  rec.get("severity"), answer.get("severity")):
+        if value:
+            return str(value).strip().lower()
+    return ""
 
 
 def _confidence(rec, answer) -> float:

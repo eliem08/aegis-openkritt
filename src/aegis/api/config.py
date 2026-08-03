@@ -81,6 +81,8 @@ class ControlPlaneConfig:
     db_path: str | None = None  # SQLite file; None = in-memory (no durability)
     db_url: str | None = None  # Postgres DSN; takes precedence over db_path
     encryption_key: str | None = None  # Fernet key; None = plaintext at rest
+    openkritt_url: str | None = None  # base URL of a running open·kritt backend (optional)
+    openkritt_api_key: str | None = None  # bearer token for that backend, if it requires one
 
     @property
     def is_single_tenant_compat(self) -> bool:
@@ -106,6 +108,19 @@ class ControlPlaneConfig:
 
             return SqliteRepository(self.db_path, encryptor=encryptor)
         return None
+
+    def build_openkritt_client(self):
+        """A live open·kritt client if a backend URL is configured, else None.
+
+        Arm's-length HTTP only (see ``aegis.integrations.openkritt_client``); no
+        open·kritt source is imported. Returns None when unconfigured so the UI
+        degrades to "no open·kritt backend connected" rather than erroring.
+        """
+        if not self.openkritt_url:
+            return None
+        from aegis.integrations import OpenKrittClient
+
+        return OpenKrittClient(self.openkritt_url, api_key=self.openkritt_api_key)
 
     def build_verifier(self) -> SignatureVerifier:
         # Prefer asymmetric Ed25519 (the control plane holds the private key;
@@ -158,6 +173,8 @@ class ControlPlaneConfig:
             db_path=env.get("AEGIS_DB_PATH") or None,
             db_url=env.get("AEGIS_DB_URL") or None,
             encryption_key=env.get("AEGIS_ENCRYPTION_KEY") or None,
+            openkritt_url=env.get("AEGIS_OPENKRITT_URL") or None,
+            openkritt_api_key=env.get("AEGIS_OPENKRITT_API_KEY") or None,
         )
 
 

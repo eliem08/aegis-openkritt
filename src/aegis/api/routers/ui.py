@@ -1,0 +1,328 @@
+"""Review-console UI — one page over findings from Aegis + open·kritt.
+
+``GET /ui`` serves a self-contained console (no external assets). It renders a
+*console model* built by :func:`aegis.report.build_console`, obtained either from a
+connected open·kritt backend (``GET /ui/review?scan=<id>``) or by uploading an
+open·kritt export (``POST /ui/review``). Every row is a candidate pending Aegis's
+own verification gate — the console is a human-review surface, not a verdict, in
+keeping with the human-supervised model.
+"""
+
+from __future__ import annotations
+
+from fastapi import APIRouter, Body, Request
+from fastapi.responses import HTMLResponse
+
+from aegis.report import build_console
+
+router = APIRouter(tags=["ui"])
+
+
+@router.get("/ui", response_class=HTMLResponse, summary="Findings review console")
+def console_page() -> HTMLResponse:
+    return HTMLResponse(CONSOLE_HTML)
+
+
+@router.get("/ui/review", summary="Merged review model (live from open·kritt if connected)")
+def review(request: Request, scan: str = "") -> dict:
+    config = request.app.state.config
+    client = config.build_openkritt_client()
+    if client is None:
+        return _empty("No open·kritt backend connected. Set AEGIS_OPENKRITT_URL, or "
+                      "upload an open·kritt export below.")
+    if not scan:
+        try:
+            scans = client.list_scans()
+        finally:
+            client.close()
+        return _empty(f"open·kritt backend connected ({len(scans)} scans). "
+                      "Enter a scan id to load its findings.", backend=True)
+    try:
+        candidates = client.import_candidates(scan)
+    finally:
+        client.close()
+    model = build_console(candidates, scan_id=str(scan))
+    model["backend_connected"] = True
+    return model
+
+
+@router.post("/ui/review", summary="Build a review model from an uploaded open·kritt export")
+def review_from_export(payload=Body(...)) -> dict:
+    from aegis.integrations import ingest_openkritt_findings
+
+    export = payload.get("export") if isinstance(payload, dict) else payload
+    candidates = ingest_openkritt_findings(export)
+    model = build_console(candidates)
+    model["note"] = f"Loaded {len(candidates)} finding(s) from an uploaded export."
+    return model
+
+
+def _empty(note: str, *, backend: bool = False) -> dict:
+    model = build_console([])
+    model["note"] = note
+    model["backend_connected"] = backend
+    return model
+
+
+# --- the page (self-contained: inline CSS/JS, no external requests) ---------
+
+CONSOLE_HTML = r"""<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Aegis — review console</title>
+<style>
+  :root {
+    --bg: #0d1017; --panel: #141a26; --panel2: #1b2231; --line: #232c3f;
+    --fg: #e8ecf5; --muted: #8a97b0; --faint: #566079;
+    --accent: #5b8cff;
+    --crit: #ff5d6b; --high: #ff9646; --med: #f2c14e; --low: #7c8aa5; --info: #4aa8ff;
+    --ok: #35d29a; --aegis: #5b8cff; --okritt: #a06bff; --contract: #24cabb;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: light) {
+    :root { --bg:#f2f5fb; --panel:#ffffff; --panel2:#eef2f9; --line:#e0e6f1;
+            --fg:#161c2b; --muted:#5c6880; --faint:#94a0b6; }
+  }
+  :root[data-theme="dark"] {
+    --bg:#0d1017; --panel:#141a26; --panel2:#1b2231; --line:#232c3f;
+    --fg:#e8ecf5; --muted:#8a97b0; --faint:#566079;
+  }
+  :root[data-theme="light"] {
+    --bg:#f2f5fb; --panel:#ffffff; --panel2:#eef2f9; --line:#e0e6f1;
+    --fg:#161c2b; --muted:#5c6880; --faint:#94a0b6;
+  }
+  * { box-sizing: border-box; }
+  html { color-scheme: light dark; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.55 var(--sans);
+    -webkit-font-smoothing: antialiased; }
+  header { padding: 20px 24px 16px; border-bottom: 1px solid var(--line);
+    display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+  h1 { font-size: 16px; margin: 0; font-weight: 640; letter-spacing: .3px; }
+  h1 b { font-weight: 740; }
+  h1 .sep { color: var(--accent); font-family: var(--mono); margin: 0 2px; }
+  h1 .tag { font: 600 10px/1 var(--mono); color: var(--faint); border: 1px solid var(--line);
+    padding: 3px 6px; border-radius: 5px; letter-spacing: .5px; margin-left: 4px; text-transform: uppercase; }
+  .sub { color: var(--muted); font: 12px/1.4 var(--mono); }
+  main { padding: 20px 24px 60px; max-width: 1200px; }
+
+  .summary { display: grid; grid-template-columns: repeat(3, auto) 1fr; gap: 12px;
+    align-items: stretch; margin-bottom: 18px; }
+  @media (max-width: 720px) { .summary { grid-template-columns: repeat(3, 1fr); } }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 15px; }
+  .card .n { font: 650 24px/1.1 var(--mono); font-variant-numeric: tabular-nums; }
+  .card .l { color: var(--muted); font-size: 10.5px; text-transform: uppercase; letter-spacing: .7px; margin-top: 3px; }
+  .card.wide { display: flex; flex-direction: column; justify-content: center; min-width: 220px; }
+  .sevbar { display: flex; height: 12px; border-radius: 6px; overflow: hidden; margin-bottom: 8px;
+    background: var(--panel2); }
+  .sevbar i { display: block; height: 100%; }
+  .legend { display: flex; gap: 12px; flex-wrap: wrap; }
+  .legend span { color: var(--muted); font: 11px/1 var(--mono); display: inline-flex; align-items: center; gap: 5px; }
+  .legend b { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+
+  .controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+  .live { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  input, button, select { font: inherit; color: var(--fg); background: var(--panel2);
+    border: 1px solid var(--line); border-radius: 9px; padding: 8px 11px; }
+  input { font-family: var(--mono); }
+  button { cursor: pointer; }
+  button.primary { background: var(--accent); color: #0b1220; border-color: transparent; font-weight: 620; }
+  button:focus-visible, input:focus-visible, select:focus-visible, tr:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 1px; }
+  .up { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; color: var(--muted);
+    border: 1px dashed var(--line); border-radius: 9px; padding: 8px 11px; }
+  .spacer { flex: 1; }
+  .note { background: var(--panel); border: 1px dashed var(--line); border-radius: 10px;
+    padding: 12px 14px; color: var(--muted); margin-bottom: 14px; font-size: 13px; }
+
+  .overflow { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+  table { width: 100%; border-collapse: collapse; min-width: 720px; }
+  thead th { position: sticky; top: 0; background: var(--panel); z-index: 1; }
+  th, td { text-align: left; padding: 11px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 10.5px; text-transform: uppercase; letter-spacing: .6px; }
+  tbody tr { cursor: pointer; }
+  tbody tr:hover { background: var(--panel2); }
+  td.stripe { padding: 0; width: 4px; }
+  td.rank, td.pri, td.cwe { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--muted); }
+  td.pri { color: var(--fg); }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font: 600 11px/1.5 var(--sans); white-space: nowrap; }
+  .mono { font-family: var(--mono); }
+  .sev-critical { background: color-mix(in srgb, var(--crit) 18%, transparent); color: var(--crit); }
+  .sev-high { background: color-mix(in srgb, var(--high) 18%, transparent); color: var(--high); }
+  .sev-medium { background: color-mix(in srgb, var(--med) 20%, transparent); color: #c69a2f; }
+  .sev-low { background: color-mix(in srgb, var(--low) 20%, transparent); color: var(--low); }
+  .sev-info { background: color-mix(in srgb, var(--info) 18%, transparent); color: var(--info); }
+  .src-aegis { background: color-mix(in srgb, var(--aegis) 16%, transparent); color: var(--aegis); }
+  .src-open-kritt, .src-openkritt { background: color-mix(in srgb, var(--okritt) 18%, transparent); color: var(--okritt); }
+  .src-contract { background: color-mix(in srgb, var(--contract) 18%, transparent); color: var(--contract); }
+  .st-verified { background: color-mix(in srgb, var(--ok) 18%, transparent); color: var(--ok); }
+  .st-hypothesis { border: 1px solid var(--line); color: var(--muted); }
+  .title { font-weight: 600; }
+  .loc { color: var(--faint); font: 12px/1.4 var(--mono); word-break: break-all; margin-top: 3px; }
+  .dup { color: var(--faint); font: 11px/1 var(--mono); }
+  .detail { color: var(--muted); font-size: 12.5px; margin-top: 7px; display: none;
+    border-left: 2px solid var(--line); padding-left: 10px; }
+  tr.open .detail { display: block; }
+  .detail b { color: var(--fg); font-weight: 600; }
+  .empty { text-align: center; color: var(--muted); padding: 44px; }
+  @media (prefers-reduced-motion: no-preference) { tbody tr { transition: background .12s; } }
+</style>
+</head>
+<body>
+<header>
+  <h1><b>Aegis</b><span class="sep">/</span>review console<span class="tag">human-supervised</span></h1>
+  <span class="sub" id="genAt"></span>
+</header>
+<main>
+  <section class="summary" id="summary"></section>
+
+  <div class="controls">
+    <div class="live" id="live">
+      <input id="scanId" placeholder="open·kritt scan id" size="16" aria-label="open·kritt scan id" />
+      <button class="primary" id="loadBtn">Load from backend</button>
+      <label class="up">↑ Upload export<input id="fileIn" type="file" accept="application/json,.json" hidden /></label>
+    </div>
+    <span class="spacer"></span>
+    <select id="fSource" aria-label="filter by source"><option value="">all sources</option></select>
+    <select id="fSeverity" aria-label="filter by severity">
+      <option value="">all severities</option>
+      <option>critical</option><option>high</option><option>medium</option><option>low</option>
+    </select>
+    <select id="fStatus" aria-label="filter by status">
+      <option value="">all statuses</option>
+      <option value="verified">verified</option><option value="hypothesis">hypothesis</option>
+    </select>
+  </div>
+
+  <div class="note" id="note" style="display:none"></div>
+
+  <div class="overflow">
+    <table>
+      <thead><tr>
+        <th class="stripe" aria-hidden="true"></th>
+        <th>#</th><th>Sev</th><th>Source</th><th>Finding</th><th>CWE</th><th>Priority</th><th>Status</th>
+      </tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+  <div class="empty" id="empty" style="display:none">No findings to show yet.</div>
+</main>
+<script>
+(function () {
+  var STATIC = !!window.__CONSOLE__;
+  var model = window.__CONSOLE__ || null;
+  var filters = { source: "", severity: "", status: "" };
+  var SEV = ["critical", "high", "medium", "low", "info"];
+
+  function esc(s) { return (s == null ? "" : String(s)).replace(/[&<>"]/g,
+    function (c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]; }); }
+
+  function card(n, l) { return '<div class="card"><div class="n">' + n + '</div><div class="l">' + l + '</div></div>'; }
+
+  function sevSummary(bySev) {
+    var total = SEV.reduce(function (a, k){ return a + (bySev[k] || 0); }, 0) || 1;
+    var bar = SEV.map(function (k) {
+      var w = (bySev[k] || 0) / total * 100;
+      return w ? '<i class="sev-' + k + '" style="width:' + w + '%;background:var(--' +
+        (k === "medium" ? "med" : k) + ')"></i>' : "";
+    }).join("");
+    var legend = SEV.filter(function (k){ return bySev[k]; }).map(function (k) {
+      return '<span><b style="background:var(--' + (k === "medium" ? "med" : k) + ')"></b>' +
+        k + " " + bySev[k] + "</span>";
+    }).join("");
+    return '<div class="card wide"><div class="sevbar">' + bar + '</div><div class="legend">' +
+      (legend || '<span>no findings</span>') + "</div></div>";
+  }
+
+  function render() {
+    if (!model) return;
+    var t = model.totals || { candidates: 0, verified: 0, hypotheses: 0, by_source: {}, by_severity: {} };
+    document.getElementById("genAt").textContent =
+      (model.scan_id ? "scan " + model.scan_id + " · " : "") +
+      (model.generated_at ? new Date(model.generated_at).toLocaleString() : "") +
+      (model.backend_connected ? " · backend connected" : "");
+    document.getElementById("summary").innerHTML =
+      card(t.candidates, "candidates") + card(t.verified, "verified") +
+      card(t.hypotheses, "hypotheses") + sevSummary(t.by_severity || {});
+
+    var note = document.getElementById("note");
+    if (model.note) { note.style.display = "block"; note.textContent = model.note; }
+    else { note.style.display = "none"; }
+
+    var sel = document.getElementById("fSource");
+    var have = {}; Array.prototype.forEach.call(sel.options, function (o){ have[o.value] = 1; });
+    (model.sources || []).forEach(function (s){
+      if (!have[s]) { var o = document.createElement("option"); o.value = o.textContent = s; sel.appendChild(o); }
+    });
+
+    var items = (model.items || []).filter(function (it) {
+      return (!filters.source || it.source === filters.source) &&
+             (!filters.severity || it.severity === filters.severity) &&
+             (!filters.status || it.status === filters.status);
+    });
+    document.getElementById("empty").style.display = items.length ? "none" : "block";
+    document.getElementById("rows").innerHTML = items.map(function (it) {
+      var dup = it.duplicate_count > 1 ? ' <span class="dup">×' + it.duplicate_count + "</span>" : "";
+      var stripe = "background:var(--" + (it.severity === "medium" ? "med" : it.severity) + ")";
+      return '<tr class="row" tabindex="0">' +
+        '<td class="stripe" style="' + stripe + '"></td>' +
+        '<td class="rank">' + it.rank + "</td>" +
+        '<td><span class="badge sev-' + esc(it.severity) + '">' + esc(it.severity) + "</span></td>" +
+        '<td><span class="badge src-' + esc(it.source) + '">' + esc(it.source) + "</span></td>" +
+        '<td><div class="title">' + esc(it.title) + dup + "</div>" +
+          '<div class="loc">' + esc(it.code_location || it.route || it.asset) + "</div>" +
+          '<div class="detail"><b>observed</b> · ' + esc(it.observed) +
+            (it.expected ? '<br><b>expected</b> · ' + esc(it.expected) : "") + "</div></td>" +
+        '<td class="cwe">' + esc(it.cwe || "—") + "</td>" +
+        '<td class="pri">' + it.priority + "</td>" +
+        '<td><span class="badge st-' + esc(it.status) + '">' + esc(it.status) + "</span></td>" +
+        "</tr>";
+    }).join("");
+    Array.prototype.forEach.call(document.querySelectorAll("tr.row"), function (tr) {
+      function toggle(){ tr.classList.toggle("open"); }
+      tr.addEventListener("click", toggle);
+      tr.addEventListener("keydown", function (e){ if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } });
+    });
+  }
+
+  function setModel(m) { model = m; render(); }
+
+  function loadReview(scan) {
+    fetch("/ui/review" + (scan ? "?scan=" + encodeURIComponent(scan) : ""))
+      .then(function (r){ return r.json(); }).then(setModel)
+      .catch(function (e){ setModel({ totals:{}, items:[], note: "Failed to load: " + e }); });
+  }
+
+  ["fSource","fSeverity","fStatus"].forEach(function (id) {
+    document.getElementById(id).addEventListener("change", function (e) {
+      filters[id === "fSource" ? "source" : id === "fSeverity" ? "severity" : "status"] = e.target.value;
+      render();
+    });
+  });
+  document.getElementById("loadBtn").addEventListener("click", function () {
+    loadReview(document.getElementById("scanId").value.trim());
+  });
+  document.getElementById("fileIn").addEventListener("change", function (e) {
+    var f = e.target.files[0]; if (!f) return;
+    var rd = new FileReader();
+    rd.onload = function () {
+      var data;
+      try { data = JSON.parse(rd.result); }
+      catch (err) { setModel({ totals:{}, items:[], note: "Invalid JSON in the uploaded file." }); return; }
+      fetch("/ui/review", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ export: data }) })
+        .then(function (r){ return r.json(); }).then(setModel)
+        .catch(function (err){ setModel({ totals:{}, items:[], note: "Upload failed: " + err }); });
+    };
+    rd.readAsText(f);
+  });
+
+  if (STATIC) { document.getElementById("live").style.display = "none"; render(); }
+  else { loadReview(""); }
+})();
+</script>
+</body>
+</html>
+"""
