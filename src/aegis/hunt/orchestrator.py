@@ -12,8 +12,9 @@ import time
 from dataclasses import dataclass, field
 from decimal import Decimal
 
-from aegis.integrations.repo_pipeline import console_for_scans, run_repo_pipeline
+from aegis.integrations.repo_pipeline import run_repo_pipeline, scan_one_repo
 from aegis.learn import Calibration, sync_hackerone_outcomes
+from aegis.model.finding import priority_score
 from aegis.report import build_console
 
 from .portfolio import PortfolioDecision, plan_portfolio
@@ -41,6 +42,12 @@ class HuntConfig:
     estimated_scanner_cost: Decimal = Decimal("0.05")
     estimated_verification_time_cost: Decimal = Decimal("0.50")
     reward_policies: dict = field(default_factory=dict)  # handle -> RewardPolicy (floors)
+    # Two-stage (wide/narrow): scan wide on `model` (cheap), then promote only
+    # high-priority candidates to a focused verify pass on `verify_model` (Opus).
+    verify_model: str = ""                     # blank = single-stage (no promotion)
+    verify_threshold: float = 0.35             # min candidate priority to promote
+    verify_thinking_effort: str = "high"       # deeper reasoning for the narrow pass
+    max_verify_per_cycle: int = 3              # cap Opus verify launches per cycle
 
     def __post_init__(self) -> None:
         if self.max_programs < 0 or self.max_repos_per_program < 0 or self.portfolio_capacity < 0:
@@ -80,6 +87,7 @@ class HuntReport:
     sync: object = None
     selected: list = field(default_factory=list)
     portfolio: list[PortfolioDecision] = field(default_factory=list)
+    tracked: dict = field(default_factory=dict)   # scan_id -> {stage, model, ...}
 
     def summary(self) -> dict:
         launched = sum(len([launch for launch in p.launches if launch.ok]) for p in self.programs)
@@ -114,6 +122,9 @@ class HuntReport:
             "scans_launched_this_cycle": launched,
             "launch_errors": launch_errors,
             "scans_tracked": len(self.launched_scans),
+            "wide_scans": sum(1 for m in self.tracked.values() if m.get("stage") == 1),
+            "verify_scans": sum(1 for m in self.tracked.values() if m.get("stage") == 2),
+            "verify_promoted_this_cycle": (self.console or {}).get("verify_promoted_this_cycle", 0),
             "findings": (self.console or {}).get("totals", {}).get("candidates", 0),
             "outcomes_synced": getattr(self.sync, "recorded", 0),
         }
@@ -126,7 +137,9 @@ class HuntOrchestrator:
         self._outcomes = outcomes
         self._ledger = ledger
         self._cfg = config
-        self._tracked: set[str] = set()
+        # scan_id -> {repo_full, handle, stage, model}
+        self._tracked: dict[str, dict] = {}
+        self._promoted: set[str] = set()   # candidate fingerprints already sent to verify
         self._selected: list = []
 
     def _handles(self) -> list[str]:
@@ -210,14 +223,21 @@ class HuntOrchestrator:
                 program.launches = launched.launches
                 for launch in program.launches:
                     if launch.scan_id:
-                        self._tracked.add(launch.scan_id)
+                        self._tracked[launch.scan_id] = {
+                            "repo_full": launch.repo.repo_full, "handle": program.handle,
+                            "stage": 1, "model": cfg.model}
 
-        console = (
-            console_for_scans(self._ok, sorted(self._tracked), calibration=calibration)
-            if self._tracked
-            else build_console([], calibration=calibration)
-        )
+        # Collect findings from every tracked scan once (used for both console + promotion).
+        per_scan = {sid: self._ok.import_candidates(sid) for sid in self._tracked}
+        all_candidates = [c for cands in per_scan.values() for c in cands]
+
+        # Stage 2 (narrow): promote high-priority stage-1 candidates to an Opus verify
+        # pass, scoped to the finding's file. Cheap wide net, expensive deep dive.
+        verified = self._promote(per_scan, cfg) if (cfg.verify_model and not cfg.dry_run) else 0
+
+        console = build_console(all_candidates, calibration=calibration)
         sync = sync_hackerone_outcomes(self._h1, self._ledger, self._outcomes)
+        console["verify_promoted_this_cycle"] = verified
 
         return HuntReport(
             dry_run=cfg.dry_run,
@@ -227,7 +247,43 @@ class HuntOrchestrator:
             sync=sync,
             selected=list(self._selected),
             portfolio=portfolio,
+            tracked=dict(self._tracked),
         )
+
+    def _promote(self, per_scan: dict, cfg: HuntConfig) -> int:
+        """Launch an Opus verify scan for each fresh, high-priority stage-1 candidate,
+        scoped to the finding's file. Capped per cycle; idempotent by fingerprint."""
+        launched = 0
+        for scan_id, candidates in per_scan.items():
+            meta = self._tracked.get(scan_id, {})
+            if meta.get("stage") != 1:
+                continue
+            for candidate in candidates:
+                if launched >= cfg.max_verify_per_cycle:
+                    return launched
+                fingerprint = candidate.fingerprint()
+                if fingerprint in self._promoted:
+                    continue
+                if priority_score(candidate) < cfg.verify_threshold:
+                    continue
+                file_scope = (candidate.code_location.split(":")[0]
+                              if candidate.code_location else "full repository")
+                self._promoted.add(fingerprint)   # mark even if launch fails, to avoid retry storms
+                try:
+                    verify = scan_one_repo(
+                        self._ok, meta["repo_full"], model=cfg.verify_model,
+                        workflow_id=(cfg.workflow_id or None), handle=meta.get("handle", ""),
+                        repo_scope=file_scope or "full repository",
+                        thinking_effort=cfg.verify_thinking_effort,
+                        fallbacks=(cfg.fallback_models or None))
+                except Exception:
+                    continue
+                if verify.scan_id:
+                    self._tracked[verify.scan_id] = {
+                        "repo_full": meta["repo_full"], "handle": meta.get("handle", ""),
+                        "stage": 2, "model": cfg.verify_model}
+                    launched += 1
+        return launched
 
     def run(self, *, cycles: int | None = None, sleep=time.sleep):
         """Yield one report per cycle, sleeping between cycles when requested."""

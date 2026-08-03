@@ -177,6 +177,8 @@ def hunt_cycle(request: Request, payload=Body(None)) -> dict:
             portfolio_capacity=int(data.get("portfolio_capacity") or 0),
             exploration_fraction=float(data.get("exploration_fraction", 0.2)),
             expected_bounties=expected_bounties,
+            verify_model=str(data.get("verify_model") or ""),
+            verify_threshold=float(data.get("verify_threshold", 0.35)),
         )
     except (TypeError, ValueError) as exc:
         ok.close()

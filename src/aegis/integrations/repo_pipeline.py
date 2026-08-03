@@ -53,6 +53,7 @@ class ScanTemplate:
     fallback_models: tuple[str, ...] = ()      # tried in order if the primary is unavailable
     required_extra_keys: tuple[str, ...] = ()  # extra.* keys the workflow/post-script need
     extra: dict = field(default_factory=dict)  # static extra values (merged per launch)
+    thinking_effort: str = ""                  # low/medium/high/xhigh/max (blank = backend default)
 
     @property
     def models(self) -> list[str]:
@@ -215,7 +216,7 @@ def _required_extra_keys(client, workflow_id, post_script) -> tuple[str, ...]:
 
 def build_scan_payload(repo: RepoTarget, t: ScanTemplate, *, model: str | None = None,
                        extra: dict | None = None) -> dict:
-    return {
+    payload = {
         "workflowId": t.workflow_id,
         "postScriptId": t.post_script_id,
         "repo_kind": "remote",
@@ -229,6 +230,23 @@ def build_scan_payload(repo: RepoTarget, t: ScanTemplate, *, model: str | None =
         "agentSkillIds": list(t.agent_skill_ids),
         "extra": {**t.extra, **(extra or {})},
     }
+    if t.thinking_effort:
+        payload["thinkingEffort"] = t.thinking_effort
+        payload["post_processing_thinking_effort"] = t.thinking_effort
+    return payload
+
+
+def scan_one_repo(ok_client, repo_full: str, *, model: str, workflow_id=None, handle: str = "",
+                  repo_scope: str = "full repository", thinking_effort: str = "",
+                  fallbacks=None) -> ScanLaunch:
+    """Launch a single scan on one repo (used by the two-stage verify pass). Reuses
+    the template discovery + extra-fill + model-fallback of ``launch_repo_scans``."""
+    template = discover_scan_template(ok_client, model=model, workflow_id=workflow_id,
+                                      fallbacks=fallbacks)
+    template.repo_scope = repo_scope or template.repo_scope
+    template.thinking_effort = thinking_effort or template.thinking_effort
+    repo = RepoTarget(repo_full=repo_full, identifier=repo_full)
+    return launch_repo_scans(ok_client, [repo], template, handle=handle)[0]
 
 
 def resolve_extra(keys, *, handle: str = "", repo: RepoTarget | None = None) -> dict:

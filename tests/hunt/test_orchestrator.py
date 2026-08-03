@@ -132,3 +132,63 @@ def test_hunter_never_submits():
                 reports=[{"id": "1", "attributes": {"state": "resolved"}}])
     _orch(h1, FakeOK(), dry_run=False).cycle()
     assert h1.submitted is False        # the hunter only reads HackerOne, never submits
+
+
+# --- two-stage (wide/narrow) ------------------------------------------------
+
+def _hi_finding():
+    from aegis.model import Candidate
+    return Candidate(asset="acme/api", worker="integration:openkritt", cwe="CWE-89",
+                     code_location="src/db.js:10", confidence=0.9, p_exploit=0.9,
+                     business_impact=0.9)
+
+
+class TwoStageOK(FakeOK):
+    """Records create_scan payloads so we can see the verify (stage-2) launch."""
+    def __init__(self, findings=None):
+        super().__init__(findings=findings)
+        self.payloads = []
+        self._next = 900
+    def list_workflows(self): return [{"id": "4"}]
+    def create_scan(self, payload):
+        self.payloads.append(payload)
+        self._next += 1
+        return {"id": str(self._next)}
+
+
+def test_two_stage_promotes_high_priority_candidate_to_verify(monkeypatch):
+    # stage-1 scan (id 901) returns a high-priority finding; verify must launch on Opus
+    ok = TwoStageOK()
+    orch = HuntOrchestrator(
+        FakeH1([{"attributes": {"handle": "acme"}}], {"acme": REPO_SCOPE}),
+        ok, OutcomeStore(), SubmissionLedger(),
+        config=HuntConfig(model="claude-sonnet-5", dry_run=False,
+                          verify_model="claude-opus-5", verify_threshold=0.1))
+    # seed a completed stage-1 scan with a finding
+    orch._tracked = {"901": {"repo_full": "acme/api", "handle": "acme", "stage": 1, "model": "claude-sonnet-5"}}
+    ok._findings = {"901": [_hi_finding()]}
+    n = orch._promote({"901": ok._findings["901"]}, orch._cfg)
+    assert n == 1
+    verify = [p for p in ok.payloads if p["model"] == "claude-opus-5"]
+    assert verify and verify[0]["repo_scope"] == "src/db.js"        # scoped to the file
+    assert verify[0]["thinkingEffort"] == "high"
+    assert any(m.get("stage") == 2 for m in orch._tracked.values())  # verify tracked
+
+
+def test_two_stage_skips_low_priority_and_is_idempotent():
+    from aegis.model import Candidate
+    ok = TwoStageOK()
+    orch = HuntOrchestrator(
+        FakeH1([{"attributes": {"handle": "acme"}}], {"acme": REPO_SCOPE}),
+        ok, OutcomeStore(), SubmissionLedger(),
+        config=HuntConfig(model="claude-sonnet-5", dry_run=False,
+                          verify_model="claude-opus-5", verify_threshold=0.9))
+    orch._tracked = {"901": {"repo_full": "acme/api", "handle": "acme", "stage": 1, "model": "s"}}
+    low = Candidate(asset="a", worker="integration:openkritt", cwe="CWE-1",
+                    confidence=0.1, p_exploit=0.1, business_impact=0.1)
+    assert orch._promote({"901": [low]}, orch._cfg) == 0             # below threshold -> skip
+    # high one promotes once, then never again (idempotent by fingerprint)
+    orch._cfg.verify_threshold = 0.1
+    hi = _hi_finding()
+    assert orch._promote({"901": [hi]}, orch._cfg) == 1
+    assert orch._promote({"901": [hi]}, orch._cfg) == 0

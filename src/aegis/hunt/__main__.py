@@ -115,6 +115,9 @@ def main() -> int:
             not in ("0", "false", "no"),
             workflow_id=os.environ.get("AEGIS_HUNT_WORKFLOW_ID", "").strip(),
             post_script_id=os.environ.get("AEGIS_HUNT_POST_SCRIPT_ID", "").strip(),
+            verify_model=os.environ.get("AEGIS_HUNT_VERIFY_MODEL", "").strip(),
+            verify_thinking_effort=os.environ.get("AEGIS_HUNT_VERIFY_EFFORT", "high").strip(),
+            verify_threshold=float(os.environ.get("AEGIS_HUNT_VERIFY_THRESHOLD", "0.35")),
             interval_seconds=float(_int("AEGIS_HUNT_INTERVAL", 3600)),
             portfolio_capacity=_int("AEGIS_HUNT_PORTFOLIO_CAPACITY", 0),
             exploration_fraction=float(
