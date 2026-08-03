@@ -21,6 +21,7 @@ SECRET_ENV_KEYS = frozenset({
     "AEGIS_DB_URL",
     "AEGIS_REDIS_URL",
     "AEGIS_OPENKRITT_API_KEY",
+    "AEGIS_MODEL_GATEWAY_TOKEN",
 })
 
 
@@ -72,6 +73,9 @@ class ProductionSettings:
     egress_url: str | None
     browser_image: str | None
     scanner_lock_path: str | None
+    model_gateway_url: str | None = None
+    model_gateway_token: str | None = None
+    require_model_gateway: bool = False
     require_oast: bool = True
     secret_sources: dict[str, str] = field(default_factory=dict)
 
@@ -93,6 +97,11 @@ class ProductionSettings:
             egress_url=materialized.get("AEGIS_EGRESS_URL") or None,
             browser_image=materialized.get("AEGIS_BROWSER_IMAGE") or None,
             scanner_lock_path=materialized.get("AEGIS_SCANNER_LOCK") or None,
+            model_gateway_url=materialized.get("AEGIS_MODEL_GATEWAY_URL") or None,
+            model_gateway_token=materialized.get("AEGIS_MODEL_GATEWAY_TOKEN") or None,
+            require_model_gateway=_flag(
+                materialized.get("AEGIS_REQUIRE_MODEL_GATEWAY"), default=False,
+            ),
             require_oast=_flag(materialized.get("AEGIS_REQUIRE_OAST"), default=True),
             secret_sources=secret_sources,
         )

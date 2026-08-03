@@ -72,10 +72,10 @@ def _postgres(settings: ProductionSettings) -> str:
     return "TLS connection, migrations, and SELECT 1 passed"
 
 
-def _http_health(url: str | None, label: str) -> str:
+def _http_health(url: str | None, label: str, *, endpoint: str = "healthz") -> str:
     if not url:
         raise NotConfigured(f"{label} URL is not configured")
-    request = urllib.request.Request(url.rstrip("/") + "/healthz", method="GET")
+    request = urllib.request.Request(url.rstrip("/") + "/" + endpoint, method="GET")
     try:
         with urllib.request.urlopen(request, timeout=5) as response:
             if response.status != 200:
@@ -112,6 +112,10 @@ def run_drills(settings: ProductionSettings) -> list[DrillResult]:
         _timed("redis", lambda: _redis(settings)),
         _timed("scoped_egress", lambda: _http_health(settings.egress_url, "egress")),
         _timed("scanner_release_lock", lambda: _release_lock(settings)),
+        _timed(
+            "model_gateway", lambda: _http_health(
+                settings.model_gateway_url, "model gateway", endpoint="readyz"),
+            required=settings.require_model_gateway),
         _timed("scanner_executables", lambda: _executables(settings)),
         _timed("private_oast", lambda: _http_health(oast_url, "private OAST")),
     ]

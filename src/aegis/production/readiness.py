@@ -72,6 +72,28 @@ def production_deployment_issues(settings: ProductionSettings) -> list[Issue]:
             issues.append(Issue("redis_dev_host", "Redis host is a local development address"))
     if not settings.egress_enforced or not settings.egress_url:
         issues.append(Issue("egress_not_enforced", "the scoped egress service is not mandatory"))
+    if settings.require_model_gateway and not settings.model_gateway_url:
+        issues.append(Issue("model_gateway_missing", "the production model gateway is required"))
+    if settings.require_model_gateway and not settings.model_gateway_token:
+        issues.append(Issue("model_gateway_token_missing", "the model gateway caller token is required"))
+    if settings.model_gateway_url:
+        model_parts = urlsplit(settings.model_gateway_url)
+        if (
+            model_parts.scheme not in {"http", "https"}
+            or not model_parts.hostname
+            or model_parts.username is not None
+            or model_parts.password is not None
+            or model_parts.query
+            or model_parts.fragment
+            or model_parts.path not in {"", "/"}
+        ):
+            issues.append(Issue("model_gateway_url_invalid", "model gateway URL must be an HTTP(S) origin"))
+        elif not model_parts.hostname.endswith(".internal"):
+            issues.append(Issue("model_gateway_not_internal", "model gateway must use an internal hostname"))
+        if not settings.model_gateway_token and not settings.require_model_gateway:
+            issues.append(Issue("model_gateway_token_missing", "configured model gateway has no caller token"))
+    if settings.model_gateway_token and len(settings.model_gateway_token) < 32:
+        issues.append(Issue("model_gateway_token_weak", "model gateway caller token is too short"))
     if not settings.browser_image:
         issues.append(Issue("browser_image_missing", "no pinned browser image is configured"))
     else:

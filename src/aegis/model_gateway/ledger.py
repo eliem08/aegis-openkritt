@@ -134,6 +134,10 @@ class PostgresModelUsageLedger:
             raise ModelBudgetError("usage_finalize_conflict")
         return record
 
+    def health(self) -> bool:
+        row = self._one("SELECT 1")
+        return bool(row and row[0] == 1)
+
     def close(self) -> None:
         close = getattr(self._pool, "close", None)
         if close is not None:

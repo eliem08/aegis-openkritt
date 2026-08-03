@@ -68,6 +68,13 @@ python -m aegis.model_gateway.validate_ledgers `
   --redis-file /run/secrets/redis_url --database-file /run/secrets/database_url
 ```
 
+
+The gateway exposes `/healthz` for process liveness and `/readyz` for live Redis
+and PostgreSQL dependency readiness. The production healthcheck and drill runner
+use `/readyz`. When the model overlay is enabled, static readiness requires an
+internal gateway origin and a caller token sourced from a secret file; the drill
+container joins `model_internal` but never receives the provider key or joins
+model egress.
 The gateway currently implements:
 
 - exact tenant-partitioned caching;
@@ -86,7 +93,7 @@ The live gateway boundary and durable ledgers have been validated, but the
 overall system is not yet approved for unattended production. Remaining gates
 include:
 
-- explicit, tested routing from open·kritt repository scans to the DeepSeek gateway;
+- explicit, tested routing from open-kritt repository scans to the DeepSeek gateway;
 - real approved scanner release pins and expanded static/dependency/secret tools;
 - live worker direct-egress denial on the intended host;
 - private OAST and isolated Chromium workflows;

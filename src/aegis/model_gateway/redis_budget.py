@@ -166,6 +166,12 @@ class RedisModelBudget:
     ) -> CostReservation:
         return self.finalize(reservation_id, Decimal(0), tenant_id=tenant_id)
 
+    def health(self) -> bool:
+        try:
+            return bool(self._client.ping())
+        except Exception as exc:
+            raise ModelBudgetError("redis_budget_unavailable") from exc
+
     def spent(self, tenant_id: str, *, cycle_id: str | None = None, day: str | None = None):
         if cycle_id is not None:
             key = f"{self._prefix}:{{{tenant_id}}}:cycle:{cycle_id}"

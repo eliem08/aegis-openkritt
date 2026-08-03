@@ -61,6 +61,17 @@ def create_model_gateway_app(
     def healthz():
         return {"status": "ok"}
 
+    @app.get("/readyz")
+    def readyz():
+        try:
+            budget_ready = getattr(cost_budget, "health", lambda: True)()
+            ledger_ready = True if ledger is None else ledger.health()
+        except ModelBudgetError:
+            raise HTTPException(status_code=503, detail="dependencies_unavailable") from None
+        if not budget_ready or not ledger_ready:
+            raise HTTPException(status_code=503, detail="dependencies_unavailable")
+        return {"status": "ready"}
+
     @app.post("/v1/completions", response_model=ModelGatewayResponse)
     def complete(
         request: ModelGatewayRequest,

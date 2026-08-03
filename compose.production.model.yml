@@ -19,8 +19,27 @@ services:
       - control_internal
       - model_internal
 
+  production-drills:
+    environment:
+      AEGIS_REQUIRE_MODEL_GATEWAY: "1"
+      AEGIS_MODEL_GATEWAY_URL: http://model.prod.internal:8090
+      AEGIS_MODEL_GATEWAY_TOKEN_FILE: /run/secrets/model_gateway_token
+    secrets:
+      - model_gateway_token
+    networks:
+      - control_internal
+      - model_internal
+    depends_on:
+      model.prod.internal:
+        condition: service_healthy
+
   model.prod.internal:
     restart: unless-stopped
+    depends_on:
+      pg.prod.internal:
+        condition: service_healthy
+      redis.prod.internal:
+        condition: service_healthy
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -58,7 +77,7 @@ services:
       model_egress: {}
       budget_internal: {}
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/healthz',timeout=2)"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8090/readyz',timeout=2)"]
       interval: 10s
       timeout: 3s
       retries: 10
