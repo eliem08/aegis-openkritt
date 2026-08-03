@@ -96,8 +96,12 @@ class JsonLinesAdapter:
         kind, data, confidence = mapped
         return event_from(kind, envelope, data, source=self.manifest.name, confidence=confidence)
 
+    def result_succeeded(self, result) -> bool:
+        """Whether a completed process result is a semantic scanner success."""
+        return bool(getattr(result, "ok", False))
+
     def interpret_result(self, result, envelope: ExecutionEnvelope) -> AdapterEvent:
-        status = "succeeded" if getattr(result, "ok", False) else getattr(result.outcome, "value", "failed")
+        status = "succeeded" if self.result_succeeded(result) else getattr(result.outcome, "value", "failed")
         return event_from(
             EventKind.TERMINAL, envelope,
             {"status": status, "exit_code": result.exit_code, "truncated": result.truncated},

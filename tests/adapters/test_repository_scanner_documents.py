@@ -7,6 +7,7 @@ import json
 import pytest
 
 from aegis.adapters import EventKind, ExecutionEnvelope
+from aegis.process import ProcessOutcome, ProcessResult
 from aegis.adapters.repository_scanners import (
     GitleaksDocumentAdapter,
     OsvScannerDocumentAdapter,
@@ -109,3 +110,12 @@ def test_osv_document_expands_vulnerabilities_into_dependency_candidates():
 def test_repository_scanners_refuse_host_execution_until_container_gate(adapter):
     with pytest.raises(Exception, match="hardened.*container executor"):
         adapter.build_command(_envelope(adapter))
+
+def test_osv_exit_one_is_findings_success_but_other_failures_are_not():
+    adapter = OsvScannerDocumentAdapter()
+    found = ProcessResult(ProcessOutcome.FAILED, exit_code=1)
+    broken = ProcessResult(ProcessOutcome.FAILED, exit_code=127)
+    timed_out = ProcessResult(ProcessOutcome.TIMED_OUT, exit_code=None)
+    assert adapter.result_succeeded(found) is True
+    assert adapter.result_succeeded(broken) is False
+    assert adapter.result_succeeded(timed_out) is False

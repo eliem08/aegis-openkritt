@@ -210,10 +210,11 @@ class ScanCoordinator:
                             capability_tier=task.capability_tier, tenant_id=self._config.tenant_id):
                 result = self._execute(task)
             events = result.events
+            succeeded = self._result_succeeded(self._adapters[task.adapter], result.process)
             quarantine, reason = self._should_quarantine(result.process, events,
                                                          sensitive=result.sensitive)
             self._persist(task, events, quarantined=quarantine)
-            actual_spend = est_spend if result.process.ok else 0.0
+            actual_spend = est_spend if succeeded else 0.0
 
             if quarantine:
                 # The streamed observations are marked quarantined and never
@@ -233,7 +234,7 @@ class ScanCoordinator:
                                 if result.sensitive_classifications else "unknown")
                     self._count("sensitive_quarantines", category=category)
                 return StepResult(task.task_id, "quarantined", len(events), reason)
-            if result.process.ok:
+            if succeeded:
                 graph = self._promote(task, result)
                 self._repo.transition_task(task.task_id, scans.TaskState.SUCCEEDED,
                                            result_summary={"events": len(events), "graph": graph})
@@ -418,6 +419,11 @@ class ScanCoordinator:
             input_hash=task.quotas.get("input_hash", ""),
             limits=EnvelopeLimits(wall_seconds=30.0),
         )
+
+    @staticmethod
+    def _result_succeeded(adapter, process) -> bool:
+        predicate = getattr(adapter, "result_succeeded", None)
+        return bool(predicate(process)) if callable(predicate) else bool(process.ok)
 
     @staticmethod
     def _should_quarantine(process, events, *, sensitive: bool = False) -> tuple[bool, str]:

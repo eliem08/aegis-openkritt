@@ -161,6 +161,11 @@ class GitleaksDocumentAdapter(_ContainerOnlyDocumentAdapter):
 class OsvScannerDocumentAdapter(_ContainerOnlyDocumentAdapter):
     manifest = OSV_SCANNER_MANIFEST
 
+    def result_succeeded(self, result) -> bool:
+        # OSV-Scanner documents exit code 1 as "vulnerabilities/findings found".
+        # Other non-zero values remain failures; timeouts/limits have no exit code.
+        return getattr(result, "exit_code", None) in (0, 1)
+
     def map_document(self, root, envelope):
         if not isinstance(root, dict) or not isinstance(root.get("results"), list):
             raise SchemaMismatch("OSV-Scanner document.results must be an array")

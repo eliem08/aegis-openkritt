@@ -33,8 +33,9 @@ quarantine, and a live authorized-lab run.
   egress, dropped capabilities, and CPU/memory/process/output/time caps.
 - [ ] Disable Semgrep telemetry, remote configuration, login, version checks, and
   auto-update; mount only an approved commit-and-digest-pinned local rule bundle.
-- [ ] Pin an offline OSV database snapshot and teach result handling that exit
-  code 1 means vulnerabilities found, not an infrastructure failure.
+- [x] Treat OSV exit code 1 as vulnerabilities found, not an infrastructure
+  failure, while preserving failure semantics for every other non-zero exit.
+- [ ] Pin an offline OSV database snapshot for egress-free dependency matching.
 - [ ] Run digest-produced golden output and an authorized local vulnerable-repo
   lab through the real container executor, then promote the three entries into
   `secrets/scanner-releases.lock.json`.
