@@ -20,9 +20,11 @@ quarantine, and a live authorized-lab run.
 
 ## Live drill evidence
 
-- Gitleaks 8.30.1 ran by immutable digest through the hardened builder against
-  local test fixtures with `--network none`: exit 0, semantic success, zero
-  findings, and zero stderr bytes. Raw report output was not printed.
+- Gitleaks 8.30.1 ran by immutable digest through the hardened builder with
+  `--network none`. The clean fixture returned zero findings/zero stderr; an
+  opt-in runtime-generated nonfunctional positive control produced exactly one
+  `secret_candidate`, and the normalized event contained no secret or matching
+  source line. See `tests/adapters/test_gitleaks_live_image.py`.
 - Semgrep 1.164.0 ran by immutable digest through the same boundary against the
   synthetic Python web lab. The final content-pinned Aegis rules produced exactly
   three candidates (command injection, SSRF, SQL injection) in `vulnerable.py`,
