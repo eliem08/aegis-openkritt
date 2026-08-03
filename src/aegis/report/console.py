@@ -53,8 +53,13 @@ def _severity(candidate: Candidate) -> str:
 _SEVERITY_ORDER = {"critical": 4, "high": 3, "medium": 2, "low": 1, "info": 0}
 
 
-def build_console(candidates, *, scan_id: str = "", now=None) -> dict:
-    """Merge candidates into one ranked, de-duplicated review model (JSON-able)."""
+def build_console(candidates, *, scan_id: str = "", now=None, calibration=None) -> dict:
+    """Merge candidates into one ranked, de-duplicated review model (JSON-able).
+
+    When a ``calibration`` (``aegis.learn.Calibration``) is supplied, each item's
+    ranking priority is scaled by the learned per-detector/CWE precision, so the
+    console reorders itself as verdicts accumulate — the learning loop, made visible.
+    """
     now = now or datetime.now(timezone.utc)
 
     # De-duplicate by family fingerprint, keeping the highest-priority member and
@@ -62,10 +67,13 @@ def build_console(candidates, *, scan_id: str = "", now=None) -> dict:
     reps: dict[str, dict] = {}
     for c in candidates:
         key = c.fingerprint()
-        pr = round(priority_score(c), 4)
+        pr = round(priority_score(c) * _cal_factor(calibration, c), 4)
         item = reps.get(key)
         if item is None or pr > item["priority"]:
-            reps[key] = _item(c, pr, keep_count=(item["duplicate_count"] if item else 0))
+            new = _item(c, pr, keep_count=(item["duplicate_count"] if item else 0))
+            if calibration is not None:
+                new["learned_prior"] = round(calibration.prior(detector=c.worker, cwe=c.cwe), 3)
+            reps[key] = new
         else:
             item["duplicate_count"] += 1
 
@@ -99,6 +107,10 @@ def build_console(candidates, *, scan_id: str = "", now=None) -> dict:
         "sources": sorted(by_source),
         "items": items,
     }
+
+
+def _cal_factor(calibration, candidate) -> float:
+    return calibration.factor(candidate) if calibration is not None else 1.0
 
 
 def _item(c: Candidate, priority: float, *, keep_count: int) -> dict:

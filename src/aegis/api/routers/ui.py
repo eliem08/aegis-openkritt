@@ -33,16 +33,18 @@ def review(request: Request, scan: str = "", scans: str = "") -> dict:
                       "upload an open·kritt export below.")
     url = getattr(config, "openkritt_url", "")
     scan_ids = [s.strip() for s in scans.split(",") if s.strip()] or ([scan] if scan else [])
+    cal = _calibration(request)
     try:
         if not scan_ids:
             found = client.list_scans()
             return _empty(f"open·kritt backend connected ({len(found)} scans). "
                           "Enter a scan id to load its findings.", backend=True)
         if len(scan_ids) == 1:
-            model = build_console(client.import_candidates(scan_ids[0]), scan_id=scan_ids[0])
+            model = build_console(client.import_candidates(scan_ids[0]), scan_id=scan_ids[0],
+                                  calibration=cal)
         else:
             from aegis.integrations import console_for_scans
-            model = console_for_scans(client, scan_ids)
+            model = console_for_scans(client, scan_ids, calibration=cal)
         model["backend_connected"] = True
         return model
     except httpx.HTTPError as exc:
@@ -97,14 +99,48 @@ def h1_scan(request: Request, payload=Body(...)) -> dict:
 
 
 @router.post("/ui/review", summary="Build a review model from an uploaded open·kritt export")
-def review_from_export(payload=Body(...)) -> dict:
+def review_from_export(request: Request, payload=Body(...)) -> dict:
     from aegis.integrations import ingest_openkritt_findings
 
     export = payload.get("export") if isinstance(payload, dict) else payload
     candidates = ingest_openkritt_findings(export)
-    model = build_console(candidates)
+    model = build_console(candidates, calibration=_calibration(request))
     model["note"] = f"Loaded {len(candidates)} finding(s) from an uploaded export."
     return model
+
+
+@router.post("/ui/feedback", summary="Record a human verdict on a finding (the learning loop)")
+def feedback(request: Request, payload=Body(...)) -> dict:
+    """A confirmed / false_positive / duplicate verdict updates the calibration priors
+    and the planner's retrieval memory — the console reranks and the LLM plans better
+    from here on, automatically."""
+    from aegis.learn import Calibration, Outcome, Verdict
+
+    store = getattr(request.app.state, "outcomes", None)
+    if store is None:
+        return {"error": "learning store not available"}
+    data = payload if isinstance(payload, dict) else {}
+    try:
+        verdict = Verdict(str(data.get("verdict", "")).strip().lower())
+    except ValueError:
+        return {"error": "verdict must be one of: confirmed, false_positive, duplicate, pending"}
+    detector = str(data.get("detector") or data.get("worker") or "").strip()
+    cwe = str(data.get("cwe") or "").strip()
+    store.record(Outcome(
+        detector=detector, cwe=cwe, verdict=verdict,
+        fingerprint=str(data.get("fingerprint") or ""), asset=str(data.get("asset") or ""),
+        program=str(data.get("program") or ""), summary=str(data.get("summary") or "")[:240]))
+    cal = Calibration.from_outcomes(store.all())
+    return {"recorded": store.count(),
+            "learned_prior": round(cal.prior(detector=detector, cwe=cwe), 3)}
+
+
+def _calibration(request: Request):
+    """Calibration built from all recorded verdicts (neutral when none yet)."""
+    from aegis.learn import Calibration
+
+    store = getattr(request.app.state, "outcomes", None)
+    return Calibration.from_outcomes(store.all()) if store is not None else None
 
 
 def _empty(note: str, *, backend: bool = False) -> dict:

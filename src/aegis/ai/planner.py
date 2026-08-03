@@ -59,6 +59,11 @@ class _FallbackPlanner(Protocol):
         ...
 
 
+class _Knowledge(Protocol):
+    def context(self, inputs: EngagementInputs, surface: AttackSurface) -> dict:
+        ...
+
+
 class LLMPlanner:
     def __init__(
         self,
@@ -71,6 +76,7 @@ class LLMPlanner:
         max_actions: int = 8,
         fallback: _FallbackPlanner | None = None,
         focus_weaknesses: list[str] | None = None,
+        knowledge: "_Knowledge | None" = None,
     ) -> None:
         self._client = client
         self._scope = scope
@@ -80,6 +86,7 @@ class LLMPlanner:
         self._max_actions = max_actions
         self._fallback = fallback
         self._focus = focus_weaknesses or []
+        self._knowledge = knowledge  # learned few-shot context (aegis.learn.PlannerKnowledge)
         self.last_dropped: list[dict] = []  # audit of rejected proposals
 
     def plan(self, inputs: EngagementInputs, surface: AttackSurface) -> TestPlan:
@@ -141,6 +148,11 @@ class LLMPlanner:
         }
         if self._focus:
             context["prioritize_weakness_classes"] = self._focus
+        if self._knowledge is not None:
+            learned = self._knowledge.context(inputs, surface)
+            if learned:
+                # The LLM conditions on what prior verdicts confirmed vs. rejected.
+                context["learned_from_past_outcomes"] = learned
         user = (
             "Plan authorized tests for this engagement. Only in-scope targets, only "
             "allowed actions.\n" + json.dumps(context)

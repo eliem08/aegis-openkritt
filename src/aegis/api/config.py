@@ -83,6 +83,7 @@ class ControlPlaneConfig:
     encryption_key: str | None = None  # Fernet key; None = plaintext at rest
     openkritt_url: str | None = None  # base URL of a running open·kritt backend (optional)
     openkritt_api_key: str | None = None  # bearer token for that backend, if it requires one
+    learn_db_path: str | None = None  # sqlite file for the learning loop; None = in-memory
 
     @property
     def is_single_tenant_compat(self) -> bool:
@@ -175,6 +176,7 @@ class ControlPlaneConfig:
             encryption_key=env.get("AEGIS_ENCRYPTION_KEY") or None,
             openkritt_url=env.get("AEGIS_OPENKRITT_URL") or None,
             openkritt_api_key=env.get("AEGIS_OPENKRITT_API_KEY") or None,
+            learn_db_path=env.get("AEGIS_LEARN_DB") or None,
         )
 
 

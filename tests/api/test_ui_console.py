@@ -71,6 +71,34 @@ def test_review_live_from_connected_backend(monkeypatch):
     assert body["items"][0]["cwe"] == "CWE-284"
 
 
+def test_feedback_is_recorded_and_reranks_the_upload_console():
+    client = _app()
+    # A noisy detector's finding, surfaced from an upload.
+    export = {"vulnerabilities": [{"id": 1, "dedupe_is_canonical": True,
+              "bounty_rank_impact_level": "critical",
+              "json_answer": {"vulnerability_type": "Reentrancy", "file_path": "V.sol", "line": 1,
+                              "summary": "s", "explanation": "e", "trigger_flow": "t",
+                              "malicious_input_example": "x", "malicious_actor": "a"}}]}
+    before = client.post("/ui/review", json={"export": export}).json()
+    assert "learned_prior" not in before["items"][0] or before["items"][0].get("learned_prior") is None \
+        or before["items"][0]["learned_prior"] == 0.5
+
+    # Teach the loop this detector+CWE is usually a false positive.
+    for _ in range(6):
+        r = client.post("/ui/feedback", json={
+            "detector": "integration:openkritt", "cwe": "CWE-841", "verdict": "false_positive"})
+    assert r.json()["recorded"] == 6
+    assert r.json()["learned_prior"] < 0.3
+
+    after = client.post("/ui/review", json={"export": export}).json()
+    assert after["items"][0]["learned_prior"] < 0.3      # calibration now applied
+
+
+def test_feedback_rejects_a_bad_verdict():
+    r = _app().post("/ui/feedback", json={"detector": "d", "cwe": "CWE-1", "verdict": "bogus"})
+    assert "error" in r.json()
+
+
 def test_review_degrades_when_backend_configured_but_unreachable():
     cfg = ControlPlaneConfig(auth_enabled=False, require_signature=False,
                              openkritt_url="http://127.0.0.1:3002")

@@ -169,12 +169,12 @@ def launch_repo_scans(client, repos, template: ScanTemplate) -> list[ScanLaunch]
 
 # --- collect findings into one console --------------------------------------
 
-def console_for_scans(client, scan_ids, **ingest_kwargs) -> dict:
+def console_for_scans(client, scan_ids, *, calibration=None, **ingest_kwargs) -> dict:
     """Merge findings from several open·kritt scans into one review-console model."""
     candidates = []
     for scan_id in scan_ids:
         candidates.extend(client.import_candidates(scan_id, **ingest_kwargs))
-    model = build_console(candidates)
+    model = build_console(candidates, calibration=calibration)
     model["scan_ids"] = [str(s) for s in scan_ids]
     return model
 
