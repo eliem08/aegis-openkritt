@@ -1,0 +1,214 @@
+name: aegis-production
+
+x-hardened: &hardened
+  restart: unless-stopped
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  init: true
+
+services:
+  pg.prod.internal:
+    <<: *hardened
+    build:
+      context: .
+      dockerfile: deploy/postgres/Dockerfile
+      args:
+        POSTGRES_IMAGE: "${AEGIS_POSTGRES_IMAGE:?set a digest-pinned PostgreSQL image}"
+    environment:
+      POSTGRES_USER: svc_aegis
+      POSTGRES_DB: aegis
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256 --auth-local=peer
+    secrets:
+      - postgres_password
+      - postgres_ca
+      - postgres_server_cert
+      - postgres_server_key
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    tmpfs:
+      - /run/aegis-postgres-tls:mode=0700,size=1m
+      - /tmp:mode=1777,size=64m
+    networks:
+      control_internal:
+        aliases: [pg.prod.internal]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U svc_aegis -d aegis"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    pids_limit: 256
+    mem_limit: 1g
+    cpus: 2.0
+
+  redis.prod.internal:
+    <<: *hardened
+    build:
+      context: .
+      dockerfile: deploy/redis/Dockerfile
+      args:
+        REDIS_IMAGE: "${AEGIS_REDIS_IMAGE:?set a digest-pinned Redis image}"
+    secrets:
+      - redis_password
+    volumes:
+      - redisdata:/data
+    tmpfs:
+      - /run/aegis-redis:mode=0700,size=1m
+      - /tmp:mode=1777,size=16m
+    networks:
+      control_internal:
+        aliases: [redis.prod.internal]
+    healthcheck:
+      test: ["CMD-SHELL", "REDISCLI_AUTH=$$(cat /run/secrets/redis_password) redis-cli ping | grep -q PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    pids_limit: 128
+    mem_limit: 384m
+    cpus: 1.0
+
+  control-plane:
+    <<: *hardened
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+      args:
+        PYTHON_IMAGE: "${AEGIS_PYTHON_IMAGE:?set a digest-pinned Python image}"
+    read_only: true
+    depends_on:
+      pg.prod.internal:
+        condition: service_healthy
+      redis.prod.internal:
+        condition: service_healthy
+      egress.prod.internal:
+        condition: service_healthy
+    environment:
+      AEGIS_PRODUCTION: "1"
+      AEGIS_API_KEYS_FILE: /run/secrets/api_keys
+      AEGIS_SIGNING_KEYS_FILE: /run/secrets/signing_keys
+      AEGIS_ENCRYPTION_KEY_FILE: /run/secrets/encryption_key
+      AEGIS_DB_URL_FILE: /run/secrets/database_url
+      AEGIS_REDIS_URL_FILE: /run/secrets/redis_url
+      AEGIS_COORD_NAMESPACE: "${AEGIS_COORD_NAMESPACE:-aegis-prod}"
+      AEGIS_EGRESS_ENFORCED: "1"
+      AEGIS_EGRESS_URL: http://egress.prod.internal:8080
+      AEGIS_BROWSER_IMAGE: "${AEGIS_BROWSER_IMAGE:?set a digest-pinned browser image}"
+      AEGIS_SCANNER_LOCK: /run/config/scanner-releases.lock.json
+      AEGIS_OAST_DOMAIN: "${AEGIS_OAST_DOMAIN:?set the private OAST domain}"
+      AEGIS_LEARN_DB: /var/lib/aegis/learning.db
+    secrets:
+      - api_keys
+      - signing_keys
+      - encryption_key
+      - database_url
+      - redis_url
+      - postgres_ca
+    configs:
+      - scanner_releases
+    volumes:
+      - learningdata:/var/lib/aegis
+    tmpfs:
+      - /tmp:mode=1777,size=128m
+    networks:
+      - control_internal
+    ports:
+      - "127.0.0.1:${AEGIS_CONTROL_PORT:-8000}:8000"
+    pids_limit: 256
+    mem_limit: 1g
+    cpus: 2.0
+
+  egress.prod.internal:
+    <<: *hardened
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+      args:
+        PYTHON_IMAGE: "${AEGIS_PYTHON_IMAGE:?set a digest-pinned Python image}"
+    command: ["python", "-m", "aegis.egress"]
+    read_only: true
+    environment:
+      AEGIS_EGRESS_SIGNING_KEY_FILE: /run/secrets/egress_signing_key
+      AEGIS_REDIS_URL_FILE: /run/secrets/redis_url
+      AEGIS_COORD_NAMESPACE: "${AEGIS_COORD_NAMESPACE:-aegis-prod}"
+      AEGIS_OAST_DOMAIN: "${AEGIS_OAST_DOMAIN:?set the private OAST domain}"
+      AEGIS_PORT: "8080"
+    secrets:
+      - egress_signing_key
+      - redis_url
+    tmpfs:
+      - /tmp:mode=1777,size=64m
+    networks:
+      control_internal:
+        aliases: [egress.prod.internal]
+      worker_internal:
+        aliases: [egress.prod.internal]
+      target_egress: {}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/healthz',timeout=2)"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    pids_limit: 256
+    mem_limit: 512m
+    cpus: 1.0
+
+  authorized-lab:
+    profiles: [lab]
+    <<: *hardened
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+      args:
+        PYTHON_IMAGE: "${AEGIS_PYTHON_IMAGE:?set a digest-pinned Python image}"
+    command: ["python", "-m", "aegis.production.lab"]
+    read_only: true
+    tmpfs:
+      - /tmp:mode=1777,size=16m
+    networks:
+      target_egress:
+        aliases: [authorized-lab]
+    pids_limit: 64
+    mem_limit: 128m
+    cpus: 0.5
+
+networks:
+  control_internal:
+    internal: true
+  worker_internal:
+    internal: true
+  target_egress: {}
+
+volumes:
+  pgdata: {}
+  redisdata: {}
+  learningdata: {}
+
+secrets:
+  api_keys:
+    file: ./secrets/api_keys.json
+  signing_keys:
+    file: ./secrets/signing_keys.json
+  encryption_key:
+    file: ./secrets/encryption_key
+  postgres_password:
+    file: ./secrets/postgres_password
+  database_url:
+    file: ./secrets/database_url
+  redis_password:
+    file: ./secrets/redis_password
+  redis_url:
+    file: ./secrets/redis_url
+  postgres_ca:
+    file: ./secrets/postgres_ca.pem
+  postgres_server_cert:
+    file: ./secrets/postgres_server_cert.pem
+  postgres_server_key:
+    file: ./secrets/postgres_server_key.pem
+  egress_signing_key:
+    file: ./secrets/egress_signing_key
+
+configs:
+  scanner_releases:
+    file: ./secrets/scanner-releases.lock.json

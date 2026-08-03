@@ -1,0 +1,26 @@
+ARG PYTHON_IMAGE
+FROM ${PYTHON_IMAGE}
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    AEGIS_PRODUCTION=1 \
+    AEGIS_HOST=0.0.0.0 \
+    AEGIS_PORT=8000
+
+WORKDIR /app
+COPY pyproject.toml README.md ./
+COPY src ./src
+RUN pip install ".[api,postgres]" "redis>=5.0,<6"
+
+RUN useradd --create-home --uid 10001 --shell /usr/sbin/nologin aegis \
+    && mkdir -p /var/lib/aegis /var/log/aegis \
+    && chown -R aegis:aegis /var/lib/aegis /var/log/aegis
+
+USER 10001:10001
+EXPOSE 8000
+
+HEALTHCHECK --interval=20s --timeout=3s --start-period=10s --retries=3 \
+    CMD python -c "import os,urllib.request; urllib.request.urlopen('http://127.0.0.1:'+os.getenv('AEGIS_PORT','8000')+'/healthz',timeout=2)"
+
+CMD ["python", "-m", "aegis.production"]
