@@ -109,6 +109,217 @@ def review_from_export(request: Request, payload=Body(...)) -> dict:
     return model
 
 
+@router.post("/ui/deepseek/validate", summary="Automatically validate a direct DeepSeek report")
+def start_deepseek_validation(request: Request, payload=Body(None)) -> dict:
+    """Refresh authorization, then validate every hypothesis in a background job."""
+    import os
+    import re
+    import threading
+    import uuid
+    from pathlib import Path
+
+    from aegis.ai import DeepSeekConfig
+    from aegis.ingest.hackerone import HackerOneClient
+    from aegis.integrations import repos_in_scope
+
+    data = payload if isinstance(payload, dict) else {}
+    handle = str(data.get("handle") or "circle-bbp").strip()
+    repo_full = str(data.get("repo_full") or "circlefin/evm-cctp-contracts").strip()
+    try:
+        DeepSeekConfig.from_env()
+        h1 = HackerOneClient.from_env()
+    except Exception as exc:
+        return {"error": f"validation configuration failed: {type(exc).__name__}"}
+    try:
+        rules = h1.fetch_program_rules(handle)
+        scope = repos_in_scope(rules, bounty_only=True)
+        target = next((r for r in scope.repos if r.repo_full.casefold() == repo_full.casefold()), None)
+        if scope.gated or target is None:
+            return {"error": scope.reason or "repository is not currently bounty eligible"}
+    except httpx.HTTPError as exc:
+        return {"error": f"scope refresh failed: {exc}"}
+    finally:
+        h1.close()
+
+    report_root = Path(os.environ.get("AEGIS_REPORT_DIR", "reports")).resolve()
+    canonical_name = f"deepseek_{repo_full.replace('/', '_')}.json"
+    sanitized_name = "deepseek_" + re.sub(r"[^A-Za-z0-9]+", "_", repo_full).strip("_") + ".json"
+    report_path = report_root / canonical_name
+    if not report_path.is_file():
+        report_path = report_root / sanitized_name
+    repo_root = report_root / "repos" / repo_full.replace("/", "__")
+    if not report_path.is_file():
+        return {"error": f"DeepSeek report is missing: {canonical_name}"}
+    if not repo_root.is_dir():
+        return {"error": "pinned repository checkout is missing"}
+
+    jobs = getattr(request.app.state, "deepseek_validation_jobs", None)
+    if jobs is None:
+        jobs = request.app.state.deepseek_validation_jobs = {}
+    job_id = uuid.uuid4().hex[:12]
+    jobs[job_id] = {
+        "id": job_id, "status": "queued", "completed": 0, "total": 0,
+        "repo_full": repo_full, "handle": handle, "current_file": "",
+    }
+    threading.Thread(
+        target=_run_deepseek_validation,
+        args=(request.app, job_id, report_path, repo_root),
+        daemon=True,
+        name=f"aegis-validate-{job_id}",
+    ).start()
+    return {
+        "job_id": job_id, "status": "queued",
+        "status_url": f"/ui/deepseek/jobs/{job_id}",
+        "result_url": f"/ui/deepseek/results/{job_id}",
+    }
+
+
+@router.get("/ui/deepseek/jobs/{job_id}", summary="DeepSeek validation progress")
+def deepseek_validation_status(request: Request, job_id: str) -> dict:
+    jobs = getattr(request.app.state, "deepseek_validation_jobs", {})
+    return jobs.get(job_id) or {"error": "validation job not found"}
+
+
+@router.post("/ui/autohunt", summary="Start an autonomous, EV-ranked code-lane hunt (candidates only)")
+def start_autohunt(request: Request, payload=Body(None)) -> dict:
+    """Rank code/contract targets by expected value and hunt the best ones in the
+    background, surfacing confirmed candidates + PoC scaffolds. Never submits."""
+    import os
+    import threading
+    import uuid
+    from pathlib import Path
+
+    from aegis.ai.auto_hunt import AutoHuntConfig
+    from aegis.ai.auto_hunt_run import build_targets_from_ranking
+
+    data = payload if isinstance(payload, dict) else {}
+    report_root = Path(os.environ.get("AEGIS_REPORT_DIR", "reports")).resolve()
+    ranking = str(data.get("ranking") or (report_root / "autohunt_targets.json"))
+    if not Path(ranking).is_file():
+        return {"error": f"target ranking not found: {ranking} — POST a 'ranking' path "
+                         "(a json list of {repository, handle, reward_ceiling, findability})"}
+    try:
+        targets = build_targets_from_ranking(ranking)
+    except Exception as exc:
+        return {"error": f"could not load targets: {type(exc).__name__}"}
+    if not targets:
+        return {"error": "no valid targets in the ranking file"}
+
+    config = AutoHuntConfig(
+        max_targets=int(data.get("max_targets", 3)),
+        samples=int(data.get("samples", 3)),
+        min_ev=float(data.get("min_ev", 0.0)),
+    )
+    jobs = getattr(request.app.state, "autohunt_jobs", None)
+    if jobs is None:
+        jobs = request.app.state.autohunt_jobs = {}
+    job_id = uuid.uuid4().hex[:12]
+    jobs[job_id] = {"id": job_id, "status": "queued", "events": [],
+                    "targets": len(targets), "confirmed_total": 0, "summary": None}
+    threading.Thread(target=_run_autohunt, args=(request.app, job_id, targets, config,
+                                                 str(report_root)),
+                     daemon=True, name=f"aegis-autohunt-{job_id}").start()
+    return {"job_id": job_id, "status": "queued", "status_url": f"/ui/autohunt/{job_id}"}
+
+
+@router.get("/ui/autohunt/{job_id}", summary="Autonomous hunt progress + confirmed candidates")
+def autohunt_status(request: Request, job_id: str) -> dict:
+    jobs = getattr(request.app.state, "autohunt_jobs", {})
+    return jobs.get(job_id) or {"error": "autohunt job not found"}
+
+
+def _run_autohunt(app, job_id, targets, config, report_root) -> None:
+    from aegis.ai.auto_hunt import AutoHunter
+    from aegis.ai.auto_hunt_run import make_hunt_fn
+
+    job = app.state.autohunt_jobs[job_id]
+    job["status"] = "running"
+
+    def on_event(kind, data):
+        job["events"].append({"kind": kind, **{k: v for k, v in data.items() if k != "ranked"}})
+        if kind == "hunt_done":
+            job["confirmed_total"] = job.get("confirmed_total", 0) + int(data.get("confirmed", 0))
+
+    try:
+        hunt_fn = make_hunt_fn(report_root=report_root)
+        session = AutoHunter(hunt_fn, config=config, on_event=on_event).run(targets)
+        job["summary"] = session.summary()
+        job["confirmed_total"] = session.confirmed_total
+        job["status"] = "completed"
+    except Exception as exc:
+        job["status"] = "error"
+        job["error"] = f"{type(exc).__name__}: {exc}"[:200]
+
+
+@router.get("/ui/deepseek/latest", response_class=HTMLResponse,
+            summary="Latest persisted DeepSeek validation")
+def latest_deepseek_validation(repo_full: str = "circlefin/evm-cctp-contracts") -> HTMLResponse:
+    """Render the last persisted validation, including after an API restart."""
+    import os
+    import re
+    from pathlib import Path
+
+    from aegis.ai.report_validation import review_model_from_report
+
+    report_root = Path(os.environ.get("AEGIS_REPORT_DIR", "reports")).resolve()
+    names = [
+        f"deepseek_{repo_full.replace('/', '_')}.json",
+        "deepseek_" + re.sub(r"[^A-Za-z0-9]+", "_", repo_full).strip("_") + ".json",
+    ]
+    report_path = next((report_root / name for name in names if (report_root / name).is_file()), None)
+    if report_path is None:
+        return HTMLResponse("Validated DeepSeek report not found", status_code=404)
+    return HTMLResponse(_static_console(review_model_from_report(report_path)))
+
+
+@router.get("/ui/deepseek/results/{job_id}", response_class=HTMLResponse,
+            summary="Validated DeepSeek findings")
+def deepseek_validation_result(request: Request, job_id: str) -> HTMLResponse:
+    jobs = getattr(request.app.state, "deepseek_validation_jobs", {})
+    job = jobs.get(job_id)
+    if not job:
+        return HTMLResponse("Validation job not found", status_code=404)
+    if job.get("status") != "completed":
+        return HTMLResponse("Validation is still running", status_code=202)
+    return HTMLResponse(_static_console(job["model"]))
+
+
+def _run_deepseek_validation(app, job_id, report_path, repo_root) -> None:
+    import os
+    from aegis.ai import DeepSeekClient
+    from aegis.ai.report_validation import validate_deepseek_report
+
+    job = app.state.deepseek_validation_jobs[job_id]
+    job["status"] = "running"
+
+    def progress(completed, total, current_file):
+        job.update(completed=completed, total=total, current_file=current_file)
+
+    env = dict(os.environ)
+    env.update(
+        DEEPSEEK_READ_TIMEOUT="300", DEEPSEEK_THINKING="disabled",
+        DEEPSEEK_TEMPERATURE="0.1", DEEPSEEK_MAX_TOKENS="4096",
+    )
+    try:
+        with DeepSeekClient.from_env(env=env) as client:
+            report, model = validate_deepseek_report(
+                report_path, repo_root, client, progress=progress,
+            )
+        job.update(
+            status="completed", model=model,
+            validation_counts=report["scan"]["validation_counts"],
+            result_url=f"/ui/deepseek/results/{job_id}",
+        )
+    except Exception as exc:
+        job.update(status="failed", error=f"{type(exc).__name__}: {str(exc)[:240]}")
+
+
+def _static_console(model: dict) -> str:
+    import json
+    bootstrap = "<script>window.__CONSOLE__=" + json.dumps(model).replace("</", "<\\/") + ";</script>\n"
+    return CONSOLE_HTML.replace("<script>\n(function () {", bootstrap + "<script>\n(function () {", 1)
+
+
 @router.post("/ui/feedback", summary="Record a human verdict on a finding (the learning loop)")
 def feedback(request: Request, payload=Body(...)) -> dict:
     """A confirmed / false_positive / duplicate verdict updates the calibration priors
@@ -304,7 +515,7 @@ CONSOLE_HTML = r"""<!doctype html>
   .sub { color: var(--muted); font: 12px/1.4 var(--mono); }
   main { padding: 20px 24px 60px; max-width: 1200px; }
 
-  .summary { display: grid; grid-template-columns: repeat(3, auto) 1fr; gap: 12px;
+  .summary { display: grid; grid-template-columns: repeat(4, auto) 1fr; gap: 12px;
     align-items: stretch; margin-bottom: 18px; }
   @media (max-width: 720px) { .summary { grid-template-columns: repeat(3, 1fr); } }
   .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 15px; }
@@ -366,7 +577,9 @@ CONSOLE_HTML = r"""<!doctype html>
   .src-aegis { background: color-mix(in srgb, var(--aegis) 16%, transparent); color: var(--aegis); }
   .src-open-kritt, .src-openkritt { background: color-mix(in srgb, var(--okritt) 18%, transparent); color: var(--okritt); }
   .src-contract { background: color-mix(in srgb, var(--contract) 18%, transparent); color: var(--contract); }
-  .st-verified { background: color-mix(in srgb, var(--ok) 18%, transparent); color: var(--ok); }
+  .st-verified, .st-confirmed { background: color-mix(in srgb, var(--ok) 18%, transparent); color: var(--ok); }
+  .st-false_positive { background: color-mix(in srgb, var(--low) 18%, transparent); color: var(--low); }
+  .st-unresolved { border: 1px solid var(--line); color: var(--muted); }
   .st-hypothesis { border: 1px solid var(--line); color: var(--muted); }
   .title { font-weight: 600; }
   .loc { color: var(--faint); font: 12px/1.4 var(--mono); word-break: break-all; margin-top: 3px; }
@@ -401,6 +614,8 @@ CONSOLE_HTML = r"""<!doctype html>
     </select>
     <select id="fStatus" aria-label="filter by status">
       <option value="">all statuses</option>
+      <option value="confirmed">confirmed</option><option value="false_positive">rejected</option>
+      <option value="unresolved">unresolved</option>
       <option value="verified">verified</option><option value="hypothesis">hypothesis</option>
     </select>
   </div>
@@ -416,6 +631,16 @@ CONSOLE_HTML = r"""<!doctype html>
       <button class="primary" id="huntRunBtn">Run cycle</button>
     </div>
     <pre id="huntOut" class="hunt-out"></pre>
+  </details>
+
+  <details class="hunt" open>
+    <summary>DeepSeek Platform - automatic code validation</summary>
+    <div class="hunt-grid">
+      <label>HackerOne handle<input id="validateHandle" value="circle-bbp" /></label>
+      <label>Repository<input id="validateRepo" value="circlefin/evm-cctp-contracts" /></label>
+      <button class="primary" id="validateRunBtn">Validate hypotheses against code</button>
+    </div>
+    <pre id="validateOut" class="hunt-out">Ready. Scope is refreshed before validation.</pre>
   </details>
 
   <div class="note" id="note" style="display:none"></div>
@@ -465,9 +690,13 @@ CONSOLE_HTML = r"""<!doctype html>
       (model.scan_id ? "scan " + model.scan_id + " · " : "") +
       (model.generated_at ? new Date(model.generated_at).toLocaleString() : "") +
       (model.backend_connected ? " · backend connected" : "");
-    document.getElementById("summary").innerHTML =
-      card(t.candidates, "candidates") + card(t.verified, "verified") +
-      card(t.hypotheses, "hypotheses") + sevSummary(t.by_severity || {});
+    var isValidated = Object.prototype.hasOwnProperty.call(t, "confirmed");
+    document.getElementById("summary").innerHTML = isValidated
+      ? card(t.candidates, "families") + card(t.confirmed, "confirmed") +
+        card(t.rejected, "rejected") + card(t.unresolved, "unresolved") +
+        sevSummary(t.by_severity || {})
+      : card(t.candidates, "candidates") + card(t.verified, "verified") +
+        card(t.hypotheses, "hypotheses") + sevSummary(t.by_severity || {});
 
     var note = document.getElementById("note");
     if (model.note) { note.style.display = "block"; note.textContent = model.note; }
@@ -488,6 +717,14 @@ CONSOLE_HTML = r"""<!doctype html>
     document.getElementById("rows").innerHTML = items.map(function (it) {
       var dup = it.duplicate_count > 1 ? ' <span class="dup">×' + it.duplicate_count + "</span>" : "";
       var stripe = "background:var(--" + (it.severity === "medium" ? "med" : it.severity) + ")";
+      var validation = it.validation_reason
+        ? '<br><b>code validation</b> - ' + esc(it.validation_reason) : "";
+      var anchors = (it.code_anchors || []).map(function (a) {
+        return '<br><b>source</b> - ' + esc(a.path) + ':' + a.line_start + '-' + a.line_end +
+          ' - <span class="mono">' + esc(a.quote) + '</span>';
+      }).join("");
+      var test = it.verification_test
+        ? '<br><b>local test</b> - ' + esc(it.verification_test) : "";
       return '<tr class="row" tabindex="0">' +
         '<td class="stripe" style="' + stripe + '"></td>' +
         '<td class="rank">' + it.rank + "</td>" +
@@ -496,7 +733,7 @@ CONSOLE_HTML = r"""<!doctype html>
         '<td><div class="title">' + esc(it.title) + dup + "</div>" +
           '<div class="loc">' + esc(it.code_location || it.route || it.asset) + "</div>" +
           '<div class="detail"><b>observed</b> · ' + esc(it.observed) +
-            (it.expected ? '<br><b>expected</b> · ' + esc(it.expected) : "") + "</div></td>" +
+            (it.expected ? '<br><b>expected</b> · ' + esc(it.expected) : "") + validation + anchors + test + "</div></td>" +
         '<td class="cwe">' + esc(it.cwe || "—") + "</td>" +
         '<td class="pri">' + it.priority + "</td>" +
         '<td><span class="badge st-' + esc(it.status) + '">' + esc(it.status) + "</span></td>" +
@@ -568,10 +805,53 @@ CONSOLE_HTML = r"""<!doctype html>
     });
   }
 
+
+
+  var validateBtn = document.getElementById("validateRunBtn");
+  if (validateBtn) {
+    validateBtn.addEventListener("click", function () {
+      var out = document.getElementById("validateOut");
+      var body = {
+        handle: document.getElementById("validateHandle").value.trim(),
+        repo_full: document.getElementById("validateRepo").value.trim()
+      };
+      validateBtn.disabled = true;
+      out.textContent = "Refreshing scope and starting validation...";
+      fetch("/ui/deepseek/validate", {
+        method: "POST", headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(body)
+      }).then(function (r) { return r.json(); }).then(function (start) {
+        if (start.error) throw new Error(start.error);
+        function poll() {
+          fetch(start.status_url).then(function (r) { return r.json(); }).then(function (job) {
+            out.textContent = JSON.stringify({
+              status: job.status, completed: job.completed, total: job.total,
+              current_file: job.current_file, validation_counts: job.validation_counts || null,
+              error: job.error || null
+            }, null, 2);
+            if (job.status === "completed") {
+              setModel(job.model);
+              validateBtn.disabled = false;
+            } else if (job.status === "failed") {
+              validateBtn.disabled = false;
+            } else {
+              window.setTimeout(poll, 1500);
+            }
+          });
+        }
+        poll();
+      }).catch(function (err) {
+        out.textContent = "Validation failed: " + err;
+        validateBtn.disabled = false;
+      });
+    });
+  }
+
   if (STATIC) {
     document.getElementById("live").style.display = "none";
-    var huntPanel = document.querySelector(".hunt");
-    if (huntPanel) huntPanel.style.display = "none";
+    Array.prototype.forEach.call(document.querySelectorAll(".hunt"), function (panel) {
+      panel.style.display = "none";
+    });
     render();
   }
   else { loadReview(""); }

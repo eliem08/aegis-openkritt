@@ -1,0 +1,42 @@
+[
+  {
+    "repository": "matomo-org/matomo",
+    "handle": "matomo",
+    "reward_ceiling": 13000,
+    "findability": 0.7398,
+    "subpath": "plugins",
+    "kind": "repo"
+  },
+  {
+    "repository": "tronprotocol/java-tron",
+    "handle": "tron_dao",
+    "reward_ceiling": 5000,
+    "findability": 0.783,
+    "subpath": "",
+    "kind": "repo"
+  },
+  {
+    "repository": "slackhq/nebula",
+    "handle": "slack",
+    "reward_ceiling": 5000,
+    "findability": 0.6177,
+    "subpath": "",
+    "kind": "repo"
+  },
+  {
+    "repository": "DopplerHQ/cli",
+    "handle": "doppler",
+    "reward_ceiling": 1000,
+    "findability": 0.8447,
+    "subpath": "",
+    "kind": "repo"
+  },
+  {
+    "repository": "discourse/discourse",
+    "handle": "discourse",
+    "reward_ceiling": 5000,
+    "findability": 0.1193,
+    "subpath": "lib",
+    "kind": "repo"
+  }
+]
