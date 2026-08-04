@@ -122,6 +122,10 @@ class RepoHuntConfig:
     content_scan: bool = True
     content_scan_pool: int = 40       # candidates to peek at before final ranking
     baseline_score: int = 1          # score for a logic file with no path signal
+    # Diversity: cap files taken from any one directory so a single keyword-dense
+    # dir (e.g. one plugin full of login/*.php) can't consume every slot and starve
+    # the rest of the repo. 0 disables the cap.
+    max_per_dir: int = 3
 
 
 @dataclass
@@ -251,6 +255,33 @@ def refine_by_content(fetcher, repository, candidates, config, result):
     return refined
 
 
+def _diversify(candidates: list[SelectedFile], max_files: int, max_per_dir: int) -> list[SelectedFile]:
+    """Take up to ``max_files``, capping how many come from any one directory so a
+    single keyword-dense dir can't starve the rest of the repo. Candidates are already
+    score-sorted. Pass 1 honours the cap; pass 2 backfills leftover slots in score
+    order if the cap left budget unused (small repos with few dirs still fill up)."""
+    if max_per_dir <= 0:
+        return candidates[:max_files]
+    import os as _os
+    per_dir: dict[str, int] = {}
+    chosen: list[SelectedFile] = []
+    deferred: list[SelectedFile] = []
+    for f in candidates:
+        d = _os.path.dirname(f.path)
+        if per_dir.get(d, 0) < max_per_dir:
+            per_dir[d] = per_dir.get(d, 0) + 1
+            chosen.append(f)
+            if len(chosen) >= max_files:
+                return chosen
+        else:
+            deferred.append(f)
+    for f in deferred:                     # backfill only if the cap left room
+        if len(chosen) >= max_files:
+            break
+        chosen.append(f)
+    return chosen
+
+
 def related_paths(primary: str, all_paths, limit: int) -> list[str]:
     """Nearest supporting files for a primary file: same directory first (the package
     that defines its callers and helpers), then the parent directory. Deterministic."""
@@ -291,7 +322,7 @@ def hunt_repository(fetcher, client, repository: str, *,
     result = RepoHuntResult(repository=repository, commit=commit, selected=[])
     if config.content_scan:
         candidates = refine_by_content(fetcher, repository, candidates, config, result)
-    selected = candidates[: config.max_files]
+    selected = _diversify(candidates, config.max_files, config.max_per_dir)
     result.selected = selected
     agent = SpecializedAgent(
         client, max_hypotheses=config.max_hypotheses_per_file,

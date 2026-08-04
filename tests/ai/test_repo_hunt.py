@@ -282,3 +282,28 @@ def test_duplicate_hypotheses_are_collapsed(tmp_path):
     result2 = hunt_repository(FakeFetcher({"pkg/auth/session.go": "x\n"}), client2, "acme/repo",
                               config=RepoHuntConfig(max_files=1), pin_dir=tmp_path)
     assert len(result2.hypotheses) == 1      # same file+line+weakness -> collapsed
+
+
+def test_diversify_caps_files_per_directory():
+    from aegis.ai.repo_hunt import _diversify, SelectedFile
+    from aegis.ai.agents.contracts import AgentKind as K
+    # one dense dir (Login) + a few others; cap should spread across dirs
+    cands = [SelectedFile(f"plugins/Login/f{i}.php", 10, K.AUTHENTICATION) for i in range(10)]
+    cands += [SelectedFile("plugins/Annotations/API.php", 9, K.AUTHORIZATION),
+              SelectedFile("plugins/Contents/API.php", 9, K.AUTHORIZATION)]
+    # budget exactly = cap(3, Login) + Annotations + Contents, so no backfill kicks in
+    out = _diversify(cands, max_files=5, max_per_dir=3)
+    login = [f for f in out if "/Login/" in f.path]
+    assert len(login) == 3                       # Login capped at 3, not 10
+    assert any("Annotations" in f.path for f in out)
+    assert any("Contents" in f.path for f in out)
+    assert len(out) == 5
+
+
+def test_diversify_backfills_when_few_dirs():
+    from aegis.ai.repo_hunt import _diversify, SelectedFile
+    from aegis.ai.agents.contracts import AgentKind as K
+    # only one dir but budget of 5 and cap 3 -> backfill fills the remaining 2
+    cands = [SelectedFile(f"core/f{i}.go", 8, K.INJECTION) for i in range(5)]
+    out = _diversify(cands, max_files=5, max_per_dir=3)
+    assert len(out) == 5                          # cap didn't strand slots
