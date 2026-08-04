@@ -31,6 +31,9 @@ def main(argv=None) -> int:
     parser.add_argument("--samples", type=int, default=1, help="generator ensemble size")
     parser.add_argument("--handle", default="", help="HackerOne program handle for outcomes/PoCs")
     parser.add_argument("--no-validate", action="store_true")
+    parser.add_argument("--properties", action="store_true",
+                        help="also infer security invariants and write runnable Foundry/"
+                             "Halmos verification stubs (proposals, not proofs)")
     args = parser.parse_args(list(argv) if argv is not None else None)
 
     load_dotenv()
@@ -71,6 +74,20 @@ def main(argv=None) -> int:
     report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
     print(f"\nselected {len(result.selected)} source files, "
           f"{len(result.hypotheses)} hypotheses -> {report_path.name}")
+
+    if args.properties and result.selected:
+        from .contract_properties import PropertyGenerator, write_property_suite
+        primary = result.selected[0].path
+        source = (pin_dir / primary).read_text(encoding="utf-8", errors="replace") \
+            if (pin_dir / primary).is_file() else ""
+        if source:
+            with DeepSeekClient(config) as client:
+                props = PropertyGenerator(client).infer(source)
+            name = Path(primary).stem or "Contract"
+            suite = write_property_suite(props, report_root / "properties" / slug,
+                                         contract_name=name)
+            print(f"inferred {suite['count']} invariants -> {report_root / 'properties' / slug}"
+                  f" (run: forge test / halmos — proposals, not proofs)")
     for failure in result.failures:
         print(f"  ! {failure}")
 
