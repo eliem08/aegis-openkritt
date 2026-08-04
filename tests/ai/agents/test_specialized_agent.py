@@ -284,3 +284,14 @@ def test_calibration_lowers_floor_for_reliable_class():
 def test_no_calibration_leaves_floor_at_min_confidence():
     agent = SpecializedAgent(_SeqClient([_hyp_answer(10, conf=0.3)]), min_confidence=0.4)
     assert agent.analyze(_open_task()) == []               # 0.3 < 0.4, dropped, no calibration
+
+
+def test_ensemble_records_agreement_per_finding():
+    # 3 agents: 2 flag line 10, 1 flags line 20 -> agreement 2 and 1 respectively
+    client = _SeqClient([_hyp_answer(10), _hyp_answer(10),
+                         _hyp_answer(20, weakness="CWE-89")])
+    agent = SpecializedAgent(client, samples=3)
+    found = agent.analyze(_open_task())
+    assert agent.samples_run == 3
+    by_line = {h.line: agent.agreement_for(h) for h in found}
+    assert by_line[10] == 2 and by_line[20] == 1

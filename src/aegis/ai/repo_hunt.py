@@ -424,7 +424,9 @@ def hunt_repository(fetcher, client, repository: str, *,
             if key in seen:
                 continue                              # same issue re-reported from a neighbour
             seen.add(key)
-            result.hypotheses.append(_row(repository, hypothesis))
+            result.hypotheses.append(_row(
+                repository, hypothesis,
+                agreement=agent.agreement_for(hypothesis), samples=agent.samples_run))
     return result
 
 
@@ -463,8 +465,11 @@ def _read_bundle(fetcher, repository, primary, all_paths, config, result, pin_di
     return slices
 
 
-def _row(repository: str, hypothesis) -> dict:
-    """Shape one hypothesis into the persisted-report vulnerability row."""
+def _row(repository: str, hypothesis, *, agreement: int = 1, samples: int = 1) -> dict:
+    """Shape one hypothesis into the persisted-report vulnerability row.
+
+    ``agreement``/``samples`` record how many of the N DeepSeek agents independently
+    flagged this finding — the re-run confidence signal surfaced to the reviewer."""
     severity = getattr(hypothesis.severity, "value", str(hypothesis.severity or "medium"))
     trigger = hypothesis.entry_point or hypothesis.verification.expected_observation
     return {
@@ -483,6 +488,8 @@ def _row(repository: str, hypothesis) -> dict:
         "severity": severity,
         "source": "aegis:deepseek-platform",
         "confidence": hypothesis.confidence,
+        "agreement": agreement,                       # agents that flagged it
+        "samples": samples,                           # agents run
         "dedupe_is_canonical": True,
         "target": f"{repository}:{hypothesis.file_path}:{hypothesis.line}:{hypothesis.weakness}",
     }

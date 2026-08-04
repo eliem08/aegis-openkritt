@@ -68,19 +68,43 @@ def make_hunt_fn(*, report_root: str | Path = "reports"):
             return HuntOutcome(target=target)
 
         from .report_validation import validate_deepseek_report
+        # Two-model split: DeepSeek did the bulk re-runs (dirty work); the FINAL check
+        # runs on a stronger, separately-configured model when AEGIS_VALIDATOR_MODEL /
+        # _BASE_URL / _API_KEY are set (e.g. a Sonnet-class reasoner) — else the same
+        # DeepSeek at a tighter budget.
         val_env = dict(env)
         val_env.update(DEEPSEEK_MAX_TOKENS="4096")
+        vm = os.environ.get("AEGIS_VALIDATOR_MODEL")
+        if vm:
+            val_env["DEEPSEEK_MODEL"] = vm
+            if os.environ.get("AEGIS_VALIDATOR_BASE_URL"):
+                val_env["DEEPSEEK_BASE_URL"] = os.environ["AEGIS_VALIDATOR_BASE_URL"]
+            if os.environ.get("AEGIS_VALIDATOR_API_KEY"):
+                val_env["DEEPSEEK_API_KEY"] = os.environ["AEGIS_VALIDATOR_API_KEY"]
+            val_env["DEEPSEEK_THINKING"] = os.environ.get("AEGIS_VALIDATOR_THINKING", "enabled")
         with DeepSeekClient(DeepSeekConfig.from_env(val_env)) as client:
             validated, model = validate_deepseek_report(report_path, pin_dir, client)
         counts = validated["scan"]["validation_counts"]
 
         _record(validated, target.handle)
-        findings = [{"cwe": (row.get("json_answer") or {}).get("vulnerability_type", ""),
-                     "location": f"{(row.get('json_answer') or {}).get('file_path','')}:"
-                                 f"{(row.get('json_answer') or {}).get('line','')}",
-                     "summary": (row.get("json_answer") or {}).get("summary", "")[:160]}
-                    for row in validated.get("vulnerabilities") or []
-                    if (row.get("validation") or {}).get("verdict") == "confirmed"]
+        from .economics import estimate
+        findings = []
+        for row in validated.get("vulnerabilities") or []:
+            if (row.get("validation") or {}).get("verdict") != "confirmed":
+                continue
+            a = row.get("json_answer") or {}
+            est = estimate(vuln_type=a.get("vulnerability_type", ""),
+                           severity=a.get("severity") or row.get("severity") or "medium",
+                           handle=target.handle,
+                           agreement=int(row.get("agreement", 1) or 1),
+                           samples=int(row.get("samples", 1) or 1)).as_dict()
+            findings.append({
+                "cwe": a.get("vulnerability_type", ""),
+                "location": f"{a.get('file_path','')}:{a.get('line','')}",
+                "summary": (a.get("summary") or "")[:160],
+                "severity": est["severity"], "agreement": est["agreement"],
+                "min_bounty": est["min_bounty"], "likely_bounty": est["likely_bounty"],
+                "expected_gain": est["expected_gain"], "vuln_type": est["vuln_type"]})
 
         poc_dir = ""
         if counts.get("confirmed"):

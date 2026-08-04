@@ -167,26 +167,41 @@ class SpecializedAgent:
                                                       0.3, 0.6, 0.9, 0.15, 0.45, 0.75)
         self.last_dropped: list[dict] = []
         self.sample_hits: list[int] = []          # hypotheses found per sample (diagnostics)
+        self.samples_run: int = 0                 # how many agents actually ran
+        self.agreement: dict[tuple[str, int, str], int] = {}   # votes per finding
 
     def analyze(self, task: AgentTask) -> list[Hypothesis]:
         """Run the generator ``samples`` times and return the deduplicated union.
 
         With samples=1 this is a single generation (unchanged behaviour). With more,
-        each run uses a different temperature for diversity; findings are merged by
-        (file, line, weakness), keeping the highest-confidence instance of each."""
+        each run is a separate 'agent' at a different temperature; findings are merged
+        by (file, line, weakness) keeping the highest-confidence instance. How many of
+        the N agents independently flagged each finding is recorded in ``agreement`` —
+        the concrete 're-ran so we're sure' signal (4/5 agents agreeing beats 1/5)."""
         merged: dict[tuple[str, int, str], Hypothesis] = {}
         self.last_dropped = []
         self.sample_hits = []
+        self.agreement = {}
         for index in range(self._samples):
             temperature = self._temperatures[index % len(self._temperatures)]
             found = self._analyze_once(task, temperature=temperature)
             self.sample_hits.append(len(found))
+            seen_this_sample: set[tuple[str, int, str]] = set()
             for hypothesis in found:
                 key = (hypothesis.file_path, hypothesis.line, hypothesis.weakness.lower())
+                if key not in seen_this_sample:      # one vote per agent per finding
+                    self.agreement[key] = self.agreement.get(key, 0) + 1
+                    seen_this_sample.add(key)
                 existing = merged.get(key)
                 if existing is None or hypothesis.confidence > existing.confidence:
                     merged[key] = hypothesis
+        self.samples_run = self._samples
         return list(merged.values())
+
+    def agreement_for(self, hypothesis: Hypothesis) -> int:
+        """How many of the N agents flagged this finding (>=1)."""
+        key = (hypothesis.file_path, hypothesis.line, hypothesis.weakness.lower())
+        return self.agreement.get(key, 1)
 
     def _analyze_once(self, task: AgentTask, *, temperature: float | None = None) -> list[Hypothesis]:
         kwargs = {} if temperature is None else {"temperature": temperature}
