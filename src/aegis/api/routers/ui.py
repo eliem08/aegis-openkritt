@@ -10,11 +10,23 @@ keeping with the human-supervised model.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import httpx
 from fastapi import APIRouter, Body, Request
 from fastapi.responses import HTMLResponse
 
 from aegis.report import build_console
+
+_TEMPLATES = Path(__file__).resolve().parent.parent / "templates"
+
+
+def _hunt_console_html() -> str:
+    """The autonomous-hunt dashboard, read fresh so edits show without a restart."""
+    try:
+        return (_TEMPLATES / "hunt_console.html").read_text(encoding="utf-8")
+    except OSError:
+        return "<h1>hunt console template missing</h1>"
 
 router = APIRouter(tags=["ui"])
 
@@ -226,6 +238,36 @@ def start_autohunt(request: Request, payload=Body(None)) -> dict:
 def autohunt_status(request: Request, job_id: str) -> dict:
     jobs = getattr(request.app.state, "autohunt_jobs", {})
     return jobs.get(job_id) or {"error": "autohunt job not found"}
+
+
+@router.get("/ui/autohunt-targets", summary="Preview the EV-ranked target queue")
+def autohunt_targets(request: Request) -> dict:
+    import os
+    from pathlib import Path
+
+    from aegis.ai.auto_hunt import AutoHuntConfig, rank_targets
+    from aegis.ai.auto_hunt_run import build_targets_from_ranking
+
+    report_root = Path(os.environ.get("AEGIS_REPORT_DIR", "reports")).resolve()
+    path = report_root / "autohunt_targets.json"
+    if not path.is_file():
+        return {"targets": [], "note": "no reports/autohunt_targets.json yet"}
+    try:
+        targets = build_targets_from_ranking(path)
+    except Exception as exc:
+        return {"targets": [], "error": type(exc).__name__}
+    ranked = rank_targets(targets, AutoHuntConfig())
+    return {"targets": [
+        {"repository": t.repository, "handle": t.handle, "kind": t.kind,
+         "reward_ceiling": t.reward_ceiling, "findability": round(t.findability, 3),
+         "subpath": t.subpath, "ev": ev}
+        for t, ev in ranked]}
+
+
+@router.get("/ui/hunt-console", response_class=HTMLResponse,
+            summary="Autonomous hunt operations dashboard")
+def hunt_console() -> HTMLResponse:
+    return HTMLResponse(_hunt_console_html())
 
 
 def _run_autohunt(app, job_id, targets, config, report_root) -> None:

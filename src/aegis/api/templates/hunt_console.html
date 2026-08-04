@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Aegis — Autonomous Hunt</title>
+<style>
+:root{--bg:#0b0f14;--panel:#141b24;--panel2:#1b232e;--line:#26313d;--fg:#e6edf3;--mut:#8b98a6;
+--acc:#5b9dff;--ok:#3fb950;--warn:#d29922;--bad:#f85149;--crit:#ff6a6a;
+--sans:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
+@media (prefers-color-scheme:light){:root{--bg:#f6f8fa;--panel:#fff;--panel2:#f0f3f6;--line:#d0d7de;--fg:#1f2328;--mut:#59636e}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 var(--sans)}
+.top{display:flex;align-items:center;gap:14px;padding:14px 22px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5}
+.logo{font-weight:800;font-size:17px;letter-spacing:.02em}.logo b{color:var(--acc)}
+.pill{font-size:11px;padding:2px 9px;border-radius:20px;border:1px solid var(--line);color:var(--mut)}
+.pill.live{border-color:var(--ok);color:var(--ok)}.pill.run{border-color:var(--warn);color:var(--warn)}
+.grow{flex:1}.wrap{max-width:1180px;margin:0 auto;padding:20px 22px 60px}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.stat .n{font-size:26px;font-weight:800}.stat .l{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
+.stat.ok .n{color:var(--ok)}.stat.acc .n{color:var(--acc)}.stat.warn .n{color:var(--warn)}
+h2{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--acc);margin:22px 0 10px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:end;padding:16px}
+.controls label{display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--mut)}
+input,button{font:inherit;color:var(--fg);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 11px}
+input{width:96px}
+button.go{background:var(--acc);color:#04121f;border:none;font-weight:700;cursor:pointer;padding:9px 18px}
+button.go:disabled{opacity:.5;cursor:not-allowed}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:9px 14px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:middle}
+th{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+.mono{font-family:var(--mono);font-size:12px}
+.bar{height:6px;background:var(--panel2);border-radius:4px;overflow:hidden;min-width:80px}
+.bar>i{display:block;height:100%;background:var(--acc)}
+.badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px}
+.b-q{background:var(--panel2);color:var(--mut)}.b-run{background:color-mix(in srgb,var(--warn) 22%,transparent);color:var(--warn)}
+.b-done{background:color-mix(in srgb,var(--ok) 20%,transparent);color:var(--ok)}
+.b-err{background:color-mix(in srgb,var(--bad) 22%,transparent);color:var(--bad)}
+.flow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:14px 16px;color:var(--mut);font-size:12px}
+.flow .step{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:6px 11px;color:var(--fg)}
+.flow .ar{color:var(--acc)}
+.log{max-height:220px;overflow:auto;padding:10px 16px;font-family:var(--mono);font-size:12px}
+.log div{padding:2px 0;color:var(--mut)}.log b{color:var(--fg)}
+.find{border:1px solid var(--line);border-radius:10px;padding:12px 15px;margin:10px 0;background:var(--panel)}
+.find .h{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.sev{font-size:10px;font-weight:800;padding:2px 7px;border-radius:5px;text-transform:uppercase}
+.sev.critical{background:var(--crit);color:#180404}.sev.high{background:var(--bad);color:#fff}
+.sev.medium{background:var(--warn);color:#161000}.sev.low{background:var(--panel2);color:var(--mut)}
+.empty{padding:26px;text-align:center;color:var(--mut)}
+.note{font-size:12px;color:var(--mut)}a{color:var(--acc)}
+</style></head>
+<body>
+<div class="top">
+  <div class="logo">open&middot;<b>kritt</b> &middot; Aegis Autonomous Hunt</div>
+  <span id="mode" class="pill">idle</span>
+  <div class="grow"></div>
+  <span class="pill">code + contract lanes &middot; candidates only &middot; never auto-submits</span>
+</div>
+<div class="wrap">
+  <div class="row">
+    <div class="stat acc"><div class="n" id="s-targets">0</div><div class="l">Targets queued</div></div>
+    <div class="stat"><div class="n" id="s-hunted">0</div><div class="l">Hunted</div></div>
+    <div class="stat warn"><div class="n" id="s-candidates">0</div><div class="l">Candidates</div></div>
+    <div class="stat ok"><div class="n" id="s-confirmed">0</div><div class="l">Confirmed</div></div>
+    <div class="stat"><div class="n" id="s-agents">0</div><div class="l">Detection agents/file</div></div>
+  </div>
+  <div class="panel">
+    <div class="flow">
+      <span class="step" id="f-agents">N DeepSeek agents</span><span class="ar">&rarr;</span>
+      <span class="step">union &amp; dedupe</span><span class="ar">&rarr;</span>
+      <span class="step">citation validator (final check)</span><span class="ar">&rarr;</span>
+      <span class="step">PoC scaffold</span><span class="ar">&rarr;</span>
+      <span class="step">human approves &amp; submits</span>
+    </div>
+    <div class="controls">
+      <label>Max targets<input id="c-max" type="number" value="3" min="1" max="20"></label>
+      <label>Agents / file<input id="c-samples" type="number" value="5" min="1" max="12"></label>
+      <label>Min EV ($)<input id="c-minev" type="number" value="0" min="0"></label>
+      <button class="go" id="start">&#9654; Start autonomous hunt</button>
+      <span id="jobinfo" class="note"></span>
+    </div>
+  </div>
+  <h2>EV-ranked target queue</h2>
+  <div class="panel"><table><thead><tr>
+    <th>#</th><th>Target</th><th>Program</th><th>Findability</th><th>Reward</th><th>Expected value</th><th>Status</th>
+  </tr></thead><tbody id="queue"><tr><td colspan="7" class="empty">Loading queue&hellip;</td></tr></tbody></table></div>
+  <h2>Live activity</h2>
+  <div class="panel"><div class="log" id="log"><div>waiting to start&hellip;</div></div></div>
+  <h2>Confirmed candidates <span class="note">(each needs human reproduction before submission)</span></h2>
+  <div id="findings"><div class="empty">No confirmed candidates yet.</div></div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+let jobId=null,timer=null;
+const cssid=s=>s.replace(/[^a-z0-9]/gi,'_');
+function setStatus(repo,cls,txt){const el=$('st-'+cssid(repo));if(el){el.className='badge '+cls;el.textContent=txt;}}
+function logLine(html){const l=$('log');const d=document.createElement('div');d.innerHTML=html;l.appendChild(d);l.scrollTop=l.scrollHeight;}
+async function loadQueue(){
+  const d=await (await fetch('/ui/autohunt-targets')).json();
+  const tb=$('queue');tb.innerHTML='';
+  if(!d.targets||!d.targets.length){tb.innerHTML='<tr><td colspan=7 class=empty>'+(d.note||d.error||'no targets')+'</td></tr>';return;}
+  $('s-targets').textContent=d.targets.length;
+  d.targets.forEach((t,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML='<td>'+(i+1)+'</td><td class=mono>'+t.repository+(t.subpath?' <span class=note>/'+t.subpath+'</span>':'')+'</td>'+
+      '<td>'+(t.handle||'&mdash;')+'</td>'+
+      '<td><div class=bar><i style="width:'+Math.round(t.findability*100)+'%"></i></div><span class=note>'+t.findability+'</span></td>'+
+      '<td>$'+t.reward_ceiling.toLocaleString()+'</td>'+
+      '<td><b>$'+Math.round(t.ev).toLocaleString()+'</b></td>'+
+      '<td><span class="badge b-q" id="st-'+cssid(t.repository)+'">queued</span></td>';
+    tb.appendChild(tr);
+  });
+}
+$('start').onclick=async()=>{
+  $('start').disabled=true;$('log').innerHTML='';$('findings').innerHTML='<div class=empty>Hunting&hellip;</div>';
+  const body={max_targets:+$('c-max').value,samples:+$('c-samples').value,min_ev:+$('c-minev').value};
+  $('s-agents').textContent=body.samples;$('f-agents').textContent=body.samples+' DeepSeek agents';
+  const d=await (await fetch('/ui/autohunt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})).json();
+  if(d.error){$('jobinfo').textContent='⚠ '+d.error;$('start').disabled=false;return;}
+  jobId=d.job_id;$('jobinfo').textContent='job '+jobId;$('mode').className='pill run';$('mode').textContent='running';
+  timer=setInterval(poll,2000);poll();
+};
+async function poll(){
+  if(!jobId)return;
+  const j=await (await fetch('/ui/autohunt/'+jobId)).json();
+  $('s-confirmed').textContent=j.confirmed_total||0;
+  (j.events||[]).forEach(e=>{
+    if(e._seen)return;e._seen=true;
+    if(e.kind==='hunt_start'){setStatus(e.repository,'b-run','hunting');logLine('<b>'+e.repository+'</b> &mdash; hunting (EV $'+Math.round(e.ev||0)+')&hellip;');}
+    if(e.kind==='hunt_done'){
+      if(e.error){setStatus(e.repository,'b-err','error');logLine('<b>'+e.repository+'</b> &mdash; error: '+e.error);}
+      else{const c=e.confirmed||0;setStatus(e.repository,c>0?'b-done':'b-q',c>0?(c+' confirmed'):'clean');logLine('<b>'+e.repository+'</b> &mdash; '+(c>0?('✅ '+c+' confirmed'):'0 findings'));}
+    }
+  });
+  if(j.summary){
+    $('s-hunted').textContent=j.summary.targets_hunted||0;
+    let cand=0,findings=[];
+    (j.summary.results||[]).forEach(res=>{cand+=(res.confirmed+res.unresolved);(res.findings||[]).forEach(f=>findings.push(Object.assign({},f,{repo:res.repository,handle:res.handle,poc:res.poc_dir})));});
+    $('s-candidates').textContent=cand;renderFindings(findings);
+  }
+  if(j.status==='completed'||j.status==='error'){clearInterval(timer);$('start').disabled=false;$('mode').className='pill live';$('mode').textContent=j.status;logLine('&mdash; run '+j.status+' &mdash;');}
+}
+function renderFindings(fs){
+  const box=$('findings');
+  if(!fs.length){box.innerHTML='<div class=empty>No confirmed candidates yet.</div>';return;}
+  box.innerHTML='';
+  fs.forEach(f=>{
+    const sev=(f.severity||'medium').toLowerCase();
+    const d=document.createElement('div');d.className='find';
+    d.innerHTML='<div class=h><span class="sev '+sev+'">'+sev+'</span><b>'+(f.cwe||'finding')+'</b><span class=mono>'+f.repo+'</span>'+(f.handle?'<span class=note>&middot; '+f.handle+'</span>':'')+'</div>'+
+      '<div class=mono style="margin-top:6px">'+(f.location||'')+'</div>'+
+      '<div style="margin-top:6px">'+(f.summary||'')+'</div>'+
+      (f.poc?'<div class=note style="margin-top:6px">PoC scaffold: <span class=mono>'+f.poc+'</span></div>':'');
+    box.appendChild(d);
+  });
+}
+loadQueue();
+</script>
+</body></html>
