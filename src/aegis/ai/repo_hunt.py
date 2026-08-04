@@ -30,9 +30,12 @@ from .agents.runner import SpecializedAgent
 
 #: Path fragments that mark non-production code — never selected for analysis.
 _EXCLUDED = re.compile(
-    r"(^|/)(test|tests|__tests__|spec|specs|example|examples|demo|demos|fixtures?|"
-    r"mocks?|benchmarks?|vendor|third_party|node_modules|docs?|\.github|anvil|"
-    r"scripts?)(/|$)|"
+    # test/spec dirs, allowing leading/trailing underscores: test, tests, _test,
+    # _tests, __tests__, spec, specs, _specs — the underscore-prefixed forms
+    # (chia/_tests/...) were previously slipping through and crowding out real code.
+    r"(^|/)_*(tests?|specs?)_*(/|$)|"
+    r"(^|/)(example|examples|demo|demos|fixtures?|mocks?|benchmarks?|vendor|"
+    r"third_party|node_modules|docs?|\.github|anvil|scripts?)(/|$)|"
     r"(_test|\.test|\.spec|_generated|\.pb|_pb2|\.t)\.",
     re.IGNORECASE,
 )

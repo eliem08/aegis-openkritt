@@ -19,6 +19,18 @@ def test_skips_non_production_code():
         assert score_path(path) is None, path
 
 
+def test_skips_underscore_prefixed_test_dirs():
+    # regression: chia/_tests/... previously slipped past the exclusion and crowded
+    # real code out of the selection (and burned analysis cost on test files)
+    for path in [
+        "chia/_tests/check_sql_statements.py", "chia/_tests/util/test_dump_keyring.py",
+        "foo/__tests__/bar.ts", "pkg/_test/helper.go", "a/_specs/thing.rb",
+    ]:
+        assert score_path(path, baseline=1) is None, path
+    # real auth code in a sibling dir is still selectable
+    assert score_path("chia/wallet/wallet.py", baseline=1) is not None
+
+
 def test_skips_files_without_a_security_signal():
     assert score_path("pkg/util/strings.go") is None
     assert score_path("cmd/main.go") is None
