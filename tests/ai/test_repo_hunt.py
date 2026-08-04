@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from aegis.ai.agents.contracts import AgentKind
-from aegis.ai.repo_hunt import RepoHuntConfig, hunt_repository, score_path, select_files
+from aegis.ai.repo_hunt import (
+    RepoHuntConfig, RepoHuntResult, hunt_repository, score_path, select_files,
+)
 
 
 # --- deterministic file selection -------------------------------------------
@@ -38,19 +40,54 @@ def test_solidity_is_always_contract_reviewed():
     assert result and result[1] is AgentKind.SMART_CONTRACT
 
 
-def test_selection_is_bounded_and_deterministic():
+def test_selection_ranking_is_deterministic():
+    # select_files ranks the full candidate list; hunt_repository applies max_files.
     paths = [f"pkg/auth/file{i}.go" for i in range(50)] + ["pkg/util/x.go"]
     first = select_files(paths, RepoHuntConfig(max_files=5))
     second = select_files(paths, RepoHuntConfig(max_files=5))
-    assert len(first) == 5
     assert [f.path for f in first] == [f.path for f in second]     # reproducible
-    assert all("util" not in f.path for f in first)                # unscored excluded
+    assert first[0].score == 10                                    # auth files rank first
+    # with content_scan default on, an unsignalled logic file gets a baseline slot,
+    # ranked last so it is only ever reached when better candidates run out
+    assert first[-1].path == "pkg/util/x.go" and first[-1].score == 1
+
+
+def test_name_only_selection_excludes_unsignalled_files():
+    paths = ["pkg/auth/a.go", "pkg/util/x.go"]
+    selected = select_files(paths, RepoHuntConfig(content_scan=False))
+    assert [f.path for f in selected] == ["pkg/auth/a.go"]         # no baseline -> excluded
 
 
 def test_subpath_restricts_selection():
     paths = ["pkg/auth/a.go", "cmd/auth/b.go"]
-    selected = select_files(paths, RepoHuntConfig(subpath="pkg/"))
+    selected = select_files(paths, RepoHuntConfig(subpath="pkg/", content_scan=False))
     assert [f.path for f in selected] == ["pkg/auth/a.go"]
+
+
+def test_interface_only_files_are_never_selected():
+    for path in ["src/interfaces/IMessageTransmitter.sol", "src/IReceiver.sol",
+                 "contracts/interface/IVault.sol"]:
+        assert score_path(path) is None, path
+    # a concrete contract in the same tree is still selectable
+    assert score_path("src/MessageTransmitter.sol", baseline=1) is not None
+
+
+def test_content_scan_promotes_a_neutral_named_logic_file(tmp_path):
+    # the exact CCTP failure: a crown-jewel file whose NAME carries no signal but
+    # whose BODY verifies signatures + tracks nonces must outrank an inert file.
+    from aegis.ai.repo_hunt import refine_by_content, select_files as _select
+
+    files = {
+        "src/MessageTransmitter.sol": "function receiveMessage() { require(ecrecover(h,v,r,s)==attester); usedNonces[nonce]=true; }",
+        "src/Empty.sol": "contract Empty { uint256 x; }",
+    }
+    fetcher = FakeFetcher(files)
+    candidates = _select(list(files), RepoHuntConfig())          # both start at baseline 1
+    refined = refine_by_content(fetcher, "acme/repo", candidates,
+                                RepoHuntConfig(), RepoHuntResult("acme/repo", "sha"))
+    assert refined[0].path == "src/MessageTransmitter.sol"       # promoted by its body
+    assert refined[0].score >= 9
+    assert "src/Empty.sol" not in [f.path for f in refined]      # inert body -> dropped
 
 
 # --- bounded analysis over a fake fetcher/client -----------------------------

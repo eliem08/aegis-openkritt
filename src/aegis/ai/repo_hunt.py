@@ -31,9 +31,39 @@ from .agents.runner import SpecializedAgent
 #: Path fragments that mark non-production code — never selected for analysis.
 _EXCLUDED = re.compile(
     r"(^|/)(test|tests|__tests__|spec|specs|example|examples|demo|demos|fixtures?|"
-    r"mocks?|benchmarks?|vendor|third_party|node_modules|docs?|\.github)(/|$)|"
-    r"(_test|\.test|\.spec|_generated|\.pb|_pb2)\.",
+    r"mocks?|benchmarks?|vendor|third_party|node_modules|docs?|\.github|anvil|"
+    r"scripts?)(/|$)|"
+    r"(_test|\.test|\.spec|_generated|\.pb|_pb2|\.t)\.",
     re.IGNORECASE,
+)
+
+#: Declaration-only files with no exploitable logic — an interface/abstract ABI.
+#: Matches `.../interfaces/Foo.sol` and top-level `IFoo.sol` (Solidity convention).
+_INTERFACE_ONLY = re.compile(r"(^|/)interfaces?/|(^|/)I[A-Z][A-Za-z0-9]*\.sol$")
+
+#: Content signals — the dangerous primitives themselves, keyed to an agent kind and
+#: a weight. These catch files whose *name* is neutral (MessageTransmitter.sol,
+#: Message.sol) but whose *body* is exactly where signature/replay/reentrancy bugs
+#: live. Path scoring alone is blind to these.
+_CONTENT_SIGNALS: tuple[tuple[re.Pattern, int, AgentKind], ...] = (
+    (re.compile(r"\becrecover\b|SignatureChecker|isValidSignature|_hashTypedData|EIP712",
+                re.I), 10, AgentKind.SECRETS_CRYPTO),
+    (re.compile(r"\bnonce\b|usedNonces|replay|\bdomain\b.*message|attest", re.I), 9,
+     AgentKind.BUSINESS_LOGIC),
+    (re.compile(r"delegatecall|\bcall\{|\.call\(|selfdestruct|assembly\s*\{", re.I), 9,
+     AgentKind.INJECTION),
+    (re.compile(r"onlyOwner|onlyRole|_checkRole|hasRole|require\(msg\.sender", re.I), 8,
+     AgentKind.AUTHORIZATION),
+    (re.compile(r"transferFrom|safeTransfer|_mint\(|_burn\(|approve\(", re.I), 7,
+     AgentKind.BUSINESS_LOGIC),
+    (re.compile(r"password|api[_-]?key|private[_-]?key|jwt|bearer|hmac", re.I), 8,
+     AgentKind.SECRETS_CRYPTO),
+    (re.compile(r"exec\(|eval\(|subprocess|os\.system|Runtime\.getRuntime|child_process",
+                re.I), 9, AgentKind.INJECTION),
+    (re.compile(r"\.query\(|executeQuery|rawQuery|db\.Raw|fmt\.Sprintf.*(SELECT|INSERT)",
+                re.I), 8, AgentKind.INJECTION),
+    (re.compile(r"http\.Get|requests\.get|fetch\(|urllib|HttpClient|\.newClient", re.I), 6,
+     AgentKind.SSRF_PARSERS),
 )
 
 #: Source extensions we can meaningfully review.
@@ -77,6 +107,12 @@ class RepoHuntConfig:
     max_bundle_bytes: int = 200_000   # total budget for one bundle
     require_reachability: bool = True  # drop hypotheses with no entry point/impact
     min_confidence: float = 0.0
+    # Content-aware selection: peek at the body of the top path-ranked candidates and
+    # re-rank by the dangerous primitives they actually contain, so logic files with
+    # neutral names (MessageTransmitter.sol) are not invisible to name-only scoring.
+    content_scan: bool = True
+    content_scan_pool: int = 40       # candidates to peek at before final ranking
+    baseline_score: int = 1          # score for a logic file with no path signal
 
 
 @dataclass
@@ -114,13 +150,20 @@ class RepoHuntResult:
         }
 
 
-def score_path(path: str) -> tuple[int, AgentKind] | None:
-    """Deterministic relevance score for a repository path, or None to skip it."""
+def score_path(path: str, *, baseline: int = 0) -> tuple[int, AgentKind] | None:
+    """Deterministic relevance score for a repository path, or None to skip it.
+
+    ``baseline`` (when > 0) is the score given to a real logic file that carries no
+    path signal, so content scanning can still reach it; with baseline 0 an unsignalled
+    file is skipped, preserving the original name-only behaviour.
+    """
     if _EXCLUDED.search(path):
         return None
     suffix = Path(path).suffix.lower()
     if suffix not in _EXTENSIONS:
         return None
+    if _INTERFACE_ONLY.search(path):
+        return None                      # declaration-only ABI, no exploitable logic
     best_score, best_kind = 0, _EXTENSIONS[suffix]
     for pattern, score, kind in _SIGNALS:
         # first match wins at equal-or-higher score, so _SIGNALS order disambiguates
@@ -130,26 +173,73 @@ def score_path(path: str) -> tuple[int, AgentKind] | None:
     if best_kind is AgentKind.AUTHENTICATION and re.search(r"authoriz|authz|rbac|permission", path, re.I):
         best_kind, best_score = AgentKind.AUTHORIZATION, 9
     if best_score == 0:
-        return None                      # no security signal in the path -> skip
+        if baseline <= 0:
+            return None                  # no path signal -> skip (name-only behaviour)
+        best_score = baseline
     if suffix == ".sol":                 # contracts are always contract-reviewed
         best_kind = AgentKind.SMART_CONTRACT
     return best_score, best_kind
 
 
+def score_content(content: str, suffix: str) -> tuple[int, AgentKind] | None:
+    """Relevance from the file body: the dangerous primitives it actually contains.
+    Returns the single highest-weighted content signal, or None if the body is inert."""
+    best_score, best_kind = 0, None
+    for pattern, score, kind in _CONTENT_SIGNALS:
+        if score > best_score and pattern.search(content):
+            best_score, best_kind = score, kind
+    if best_score == 0:
+        return None
+    if suffix == ".sol":
+        best_kind = AgentKind.SMART_CONTRACT
+    return best_score, best_kind
+
+
 def select_files(paths, config: RepoHuntConfig) -> list[SelectedFile]:
-    """Rank repository paths by security relevance and take the top ``max_files``."""
+    """Rank repository paths by security relevance and take the top ``max_files``.
+
+    Name-only ranking. When ``config.content_scan`` is on, ``hunt_repository`` calls
+    :func:`refine_by_content` on a larger candidate pool to re-rank by file body.
+    """
+    baseline = config.baseline_score if config.content_scan else 0
     scored: list[SelectedFile] = []
     for path in paths:
         if config.subpath and not path.startswith(config.subpath):
             continue
-        result = score_path(path)
+        result = score_path(path, baseline=baseline)
         if result is None:
             continue
         score, kind = result
         scored.append(SelectedFile(path=path, score=score, kind=kind))
-    # deterministic: score desc, then path asc
-    scored.sort(key=lambda f: (-f.score, f.path))
-    return scored[: config.max_files]
+    scored.sort(key=lambda f: (-f.score, f.path))   # deterministic: score desc, path asc
+    return scored
+
+
+def refine_by_content(fetcher, repository, candidates, config, result):
+    """Re-rank the top path candidates by the dangerous primitives their bodies hold.
+
+    A file's final score is max(path score, content score), so a neutral-named logic
+    file (MessageTransmitter.sol) that contains ecrecover/nonce beats a well-named
+    file that contains nothing interesting. Bounded: peeks at ``content_scan_pool``
+    candidates only. Deterministic given the same repository contents."""
+    pool = candidates[: config.content_scan_pool]
+    refined: list[SelectedFile] = []
+    for item in pool:
+        try:
+            content = fetcher.read(repository, item.path)
+        except Exception:
+            refined.append(item)                     # keep its path score on fetch failure
+            continue
+        if not content or len(content.encode("utf-8", "ignore")) > config.max_file_bytes:
+            continue                                 # unreadable / too large -> drop
+        signal = score_content(content, Path(item.path).suffix.lower())
+        if signal and signal[0] >= item.score:
+            refined.append(SelectedFile(path=item.path, score=signal[0], kind=signal[1]))
+        elif score_path(item.path) is not None:      # had a real path signal -> keep it
+            refined.append(item)
+        # else: baseline-only file with an inert body -> dropped
+    refined.sort(key=lambda f: (-f.score, f.path))
+    return refined
 
 
 def related_paths(primary: str, all_paths, limit: int) -> list[str]:
@@ -188,8 +278,12 @@ def hunt_repository(fetcher, client, repository: str, *,
     """
     config = config or RepoHuntConfig()
     paths, commit = fetcher.list_paths(repository)
-    selected = select_files(paths, config)
-    result = RepoHuntResult(repository=repository, commit=commit, selected=selected)
+    candidates = select_files(paths, config)
+    result = RepoHuntResult(repository=repository, commit=commit, selected=[])
+    if config.content_scan:
+        candidates = refine_by_content(fetcher, repository, candidates, config, result)
+    selected = candidates[: config.max_files]
+    result.selected = selected
     agent = SpecializedAgent(
         client, max_hypotheses=config.max_hypotheses_per_file,
         require_reachability=config.require_reachability,
