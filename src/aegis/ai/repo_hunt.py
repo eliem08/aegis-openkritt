@@ -119,6 +119,7 @@ class RepoHuntConfig:
     min_confidence: float = 0.0
     taint_hints: bool = True          # feed heuristic source->sink leads to the generator
     stack_focus: bool = True          # add per-language framework-guard + anchor-CWE focus
+    changed_ranges: dict = field(default_factory=dict)  # path -> [(start,end)] just-changed lines
     # Ensemble: generate this many times per file over a temperature spread and union
     # the findings, to catch borderline bugs a single generation misses ~7/8 of the time.
     samples: int = 1
@@ -403,6 +404,9 @@ def hunt_repository(fetcher, client, repository: str, *,
         hints = taint_hints_text(extract_flows(primary[0].content)) if config.taint_hints else ""
         if config.stack_focus:
             hints = focus_text(item.path) + framework_note(primary[0].content) + hints
+        if config.changed_ranges.get(item.path):
+            from .fresh_commits import changed_lines_hint
+            hints = changed_lines_hint(config.changed_ranges[item.path]) + hints
         task = AgentTask(
             kind=item.kind,
             target=f"{repository}:{item.path}",

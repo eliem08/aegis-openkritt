@@ -85,6 +85,7 @@ def main(argv=None) -> int:
             print("  nothing changed in that window; exiting", flush=True)
             return 0
 
+    changed_ranges: dict = {}
     try:
         if args.api:
             source_cm = GitHubSource(token=token)
@@ -100,11 +101,16 @@ def main(argv=None) -> int:
             print(f"  {'reused' if clone.reused else 'cloned'} {clone.path} @ "
                   f"{clone.commit[:12]}", flush=True)
             source_cm = LocalRepoSource(clone.path, clone.commit)
+            # diff-scoped focus: tell the generator which lines just changed
+            if include_paths:
+                from .fresh_commits import changed_line_ranges
+                changed_ranges = {p: changed_line_ranges(clone.path, p) for p in include_paths}
+                changed_ranges = {p: r for p, r in changed_ranges.items() if r}
             # local reads are ~free: content-scan a broad slice of the tree rather
             # than the small sampled pool an API budget forces (bounded so a
             # 20k-file monorepo still finishes quickly)
             hunt_config = RepoHuntConfig(max_files=args.files, subpath=args.subpath,
-                                         content_scan_pool=3000, include_paths=include_paths, samples=args.samples)
+                                         content_scan_pool=3000, include_paths=include_paths, samples=args.samples, changed_ranges=changed_ranges)
         with source_cm as source, DeepSeekClient(config) as client:
             print(f"selecting files from {args.repository} ...", flush=True)
             result = hunt_repository(

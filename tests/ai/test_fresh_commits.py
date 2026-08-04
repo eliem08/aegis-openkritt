@@ -50,3 +50,28 @@ def test_recent_files_empty_on_bad_response():
         def get(self, *a, **k):
             raise RuntimeError("network")
     assert recent_source_files("a/b", gh_client=_Bad()) == []
+
+
+def _git(path, args):
+    import subprocess
+    subprocess.run(["git"] + args, cwd=path, check=True, capture_output=True)
+
+
+def test_changed_line_ranges_from_real_commit(tmp_path):
+    import subprocess
+    from aegis.ai.fresh_commits import changed_line_ranges
+    repo = tmp_path / "r"; repo.mkdir()
+    _git(repo, ["init", "-q"]); _git(repo, ["config", "user.email", "t@t.t"]); _git(repo, ["config", "user.name", "t"])
+    (repo / "a.py").write_text("line1\nline2\nline3\n", encoding="utf-8")
+    _git(repo, ["add", "-A"]); _git(repo, ["commit", "-qm", "init"])
+    (repo / "a.py").write_text("line1\nNEW-A\nNEW-B\nline2\nline3\n", encoding="utf-8")
+    _git(repo, ["add", "-A"]); _git(repo, ["commit", "-qm", "change"])
+    ranges = changed_line_ranges(repo, "a.py")
+    assert ranges and any(a <= 2 <= b or a == 2 for a, b in ranges)   # new lines around 2-3
+
+
+def test_changed_lines_hint_renders_or_empty():
+    from aegis.ai.fresh_commits import changed_lines_hint
+    assert changed_lines_hint([]) == ""
+    t = changed_lines_hint([(10, 14), (20, 20)])
+    assert "Recently changed lines" in t and "L10-14" in t and "L20" in t

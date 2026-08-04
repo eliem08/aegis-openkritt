@@ -12,6 +12,7 @@ Read-only: lists commits/diffs, never writes.
 
 from __future__ import annotations
 
+import re
 from datetime import datetime, timedelta, timezone
 
 _SOURCE_SUFFIXES = (".go", ".py", ".rb", ".php", ".js", ".ts", ".tsx", ".jsx",
@@ -59,3 +60,41 @@ def recent_source_files(repository: str, *, gh_client, days: int = 7,
                 order.setdefault(path, rank)          # first (most recent) commit seen
     # most-frequently changed first, then most-recent
     return sorted(touched, key=lambda p: (-touched[p], order[p], p))
+
+
+def changed_line_ranges(repo_root, path: str) -> list[tuple[int, int]]:
+    """Line ranges added in the most recent commit that touched ``path``, from a local
+    clone's git. Lets the hunt tell the generator which lines are NEW — fresh
+    regressions in just-shipped code are the winnable ones. Empty on any error."""
+    import subprocess
+    from pathlib import Path
+    try:
+        out = subprocess.run(
+            ["git", "log", "-1", "--unified=0", "--format=", "--", path],
+            cwd=str(Path(repo_root)), capture_output=True, text=True, timeout=60)
+    except Exception:
+        return []
+    ranges: list[tuple[int, int]] = []
+    for line in (out.stdout or "").splitlines():
+        if not line.startswith("@@"):
+            continue
+        # @@ -a,b +c,d @@  -> the new-side hunk is c..c+d-1
+        m = re.search(r"\+(\d+)(?:,(\d+))?", line)
+        if m:
+            start = int(m.group(1))
+            count = int(m.group(2)) if m.group(2) is not None else 1
+            if count > 0:
+                ranges.append((start, start + count - 1))
+    return ranges
+
+
+def changed_lines_hint(ranges: list[tuple[int, int]]) -> str:
+    """A prompt block flagging the just-changed lines to focus on."""
+    if not ranges:
+        return ""
+    spans = ", ".join(f"L{a}-{b}" if b > a else f"L{a}" for a, b in ranges[:30])
+    return ("\n## Recently changed lines (focus here)\n"
+            "These lines were added/modified in the most recent commit — regressions in "
+            "freshly shipped code are the highest-value target. Prioritize a weakness "
+            "introduced or left unguarded in: " + spans + ".")
+
