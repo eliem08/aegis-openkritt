@@ -57,6 +57,8 @@ class DeepSeekConfig:
     temperature: float = 0.2
     thinking: str = "enabled"
     reasoning_effort: str = "high"
+    max_retries: int = 3          # transient-error retries (DNS/connect/timeout/429/5xx)
+    retry_backoff: float = 0.75   # base seconds for exponential backoff between retries
 
     def __post_init__(self) -> None:
         self.api_key = str(self.api_key or "").strip()
@@ -86,6 +88,10 @@ class DeepSeekConfig:
             raise DeepSeekConfigError("DEEPSEEK_THINKING must be enabled or disabled")
         if self.reasoning_effort not in _REASONING_EFFORTS:
             raise DeepSeekConfigError("DEEPSEEK_REASONING_EFFORT must be low, high, or max")
+        if not 0 <= self.max_retries <= 10:
+            raise DeepSeekConfigError("DEEPSEEK_MAX_RETRIES must be in [0, 10]")
+        if not math.isfinite(self.retry_backoff) or not 0 <= self.retry_backoff <= 30:
+            raise DeepSeekConfigError("DEEPSEEK_RETRY_BACKOFF must be in [0, 30]")
 
     @property
     def timeout(self) -> httpx.Timeout:
@@ -113,6 +119,8 @@ class DeepSeekConfig:
             temperature=_number(env, "DEEPSEEK_TEMPERATURE", 0.2),
             thinking=env.get("DEEPSEEK_THINKING", "enabled"),
             reasoning_effort=env.get("DEEPSEEK_REASONING_EFFORT", "high"),
+            max_retries=_integer(env, "DEEPSEEK_MAX_RETRIES", 3),
+            retry_backoff=_number(env, "DEEPSEEK_RETRY_BACKOFF", 0.75),
         )
 
     @classmethod

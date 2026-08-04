@@ -284,20 +284,36 @@ def test_duplicate_hypotheses_are_collapsed(tmp_path):
     assert len(result2.hypotheses) == 1      # same file+line+weakness -> collapsed
 
 
-def test_diversify_caps_files_per_directory():
+def test_diversify_caps_files_per_component_across_subdirs():
     from aegis.ai.repo_hunt import _diversify, SelectedFile
     from aegis.ai.agents.contracts import AgentKind as K
-    # one dense dir (Login) + a few others; cap should spread across dirs
-    cands = [SelectedFile(f"plugins/Login/f{i}.php", 10, K.AUTHENTICATION) for i in range(10)]
-    cands += [SelectedFile("plugins/Annotations/API.php", 9, K.AUTHORIZATION),
-              SelectedFile("plugins/Contents/API.php", 9, K.AUTHORIZATION)]
-    # budget exactly = cap(3, Login) + Annotations + Contents, so no backfill kicks in
+    # the exact Matomo case: one dense PLUGIN spread across several subdirs must be
+    # capped as ONE component, not 3-per-subdir (which the old dirname cap allowed)
+    cands = [
+        SelectedFile("plugins/Login/API.php", 10, K.AUTHENTICATION),
+        SelectedFile("plugins/Login/Controller.php", 10, K.AUTHENTICATION),
+        SelectedFile("plugins/Login/Emails/A.php", 10, K.AUTHENTICATION),
+        SelectedFile("plugins/Login/Emails/B.php", 10, K.AUTHENTICATION),
+        SelectedFile("plugins/Login/Security/C.php", 10, K.AUTHENTICATION),
+        SelectedFile("plugins/Login/config/D.php", 10, K.AUTHENTICATION),
+        SelectedFile("plugins/Annotations/API.php", 9, K.AUTHORIZATION),
+        SelectedFile("plugins/Contents/API.php", 9, K.AUTHORIZATION),
+    ]
     out = _diversify(cands, max_files=5, max_per_dir=3)
-    login = [f for f in out if "/Login/" in f.path]
-    assert len(login) == 3                       # Login capped at 3, not 10
+    login = [f for f in out if f.path.startswith("plugins/Login/")]
+    assert len(login) == 3                       # whole Login plugin capped at 3, despite subdirs
     assert any("Annotations" in f.path for f in out)
     assert any("Contents" in f.path for f in out)
     assert len(out) == 5
+
+
+def test_diversify_component_key_adapts_to_shared_prefix():
+    from aegis.ai.repo_hunt import _component_key, _common_prefix_segments
+    # deep shared prefix (a k8s-style subpath): component is the next segment
+    paths = ["a/b/c/token/x.go", "a/b/c/request/y.go", "a/b/c/token/z.go"]
+    n = len(_common_prefix_segments(paths))
+    assert _component_key("a/b/c/token/x.go", n) == "a/b/c/token"
+    assert _component_key("a/b/c/request/y.go", n) == "a/b/c/request"
 
 
 def test_diversify_backfills_when_few_dirs():

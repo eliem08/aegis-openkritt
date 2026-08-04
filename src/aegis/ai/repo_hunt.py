@@ -122,9 +122,10 @@ class RepoHuntConfig:
     content_scan: bool = True
     content_scan_pool: int = 40       # candidates to peek at before final ranking
     baseline_score: int = 1          # score for a logic file with no path signal
-    # Diversity: cap files taken from any one directory so a single keyword-dense
-    # dir (e.g. one plugin full of login/*.php) can't consume every slot and starve
-    # the rest of the repo. 0 disables the cap.
+    # Diversity: cap files taken from any one COMPONENT (the segment past the
+    # candidates' shared prefix — e.g. plugins/<Name>, across all its subdirs) so a
+    # single keyword-dense component can't consume every slot and starve the rest of
+    # the repo. 0 disables the cap. (Name kept for back-compat; semantics = per component.)
     max_per_dir: int = 3
 
 
@@ -255,21 +256,45 @@ def refine_by_content(fetcher, repository, candidates, config, result):
     return refined
 
 
+def _common_prefix_segments(paths: list[str]) -> list[str]:
+    """Longest shared leading directory segments across the candidate paths."""
+    seg_lists = [p.split("/")[:-1] for p in paths]   # dir segments, drop filename
+    if not seg_lists:
+        return []
+    common = seg_lists[0]
+    for segs in seg_lists[1:]:
+        i = 0
+        while i < len(common) and i < len(segs) and common[i] == segs[i]:
+            i += 1
+        common = common[:i]
+    return common
+
+
+def _component_key(path: str, common_len: int) -> str:
+    """The component a path belongs to: the segment just past the shared prefix, so a
+    plugin (plugins/<Name>) or module groups together regardless of how many subdirs
+    (Emails/, Security/, config/) it spreads across. Files sitting directly in the
+    shared root are each their own key (a flat dir has nothing to spread across)."""
+    segs = path.split("/")
+    return "/".join(segs[: common_len + 1])
+
+
 def _diversify(candidates: list[SelectedFile], max_files: int, max_per_dir: int) -> list[SelectedFile]:
-    """Take up to ``max_files``, capping how many come from any one directory so a
-    single keyword-dense dir can't starve the rest of the repo. Candidates are already
-    score-sorted. Pass 1 honours the cap; pass 2 backfills leftover slots in score
-    order if the cap left budget unused (small repos with few dirs still fill up)."""
+    """Take up to ``max_files``, capping how many come from any one COMPONENT so a
+    single keyword-dense component (e.g. one plugin, across all its subdirs) can't
+    starve the rest of the repo. Candidates are already score-sorted. Pass 1 honours
+    the cap; pass 2 backfills leftover slots in score order if the cap left budget
+    unused (few-component repos still fill up)."""
     if max_per_dir <= 0:
         return candidates[:max_files]
-    import os as _os
-    per_dir: dict[str, int] = {}
+    common_len = len(_common_prefix_segments([f.path for f in candidates]))
+    per_component: dict[str, int] = {}
     chosen: list[SelectedFile] = []
     deferred: list[SelectedFile] = []
     for f in candidates:
-        d = _os.path.dirname(f.path)
-        if per_dir.get(d, 0) < max_per_dir:
-            per_dir[d] = per_dir.get(d, 0) + 1
+        key = _component_key(f.path, common_len)
+        if per_component.get(key, 0) < max_per_dir:
+            per_component[key] = per_component.get(key, 0) + 1
             chosen.append(f)
             if len(chosen) >= max_files:
                 return chosen

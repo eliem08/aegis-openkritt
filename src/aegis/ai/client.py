@@ -75,6 +75,36 @@ class DeepSeekClient:
             payload["response_format"] = {"type": "json_object"}
         return payload
 
+    #: transient upstream statuses worth retrying (rate limit + gateway/5xx).
+    _RETRY_STATUS = frozenset({429, 500, 502, 503, 504})
+
+    def _post_with_retry(self, payload: dict) -> httpx.Response:
+        """POST with bounded exponential backoff on transient failures.
+
+        DNS/connect/timeout errors (httpx.TransportError — the ``getaddrinfo failed``
+        class that invalidated whole hunt runs) and 429/5xx are retried; 4xx client
+        errors fail fast. Backoff is ``retry_backoff * 2**attempt`` seconds."""
+        attempts = self._config.max_retries + 1
+        last: Exception | None = None
+        for attempt in range(attempts):
+            try:
+                resp = self._client.post("/chat/completions", json=payload,
+                                         headers=self._headers)
+            except httpx.TransportError as exc:            # DNS/connect/read/network
+                last = DeepSeekError(f"DeepSeek request failed: {exc}")
+            except httpx.HTTPError as exc:                 # other httpx errors: don't retry
+                raise DeepSeekError(f"DeepSeek request failed: {exc}") from exc
+            else:
+                if resp.status_code < 400:
+                    return resp
+                if resp.status_code not in self._RETRY_STATUS:
+                    raise DeepSeekError(f"DeepSeek HTTP {resp.status_code}")  # 4xx: fail fast
+                last = DeepSeekError(f"DeepSeek HTTP {resp.status_code}")     # transient: retry
+            if attempt < attempts - 1 and self._config.retry_backoff > 0:
+                time.sleep(self._config.retry_backoff * (2 ** attempt))
+        assert last is not None
+        raise last
+
     def complete_result(
         self,
         messages: list[dict],
@@ -90,13 +120,7 @@ class DeepSeekClient:
             max_tokens=max_tokens,
         )
         started = time.monotonic()
-        try:
-            resp = self._client.post("/chat/completions", json=payload, headers=self._headers)
-            resp.raise_for_status()
-        except httpx.HTTPStatusError as exc:
-            raise DeepSeekError(f"DeepSeek HTTP {exc.response.status_code}") from exc
-        except httpx.HTTPError as exc:
-            raise DeepSeekError(f"DeepSeek request failed: {exc}") from exc
+        resp = self._post_with_retry(payload)
 
         try:
             body = resp.json()
