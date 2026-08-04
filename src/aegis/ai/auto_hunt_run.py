@@ -87,6 +87,17 @@ def make_hunt_fn(*, report_root: str | Path = "reports"):
         counts = validated["scan"]["validation_counts"]
 
         _record(validated, target.handle)
+        # professional per-finding triage (trust-model gate, CVSS, chain, prior-art,
+        # bounty, remediation) — Aegis-native, one DeepSeek call per confirmed finding
+        if counts.get("confirmed"):
+            try:
+                from .enrich import enrich_report
+                purl = f"https://hackerone.com/{target.handle}" if target.handle else ""
+                with DeepSeekClient(DeepSeekConfig.from_env(val_env)) as ec:
+                    enrich_report(report_path, ec, program_url=purl, only_confirmed=True)
+                validated = json.loads(report_path.read_text(encoding="utf-8"))
+            except Exception:
+                pass
         from .economics import estimate
         findings = []
         for row in validated.get("vulnerabilities") or []:
@@ -98,13 +109,20 @@ def make_hunt_fn(*, report_root: str | Path = "reports"):
                            handle=target.handle,
                            agreement=int(row.get("agreement", 1) or 1),
                            samples=int(row.get("samples", 1) or 1)).as_dict()
+            enr = row.get("enrichment") or {}
             findings.append({
                 "cwe": a.get("vulnerability_type", ""),
                 "location": f"{a.get('file_path','')}:{a.get('line','')}",
                 "summary": (a.get("summary") or "")[:160],
                 "severity": est["severity"], "agreement": est["agreement"],
                 "min_bounty": est["min_bounty"], "likely_bounty": est["likely_bounty"],
-                "expected_gain": est["expected_gain"], "vuln_type": est["vuln_type"]})
+                "expected_gain": est["expected_gain"], "vuln_type": est["vuln_type"],
+                # professional triage layer (Aegis-native enrichment)
+                "cvss": enr.get("cvss_score"), "cvss_vector": enr.get("cvss_vector"),
+                "trust_model_holds": enr.get("trust_model_holds"),
+                "exploit_practicality": enr.get("exploit_practicality"),
+                "chain_required": enr.get("chain_required"),
+                "remediation": enr.get("remediation")})
 
         poc_dir = ""
         if counts.get("confirmed"):

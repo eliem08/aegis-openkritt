@@ -151,10 +151,13 @@ function renderFindings(fs){
       '<div class=econ><span>min <b>$'+(f.min_bounty||0).toLocaleString()+'</b></span>'+
       '<span>likely <b>$'+(f.likely_bounty||0).toLocaleString()+'</b></span>'+
       '<span>expected gain <b>$'+(f.expected_gain||0).toLocaleString()+'</b></span>'+
+      (f.cvss?'<span>CVSS <b>'+f.cvss+'</b></span>':'')+
+      (f.exploit_practicality?'<span>'+f.exploit_practicality+(f.chain_required?' · chain':'')+'</span>':'')+
       (f.agreement?'<span class=agree>'+f.agreement+' agreed</span>':'')+'</div>':'';
+    const fix=f.remediation?'<div class=note style="margin-top:6px">Fix: '+f.remediation+'</div>':'';
     d.innerHTML='<div class=h><span class="sev '+sev+'">'+sev+'</span><b>'+(f.cwe||'finding')+'</b><span class=mono>'+f.repo+'</span>'+(f.handle?'<span class=note>&middot; '+f.handle+'</span>':'')+'</div>'+
       '<div class=mono style="margin-top:6px">'+(f.location||'')+'</div>'+
-      '<div style="margin-top:6px">'+(f.summary||'')+'</div>'+money+
+      '<div style="margin-top:6px">'+(f.summary||'')+'</div>'+money+fix+
       (f.poc?'<div class=note style="margin-top:6px">PoC scaffold: <span class=mono>'+f.poc+'</span></div>':'');
     box.appendChild(d);
   });
