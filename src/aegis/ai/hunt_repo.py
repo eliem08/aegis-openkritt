@@ -141,6 +141,23 @@ def main(argv=None) -> int:
             report.setdefault("vulnerabilities", []).extend(skill_rows)
             print(f"  folded {len(skill_rows)} skill candidate(s) into the report")
 
+    # run any installed OSS scanners (semgrep/gitleaks/bandit/njsscan/trivy) on the
+    # clone and fold their deterministic findings in — unless --api (no local checkout)
+    if not args.api:
+        from .tool_bridge import ToolBridge, available_tools
+        avail = available_tools("code") + available_tools("secrets") + available_tools("deps")
+        if avail:
+            names = ", ".join(sorted({t.name for t in avail}))
+            print(f"\nrunning installed scanners ({names}) ...", flush=True)
+            tresults = ToolBridge().scan(str(pin_dir), tools=list({t.name: t for t in avail}.values()))
+            for tr in tresults:
+                print(f"  [{'ok' if tr.ran else 'fail'}] {tr.tool}: {len(tr.findings)} finding(s)"
+                      + (f" — {tr.error}" if tr.error else ""))
+            tool_rows = ToolBridge().findings(tresults)
+            if tool_rows:
+                report.setdefault("vulnerabilities", []).extend(tool_rows)
+                print(f"  folded {len(tool_rows)} scanner finding(s) into the report")
+
     report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
     print(f"\nselected {len(result.selected)} files, "
           f"{len(result.hypotheses)} hypotheses -> {report_path.name}")
