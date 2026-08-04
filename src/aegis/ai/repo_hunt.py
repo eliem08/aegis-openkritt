@@ -62,8 +62,14 @@ _CONTENT_SIGNALS: tuple[tuple[re.Pattern, int, AgentKind], ...] = (
                 re.I), 9, AgentKind.INJECTION),
     (re.compile(r"\.query\(|executeQuery|rawQuery|db\.Raw|fmt\.Sprintf.*(SELECT|INSERT)",
                 re.I), 8, AgentKind.INJECTION),
-    (re.compile(r"http\.Get|requests\.get|fetch\(|urllib|HttpClient|\.newClient", re.I), 6,
+    (re.compile(r"http\.Get|requests\.get|\bfetch\b|node-fetch|urllib|HttpClient|"
+                r"\.newClient|axios|got\(|http\.request", re.I), 6,
      AgentKind.SSRF_PARSERS),
+    # untrusted value interpolated into a URL/query string without encoding —
+    # parameter injection / SSRF path construction. Matches template literals and
+    # concatenation that build a URL or query with a variable and no encodeURIComponent.
+    (re.compile(r"(https?://[^`\"']*\$\{)|([?&][A-Za-z_]+=\$\{)|"
+                r"(url\s*[+=].*\$\{)", re.I), 7, AgentKind.SSRF_PARSERS),
 )
 
 #: Source extensions we can meaningfully review.
