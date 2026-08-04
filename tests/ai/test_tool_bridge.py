@@ -14,9 +14,11 @@ def test_registry_lanes():
     assert any(t.name == "gitleaks" for t in tools_for("secrets"))
 
 
-def test_available_tools_filters_by_path(monkeypatch):
+def test_available_tools_filters_by_installed(monkeypatch):
     import aegis.ai.tool_bridge as tb
-    monkeypatch.setattr(tb.shutil, "which", lambda b: "/usr/bin/" + b if b == "semgrep" else None)
+    # only semgrep "installed" (patch the resolver so real venv tools don't leak in)
+    monkeypatch.setattr(tb, "resolve_binary",
+                        lambda b: "/usr/bin/semgrep" if b == "semgrep" else None)
     avail = {t.name for t in available_tools()}
     assert avail == {"semgrep"}
 
@@ -34,9 +36,12 @@ def _slither_out():
 
 
 def _run_map(outputs):
-    # a fake process runner keyed by the tool binary in argv[0]
+    # a fake process runner keyed by the tool binary basename (argv[0] may be a resolved
+    # full path once resolve_binary rewrites it)
+    import os
     def run(argv, timeout):
-        return outputs.get(argv[0], ""), ""
+        base = os.path.basename(argv[0]).removesuffix(".exe")
+        return outputs.get(base, ""), ""
     return run
 
 

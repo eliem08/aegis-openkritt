@@ -24,10 +24,26 @@ class ToolResult:
     error: str = ""
 
 
+def resolve_binary(binary: str) -> str | None:
+    """Find a tool binary on PATH, or in the running interpreter's Scripts/bin dir where
+    pip installs console scripts (so venv-installed scanners are found without activation)."""
+    found = shutil.which(binary)
+    if found:
+        return found
+    import sys
+    from pathlib import Path
+    scripts = Path(sys.executable).parent
+    for name in (binary, binary + ".exe", binary + ".cmd", binary + ".bat"):
+        cand = scripts / name
+        if cand.is_file():
+            return str(cand)
+    return None
+
+
 def available_tools(lane: str | None = None) -> list[Tool]:
-    """Tools from the registry whose binary is installed on PATH (optionally by lane)."""
+    """Tools from the registry whose binary is installed (PATH or the venv Scripts dir)."""
     pool = tools_for(lane) if lane else list(TOOLS)
-    return [t for t in pool if shutil.which(t.binary)]
+    return [t for t in pool if resolve_binary(t.binary)]
 
 
 def _default_run(argv, timeout):
@@ -50,6 +66,9 @@ class ToolBridge:
         results: list[ToolResult] = []
         for tool in chosen:
             argv = shlex.split(tool.cmd.format(target=str(checkout_path)))
+            resolved = resolve_binary(argv[0])           # use the venv/PATH-resolved path
+            if resolved:
+                argv[0] = resolved
             try:
                 stdout, stderr = self._run(argv, self._timeout)
             except Exception as exc:
