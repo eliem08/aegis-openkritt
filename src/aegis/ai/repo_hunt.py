@@ -118,6 +118,7 @@ class RepoHuntConfig:
     require_reachability: bool = True  # drop hypotheses with no entry point/impact
     min_confidence: float = 0.0
     taint_hints: bool = True          # feed heuristic source->sink leads to the generator
+    stack_focus: bool = True          # add per-language framework-guard + anchor-CWE focus
     # Ensemble: generate this many times per file over a temperature spread and union
     # the findings, to catch borderline bugs a single generation misses ~7/8 of the time.
     samples: int = 1
@@ -398,7 +399,10 @@ def hunt_repository(fetcher, client, repository: str, *,
         if not primary:
             continue
         from .taint import extract_flows, taint_hints_text
+        from .focus import focus_text, framework_note
         hints = taint_hints_text(extract_flows(primary[0].content)) if config.taint_hints else ""
+        if config.stack_focus:
+            hints = focus_text(item.path) + framework_note(primary[0].content) + hints
         task = AgentTask(
             kind=item.kind,
             target=f"{repository}:{item.path}",

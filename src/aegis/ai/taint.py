@@ -93,7 +93,11 @@ def extract_flows(content: str, *, max_flows: int = 12) -> list[TaintFlow]:
             if not pattern.search(line):
                 continue
             idents = set(_IDENT.findall(line))
-            carrier = next((v for v in var_names if v in idents), None)
+            own_lhs = m.group(1) if (m := _ASSIGN.match(line.strip())) else None
+            # candidate carriers: tainted vars used on this line, excluding the var being
+            # assigned here; pick the earliest-tainted (the real source) deterministically
+            candidates = [v for v in var_names if v in idents and v != own_lhs]
+            carrier = min(candidates, key=lambda v: (tainted[v], v)) if candidates else None
             inline_source = _SOURCES.search(line) is not None
             if carrier is None and not inline_source:
                 continue
