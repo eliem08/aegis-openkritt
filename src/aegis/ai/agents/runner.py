@@ -17,10 +17,19 @@ _SAFE_METHODS = frozenset({
     "manual_review",
 })
 
+import re as _re
+
 _METHODS = sorted([
     "static_analysis", "response_differential", "harmless_canary",
     "contract_property", "private_oast_callback", "manual_review",
 ])
+
+
+def cwe_key(weakness: str) -> str:
+    """Normalized calibration key: the CWE id if present, else the weakness name.
+    Shared by outcome recording and calibration lookup so they always agree."""
+    match = _re.search(r"cwe[-\s]?(\d+)", str(weakness or ""), _re.IGNORECASE)
+    return f"cwe-{match.group(1)}" if match else str(weakness or "").strip().lower()
 
 _SYSTEM = (
     "You are an authorized security code-review specialist reviewing real production code "
@@ -131,13 +140,20 @@ class SpecializedAgent:
     def __init__(self, client, *, max_hypotheses: int = 8,
                  require_reachability: bool = False, min_confidence: float = 0.0,
                  samples: int = 1, sample_temperatures: tuple[float, ...] = (),
-                 retriever=None) -> None:
+                 retriever=None, calibration=None, detector: str = "ai:repo-hunt",
+                 calibration_strength: float = 0.4) -> None:
         self._client = client
         self._maximum = max(1, min(max_hypotheses, 25))
         # Retrieval-augmented detection: when a corpus of past disclosed bugs is
         # available, show the model real findings of this weakness class as few-shot
         # exemplars, raising the per-sample hit rate and calibrating precision.
         self._retriever = retriever
+        # Closed learning loop: raise the confidence bar for weakness classes with a
+        # history of false positives, lower it for classes that keep being real. Uses
+        # the Beta-smoothed per-CWE precision prior from past outcomes.
+        self._calibration = calibration
+        self._detector = detector
+        self._calibration_strength = calibration_strength
         # Deterministic enforcement of the prompt's bar: a hypothesis that cannot name
         # an entry point and an impact is a hardening observation, not a vulnerability.
         self._require_reachability = require_reachability
@@ -215,8 +231,19 @@ class SpecializedAgent:
             if self._require_reachability and not hypothesis.has_reachability_evidence:
                 self.last_dropped.append({"reason": "no_reachability_evidence"})
                 continue
-            if hypothesis.confidence < self._min_confidence:
+            if hypothesis.confidence < self._calibrated_floor(hypothesis):
                 self.last_dropped.append({"reason": "below_confidence_floor"})
                 continue
             output.append(hypothesis)
         return output
+
+    def _calibrated_floor(self, hypothesis: Hypothesis) -> float:
+        """The confidence bar for this hypothesis, raised for weakness classes with a
+        false-positive history and lowered for reliably-true ones. Neutral (prior 0.5)
+        and the no-calibration case both leave ``min_confidence`` unchanged."""
+        floor = self._min_confidence
+        if self._calibration is not None:
+            prior = self._calibration.prior(detector=self._detector,
+                                            cwe=cwe_key(hypothesis.weakness))
+            floor += (0.5 - prior) * self._calibration_strength
+        return max(0.0, min(0.95, floor))

@@ -366,11 +366,24 @@ def hunt_repository(fetcher, client, repository: str, *,
             retriever = KnowledgeRetriever(corpus)
     except Exception:
         retriever = None
+    calibration = None
+    try:                                             # closed learning loop, if outcomes exist
+        import os as _os
+        from aegis.learn.store import OutcomeStore
+        from aegis.learn.calibration import Calibration
+        db = _os.environ.get("AEGIS_LEARN_DB")
+        if db:
+            store = OutcomeStore(db)
+            outcomes = store.all()
+            if outcomes:
+                calibration = Calibration.from_outcomes(outcomes)
+    except Exception:
+        calibration = None
     agent = SpecializedAgent(
         client, max_hypotheses=config.max_hypotheses_per_file,
         require_reachability=config.require_reachability,
         min_confidence=config.min_confidence,
-        samples=config.samples, retriever=retriever,
+        samples=config.samples, retriever=retriever, calibration=calibration,
     )
     seen: set[tuple[str, int, str]] = set()          # cross-file hypothesis dedup
 

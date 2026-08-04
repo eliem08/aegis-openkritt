@@ -179,13 +179,14 @@ def _record_outcomes(validated: dict, *, program_handle: str = "") -> None:
         store = OutcomeStore(os.environ.get("AEGIS_LEARN_DB") or "aegis-learn.db")
     except Exception:
         return
+    from .agents.runner import cwe_key
     for row in validated.get("vulnerabilities") or []:
         answer = row.get("json_answer") or {}
         verdict = (row.get("validation") or {}).get("verdict", "unresolved")
         try:
             store.record(Outcome(
                 detector="ai:repo-hunt",
-                cwe=str(answer.get("vulnerability_type") or "")[:80],
+                cwe=cwe_key(answer.get("vulnerability_type") or "")[:80],
                 verdict=_map.get(verdict, Verdict.PENDING),
                 fingerprint=str(row.get("target") or answer.get("file_path") or "")[:200],
                 asset=repo,

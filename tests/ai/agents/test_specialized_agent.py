@@ -243,3 +243,44 @@ def test_no_retriever_leaves_prompt_unchanged():
             return {"hypotheses": []}
     SpecializedAgent(_Cap()).analyze(_open_task())
     assert "disclosed vulnerabilities" not in captured["user"]
+
+
+def test_cwe_key_normalizes():
+    from aegis.ai.agents.runner import cwe_key
+    assert cwe_key("CWE-352: Missing CSRF") == "cwe-352"
+    assert cwe_key("cwe 89") == "cwe-89"
+    assert cwe_key("SQL Injection") == "sql injection"
+
+
+def test_calibration_raises_floor_for_false_positive_prone_class():
+    from aegis.learn.store import Outcome, Verdict
+    from aegis.learn.calibration import Calibration
+    # CWE-352 has a history of false positives -> its confidence bar should rise
+    outcomes = [Outcome(detector="ai:repo-hunt", cwe="cwe-352", verdict=Verdict.FALSE_POSITIVE)
+                for _ in range(9)]
+    cal = Calibration.from_outcomes(outcomes)
+    # a marginal CWE-352 hypothesis that passes at floor 0 is dropped once the FP
+    # history raises the bar (prior ~0.09 -> floor ~0.16 at strength 0.4)
+    marginal = _hyp_answer(10, weakness="CWE-352", conf=0.15)
+    assert len(SpecializedAgent(_SeqClient([_hyp_answer(10, weakness="CWE-352", conf=0.15)])).analyze(_open_task())) == 1
+    agent = SpecializedAgent(_SeqClient([marginal]), calibration=cal, calibration_strength=0.4)
+    assert agent.analyze(_open_task()) == []
+    assert agent.last_dropped and agent.last_dropped[-1]["reason"] == "below_confidence_floor"
+
+
+def test_calibration_lowers_floor_for_reliable_class():
+    from aegis.learn.store import Outcome, Verdict
+    from aegis.learn.calibration import Calibration
+    outcomes = [Outcome(detector="ai:repo-hunt", cwe="cwe-639", verdict=Verdict.CONFIRMED)
+                for _ in range(9)]
+    cal = Calibration.from_outcomes(outcomes)
+    # same low confidence, but a reliably-true class -> kept (floor lowered below 0.5)
+    answer = _hyp_answer(10, weakness="CWE-639", conf=0.5)
+    agent = SpecializedAgent(_SeqClient([answer]), calibration=cal,
+                             min_confidence=0.5, calibration_strength=0.4)
+    assert len(agent.analyze(_open_task())) == 1
+
+
+def test_no_calibration_leaves_floor_at_min_confidence():
+    agent = SpecializedAgent(_SeqClient([_hyp_answer(10, conf=0.3)]), min_confidence=0.4)
+    assert agent.analyze(_open_task()) == []               # 0.3 < 0.4, dropped, no calibration
