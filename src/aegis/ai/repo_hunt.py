@@ -117,6 +117,7 @@ class RepoHuntConfig:
     max_bundle_bytes: int = 200_000   # total budget for one bundle
     require_reachability: bool = True  # drop hypotheses with no entry point/impact
     min_confidence: float = 0.0
+    taint_hints: bool = True          # feed heuristic source->sink leads to the generator
     # Ensemble: generate this many times per file over a temperature spread and union
     # the findings, to catch borderline bugs a single generation misses ~7/8 of the time.
     samples: int = 1
@@ -393,9 +394,11 @@ def hunt_repository(fetcher, client, repository: str, *,
         bundle = _read_bundle(fetcher, repository, item.path, paths, config, result, pin_dir)
         if bundle is None:
             continue
-        primary_only = [s.path for s in bundle if s.path == item.path]
-        if not primary_only:
+        primary = [s for s in bundle if s.path == item.path]
+        if not primary:
             continue
+        from .taint import extract_flows, taint_hints_text
+        hints = taint_hints_text(extract_flows(primary[0].content)) if config.taint_hints else ""
         task = AgentTask(
             kind=item.kind,
             target=f"{repository}:{item.path}",
@@ -407,6 +410,7 @@ def hunt_repository(fetcher, client, repository: str, *,
                 "files. Report a weakness only if its vulnerable line is in the primary "
                 "file and you can trace an untrusted entry point to it. Ignore issues that "
                 "exist solely in non-production code. No live execution or target contact."
+                + hints
             ),
         )
         try:
