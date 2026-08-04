@@ -1,0 +1,170 @@
+[
+  {
+    "handle": "kubernetes",
+    "score": 184.0,
+    "top": "critical",
+    "repo": "kubernetes/csi-api",
+    "floor": "low",
+    "submission_state": "open"
+  },
+  {
+    "handle": "circle-bbp",
+    "score": 88.0,
+    "top": "critical",
+    "repo": "circlefin/evm-cctp-contracts",
+    "floor": "low",
+    "submission_state": "open"
+  },
+  {
+    "handle": "lightspark_bbp",
+    "score": 32.0,
+    "top": "critical",
+    "repo": "lightsparkdev/lightspark-crypto-uniffi",
+    "floor": "low",
+    "submission_state": "open"
+  },
+  {
+    "handle": "kiwicom",
+    "score": 30.0,
+    "top": "high",
+    "repo": "kiwicom/js-iam-middleware",
+    "floor": "low",
+    "submission_state": "open"
+  },
+  {
+    "handle": "toolsforhumanity",
+    "score": 28.0,
+    "top": "critical",
+    "repo": "worldcoin/orb-software",
+    "floor": "low",
+    "submission_state": "open"
+  },
+  {
+    "handle": "gitlab",
+    "score": 24.0,
+    "top": "critical",
+    "repo": "gitlab-org/gitlab",
+    "floor": "low",
+    "submission_state": "open"
+  },
+  {
+    "handle": "chia_network",
+    "score": 24.0,
+    "top": "critical",
+    "repo": "Chia-Network/chia-blockchain",
+    "floor": "low",
+    "submission_state": "open"
+  },
+  {
+    "handle": "plaid",
+    "score": 20.0,
+    "top": "critical",
+    "repo": "plaid/plaid-link-ios",
+    "floor": "low",
+    "submission_state": "open"
+  },
+  {
+    "handle": "chainlink",
+    "score": 19.0,
+    "top": "critical",
+    "repo": "smartcontractkit/staking-v0.1",
+    "floor": "low",
+    "submission_state": "open"
+  },
+  {
+    "handle": "cloudflare",
+    "score": 8.0,
+    "top": "critical",
+    "repo": "cloudflare/workerd",
+    "floor": "low",
+    "submission_state": "open"
+  },
+  {
+    "handle": "matomo",
+    "score": 8.0,
+    "top": "critical",
+    "repo": "matomo-org/matomo",
+    "floor": "low",
+    "submission_state": "open"
+  },
+  {
+    "handle": "slack",
+    "score": 4.0,
+    "top": "critical",
+    "repo": "slackhq/nebula",
+    "floor": "low",
+    "submission_state": "open"
+  },
+  {
+    "handle": "brave",
+    "score": 4.0,
+    "top": "critical",
+    "repo": "brave/*,",
+    "floor": "low",
+    "submission_state": "open"
+  },
+  {
+    "handle": "discourse",
+    "score": 4.0,
+    "top": "critical",
+    "repo": "discourse/discourse",
+    "floor": "low",
+    "submission_state": "open"
+  },
+  {
+    "handle": "nodejs",
+    "score": 4.0,
+    "top": "critical",
+    "repo": "nodejs/node",
+    "floor": "low",
+    "submission_state": "open"
+  },
+  {
+    "handle": "doppler",
+    "score": 4.0,
+    "top": "critical",
+    "repo": "DopplerHQ/cli",
+    "floor": "low",
+    "submission_state": "open"
+  },
+  {
+    "handle": "tron_dao",
+    "score": 4.0,
+    "top": "critical",
+    "repo": "tronprotocol/java-tron",
+    "floor": "low",
+    "submission_state": "open"
+  },
+  {
+    "handle": "anthropic",
+    "score": 4.0,
+    "top": "critical",
+    "repo": "github.com/anthropics",
+    "floor": "low",
+    "submission_state": "open"
+  },
+  {
+    "handle": "shopify",
+    "score": 2.0,
+    "top": "medium",
+    "repo": "Shopify/*",
+    "floor": "low",
+    "submission_state": "open"
+  },
+  {
+    "handle": "deriv",
+    "score": 2.0,
+    "top": "medium",
+    "repo": "github.com/binary-com",
+    "floor": "low",
+    "submission_state": "open"
+  },
+  {
+    "handle": "coinbase",
+    "score": 1.4,
+    "top": "critical",
+    "repo": "coinbase/cb-mpc",
+    "floor": "high",
+    "submission_state": "open"
+  }
+]

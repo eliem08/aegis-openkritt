@@ -1,0 +1,8 @@
+Live submission_state re-check (2026-08-04): 20 of 41 "code bounty" programs from
+the sweep are actually PAUSED and cannot receive submissions. The sweep/rating
+scripts never checked submission_state; only hunt.selector does. Excluded:
+irccloud, urbandictionary, wordpoints, owncloud, paragonie, mainwp, cornershop,
+hyperledger, cosmos, liberapay, apache_kafka_h1c, oasisprotocol, skale_network,
+gsa_bbp, ibb, agoric, fireblocks_mpc, leather_wallet, nimiq, northerntechhq.
+Also: kubernetes/csi-api is 301'd (deprecated) - the live Tier-1 target is
+kubernetes/kubernetes ($10k critical ceiling).
