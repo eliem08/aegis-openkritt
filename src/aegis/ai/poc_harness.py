@@ -83,6 +83,25 @@ def build_poc(row: dict, *, repository: str, out_dir: str | Path,
     return PoCArtifacts(out, report_path, repro_path, runbook_path)
 
 
+def annotate_reproduction(report_path: str | Path, *, triggered: bool, summary: str,
+                          evidence: str = "") -> None:
+    """Append the reproduction-agent outcome to a scaffolded report.md, so a locally
+    reproduced finding is visibly distinguished from an unverified draft."""
+    path = Path(report_path)
+    status = "✅ REPRODUCED locally" if triggered else "❌ NOT reproduced locally"
+    block = (
+        "\n\n## Local reproduction (Aegis reproduction agent)\n"
+        f"- **Outcome:** {status}\n"
+        f"- **Summary:** {summary}\n"
+    )
+    if evidence:
+        block += f"\n```\n{evidence[:4000]}\n```\n"
+    if not triggered:
+        block += ("\n> Still human-unverified. A machine reproduction that did not trigger "
+                  "is not proof the bug is absent — reproduce by hand before deciding.\n")
+    path.write_text(path.read_text(encoding="utf-8") + block, encoding="utf-8")
+
+
 def _report_md(**f) -> str:
     unresolved_banner = (
         "" if f["verdict"] == "confirmed" else

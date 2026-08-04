@@ -82,3 +82,16 @@ def test_build_from_report_only_confirmed_by_default(tmp_path):
     assert len(arts) == 1                                 # only the confirmed one
     arts_all = build_pocs_from_report(path, tmp_path / "poc2", only_confirmed=False)
     assert len(arts_all) == 3
+
+
+def test_annotate_reproduction_marks_report(tmp_path):
+    from aegis.ai.poc_harness import annotate_reproduction
+    art = build_poc(_row(), repository="a/b", out_dir=tmp_path)
+    annotate_reproduction(art.report_path, triggered=True,
+                          summary="reproduced in 2 attempts", evidence="GET /x -> 200 victim@e.com")
+    report = art.report_path.read_text(encoding="utf-8")
+    assert "REPRODUCED locally" in report and "victim@e.com" in report
+
+    art2 = build_poc(_row(), repository="a/b", out_dir=tmp_path / "2")
+    annotate_reproduction(art2.report_path, triggered=False, summary="not reproduced after 4")
+    assert "NOT reproduced locally" in art2.report_path.read_text(encoding="utf-8")
