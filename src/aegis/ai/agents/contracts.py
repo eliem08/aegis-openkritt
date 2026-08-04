@@ -71,6 +71,15 @@ class Hypothesis(BaseModel):
     impact: str = Field(default="", max_length=600)
     severity: Severity = "medium"
 
+    # Trust model. Every false positive this pipeline has produced was a correct code
+    # observation with a wrong security conclusion, because nothing forced an answer
+    # to "what does the attacker already have to possess?" — a bearer token whose
+    # request is rejected anyway, an email that is a verified IdP claim, a CSRF gap on
+    # a flow gated by a secret invite token. ``preconditions`` names what the attacker
+    # must already hold; ``gating`` names what authenticates the entry point.
+    preconditions: str = Field(default="", max_length=600)
+    gating: str = Field(default="", max_length=600)
+
     @property
     def has_reachability_evidence(self) -> bool:
         return bool(self.entry_point.strip()) and bool(self.impact.strip())

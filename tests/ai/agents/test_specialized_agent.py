@@ -118,3 +118,29 @@ def test_low_confidence_confirmation_fails_closed():
 def _valid_hypothesis():
     from aegis.ai.agents import Hypothesis, VerificationProposal
     return Hypothesis.model_validate(_valid())
+
+
+def test_confirmation_without_a_trust_model_fails_closed():
+    """The Matomo failure: the validator confirmed a missing-CSRF finding on a
+    pre-auth, token-gated flow purely from the code pattern. A confirmation that
+    never states who can reach the code must not stand."""
+    answer = _validation_answer(verdict="confirmed")
+    answer["confidence"] = 0.95
+    answer.pop("trust_model", None)                     # no trust-model reasoning
+    result = CodeValidationAgent(_Client(answer)).validate(
+        _valid_hypothesis(), _task().source_slices,
+    )
+    assert result.verdict is ValidationVerdict.UNRESOLVED
+    assert "trust model" in result.reason
+
+
+def test_confirmation_with_a_trust_model_is_kept():
+    answer = _validation_answer(verdict="confirmed")
+    answer["confidence"] = 0.95
+    answer["trust_model"] = ("reachable by any unauthenticated remote caller; the "
+                             "attacker needs nothing beyond network access")
+    result = CodeValidationAgent(_Client(answer)).validate(
+        _valid_hypothesis(), _task().source_slices,
+    )
+    assert result.verdict is ValidationVerdict.CONFIRMED
+    assert "unauthenticated" in result.trust_model

@@ -35,6 +35,9 @@ class CodeValidation(BaseModel):
     confidence: float = Field(ge=0, le=1)
     anchors: list[CodeAnchor] = Field(min_length=1, max_length=8)
     verification_test: str = Field(default="", max_length=2000)
+    #: what the attacker must already possess / what guards the entry point. Recorded
+    #: so a confirmation's trust-model reasoning is auditable rather than implicit.
+    trust_model: str = Field(default="", max_length=1500)
 
 
 _SYSTEM = """\
@@ -49,11 +52,27 @@ Return only this exact JSON shape, with no extra fields:
  "confidence":0.0,
  "anchors":[{"path":"exact supplied path","line_start":1,"line_end":1,
              "quote":"exact contiguous source text"}],
- "verification_test":"a deterministic local test, or empty"}
+ "verification_test":"a deterministic local test, or empty",
+ "trust_model":"what the attacker must already possess, and what guards this entry point"}
 
-Use confirmed only when the supplied code establishes a reachable security
-failure under the stated trust model. Use false_positive when guards, intended
-semantics, or unreachable preconditions refute it. Otherwise use unresolved.
+Before any verdict, settle the TRUST MODEL — this is where confirmations go wrong.
+Ask: what must the attacker ALREADY possess to reach the flawed line, and what
+authenticates that entry point? A correct observation about the code is NOT a
+vulnerability when the path is gated by something the attacker does not hold.
+Refute (false_positive) findings of these shapes:
+  - a credential left in place after authentication FAILED (the request is rejected,
+    so nothing downstream consumes it);
+  - unescaped interpolation of a value that is a verified identity-provider claim
+    which cannot contain the dangerous metacharacter;
+  - a missing CSRF token on a PRE-AUTHENTICATION flow gated by a secret token from
+    an email link (CSRF needs an authenticated victim's ambient session; there is
+    none, and an attacker holding the token would not need CSRF);
+  - anything reachable only by an operator, owner, or admin who is trusted by design.
+
+Use confirmed only when the supplied code establishes a reachable security failure
+AND the attacker needs nothing they could not obtain. Use false_positive when
+guards, intended semantics, trust boundaries, or unreachable preconditions refute
+it. Otherwise use unresolved. Never confirm on code pattern alone.
 Every anchor quote must be exact contiguous text from the named line range.
 """
 
@@ -104,6 +123,19 @@ class CodeValidationAgent:
             return CodeValidation(
                 verdict=ValidationVerdict.UNRESOLVED,
                 reason="source quote matched, but confirmation confidence was below 0.75",
+                confidence=result.confidence,
+                anchors=checked,
+                verification_test=result.verification_test,
+                trust_model=result.trust_model,
+            )
+        # A confirmation that never reasoned about who can reach the code is exactly how
+        # the pre-auth-CSRF false positive got stamped "confirmed". Fail closed.
+        if result.verdict is ValidationVerdict.CONFIRMED and not result.trust_model.strip():
+            return CodeValidation(
+                verdict=ValidationVerdict.UNRESOLVED,
+                reason=("source quote matched, but the validator did not state the trust "
+                        "model (who can reach this and what they must already possess); "
+                        "a code pattern alone cannot confirm a finding"),
                 confidence=result.confidence,
                 anchors=checked,
                 verification_test=result.verification_test,

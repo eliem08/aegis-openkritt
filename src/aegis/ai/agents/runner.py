@@ -40,6 +40,20 @@ _SYSTEM = (
     "Trace the path from entry point to the flawed code and confirm no guard on that path "
     "stops it. If you cannot trace it, do not report it.\n"
     "\n"
+    "## Trust model: settle this before reporting anything\n"
+    "State what the attacker must ALREADY possess to reach the flawed line, and what "
+    "authenticates that entry point. If reaching it requires a secret, token, or role the "
+    "attacker does not have, there is no finding. Real examples of correct code "
+    "observations that are NOT vulnerabilities:\n"
+    "  - A bearer token left in a header after authentication FAILED — the request is "
+    "rejected, so nothing downstream ever sees it.\n"
+    "  - A value interpolated into a URL without encoding, where that value is a verified "
+    "identity-provider claim that cannot contain the metacharacter.\n"
+    "  - A missing CSRF token on a PRE-AUTHENTICATION flow gated by a secret invite token "
+    "— CSRF requires an authenticated victim's ambient session; there is none here, and an "
+    "attacker who already knew the token would not need CSRF at all.\n"
+    "If your finding has this shape, omit it.\n"
+    "\n"
     "## Actively hunt for these (high-value, frequently real)\n"
     "  - INCONSISTENT ENFORCEMENT: a security check applied in one branch but skipped "
     "in a sibling branch of the same function — e.g. one share/token/resource type "
@@ -90,6 +104,10 @@ _SYSTEM = (
     '  "entry_point": string — the untrusted input and how it reaches this code,\n'
     '  "attacker": string — who can trigger it (be specific about required privilege),\n'
     '  "impact": string — the concrete security consequence,\n'
+    '  "preconditions": string — what the attacker must ALREADY possess (write "none" '
+    'if genuinely nothing beyond network access),\n'
+    '  "gating": string — what authenticates/guards this entry point (write "none" if '
+    "genuinely unauthenticated),\n"
     '  "severity": one of ["critical","high","medium","low"],\n'
     '  "confidence": number in [0, 1] — your honest probability this is real,\n'
     '  "verification": {"method": one of ' + json.dumps(_METHODS)

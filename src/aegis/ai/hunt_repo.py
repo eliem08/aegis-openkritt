@@ -22,6 +22,7 @@ from ..env import load_dotenv
 from .client import DeepSeekClient
 from .config import DeepSeekConfig
 from .github_source import GitHubRateLimitError, GitHubSource
+from .repo_clone import LocalRepoSource, RepoCloneError, clone_repository
 from .repo_hunt import RepoHuntConfig, hunt_repository
 
 
@@ -31,6 +32,9 @@ def main(argv=None) -> int:
     parser.add_argument("--files", type=int, default=12, help="files to analyze (default 12)")
     parser.add_argument("--subpath", default="", help="restrict to a subtree, e.g. pkg/")
     parser.add_argument("--no-validate", action="store_true", help="skip citation validation")
+    parser.add_argument("--api", action="store_true",
+                        help="read via the GitHub API instead of cloning (rate-limited)")
+    parser.add_argument("--refresh", action="store_true", help="update an existing clone")
     args = parser.parse_args(list(argv) if argv is not None else None)
 
     load_dotenv()
@@ -53,18 +57,39 @@ def main(argv=None) -> int:
     def progress(index, total, path):
         print(f"  [{index}/{total}] {path}", flush=True)
 
+    token = os.environ.get("GITHUB_TOKEN", "")
     try:
-        with GitHubSource(token=os.environ.get("GITHUB_TOKEN", "")) as source, \
-                DeepSeekClient(config) as client:
+        if args.api:
+            source_cm = GitHubSource(token=token)
+            # API reads cost rate limit, so only a sampled pool can be content-scanned
+            hunt_config = RepoHuntConfig(max_files=args.files, subpath=args.subpath)
+        else:
+            print(f"cloning {args.repository} ...", flush=True)
+            clone = clone_repository(
+                args.repository,
+                cache_dir=os.environ.get("AEGIS_CLONE_DIR") or report_root / "clones",
+                refresh=args.refresh, token=token,
+            )
+            print(f"  {'reused' if clone.reused else 'cloned'} {clone.path} @ "
+                  f"{clone.commit[:12]}", flush=True)
+            source_cm = LocalRepoSource(clone.path, clone.commit)
+            # local reads are ~free: content-scan a broad slice of the tree rather
+            # than the small sampled pool an API budget forces (bounded so a
+            # 20k-file monorepo still finishes quickly)
+            hunt_config = RepoHuntConfig(max_files=args.files, subpath=args.subpath,
+                                         content_scan_pool=3000)
+        with source_cm as source, DeepSeekClient(config) as client:
             print(f"selecting files from {args.repository} ...", flush=True)
             result = hunt_repository(
                 source, client, args.repository,
-                config=RepoHuntConfig(max_files=args.files, subpath=args.subpath),
-                pin_dir=pin_dir, progress=progress,
+                config=hunt_config, pin_dir=pin_dir, progress=progress,
             )
     except GitHubRateLimitError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 3
+    except RepoCloneError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 4
 
     report = result.report()
     report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
