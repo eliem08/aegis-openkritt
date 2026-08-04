@@ -61,6 +61,23 @@ class ReproTarget:
     allow_destructive: bool = False
 
 
+@dataclass
+class DifferentialTarget:
+    """Two identities on the same local instance, for access-control / IDOR proof: the
+    request is sent as each, and a bypass is proven when the attacker sees the victim's
+    protected data. Both credentials are human-supplied for accounts the tester owns."""
+    base_url: str
+    victim_auth: str                # the owner of the resource under test
+    attacker_auth: str = ""         # a different, lower-privileged (or no) identity
+    allow_destructive: bool = False
+
+    def as_victim(self) -> "ReproTarget":
+        return ReproTarget(self.base_url, self.victim_auth, self.allow_destructive)
+
+    def as_attacker(self) -> "ReproTarget":
+        return ReproTarget(self.base_url, self.attacker_auth, self.allow_destructive)
+
+
 class ReproPlan(BaseModel):
     """One attempt the model proposes. Strict schema so completion can't be faked."""
     model_config = ConfigDict(extra="forbid", strict=True)
@@ -171,6 +188,64 @@ class ReproductionAgent:
                 result.summary = f"reproduced in {len(result.attempts)} attempt(s)"
                 return result
             feedback = _feedback(plan, resp)
+        if not result.summary:
+            result.summary = f"not reproduced after {len(result.attempts)} attempt(s)"
+        return result
+
+    def reproduce_differential(self, hypothesis: Hypothesis,
+                               target: DifferentialTarget) -> ReproResult:
+        """Prove an access-control/IDOR bypass by differential: the SAME request is
+        sent as the victim and as the attacker; a bypass is confirmed when the
+        attacker's response carries the victim's protected data (``success_value``),
+        i.e. the marker is genuinely the victim's AND the attacker can see it. This is
+        the strongest, least-ambiguous oracle for the class that dominates bounties."""
+        if not is_local_target(target.base_url):
+            raise ReproError(
+                f"refusing non-local target {target.base_url!r}: differential "
+                "reproduction runs only against a local instance you control"
+            )
+        result = ReproResult(triggered=False)
+        feedback = ""
+        for _ in range(self._max_attempts):
+            plan = self._propose(hypothesis, feedback)
+            if plan is None:
+                result.summary = "model did not return a valid ReproPlan"
+                break
+            if plan.method.upper() not in _SAFE_METHODS:
+                result.attempts.append(Attempt(plan, 0, False, "unsupported HTTP method"))
+                break
+            if plan.method.upper() in _DESTRUCTIVE and not target.allow_destructive:
+                result.attempts.append(
+                    Attempt(plan, 0, False, "destructive method blocked"))
+                break
+            try:
+                victim = self._executor.send(target.as_victim(), plan)
+                attacker = self._executor.send(target.as_attacker(), plan)
+            except Exception as exc:
+                result.attempts.append(Attempt(plan, 0, False, f"send failed: {type(exc).__name__}"))
+                feedback = f"a request raised {type(exc).__name__}; adjust and retry"
+                continue
+            marker = plan.success_value
+            marker_is_victims = marker in victim.text          # marker really is protected data
+            attacker_sees_it = marker in attacker.text         # and the attacker can read it
+            triggered = marker_is_victims and attacker_sees_it
+            if triggered:
+                note = (f"differential bypass: victim-owned marker {marker!r} present in the "
+                        f"attacker response (attacker status {attacker.status}, "
+                        f"victim status {victim.status})")
+                result.attempts.append(Attempt(plan, attacker.status, True, note))
+                result.triggered = True
+                result.summary = f"access-control bypass reproduced in {len(result.attempts)} attempt(s)"
+                return result
+            if not marker_is_victims:
+                note = f"marker {marker!r} not in victim response — wrong marker/request; refine"
+            else:
+                note = (f"attacker did not see the victim marker (attacker status "
+                        f"{attacker.status}) — access control held for this request")
+            result.attempts.append(Attempt(plan, attacker.status, False, note))
+            feedback = (f"victim status {victim.status}, attacker status {attacker.status}; "
+                        f"marker_in_victim={marker_is_victims}, marker_in_attacker={attacker_sees_it}. "
+                        f"victim snippet: {victim.text[:300]}")
         if not result.summary:
             result.summary = f"not reproduced after {len(result.attempts)} attempt(s)"
         return result

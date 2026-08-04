@@ -139,3 +139,64 @@ def test_invalid_plan_stops_cleanly():
         _hyp(), ReproTarget("http://127.0.0.1:8080"))
     assert result.triggered is False
     assert "did not return a valid ReproPlan" in result.summary
+
+
+# --- differential oracle (IDOR / access control) ----------------------------
+
+from aegis.ai.repro_agent import DifferentialTarget   # noqa: E402
+
+
+class _DiffExecutor:
+    """Returns responses keyed by which auth header is presented."""
+    def __init__(self, by_auth):
+        self._by_auth = by_auth
+        self.sent = []
+
+    def send(self, target, plan):
+        self.sent.append((target.auth_header, plan))
+        return self._by_auth[target.auth_header]
+
+
+def test_differential_confirms_when_attacker_sees_victim_marker():
+    client = _Client([_plan(path="/api/session/1", success_value="victim@example.com")])
+    ex = _DiffExecutor({
+        "Bearer VICTIM": ResponseView(200, "owner email: victim@example.com"),
+        "Bearer ATTACKER": ResponseView(200, "owner email: victim@example.com"),  # bypass!
+    })
+    agent = ReproductionAgent(client, ex)
+    result = agent.reproduce_differential(
+        _hyp(), DifferentialTarget("http://127.0.0.1:8080", "Bearer VICTIM", "Bearer ATTACKER"))
+    assert result.triggered is True
+    assert "bypass" in result.attempts[-1].note
+
+
+def test_differential_negative_when_access_control_holds():
+    client = _Client([_plan(success_value="victim@example.com"),
+                      _plan(success_value="victim@example.com")])
+    ex = _DiffExecutor({
+        "Bearer VICTIM": ResponseView(200, "owner email: victim@example.com"),
+        "Bearer ATTACKER": ResponseView(403, "forbidden"),   # control holds
+    })
+    agent = ReproductionAgent(client, ex, max_attempts=2)
+    result = agent.reproduce_differential(
+        _hyp(), DifferentialTarget("http://127.0.0.1:8080", "Bearer VICTIM", "Bearer ATTACKER"))
+    assert result.triggered is False
+
+
+def test_differential_rejects_wrong_marker_not_in_victim():
+    # if the marker isn't even in the victim's response, it's not the victim's data
+    client = _Client([_plan(success_value="not-real-data")])
+    ex = _DiffExecutor({
+        "Bearer VICTIM": ResponseView(200, "owner email: victim@example.com"),
+        "Bearer ATTACKER": ResponseView(200, "not-real-data everywhere"),
+    })
+    agent = ReproductionAgent(client, ex, max_attempts=1)
+    result = agent.reproduce_differential(
+        _hyp(), DifferentialTarget("http://127.0.0.1:8080", "Bearer VICTIM", "Bearer ATTACKER"))
+    assert result.triggered is False                     # marker not in victim => not proof
+
+
+def test_differential_refuses_non_local():
+    agent = ReproductionAgent(_Client([]), _DiffExecutor({}))
+    with pytest.raises(ReproError, match="non-local"):
+        agent.reproduce_differential(_hyp(), DifferentialTarget("https://prod.example.com", "v", "a"))

@@ -37,6 +37,9 @@ def main(argv=None) -> int:
     parser.add_argument("--refresh", action="store_true", help="update an existing clone")
     parser.add_argument("--handle", default="",
                         help="HackerOne program handle, recorded with outcomes and PoCs")
+    parser.add_argument("--since-days", type=int, default=0,
+                        help="only analyze source files changed in the last N days "
+                             "(the 'recently shipped' edge); 0 = whole repo")
     args = parser.parse_args(list(argv) if argv is not None else None)
 
     load_dotenv()
@@ -60,11 +63,30 @@ def main(argv=None) -> int:
         print(f"  [{index}/{total}] {path}", flush=True)
 
     token = os.environ.get("GITHUB_TOKEN", "")
+
+    # the "recently shipped" edge: restrict analysis to source files changed in the
+    # last N days (needs the GitHub API for the commit history)
+    include_paths: frozenset = frozenset()
+    if args.since_days > 0:
+        from .fresh_commits import recent_source_files
+        import httpx as _httpx
+        headers = {"Accept": "application/vnd.github+json"}
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
+        with _httpx.Client(headers=headers) as gh:
+            changed = recent_source_files(args.repository, gh_client=gh, days=args.since_days)
+        include_paths = frozenset(changed)
+        print(f"recently-shipped filter: {len(include_paths)} source files changed in "
+              f"the last {args.since_days}d", flush=True)
+        if not include_paths:
+            print("  nothing changed in that window; exiting", flush=True)
+            return 0
+
     try:
         if args.api:
             source_cm = GitHubSource(token=token)
             # API reads cost rate limit, so only a sampled pool can be content-scanned
-            hunt_config = RepoHuntConfig(max_files=args.files, subpath=args.subpath)
+            hunt_config = RepoHuntConfig(max_files=args.files, subpath=args.subpath, include_paths=include_paths)
         else:
             print(f"cloning {args.repository} ...", flush=True)
             clone = clone_repository(
@@ -79,7 +101,7 @@ def main(argv=None) -> int:
             # than the small sampled pool an API budget forces (bounded so a
             # 20k-file monorepo still finishes quickly)
             hunt_config = RepoHuntConfig(max_files=args.files, subpath=args.subpath,
-                                         content_scan_pool=3000)
+                                         content_scan_pool=3000, include_paths=include_paths)
         with source_cm as source, DeepSeekClient(config) as client:
             print(f"selecting files from {args.repository} ...", flush=True)
             result = hunt_repository(

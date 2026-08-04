@@ -110,6 +110,7 @@ class RepoHuntConfig:
     max_file_bytes: int = 120_000     # skip files larger than this
     max_hypotheses_per_file: int = 5
     subpath: str = ""                 # restrict selection to this subtree, e.g. "pkg/"
+    include_paths: frozenset = frozenset()  # if set, only these exact paths are eligible
     # Cross-file context: real vulnerabilities span files (entry point -> handler ->
     # sink), so each primary file is analyzed together with its nearest neighbours.
     context_files: int = 3            # supporting files bundled per primary file
@@ -219,6 +220,8 @@ def select_files(paths, config: RepoHuntConfig) -> list[SelectedFile]:
     scored: list[SelectedFile] = []
     for path in paths:
         if config.subpath and not path.startswith(config.subpath):
+            continue
+        if config.include_paths and path not in config.include_paths:
             continue
         result = score_path(path, baseline=baseline)
         if result is None:
