@@ -12,6 +12,19 @@ def test_catalog_covers_the_provided_repos():
     assert {"pashov", "cloudflare", "trailofbits", "Factory-AI", "getsentry"} <= sources
 
 
+def test_catalog_includes_web_discovered_skills():
+    sources = {s.source.split("/")[0] for s in all_skills()}
+    # discovered via web search and registered for arm's-length invocation
+    assert {"AgriciDaniel", "NMitchem", "briiirussell", "dstiliadis"} <= sources
+
+
+def test_discovered_mit_skills_are_vendorable_others_invoke_only():
+    from aegis.ai.skill_registry import all_skills, License
+    by_source = {s.source.split("/")[0]: s for s in all_skills()}
+    assert by_source["NMitchem"].license is License.MIT          # SkillScan MIT
+    assert by_source["AgriciDaniel"].invoke_only                 # unknown license -> invoke only
+
+
 def test_license_gates_vendoring():
     # MIT skills may be vendored; unlicensed ones are invoke-only
     assert all(s.license is License.MIT for s in vendorable())

@@ -121,6 +121,24 @@ SKILLS: tuple[Skill, ...] = (
           (Lane.CODE, Lane.SUPPLY_CHAIN), "GitHub Actions workflow security review."),
     Skill("sentry-security-review", "getsentry/skills/skills/security-review", License.UNKNOWN,
           (Lane.CODE,), "General security code review."),
+    # --- discovered via web search (verify license before treating as vendorable) ---
+    Skill("claude-cybersecurity", "AgriciDaniel/claude-cybersecurity", License.UNKNOWN,
+          (Lane.CODE, Lane.VALIDATION, Lane.SUPPLY_CHAIN, Lane.THREAT_MODEL),
+          "8 parallel specialist agents: OWASP 2025, CWE Top 25, MITRE ATT&CK; authz, "
+          "secrets, supply-chain, IaC, business-logic across 11 languages."),
+    Skill("cybersecurity-skills", "briiirussell/cybersecurity-skills", License.UNKNOWN,
+          (Lane.CODE,),
+          "OWASP API Top 10 endpoint audit — BOLA, mass assignment, BFLA, rate limits."),
+    Skill("skillscan", "NMitchem/SkillScan", License.MIT, (Lane.SUPPLY_CHAIN, Lane.VALIDATION),
+          "Static + behavioral + sandbox scan of AI-agent SKILL.md files (supply-chain "
+          "safety for the skills you install)."),
+    Skill("security-review-skill", "dstiliadis/security-review-skill", License.MIT, (Lane.CODE,),
+          "7-step gated security code-review workflow."),
+    Skill("raptor", "gadievron/raptor", License.UNKNOWN, (Lane.CODE, Lane.VALIDATION),
+          "Configures the agent for adversarial thinking and orchestrated security tooling."),
+    Skill("anthropic-cybersecurity-skills", "mukul975/Anthropic-Cybersecurity-Skills",
+          License.UNKNOWN, (Lane.CODE, Lane.STATIC),
+          "GitHub Advanced Security / code-scanning oriented review skills."),
 )
 
 
