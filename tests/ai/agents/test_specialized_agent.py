@@ -214,3 +214,32 @@ def test_single_sample_is_unchanged_default():
     client = _SeqClient([_hyp_answer(10)])
     found = SpecializedAgent(client).analyze(_open_task())     # samples defaults to 1
     assert len(found) == 1 and client.temperatures == [0.1]
+
+
+def test_retriever_injects_exemplars_into_the_generator_prompt():
+    from aegis.ai.knowledge_retrieval import KnowledgeRetriever
+
+    class _Rep:
+        report_id="idor-1"; cwe="CWE-639"; weakness=""; title="IDOR in invoice API"
+        severity="high"; asset_type="source_code"; bounty=2000; tags=[]; summary=""
+
+    captured = {}
+    class _Cap:
+        def complete_json(self, messages, **kwargs):
+            captured["user"] = messages[1]["content"]
+            return {"hypotheses": []}
+
+    agent = SpecializedAgent(_Cap(), retriever=KnowledgeRetriever([_Rep()]))
+    agent.analyze(_open_task())                          # AUTHORIZATION kind
+    assert "disclosed vulnerabilities of this class" in captured["user"]
+    assert "IDOR in invoice API" in captured["user"]     # the real exemplar reached the model
+
+
+def test_no_retriever_leaves_prompt_unchanged():
+    captured = {}
+    class _Cap:
+        def complete_json(self, messages, **kwargs):
+            captured["user"] = messages[1]["content"]
+            return {"hypotheses": []}
+    SpecializedAgent(_Cap()).analyze(_open_task())
+    assert "disclosed vulnerabilities" not in captured["user"]

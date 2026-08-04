@@ -358,11 +358,19 @@ def hunt_repository(fetcher, client, repository: str, *,
         candidates = refine_by_content(fetcher, repository, candidates, config, result)
     selected = _diversify(candidates, config.max_files, config.max_per_dir)
     result.selected = selected
+    retriever = None
+    try:                                             # retrieval-augmented detection, if a corpus is set
+        from .knowledge_retrieval import KnowledgeRetriever, load_default_corpus
+        corpus = load_default_corpus()
+        if corpus is not None:
+            retriever = KnowledgeRetriever(corpus)
+    except Exception:
+        retriever = None
     agent = SpecializedAgent(
         client, max_hypotheses=config.max_hypotheses_per_file,
         require_reachability=config.require_reachability,
         min_confidence=config.min_confidence,
-        samples=config.samples,
+        samples=config.samples, retriever=retriever,
     )
     seen: set[tuple[str, int, str]] = set()          # cross-file hypothesis dedup
 

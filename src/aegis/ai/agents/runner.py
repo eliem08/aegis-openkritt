@@ -130,9 +130,14 @@ _SYSTEM = (
 class SpecializedAgent:
     def __init__(self, client, *, max_hypotheses: int = 8,
                  require_reachability: bool = False, min_confidence: float = 0.0,
-                 samples: int = 1, sample_temperatures: tuple[float, ...] = ()) -> None:
+                 samples: int = 1, sample_temperatures: tuple[float, ...] = (),
+                 retriever=None) -> None:
         self._client = client
         self._maximum = max(1, min(max_hypotheses, 25))
+        # Retrieval-augmented detection: when a corpus of past disclosed bugs is
+        # available, show the model real findings of this weakness class as few-shot
+        # exemplars, raising the per-sample hit rate and calibrating precision.
+        self._retriever = retriever
         # Deterministic enforcement of the prompt's bar: a hypothesis that cannot name
         # an entry point and an impact is a hardening observation, not a vulnerability.
         self._require_reachability = require_reachability
@@ -169,10 +174,18 @@ class SpecializedAgent:
 
     def _analyze_once(self, task: AgentTask, *, temperature: float | None = None) -> list[Hypothesis]:
         kwargs = {} if temperature is None else {"temperature": temperature}
+        user = "Analyze this bounded task:\n" + task.model_dump_json()
+        if self._retriever:
+            try:
+                exemplars = self._retriever.augment(task)
+            except Exception:
+                exemplars = ""
+            if exemplars:
+                user += "\n" + exemplars
         try:
             data = self._client.complete_json([
                 {"role": "system", "content": _SYSTEM},
-                {"role": "user", "content": "Analyze this bounded task:\n" + task.model_dump_json()},
+                {"role": "user", "content": user},
             ], **kwargs)
         except Exception:
             # one flaky sample must not sink the ensemble; record and move on
