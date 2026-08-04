@@ -82,6 +82,10 @@ class FakeClient:
             "weakness": "CWE-287", "title": "missing check", "file_path": path,
             "line": 10, "rationale": "no guard on the request path",
             "confidence": 0.6,
+            "entry_point": "POST /api/v1/session with an attacker-supplied token",
+            "attacker": "unauthenticated remote user",
+            "impact": "authentication is bypassed for any account",
+            "severity": "high",
             "verification": {"method": "static_analysis",
                              "expected_observation": "review the cited lines",
                              "maximum_requests": 0},
@@ -126,3 +130,106 @@ def test_hunt_records_failures_without_aborting(tmp_path):
                              config=RepoHuntConfig(max_files=10), pin_dir=tmp_path)
     assert len(result.hypotheses) == 1                     # the healthy file still ran
     assert any("rbac" in failure for failure in result.failures)
+
+
+# --- reachability bar + cross-file context ----------------------------------
+
+def _hyp(path, **over):
+    base = {
+        "weakness": "CWE-287", "title": "t", "file_path": path, "line": 10,
+        "rationale": "r", "confidence": 0.6,
+        "entry_point": "POST /login", "attacker": "anonymous", "impact": "auth bypass",
+        "severity": "high",
+        "verification": {"method": "static_analysis", "expected_observation": "o",
+                         "maximum_requests": 0},
+    }
+    base.update(over)
+    return base
+
+
+class ScriptedClient:
+    """Returns whatever hypotheses the test scripts, per call."""
+    def __init__(self, batches):
+        self._batches = list(batches)
+        self.tasks = []
+
+    def complete_json(self, messages, **kwargs):
+        import json as _json
+        self.tasks.append(_json.loads(messages[1]["content"].split("\n", 1)[1]))
+        return {"hypotheses": self._batches.pop(0) if self._batches else []}
+
+
+def test_hypothesis_without_entry_point_or_impact_is_dropped(tmp_path):
+    files = {"pkg/auth/session.go": "package auth\n"}
+    client = ScriptedClient([[
+        _hyp("pkg/auth/session.go"),                                    # complete -> kept
+        _hyp("pkg/auth/session.go", line=20, entry_point="", impact=""),  # hardening -> dropped
+        _hyp("pkg/auth/session.go", line=30, impact=""),                 # no impact -> dropped
+    ]])
+    result = hunt_repository(FakeFetcher(files), client, "acme/repo",
+                             config=RepoHuntConfig(max_files=5), pin_dir=tmp_path)
+    assert len(result.hypotheses) == 1
+    assert result.hypotheses[0]["json_answer"]["line"] == 10
+
+
+def test_reachability_bar_can_be_disabled(tmp_path):
+    files = {"pkg/auth/session.go": "package auth\n"}
+    client = ScriptedClient([[_hyp("pkg/auth/session.go", entry_point="", impact="")]])
+    result = hunt_repository(
+        FakeFetcher(files), client, "acme/repo",
+        config=RepoHuntConfig(max_files=5, require_reachability=False), pin_dir=tmp_path)
+    assert len(result.hypotheses) == 1
+
+
+def test_model_severity_and_attacker_reach_the_report(tmp_path):
+    files = {"pkg/auth/session.go": "package auth\n"}
+    client = ScriptedClient([[_hyp("pkg/auth/session.go", severity="critical",
+                                   attacker="unauthenticated remote user")]])
+    result = hunt_repository(FakeFetcher(files), client, "acme/repo",
+                             config=RepoHuntConfig(max_files=5), pin_dir=tmp_path)
+    row = result.hypotheses[0]
+    assert row["severity"] == "critical"                     # not hardcoded medium
+    assert row["json_answer"]["malicious_actor"] == "unauthenticated remote user"
+    assert row["json_answer"]["impact"] == "auth bypass"
+
+
+def test_bundle_supplies_neighbour_files_as_context(tmp_path):
+    files = {
+        "pkg/auth/session.go": "package auth\n",
+        "pkg/auth/token.go": "package auth\n",
+        "pkg/auth/handler.go": "package auth\n",
+    }
+    client = ScriptedClient([[_hyp("pkg/auth/session.go")]])
+    result = hunt_repository(FakeFetcher(files), client, "acme/repo",
+                             config=RepoHuntConfig(max_files=1, context_files=2), pin_dir=tmp_path)
+    primary = result.selected[0].path
+    paths = [s["path"] for s in client.tasks[0]["source_slices"]]
+    assert paths[0] == primary                                # primary first
+    assert len(paths) == 3                                    # + 2 context neighbours
+    assert set(paths) == set(files)                           # neighbours came from the package
+
+
+def test_findings_in_context_files_are_not_reported(tmp_path):
+    # a neighbour is read-only evidence; a hypothesis about it belongs to that file's own turn
+    files = {"pkg/auth/session.go": "package auth\n", "pkg/auth/token.go": "package auth\n"}
+    client = ScriptedClient([[_hyp("pkg/auth/token.go")]])   # claims the CONTEXT file
+    result = hunt_repository(FakeFetcher(files), client, "acme/repo",
+                             config=RepoHuntConfig(max_files=1, context_files=1), pin_dir=tmp_path)
+    assert result.hypotheses == []
+
+
+def test_duplicate_hypotheses_are_collapsed(tmp_path):
+    files = {"pkg/auth/session.go": "package auth\n", "pkg/auth/token.go": "package auth\n"}
+    # both files report the same weakness at the same line of their own primary
+    client = ScriptedClient([
+        [_hyp("pkg/auth/session.go", line=10)],
+        [_hyp("pkg/auth/token.go", line=10)],
+    ])
+    result = hunt_repository(FakeFetcher(files), client, "acme/repo",
+                             config=RepoHuntConfig(max_files=2, context_files=0), pin_dir=tmp_path)
+    assert len(result.hypotheses) == 2       # different files -> both kept
+
+    client2 = ScriptedClient([[_hyp("pkg/auth/session.go"), _hyp("pkg/auth/session.go")]])
+    result2 = hunt_repository(FakeFetcher({"pkg/auth/session.go": "x\n"}), client2, "acme/repo",
+                              config=RepoHuntConfig(max_files=1), pin_dir=tmp_path)
+    assert len(result2.hypotheses) == 1      # same file+line+weakness -> collapsed

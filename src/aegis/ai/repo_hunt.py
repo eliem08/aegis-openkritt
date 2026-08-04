@@ -71,6 +71,12 @@ class RepoHuntConfig:
     max_file_bytes: int = 120_000     # skip files larger than this
     max_hypotheses_per_file: int = 5
     subpath: str = ""                 # restrict selection to this subtree, e.g. "pkg/"
+    # Cross-file context: real vulnerabilities span files (entry point -> handler ->
+    # sink), so each primary file is analyzed together with its nearest neighbours.
+    context_files: int = 3            # supporting files bundled per primary file
+    max_bundle_bytes: int = 200_000   # total budget for one bundle
+    require_reachability: bool = True  # drop hypotheses with no entry point/impact
+    min_confidence: float = 0.0
 
 
 @dataclass
@@ -146,6 +152,30 @@ def select_files(paths, config: RepoHuntConfig) -> list[SelectedFile]:
     return scored[: config.max_files]
 
 
+def related_paths(primary: str, all_paths, limit: int) -> list[str]:
+    """Nearest supporting files for a primary file: same directory first (the package
+    that defines its callers and helpers), then the parent directory. Deterministic."""
+    if limit <= 0:
+        return []
+    primary_dir = str(Path(primary).parent).replace("\\", "/")
+    parent_dir = str(Path(primary).parent.parent).replace("\\", "/")
+    suffix = Path(primary).suffix.lower()
+
+    def usable(path: str) -> bool:
+        return (path != primary and Path(path).suffix.lower() == suffix
+                and not _EXCLUDED.search(path))
+
+    same = sorted(p for p in all_paths
+                  if usable(p) and str(Path(p).parent).replace("\\", "/") == primary_dir)
+    near = sorted(p for p in all_paths
+                  if usable(p) and p not in same
+                  and str(Path(p).parent).replace("\\", "/").startswith(parent_dir))
+    # prefer neighbours that themselves carry a security signal
+    same.sort(key=lambda p: (-(score_path(p) or (0, None))[0], p))
+    near.sort(key=lambda p: (-(score_path(p) or (0, None))[0], p))
+    return (same + near)[:limit]
+
+
 def hunt_repository(fetcher, client, repository: str, *,
                     config: RepoHuntConfig | None = None,
                     pin_dir: str | Path | None = None,
@@ -160,30 +190,32 @@ def hunt_repository(fetcher, client, repository: str, *,
     paths, commit = fetcher.list_paths(repository)
     selected = select_files(paths, config)
     result = RepoHuntResult(repository=repository, commit=commit, selected=selected)
-    agent = SpecializedAgent(client, max_hypotheses=config.max_hypotheses_per_file)
+    agent = SpecializedAgent(
+        client, max_hypotheses=config.max_hypotheses_per_file,
+        require_reachability=config.require_reachability,
+        min_confidence=config.min_confidence,
+    )
+    seen: set[tuple[str, int, str]] = set()          # cross-file hypothesis dedup
 
     for index, item in enumerate(selected, start=1):
         if progress:
             progress(index, len(selected), item.path)
-        try:
-            content = fetcher.read(repository, item.path)
-        except Exception as exc:
-            result.failures.append(f"{item.path}: fetch failed ({type(exc).__name__})")
+        bundle = _read_bundle(fetcher, repository, item.path, paths, config, result, pin_dir)
+        if bundle is None:
             continue
-        if not content or len(content.encode("utf-8", "ignore")) > config.max_file_bytes:
-            result.failures.append(f"{item.path}: skipped (empty or too large)")
+        primary_only = [s.path for s in bundle if s.path == item.path]
+        if not primary_only:
             continue
-        if pin_dir is not None:                      # pin for later citation validation
-            destination = Path(pin_dir) / item.path
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            destination.write_text(content, encoding="utf-8")
         task = AgentTask(
             kind=item.kind,
             target=f"{repository}:{item.path}",
-            source_slices=[SourceSlice(path=item.path, content=content)],
+            source_slices=bundle,
             policy_notes=(
-                f"Authorized static source review of {repository}. Report only weaknesses "
-                "reachable from untrusted input in the supplied file. Ignore issues that "
+                f"Authorized static source review of {repository}. The PRIMARY file under "
+                f"review is {item.path}; the other slices are supporting context (callers, "
+                "helpers, neighbouring handlers) supplied so you can trace a flow across "
+                "files. Report a weakness only if its vulnerable line is in the primary "
+                "file and you can trace an untrusted entry point to it. Ignore issues that "
                 "exist solely in non-production code. No live execution or target contact."
             ),
         )
@@ -193,12 +225,55 @@ def hunt_repository(fetcher, client, repository: str, *,
             result.failures.append(f"{item.path}: analysis failed ({type(exc).__name__})")
             continue
         for hypothesis in hypotheses:
+            if hypothesis.file_path != item.path:
+                continue                              # context files are read-only evidence
+            key = (hypothesis.file_path, hypothesis.line, hypothesis.weakness.lower())
+            if key in seen:
+                continue                              # same issue re-reported from a neighbour
+            seen.add(key)
             result.hypotheses.append(_row(repository, hypothesis))
     return result
 
 
+def _read_bundle(fetcher, repository, primary, all_paths, config, result, pin_dir):
+    """Primary file plus bounded supporting context, pinned for later validation."""
+    try:
+        content = fetcher.read(repository, primary)
+    except Exception as exc:
+        result.failures.append(f"{primary}: fetch failed ({type(exc).__name__})")
+        return None
+    if not content or len(content.encode("utf-8", "ignore")) > config.max_file_bytes:
+        result.failures.append(f"{primary}: skipped (empty or too large)")
+        return None
+
+    slices, budget = [], config.max_bundle_bytes
+    def add(path: str, text: str) -> None:
+        nonlocal budget
+        size = len(text.encode("utf-8", "ignore"))
+        if size > budget:
+            return
+        budget -= size
+        slices.append(SourceSlice(path=path, content=text))
+        if pin_dir is not None:                       # pin for citation validation
+            destination = Path(pin_dir) / path
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_text(text, encoding="utf-8")
+
+    add(primary, content)
+    for neighbour in related_paths(primary, all_paths, config.context_files):
+        try:
+            text = fetcher.read(repository, neighbour)
+        except Exception:
+            continue                                   # context is best-effort
+        if text and len(text.encode("utf-8", "ignore")) <= config.max_file_bytes:
+            add(neighbour, text)
+    return slices
+
+
 def _row(repository: str, hypothesis) -> dict:
     """Shape one hypothesis into the persisted-report vulnerability row."""
+    severity = getattr(hypothesis.severity, "value", str(hypothesis.severity or "medium"))
+    trigger = hypothesis.entry_point or hypothesis.verification.expected_observation
     return {
         "json_answer": {
             "vulnerability_type": hypothesis.weakness,
@@ -206,11 +281,13 @@ def _row(repository: str, hypothesis) -> dict:
             "line": hypothesis.line,
             "summary": hypothesis.title,
             "explanation": hypothesis.rationale,
-            "trigger_flow": hypothesis.verification.expected_observation,
+            "trigger_flow": trigger,
+            "impact": hypothesis.impact,
             "malicious_input_example": "",
-            "malicious_actor": "untrusted caller, subject to manual validation",
+            "malicious_actor": hypothesis.attacker or "untrusted caller, subject to manual validation",
+            "severity": severity,
         },
-        "severity": "medium",
+        "severity": severity,
         "source": "aegis:deepseek-platform",
         "confidence": hypothesis.confidence,
         "dedupe_is_canonical": True,

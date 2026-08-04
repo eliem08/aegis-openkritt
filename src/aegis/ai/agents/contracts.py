@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -45,6 +46,12 @@ class VerificationProposal(BaseModel):
     maximum_requests: int = Field(default=0, ge=0, le=10)
 
 
+#: Severity as a Literal, not an Enum: these models run with ``strict=True``, which
+#: refuses to coerce a JSON string into an Enum member — an Enum here would reject
+#: every hypothesis the model actually returns.
+Severity = Literal["critical", "high", "medium", "low"]
+
+
 class Hypothesis(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
 
@@ -55,3 +62,15 @@ class Hypothesis(BaseModel):
     rationale: str = Field(min_length=1, max_length=4000)
     confidence: float = Field(ge=0, le=1)
     verification: VerificationProposal
+
+    # Reachability evidence. These exist to force the model to name a concrete
+    # attacker path instead of reporting hardening observations; a hypothesis that
+    # cannot name an entry point and an impact is not a vulnerability claim.
+    entry_point: str = Field(default="", max_length=600)
+    attacker: str = Field(default="", max_length=300)
+    impact: str = Field(default="", max_length=600)
+    severity: Severity = "medium"
+
+    @property
+    def has_reachability_evidence(self) -> bool:
+        return bool(self.entry_point.strip()) and bool(self.impact.strip())
