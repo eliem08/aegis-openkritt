@@ -35,6 +35,8 @@ def main(argv=None) -> int:
     parser.add_argument("--api", action="store_true",
                         help="read via the GitHub API instead of cloning (rate-limited)")
     parser.add_argument("--refresh", action="store_true", help="update an existing clone")
+    parser.add_argument("--handle", default="",
+                        help="HackerOne program handle, recorded with outcomes and PoCs")
     args = parser.parse_args(list(argv) if argv is not None else None)
 
     load_dotenv()
@@ -116,8 +118,57 @@ def main(argv=None) -> int:
     for item in model["items"]:
         if item["status"] == "confirmed":
             print(f"  CONFIRMED  {item['code_location']}  {item['observed'][:90]}")
+
+    # feed every verdict back into the learning store, so recurring false-positive
+    # shapes and true detections both inform future calibration
+    _record_outcomes(validated, program_handle=args.handle)
+
+    # scaffold a human-runnable PoC for each confirmed finding — the only path from
+    # "candidate" to a submittable report these programs will accept
+    if counts.get("confirmed"):
+        from .poc_harness import build_pocs_from_report
+        poc_root = report_root / "poc" / args.repository.replace("/", "__")
+        clone_root = None if args.api else pin_dir
+        arts = build_pocs_from_report(
+            report_path, poc_root, program_handle=args.handle,
+            repo_root=clone_root,
+        )
+        print(f"\nscaffolded {len(arts)} PoC(s) under {poc_root} — each needs a human "
+              "to reproduce on a running instance before submission")
+
     print(f"\nreview: http://127.0.0.1:8000/ui/deepseek/latest?repo_full={args.repository}")
     return 0
+
+
+def _record_outcomes(validated: dict, *, program_handle: str = "") -> None:
+    """Persist each verdict to the learning store (best-effort; never fails the hunt)."""
+    try:
+        from ..learn.store import Outcome, OutcomeStore, Verdict
+    except Exception:
+        return
+    _map = {"confirmed": Verdict.CONFIRMED, "false_positive": Verdict.FALSE_POSITIVE,
+            "unresolved": Verdict.PENDING}
+    scan = validated.get("scan") or {}
+    repo = scan.get("repository", "")
+    try:
+        store = OutcomeStore(os.environ.get("AEGIS_LEARN_DB") or "aegis-learn.db")
+    except Exception:
+        return
+    for row in validated.get("vulnerabilities") or []:
+        answer = row.get("json_answer") or {}
+        verdict = (row.get("validation") or {}).get("verdict", "unresolved")
+        try:
+            store.record(Outcome(
+                detector="ai:repo-hunt",
+                cwe=str(answer.get("vulnerability_type") or "")[:80],
+                verdict=_map.get(verdict, Verdict.PENDING),
+                fingerprint=str(row.get("target") or answer.get("file_path") or "")[:200],
+                asset=repo,
+                program=program_handle,
+                summary=str(answer.get("summary") or "")[:200],
+            ))
+        except Exception:
+            continue
 
 
 if __name__ == "__main__":
