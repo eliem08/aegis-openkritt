@@ -125,6 +125,22 @@ def main(argv=None) -> int:
         return 4
 
     report = result.report()
+
+    # arm's-length: invoke the operator's installed skills (AEGIS_SKILL_CMD) on this repo
+    # and fold their output into the report as unverified candidates — same boundary as
+    # the open-kritt bridge, no skill source embedded.
+    from .skill_bridge import SkillBridge
+    bridge = SkillBridge()
+    if bridge.enabled:
+        print("\ninvoking installed skills (arm's-length) ...", flush=True)
+        runs = bridge.run(args.repository, target_kind="repo")
+        for r in runs:
+            print(f"  [{'ok' if r.ok else 'fail'}] {r.skill}" + (f" — {r.error}" if r.error else ""))
+        skill_rows = bridge.to_findings(runs, repository=args.repository)
+        if skill_rows:
+            report.setdefault("vulnerabilities", []).extend(skill_rows)
+            print(f"  folded {len(skill_rows)} skill candidate(s) into the report")
+
     report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
     print(f"\nselected {len(result.selected)} files, "
           f"{len(result.hypotheses)} hypotheses -> {report_path.name}")
