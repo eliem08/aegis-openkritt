@@ -117,6 +117,9 @@ class RepoHuntConfig:
     max_bundle_bytes: int = 200_000   # total budget for one bundle
     require_reachability: bool = True  # drop hypotheses with no entry point/impact
     min_confidence: float = 0.0
+    # Ensemble: generate this many times per file over a temperature spread and union
+    # the findings, to catch borderline bugs a single generation misses ~7/8 of the time.
+    samples: int = 1
     # Content-aware selection: peek at the body of the top path-ranked candidates and
     # re-rank by the dangerous primitives they actually contain, so logic files with
     # neutral names (MessageTransmitter.sol) are not invisible to name-only scoring.
@@ -359,6 +362,7 @@ def hunt_repository(fetcher, client, repository: str, *,
         client, max_hypotheses=config.max_hypotheses_per_file,
         require_reachability=config.require_reachability,
         min_confidence=config.min_confidence,
+        samples=config.samples,
     )
     seen: set[tuple[str, int, str]] = set()          # cross-file hypothesis dedup
 

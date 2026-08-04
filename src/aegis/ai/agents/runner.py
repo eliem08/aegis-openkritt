@@ -129,27 +129,61 @@ _SYSTEM = (
 
 class SpecializedAgent:
     def __init__(self, client, *, max_hypotheses: int = 8,
-                 require_reachability: bool = False, min_confidence: float = 0.0) -> None:
+                 require_reachability: bool = False, min_confidence: float = 0.0,
+                 samples: int = 1, sample_temperatures: tuple[float, ...] = ()) -> None:
         self._client = client
         self._maximum = max(1, min(max_hypotheses, 25))
         # Deterministic enforcement of the prompt's bar: a hypothesis that cannot name
         # an entry point and an impact is a hardening observation, not a vulnerability.
         self._require_reachability = require_reachability
         self._min_confidence = min_confidence
+        # Ensemble sampling: a single generation detects a borderline finding only
+        # intermittently (the owncloud bypass measured ~1-in-8). Running the generator
+        # several times over a temperature spread and unioning the results turns that
+        # into ~1-(miss_rate**N), at N× the token cost.
+        self._samples = max(1, min(samples, 12))
+        self._temperatures = sample_temperatures or (0.1, 0.4, 0.7, 0.2, 0.5, 0.8,
+                                                      0.3, 0.6, 0.9, 0.15, 0.45, 0.75)
         self.last_dropped: list[dict] = []
+        self.sample_hits: list[int] = []          # hypotheses found per sample (diagnostics)
 
     def analyze(self, task: AgentTask) -> list[Hypothesis]:
-        data = self._client.complete_json([
-            {"role": "system", "content": _SYSTEM},
-            {"role": "user", "content": "Analyze this bounded task:\n" + task.model_dump_json()},
-        ])
+        """Run the generator ``samples`` times and return the deduplicated union.
+
+        With samples=1 this is a single generation (unchanged behaviour). With more,
+        each run uses a different temperature for diversity; findings are merged by
+        (file, line, weakness), keeping the highest-confidence instance of each."""
+        merged: dict[tuple[str, int, str], Hypothesis] = {}
+        self.last_dropped = []
+        self.sample_hits = []
+        for index in range(self._samples):
+            temperature = self._temperatures[index % len(self._temperatures)]
+            found = self._analyze_once(task, temperature=temperature)
+            self.sample_hits.append(len(found))
+            for hypothesis in found:
+                key = (hypothesis.file_path, hypothesis.line, hypothesis.weakness.lower())
+                existing = merged.get(key)
+                if existing is None or hypothesis.confidence > existing.confidence:
+                    merged[key] = hypothesis
+        return list(merged.values())
+
+    def _analyze_once(self, task: AgentTask, *, temperature: float | None = None) -> list[Hypothesis]:
+        kwargs = {} if temperature is None else {"temperature": temperature}
+        try:
+            data = self._client.complete_json([
+                {"role": "system", "content": _SYSTEM},
+                {"role": "user", "content": "Analyze this bounded task:\n" + task.model_dump_json()},
+            ], **kwargs)
+        except Exception:
+            # one flaky sample must not sink the ensemble; record and move on
+            self.last_dropped.append({"reason": "sample_failed"})
+            return []
         raw = data.get("hypotheses") if isinstance(data, dict) else None
         if not isinstance(raw, list):
             return []
         allowed_paths = {source.path for source in task.source_slices}
         allowed_weaknesses = {item.lower() for item in task.allowed_weaknesses}
         output: list[Hypothesis] = []
-        self.last_dropped = []
         for item in raw[: self._maximum]:
             try:
                 hypothesis = Hypothesis.model_validate(item)

@@ -40,6 +40,9 @@ def main(argv=None) -> int:
     parser.add_argument("--since-days", type=int, default=0,
                         help="only analyze source files changed in the last N days "
                              "(the 'recently shipped' edge); 0 = whole repo")
+    parser.add_argument("--samples", type=int, default=1,
+                        help="generator ensemble: analyze each file N times over a "
+                             "temperature spread and union findings (higher recall, N× cost)")
     args = parser.parse_args(list(argv) if argv is not None else None)
 
     load_dotenv()
@@ -86,7 +89,7 @@ def main(argv=None) -> int:
         if args.api:
             source_cm = GitHubSource(token=token)
             # API reads cost rate limit, so only a sampled pool can be content-scanned
-            hunt_config = RepoHuntConfig(max_files=args.files, subpath=args.subpath, include_paths=include_paths)
+            hunt_config = RepoHuntConfig(max_files=args.files, subpath=args.subpath, include_paths=include_paths, samples=args.samples)
         else:
             print(f"cloning {args.repository} ...", flush=True)
             clone = clone_repository(
@@ -101,7 +104,7 @@ def main(argv=None) -> int:
             # than the small sampled pool an API budget forces (bounded so a
             # 20k-file monorepo still finishes quickly)
             hunt_config = RepoHuntConfig(max_files=args.files, subpath=args.subpath,
-                                         content_scan_pool=3000, include_paths=include_paths)
+                                         content_scan_pool=3000, include_paths=include_paths, samples=args.samples)
         with source_cm as source, DeepSeekClient(config) as client:
             print(f"selecting files from {args.repository} ...", flush=True)
             result = hunt_repository(
