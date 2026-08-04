@@ -30,3 +30,12 @@ def test_framework_note_detects_stack_from_content():
     assert "Express" in framework_note("const app = express()")
     assert "OpenZeppelin" in framework_note("contract V is Ownable {}")
     assert framework_note("plain code") == ""
+
+
+def test_negative_examples_list_the_rejected_shapes():
+    from aegis.ai.negative_examples import negative_examples_text
+    t = negative_examples_text()
+    assert "Not Applicable" in t
+    for label in ("intended-functionality", "pre-auth-token-gated-csrf",
+                  "requires-privileged-access", "self-only-impact"):
+        assert label in t

@@ -65,11 +65,15 @@ def test_exemplar_text_is_compact_and_labelled():
     assert "Do not copy them" in text                              # anti-copy guard
 
 
-def test_empty_or_irrelevant_corpus_yields_no_exemplars():
+def test_empty_or_irrelevant_corpus_yields_no_positive_exemplars():
+    # positive exemplars require a relevant corpus; negative exemplars always apply
     assert not KnowledgeRetriever([])
-    assert KnowledgeRetriever([]).augment(_task(AgentKind.INJECTION)) == ""
+    empty = KnowledgeRetriever([]).augment(_task(AgentKind.INJECTION))
+    assert "disclosed vulnerabilities of this class" not in empty   # no positives
+    assert "closed as Not Applicable" in empty                       # negatives present
     only_xss = KnowledgeRetriever([_Report("1", cwe="CWE-79")])
-    assert only_xss.augment(_task(AgentKind.SECRETS_CRYPTO)) == ""  # nothing relevant
+    irrelevant = only_xss.augment(_task(AgentKind.SECRETS_CRYPTO))
+    assert "disclosed vulnerabilities of this class" not in irrelevant
 
 
 def test_language_boosts_matching_reports():

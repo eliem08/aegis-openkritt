@@ -119,8 +119,10 @@ class KnowledgeRetriever:
         return "\n".join(lines)
 
     def augment(self, task) -> str:
-        """The exemplar block for a task, or '' when nothing relevant is on file."""
-        return self.exemplar_text(self.retrieve(task))
+        """Positive exemplars (real disclosed bugs of the class) plus negative exemplars
+        (the shapes that get rejected) — teaching recall and precision together."""
+        from .negative_examples import negative_examples_text
+        return self.exemplar_text(self.retrieve(task)) + negative_examples_text()
 
 
 def load_default_corpus():
