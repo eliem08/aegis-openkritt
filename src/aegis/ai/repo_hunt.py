@@ -235,8 +235,11 @@ def refine_by_content(fetcher, repository, candidates, config, result):
     A file's final score is max(path score, content score), so a neutral-named logic
     file (MessageTransmitter.sol) that contains ecrecover/nonce beats a well-named
     file that contains nothing interesting. Bounded: peeks at ``content_scan_pool``
-    candidates only. Deterministic given the same repository contents."""
-    pool = candidates[: config.content_scan_pool]
+    candidates only. The pool is itself component-diversified first, so a
+    keyword-dense component (e.g. one plugin with 20 login files) can't crowd every
+    other component out of the pool and out of the final selection via backfill.
+    Deterministic given the same repository contents."""
+    pool = _diversify(candidates, config.content_scan_pool, config.max_per_dir)
     refined: list[SelectedFile] = []
     for item in pool:
         try:
