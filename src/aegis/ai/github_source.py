@@ -10,6 +10,10 @@ from __future__ import annotations
 import httpx
 
 
+class GitHubRateLimitError(RuntimeError):
+    """GitHub returned a rate-limit 403/429; set GITHUB_TOKEN to raise the ceiling."""
+
+
 class GitHubSource:
     def __init__(self, *, token: str = "", client: httpx.Client | None = None,
                  timeout: float = 30.0):
@@ -24,22 +28,37 @@ class GitHubSource:
     def list_paths(self, repository: str) -> tuple[list[str], str]:
         """Every blob path in the default branch, plus the head commit sha."""
         meta = self._client.get(f"https://api.github.com/repos/{repository}")
-        meta.raise_for_status()
+        self._raise(meta, repository)
         branch = meta.json().get("default_branch", "master")
         self._branch[repository] = branch
 
         head = self._client.get(f"https://api.github.com/repos/{repository}/commits/{branch}")
-        head.raise_for_status()
+        self._raise(head, repository)
         commit = str(head.json().get("sha", ""))
 
         tree = self._client.get(
             f"https://api.github.com/repos/{repository}/git/trees/{branch}",
             params={"recursive": "1"},
         )
-        tree.raise_for_status()
+        self._raise(tree, repository)
         body = tree.json()
         paths = [item["path"] for item in body.get("tree", []) if item.get("type") == "blob"]
         return paths, commit
+
+    def _raise(self, response: httpx.Response, repository: str) -> None:
+        """Turn GitHub's opaque 403 rate-limit into an actionable error.
+
+        Unauthenticated GitHub allows only 60 requests/hour; each repo listing costs
+        three, so a handful of repos exhausts it. Point the operator at GITHUB_TOKEN
+        instead of surfacing a bare HTTPStatusError."""
+        if response.status_code in (403, 429):
+            remaining = response.headers.get("x-ratelimit-remaining")
+            if remaining == "0" or "rate limit" in response.text.lower():
+                raise GitHubRateLimitError(
+                    "GitHub API rate limit exceeded (unauthenticated = 60 req/hour). "
+                    "Set GITHUB_TOKEN in the environment to raise it to 5000/hour."
+                )
+        response.raise_for_status()
 
     def read(self, repository: str, path: str) -> str:
         branch = self._branch.get(repository, "master")

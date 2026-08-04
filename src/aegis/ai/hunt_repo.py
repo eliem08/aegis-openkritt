@@ -21,7 +21,7 @@ from pathlib import Path
 from ..env import load_dotenv
 from .client import DeepSeekClient
 from .config import DeepSeekConfig
-from .github_source import GitHubSource
+from .github_source import GitHubRateLimitError, GitHubSource
 from .repo_hunt import RepoHuntConfig, hunt_repository
 
 
@@ -53,14 +53,18 @@ def main(argv=None) -> int:
     def progress(index, total, path):
         print(f"  [{index}/{total}] {path}", flush=True)
 
-    with GitHubSource(token=os.environ.get("GITHUB_TOKEN", "")) as source, \
-            DeepSeekClient(config) as client:
-        print(f"selecting files from {args.repository} ...", flush=True)
-        result = hunt_repository(
-            source, client, args.repository,
-            config=RepoHuntConfig(max_files=args.files, subpath=args.subpath),
-            pin_dir=pin_dir, progress=progress,
-        )
+    try:
+        with GitHubSource(token=os.environ.get("GITHUB_TOKEN", "")) as source, \
+                DeepSeekClient(config) as client:
+            print(f"selecting files from {args.repository} ...", flush=True)
+            result = hunt_repository(
+                source, client, args.repository,
+                config=RepoHuntConfig(max_files=args.files, subpath=args.subpath),
+                pin_dir=pin_dir, progress=progress,
+            )
+    except GitHubRateLimitError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 3
 
     report = result.report()
     report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
