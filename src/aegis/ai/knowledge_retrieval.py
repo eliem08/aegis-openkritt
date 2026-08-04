@@ -38,8 +38,11 @@ _KIND_SIGNATURES: dict[AgentKind, tuple[str, ...]] = {
     AgentKind.SUPPLY_CHAIN: ("cwe-1104", "cwe-829", "dependency", "supply", "confusion"),
     AgentKind.BUSINESS_LOGIC: ("cwe-841", "cwe-840", "race", "logic", "replay", "nonce"),
     AgentKind.CLIENT_API: ("cwe-79", "cwe-352", "xss", "csrf", "cors", "prototype"),
-    AgentKind.SMART_CONTRACT: ("reentran", "cwe-841", "overflow", "access control",
-                               "signature", "oracle"),
+    AgentKind.SMART_CONTRACT: ("reentran", "cwe-841", "overflow", "underflow", "access control",
+                               "access-control", "signature", "replay", "oracle", "rounding",
+                               "precision", "liquidation", "slippage", "mev", "accounting",
+                               "inflation", "flashloan", "initialization", "dos", "withdrawal",
+                               "redeem", "smart contract", "solidity"),
 }
 
 _EXT_LANG = {
