@@ -222,7 +222,10 @@ def hunt_repository(fetcher, client, repository: str, *,
         try:
             hypotheses = agent.analyze(task)
         except Exception as exc:
-            result.failures.append(f"{item.path}: analysis failed ({type(exc).__name__})")
+            # surface the reason, not just the type — a swallowed message hides
+            # truncated json, rate limits, and context-length errors alike
+            result.failures.append(
+                f"{item.path}: analysis failed ({type(exc).__name__}: {str(exc)[:200]})")
             continue
         for hypothesis in hypotheses:
             if hypothesis.file_path != item.path:
