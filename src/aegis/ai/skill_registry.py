@@ -182,3 +182,26 @@ class SkillInvoker:
                                         error=f"{type(exc).__name__}: {exc}"[:200]))
             self.events.append(results[-1])
         return results
+
+
+def make_shell_runner(cmd_template: str, *, timeout: int = 1800, run=None):
+    """A runner that invokes an INSTALLED skill via the operator's own command.
+
+    ``cmd_template`` is the operator's command with ``{source}`` (the skill's owner/repo/
+    path) and ``{target}`` placeholders — e.g. their `claude` CLI wired to run an
+    installed skill. Aegis substitutes and runs it; it never embeds the skill's content.
+    ``run`` is injectable for tests (defaults to subprocess). Returns (ok, output)."""
+    import shlex
+
+    def _default_run(argv, timeout):
+        import subprocess
+        p = subprocess.run(argv, capture_output=True, text=True, timeout=timeout, check=False)
+        return p.returncode == 0, (p.stdout or "") + (("\n" + p.stderr) if p.stderr else "")
+
+    runner_impl = run or _default_run
+
+    def runner(skill, target):
+        cmd = cmd_template.format(source=skill.source, target=target, name=skill.name)
+        return runner_impl(shlex.split(cmd), timeout)
+
+    return runner

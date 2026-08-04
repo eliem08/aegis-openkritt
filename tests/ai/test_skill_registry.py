@@ -59,3 +59,25 @@ def test_invoker_isolates_a_failing_skill():
     failed = [r for r in results if not r.ok]
     assert failed and "echidna not installed" in failed[0].error
     assert any(r.ok for r in results)                        # others still ran
+
+
+def test_shell_runner_substitutes_and_reports():
+    from aegis.ai.skill_registry import make_shell_runner, for_lane, Lane
+    seen = {}
+    def fake_run(argv, timeout):
+        seen["argv"] = argv
+        return True, "solidity-auditor: 3 High findings"
+    runner = make_shell_runner("agent run {source} on {target}", run=fake_run)
+    skill = for_lane(Lane.CONTRACT)[0]
+    ok, out = runner(skill, "0xVault")
+    assert ok and "findings" in out
+    assert skill.source in seen["argv"] and "0xVault" in seen["argv"]
+
+
+def test_shell_runner_failure_is_reported_not_raised():
+    from aegis.ai.skill_registry import make_shell_runner, SkillInvoker, for_lane, Lane
+    def fake_run(argv, timeout):
+        return False, "skill not installed"
+    runs = SkillInvoker(make_shell_runner("x {source} {target}", run=fake_run)).run(
+        for_lane(Lane.CONTRACT)[:1], "0xV")
+    assert runs and runs[0].ok is False

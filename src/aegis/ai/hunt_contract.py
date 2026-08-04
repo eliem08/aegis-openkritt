@@ -75,6 +75,22 @@ def main(argv=None) -> int:
     print(f"\nselected {len(result.selected)} source files, "
           f"{len(result.hypotheses)} hypotheses -> {report_path.name}")
 
+    # arm's-length skill invocation: if the operator has wired AEGIS_SKILL_CMD to their
+    # installed skills, run the recommended contract skills (Pashov solidity-auditor /
+    # x-ray / fizz, etc.) on this target and surface their output. Aegis never embeds a
+    # skill's content — it invokes the one the operator installed.
+    skill_cmd = os.environ.get("AEGIS_SKILL_CMD")
+    if skill_cmd:
+        from .skill_registry import SkillInvoker, make_shell_runner, recommend
+        skills = recommend("contract")
+        print(f"\ninvoking {len(skills)} installed skill(s) on {args.address} ...", flush=True)
+        runs = SkillInvoker(make_shell_runner(skill_cmd)).run(skills, args.address)
+        for r in runs:
+            print(f"  [{'ok' if r.ok else 'fail'}] {r.skill}" + (f" — {r.error}" if r.error else ""))
+        (report_root / f"skills_{slug}.json").write_text(
+            json.dumps([{"skill": r.skill, "ok": r.ok, "output": r.output, "error": r.error}
+                        for r in runs], indent=2), encoding="utf-8")
+
     if args.properties and result.selected:
         from .contract_properties import PropertyGenerator, write_property_suite
         primary = result.selected[0].path
