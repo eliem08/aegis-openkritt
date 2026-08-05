@@ -89,8 +89,17 @@ def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = ""):
             except Exception:
                 effective_hint = ""
 
-        hunt_config = RepoHuntConfig(max_files=10, subpath=target.subpath, samples=samples,
-                                     content_scan_pool=3000, operator_hint=effective_hint)
+        # coverage: analyze EVERY eligible source file by default (AEGIS_MAX_FILES=all/0),
+        # not a sampled top-N. The deterministic scanners already cover the whole repo;
+        # this makes the LLM ensemble cover it too. A number caps it for cost control.
+        _mf = os.environ.get("AEGIS_MAX_FILES", "all").strip().lower()
+        cover_all = _mf in ("all", "0", "")
+        max_files = 100000 if cover_all else int(_mf)
+        # max_per_dir=0 disables the per-component cap (default 3) that was limiting the LLM
+        # to a handful of files — the real reason coverage was ~10, not max_files.
+        hunt_config = RepoHuntConfig(max_files=max_files, subpath=target.subpath, samples=samples,
+                                     content_scan_pool=100000, operator_hint=effective_hint,
+                                     max_per_dir=0 if cover_all else 3)
         with source_cm as source, DeepSeekClient(config) as client:
             result = hunt_repository(source, client, target.repository,
                                      config=hunt_config, pin_dir=pin_dir)
