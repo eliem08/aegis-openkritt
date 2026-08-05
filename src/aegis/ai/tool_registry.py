@@ -104,6 +104,114 @@ def _parse_trivy(data) -> list[dict]:
     return rows
 
 
+def _parse_brakeman(data) -> list[dict]:
+    """Brakeman (Rails SAST) JSON -> rows. warnings[] with confidence High/Medium/Weak."""
+    rows = []
+    warns = (data or {}).get("warnings", []) if isinstance(data, dict) else []
+    conf = {"High": "high", "Medium": "medium", "Weak": "low"}
+    for w in warns:
+        rows.append(_row("brakeman", w.get("warning_type", "brakeman"), w.get("file"),
+                         w.get("line"), w.get("message", ""),
+                         conf.get(str(w.get("confidence")), "medium"),
+                         f"{w.get('message','')} ({w.get('link','')})"))
+    return rows
+
+
+def _parse_gosec(data) -> list[dict]:
+    """gosec (Go SAST) JSON -> rows. Issues[] with severity HIGH/MEDIUM/LOW."""
+    rows = []
+    for i in (data or {}).get("Issues", []) if isinstance(data, dict) else []:
+        rows.append(_row("gosec", f"{i.get('rule_id','')}: {i.get('cwe',{}).get('id','') if isinstance(i.get('cwe'),dict) else ''}".strip(": "),
+                         i.get("file"), i.get("line"), i.get("details", ""),
+                         str(i.get("severity", "medium")).lower(), i.get("details", "")))
+    return rows
+
+
+def _parse_osv(data) -> list[dict]:
+    """osv-scanner (Google, dependency vulns) JSON -> rows. results[].packages[].vulnerabilities[]."""
+    rows = []
+    for res in (data or {}).get("results", []) if isinstance(data, dict) else []:
+        path = (res.get("source") or {}).get("path", "")
+        for pkg in res.get("packages", []) or []:
+            name = (pkg.get("package") or {}).get("name", "")
+            for v in pkg.get("vulnerabilities", []) or []:
+                rows.append(_row("osv-scanner", f"{v.get('id','vuln')} in {name}", path, 0,
+                                 v.get("summary") or (v.get("details", "") or "")[:200], "high",
+                                 v.get("details", "")))
+    return rows
+
+
+def _parse_checkov(data) -> list[dict]:
+    """checkov (IaC security) JSON -> rows. Handles the single-framework dict and the
+    multi-framework list form; reads results.failed_checks[]."""
+    rows = []
+    frames = data if isinstance(data, list) else [data]
+    for fr in frames:
+        if not isinstance(fr, dict):
+            continue
+        for c in ((fr.get("results") or {}).get("failed_checks", []) or []):
+            lr = c.get("file_line_range") or [0]
+            sev = str(c.get("severity") or "medium").lower()
+            rows.append(_row("checkov", f"{c.get('check_id','')}: {c.get('check_name','')}",
+                             c.get("file_path"), lr[0] if lr else 0,
+                             c.get("check_name", ""), sev if sev in
+                             ("critical", "high", "medium", "low") else "medium",
+                             str(c.get("guideline") or "")))
+    return rows
+
+
+def _parse_grype(data) -> list[dict]:
+    """grype (Anchore SCA) JSON -> rows. matches[].vulnerability + artifact locations."""
+    rows = []
+    for m in (data or {}).get("matches", []) if isinstance(data, dict) else []:
+        v = m.get("vulnerability") or {}
+        art = m.get("artifact") or {}
+        locs = art.get("locations") or [{}]
+        rows.append(_row("grype", f"{v.get('id','vuln')} in {art.get('name','')}",
+                         (locs[0] or {}).get("path", ""), 0,
+                         v.get("description") or f"{art.get('name','')} {art.get('version','')}",
+                         str(v.get("severity", "medium")).lower(), v.get("description", "")))
+    return rows
+
+
+def _parse_psalm(data) -> list[dict]:
+    """Psalm --taint-analysis (PHP) JSON -> rows. Array of issues with taint types."""
+    items = data if isinstance(data, list) else (data or {}).get("issues", [])
+    sev = {"error": "high", "warning": "medium", "info": "low"}
+    rows = []
+    for i in items or []:
+        rows.append(_row("psalm", i.get("type", "psalm"), i.get("file_name") or i.get("file_path"),
+                         i.get("line_from") or i.get("line"), i.get("message", ""),
+                         sev.get(str(i.get("severity")).lower(), "medium"), i.get("snippet", "")))
+    return rows
+
+
+def _parse_mythril(data) -> list[dict]:
+    """Mythril (Solidity symbolic execution) JSON -> rows. issues[] with SWC ids."""
+    rows = []
+    issues = (data or {}).get("issues", []) if isinstance(data, dict) else []
+    for i in issues:
+        rows.append(_row("mythril", f"{i.get('swcID') or i.get('swc-id','SWC')}: {i.get('title','')}",
+                         i.get("filename"), i.get("lineno"), i.get("description", ""),
+                         str(i.get("severity", "medium")).lower(), i.get("description", "")))
+    return rows
+
+
+def _parse_retirejs(data) -> list[dict]:
+    """retire.js (JS dependency vulns) JSON -> rows. data[].results[].vulnerabilities[]."""
+    rows = []
+    for f in (data or {}).get("data", []) if isinstance(data, dict) else []:
+        for res in f.get("results", []) or []:
+            comp = f"{res.get('component','')}@{res.get('version','')}"
+            for v in res.get("vulnerabilities", []) or []:
+                ident = v.get("identifiers") or {}
+                summary = ident.get("summary") or (v.get("info") or [""])[0]
+                rows.append(_row("retire.js", f"{comp}: {ident.get('CVE',[''])[0] if ident.get('CVE') else 'vuln'}",
+                                 f.get("file"), 0, summary, str(v.get("severity", "medium")).lower(),
+                                 summary))
+    return rows
+
+
 TOOLS: tuple[Tool, ...] = (
     Tool("semgrep", "semgrep", ("code",),
          "semgrep --config auto --json --quiet {target}", "LGPL-2.1 (engine)/MIT (rules)",
@@ -119,6 +227,24 @@ TOOLS: tuple[Tool, ...] = (
          "njsscan --json {target}", "LGPL-3.0 (invoked)", _parse_njsscan),
     Tool("trivy", "trivy", ("deps", "secrets"),
          "trivy fs --format json --quiet {target}", "Apache-2.0", _parse_trivy),
+    # High-star additions filling real language gaps (Ruby/Rails, Go) + universal SCA/IaC.
+    Tool("brakeman", "brakeman", ("code",),
+         "brakeman -f json -q {target}", "MIT (~7k*)", _parse_brakeman),
+    Tool("gosec", "gosec", ("code",),
+         "gosec -fmt=json -quiet -no-fail {target}/...", "Apache-2.0 (~8k*)", _parse_gosec),
+    Tool("osv-scanner", "osv-scanner", ("deps",),
+         "osv-scanner --format json -r {target}", "Apache-2.0 (~6k*)", _parse_osv),
+    Tool("checkov", "checkov", ("deps",),
+         "checkov -d {target} -o json --compact --quiet", "Apache-2.0 (~7k*)", _parse_checkov),
+    Tool("grype", "grype", ("deps",),
+         "grype dir:{target} -o json", "Apache-2.0 (~8k*)", _parse_grype),
+    Tool("psalm", "psalm", ("code",),
+         "psalm --taint-analysis --output-format=json --no-progress {target}",
+         "MIT (~5k*)", _parse_psalm),
+    Tool("mythril", "myth", ("contract",),
+         "myth analyze {target} -o json", "MIT (~4k*)", _parse_mythril),
+    Tool("retire.js", "retire", ("deps",),
+         "retire --outputformat json --path {target}", "Apache-2.0 (~4k*)", _parse_retirejs),
 )
 
 

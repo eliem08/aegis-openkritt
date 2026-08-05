@@ -7,8 +7,15 @@
 set -u
 
 echo "== Python scanners (into the active interpreter) =="
-python -m pip install --quiet semgrep bandit njsscan slither-analyzer detect-secrets \
-  && echo "  installed: semgrep, bandit, njsscan, slither, detect-secrets"
+python -m pip install --quiet semgrep bandit njsscan slither-analyzer detect-secrets checkov \
+  && echo "  installed: semgrep, bandit, njsscan, slither, detect-secrets, checkov"
+
+echo
+echo "== Language SAST + SCA (high-star; install for the languages you hunt) =="
+echo "  brakeman  (Rails, ~7k*): gem install brakeman"
+echo "  gosec     (Go,   ~8k*): go install github.com/securego/gosec/v2/cmd/gosec@latest"
+echo "  osv-scanner (deps,~6k*): go install github.com/google/osv-scanner/cmd/osv-scanner@latest"
+echo "  (Aegis runs each only if its binary is on PATH; missing ones are skipped.)"
 
 echo
 echo "== Go binaries (install separately, then ensure on PATH) =="
