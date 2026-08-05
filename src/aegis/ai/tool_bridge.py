@@ -88,11 +88,15 @@ class ToolBridge:
         self._timeout = timeout
 
     def scan(self, checkout_path: str, *, lane: str | None = None,
-             tools: list[Tool] | None = None) -> list[ToolResult]:
+             tools: list[Tool] | None = None, on_event=None) -> list[ToolResult]:
         import shlex
+        import time
+        emit = on_event or (lambda *_: None)
         chosen = tools if tools is not None else available_tools(lane)
         results: list[ToolResult] = []
         for tool in chosen:
+            emit("scanner", {"tool": tool.name, "state": "run"})    # live: this one started
+            t0 = time.monotonic()
             argv = shlex.split(tool.cmd.format(target=str(checkout_path), rules=rules_dir(),
                                                phpstubs=php_stubs_arg()))
             resolved = resolve_binary(argv[0])           # use the venv/PATH-resolved path
@@ -101,10 +105,14 @@ class ToolBridge:
             try:
                 stdout, stderr = self._run(argv, self._timeout)
             except Exception as exc:
+                emit("scanner", {"tool": tool.name, "state": "done", "count": 0,
+                                 "ms": round((time.monotonic() - t0) * 1000), "error": True})
                 results.append(ToolResult(tool=tool.name, ran=False,
                                           error=f"{type(exc).__name__}: {exc}"[:200]))
                 continue
             findings = _parse(tool, stdout)
+            emit("scanner", {"tool": tool.name, "state": "done", "count": len(findings),
+                             "ms": round((time.monotonic() - t0) * 1000)})   # live: done + count + timing
             results.append(ToolResult(tool=tool.name, ran=True, findings=findings,
                                       error="" if (findings or not stderr) else stderr[:200]))
         return results

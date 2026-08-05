@@ -147,10 +147,13 @@ def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = "", on_even
             if avail:
                 emit("phase", {"repository": target.repository, "phase": "scanning",
                                "detail": ", ".join(sorted(t.name for t in avail))})
+                for _t in avail:
+                    emit("scanner", {"tool": _t.name, "state": "queued"})   # show them all upfront
                 # bounded per-tool timeout so a slow scanner (e.g. psalm + 163k-line WP
                 # stubs on a whole plugin) can't stall the hunt for many minutes.
                 _stimeout = int(os.environ.get("AEGIS_SCANNER_TIMEOUT", "300") or 300)
-                tresults = ToolBridge(timeout=_stimeout).scan(str(scan_root), tools=avail)
+                tresults = ToolBridge(timeout=_stimeout).scan(str(scan_root), tools=avail,
+                                                              on_event=emit)
                 trows = ToolBridge().findings(tresults)
                 if trows:
                     report.setdefault("vulnerabilities", []).extend(trows)
