@@ -14,7 +14,7 @@ from pathlib import Path
 from .auto_hunt import HuntOutcome, HuntTarget
 
 
-def make_hunt_fn(*, report_root: str | Path = "reports"):
+def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = ""):
     """A hunt function for AutoHunter that runs the full code-lane pipeline per target.
 
     Reuses clone -> ensemble hunt (retrieval+calibration auto-load) -> citation
@@ -69,7 +69,7 @@ def make_hunt_fn(*, report_root: str | Path = "reports"):
                 pass
 
         hunt_config = RepoHuntConfig(max_files=10, subpath=target.subpath, samples=samples,
-                                     content_scan_pool=3000)
+                                     content_scan_pool=3000, operator_hint=hint)
         with source_cm as source, DeepSeekClient(config) as client:
             result = hunt_repository(source, client, target.repository,
                                      config=hunt_config, pin_dir=pin_dir)

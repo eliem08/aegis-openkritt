@@ -119,6 +119,7 @@ class RepoHuntConfig:
     min_confidence: float = 0.0
     taint_hints: bool = True          # feed heuristic source->sink leads to the generator
     stack_focus: bool = True          # add per-language framework-guard + anchor-CWE focus
+    operator_hint: str = ""           # a human lead to seed the generator (the "small hint" edge)
     changed_ranges: dict = field(default_factory=dict)  # path -> [(start,end)] just-changed lines
     # Ensemble: generate this many times per file over a temperature spread and union
     # the findings, to catch borderline bugs a single generation misses ~7/8 of the time.
@@ -412,7 +413,11 @@ def hunt_repository(fetcher, client, repository: str, *,
             target=f"{repository}:{item.path}",
             source_slices=bundle,
             policy_notes=(
-                f"Authorized static source review of {repository}. The PRIMARY file under "
+                # operator lead first — a human hint focuses the whole budget on a
+                # suspected flaw (the force-multiplier edge). Still verified like any claim.
+                (f"OPERATOR LEAD (prioritise, but only report if you can PROVE it in the "
+                 f"supplied code): {config.operator_hint}\n\n" if config.operator_hint else "")
+                + f"Authorized static source review of {repository}. The PRIMARY file under "
                 f"review is {item.path}; the other slices are supporting context (callers, "
                 "helpers, neighbouring handlers) supplied so you can trace a flow across "
                 "files. Report a weakness only if its vulnerable line is in the primary "

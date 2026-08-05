@@ -84,6 +84,7 @@ th{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.04em
       <label>Min EV ($)<input id="c-minev" type="number" value="0" min="0"></label>
       <label title="Keep hunting, cycling the queue, until you stop it">24/7<input id="c-continuous" type="checkbox" checked></label>
       <label>Cycle gap (s)<input id="c-interval" type="number" value="120" min="10" max="3600"></label>
+      <label style="flex:1 1 320px">Operator lead / hint (optional — the force-multiplier edge)<input id="c-hint" type="text" style="width:100%" placeholder="e.g. YAML deserialized from a member-role user in the GraphQL import endpoint"></label>
       <button class="go" id="start">&#9654; Start autonomous hunt</button>
       <button class="go" id="stop" style="display:none;background:#c0392b;color:#fff">&#9632; Stop</button>
       <span id="jobinfo" class="note"></span>
@@ -130,7 +131,8 @@ $('start').onclick=async()=>{
   $('start').disabled=true;$('log').innerHTML='';$('findings').innerHTML='<div class=empty>Hunting&hellip;</div>';
   const cont=$('c-continuous').checked;
   const body={max_targets:+$('c-max').value,samples:+$('c-samples').value,min_ev:+$('c-minev').value,
-              continuous:cont,interval:+$('c-interval').value};
+              continuous:cont,interval:+$('c-interval').value,hint:$('c-hint').value||''};
+  if(body.hint)logLine('<span class=note>operator lead: '+body.hint+'</span>');
   $('s-agents').textContent=body.samples;$('f-agents').textContent=body.samples+' DeepSeek agents';
   const d=await (await fetch('/ui/autohunt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})).json();
   if(d.error){$('jobinfo').textContent='⚠ '+d.error;$('start').disabled=false;return;}

@@ -53,6 +53,7 @@ class AutoHuntConfig:
     max_targets: int = 5            # cost ceiling: how many targets to hunt this run
     samples: int = 3               # generator ensemble size per file
     min_ev: float = 0.0            # skip targets below this expected value
+    hint: str = ""                 # operator lead seeded into every target's generator
     p_valid: float = 0.30          # P(a found candidate is actually valid) — prior
     p_accept: float = 0.60         # P(a valid finding is accepted/paid) — prior
 

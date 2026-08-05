@@ -40,6 +40,9 @@ def main(argv=None) -> int:
     parser.add_argument("--since-days", type=int, default=0,
                         help="only analyze source files changed in the last N days "
                              "(the 'recently shipped' edge); 0 = whole repo")
+    parser.add_argument("--hint", default="",
+                        help="operator lead to seed the hunt, e.g. 'YAML deserialized from a "
+                             "member-role user in the GraphQL import endpoint'")
     parser.add_argument("--samples", type=int, default=1,
                         help="generator ensemble: analyze each file N times over a "
                              "temperature spread and union findings (higher recall, N× cost)")
@@ -90,7 +93,7 @@ def main(argv=None) -> int:
         if args.api:
             source_cm = GitHubSource(token=token)
             # API reads cost rate limit, so only a sampled pool can be content-scanned
-            hunt_config = RepoHuntConfig(max_files=args.files, subpath=args.subpath, include_paths=include_paths, samples=args.samples)
+            hunt_config = RepoHuntConfig(max_files=args.files, subpath=args.subpath, include_paths=include_paths, samples=args.samples, operator_hint=args.hint)
         else:
             print(f"cloning {args.repository} ...", flush=True)
             clone = clone_repository(
@@ -110,7 +113,7 @@ def main(argv=None) -> int:
             # than the small sampled pool an API budget forces (bounded so a
             # 20k-file monorepo still finishes quickly)
             hunt_config = RepoHuntConfig(max_files=args.files, subpath=args.subpath,
-                                         content_scan_pool=3000, include_paths=include_paths, samples=args.samples, changed_ranges=changed_ranges)
+                                         content_scan_pool=3000, include_paths=include_paths, samples=args.samples, changed_ranges=changed_ranges, operator_hint=args.hint)
         with source_cm as source, DeepSeekClient(config) as client:
             print(f"selecting files from {args.repository} ...", flush=True)
             result = hunt_repository(
