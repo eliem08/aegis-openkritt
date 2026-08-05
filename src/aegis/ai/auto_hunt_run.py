@@ -133,6 +133,36 @@ def make_hunt_fn(*, report_root: str | Path = "reports"):
             validated, model = validate_deepseek_report(report_path, pin_dir, client)
         counts = validated["scan"]["validation_counts"]
 
+        # reachability gate: a confirmed taint/sink is worthless if no call site can reach
+        # the sink. Flip 'confirmed' rows whose enclosing function is PROVABLY unreachable
+        # (arity mismatch = a guaranteed runtime error before the sink) to false_positive.
+        # Conservative: only arity-mismatch flips; 'no-callers' is advisory (routes/DI/
+        # reflection make it unreliable). This is the fix for the render_inline dead-code miss.
+        try:
+            from .reachability import check as _reach
+            flipped = 0
+            for row in validated.get("vulnerabilities") or []:
+                v = row.get("validation") or {}
+                if v.get("verdict") != "confirmed":
+                    continue
+                a = row.get("json_answer") or {}
+                rc = _reach(pin_dir, str(a.get("file_path") or ""), a.get("line") or 0)
+                row["reachability"] = rc
+                if rc.get("verdict") == "arity-mismatch":
+                    v["verdict"] = "false_positive"
+                    v["reason"] = ("reachability gate: " + rc.get("note", "unreachable"))[:300]
+                    flipped += 1
+            if flipped:
+                c = {"confirmed": 0, "false_positive": 0, "unresolved": 0}
+                for row in validated.get("vulnerabilities") or []:
+                    vd = (row.get("validation") or {}).get("verdict")
+                    if vd in c:
+                        c[vd] += 1
+                counts = validated["scan"]["validation_counts"] = c
+                report_path.write_text(json.dumps(validated, indent=2), encoding="utf-8")
+        except Exception:
+            pass
+
         _record(validated, target.handle)
         # professional per-finding triage (trust-model gate, CVSS, chain, prior-art,
         # bounty, remediation) — Aegis-native, one DeepSeek call per confirmed finding
