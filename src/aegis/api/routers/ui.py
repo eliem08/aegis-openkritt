@@ -293,6 +293,45 @@ def hunt_console() -> HTMLResponse:
     return HTMLResponse(_hunt_console_html())
 
 
+@router.get("/ui/briefing", response_class=HTMLResponse,
+            summary="Morning briefing: overnight survivors, ranked")
+def briefing() -> HTMLResponse:
+    """Regenerate and render the overnight briefing (ranked confirmed survivors)."""
+    import os
+    from pathlib import Path
+
+    from aegis.ai.briefing import collect, render_markdown
+
+    report_dir = os.environ.get("AEGIS_REPORT_DIR", "reports")
+    survivors, stats = collect(report_dir)
+    md = render_markdown(survivors, stats)
+    # minimal, self-contained HTML wrapper (theme-aware) around the Markdown text
+    esc = md.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    html = (
+        "<!doctype html><meta charset=utf-8><meta name=viewport "
+        "content='width=device-width,initial-scale=1'>"
+        "<style>body{background:#0b0f14;color:#e6edf3;font:15px/1.6 -apple-system,Segoe UI,"
+        "sans-serif;max-width:820px;margin:0 auto;padding:28px}"
+        "@media(prefers-color-scheme:light){body{background:#f6f8fa;color:#1f2328}}"
+        "pre{white-space:pre-wrap;font:inherit}a{color:#5b9dff}</style>"
+        f"<pre>{esc}</pre>"
+        "<p style='opacity:.6'>Raw: <a href='/ui/briefing.md'>briefing.md</a></p>"
+    )
+    return HTMLResponse(html)
+
+
+@router.get("/ui/briefing.md", summary="Morning briefing as raw Markdown")
+def briefing_md() -> "PlainTextResponse":
+    import os
+
+    from fastapi.responses import PlainTextResponse
+
+    from aegis.ai.briefing import collect, render_markdown
+
+    survivors, stats = collect(os.environ.get("AEGIS_REPORT_DIR", "reports"))
+    return PlainTextResponse(render_markdown(survivors, stats), media_type="text/markdown")
+
+
 def _run_autohunt(app, job_id, targets, config, report_root,
                   *, continuous: bool = False, interval: float = 30.0) -> None:
     import time
