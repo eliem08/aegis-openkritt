@@ -21,10 +21,10 @@ rules:
           metavariable: $X
           patterns:
             - pattern-either:
-                - pattern: $_GET
-                - pattern: $_POST
-                - pattern: $_REQUEST
-                - pattern: $_COOKIE
+                - pattern: $_GET[...]
+                - pattern: $_POST[...]
+                - pattern: $_REQUEST[...]
+                - pattern: $_COOKIE[...]
 
   - id: aegis-php-sqli-raw-query-concat
     languages: [php]
@@ -40,9 +40,9 @@ rules:
           metavariable: $X
           patterns:
             - pattern-either:
-                - pattern: $_GET
-                - pattern: $_POST
-                - pattern: $_REQUEST
+                - pattern: $_GET[...]
+                - pattern: $_POST[...]
+                - pattern: $_REQUEST[...]
 
   - id: aegis-php-reflected-xss-echo-request
     languages: [php]
@@ -82,24 +82,22 @@ rules:
     severity: ERROR
     message: "Command injection: a request value flows into a shell/exec sink."
     metadata: {cwe: "CWE-78", class: command-injection}
-    patterns:
-      - pattern-either:
-          - pattern: system($X)
-          - pattern: exec($X)
-          - pattern: shell_exec($X)
-          - pattern: passthru($X)
-          - pattern: popen($X, ...)
-          - pattern: proc_open($X, ...)
-          - pattern: system("...$X...")
-          - pattern: exec("...$X...")
-          - pattern: shell_exec("...$X...")
-      - metavariable-pattern:
-          metavariable: $X
-          patterns:
-            - pattern-either:
-                - pattern: $_GET
-                - pattern: $_POST
-                - pattern: $_REQUEST
+    pattern-either:
+      - pattern: system($_GET[...])
+      - pattern: system($_POST[...])
+      - pattern: system($_REQUEST[...])
+      - pattern: exec($_GET[...])
+      - pattern: exec($_POST[...])
+      - pattern: exec($_REQUEST[...])
+      - pattern: shell_exec($_GET[...])
+      - pattern: shell_exec($_POST[...])
+      - pattern: shell_exec($_REQUEST[...])
+      - pattern: passthru($_GET[...])
+      - pattern: passthru($_REQUEST[...])
+      - pattern: popen($_GET[...], ...)
+      - pattern: proc_open($_REQUEST[...], ...)
+      - pattern: system("...$X...")
+      - pattern: exec("...$X...")
 
   - id: aegis-php-object-injection-unserialize
     languages: [php]
