@@ -98,42 +98,20 @@ def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = "", on_even
         # coverage: analyze EVERY eligible source file by default (AEGIS_MAX_FILES=all/0),
         # not a sampled top-N. The deterministic scanners already cover the whole repo;
         # this makes the LLM ensemble cover it too. A number caps it for cost control.
-        _mf = os.environ.get("AEGIS_MAX_FILES", "all").strip().lower()
-        cover_all = _mf in ("all", "0", "")
-        max_files = 100000 if cover_all else int(_mf)
-        # max_per_dir=0 disables the per-component cap (default 3) that was limiting the LLM
-        # to a handful of files — the real reason coverage was ~10, not max_files.
-        hunt_config = RepoHuntConfig(max_files=max_files, subpath=target.subpath, samples=samples,
-                                     content_scan_pool=100000, operator_hint=effective_hint,
-                                     max_per_dir=0 if cover_all else 3)
-        emit("phase", {"repository": target.repository, "phase": "analyzing",
-                       "detail": "LLM ensemble over source files"})
-
-        def _file_progress(index, total, path):
-            emit("file", {"repository": target.repository, "i": index, "n": total,
-                          "path": str(path)})
-
-        with source_cm as source, DeepSeekClient(config) as client:
-            result = hunt_repository(source, client, target.repository,
-                                     config=hunt_config, pin_dir=pin_dir,
-                                     progress=_file_progress)
-        report = result.report()
-
-        # --- full arsenal: fold arm's-length skills + installed OSS scanners into the
-        # report BEFORE validation, so their findings run through the SAME citation
-        # validator as the LLM's (mutual cross-check). Each row is tagged with its source
-        # ("aegis:tool:<name>" / "aegis:skill:<name>") for UI provenance. ---
+        # --- SCANNERS + SKILLS FIRST (fast, deterministic, whole-repo) so their live output
+        # shows immediately in the UI, before the slow LLM pass. All rows fold into one
+        # report and are cross-checked by the same validator (source tag = provenance). ---
         scanner_candidates = skill_candidates = 0
         tools_run: list[str] = []
+        srows: list[dict] = []
+        trows: list[dict] = []
         try:
             from .skill_bridge import SkillBridge
             sb = SkillBridge()
             if sb.enabled:
                 runs = sb.run(target.repository, target_kind=target.kind)
                 srows = sb.to_findings(runs, repository=target.repository)
-                if srows:
-                    report.setdefault("vulnerabilities", []).extend(srows)
-                    skill_candidates = len(srows)
+                skill_candidates = len(srows)
                 tools_run += [f"skill:{r.skill}" for r in runs if getattr(r, "ok", False)]
         except Exception:
             pass
@@ -149,18 +127,41 @@ def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = "", on_even
                                "detail": ", ".join(sorted(t.name for t in avail))})
                 for _t in avail:
                     emit("scanner", {"tool": _t.name, "state": "queued"})   # show them all upfront
-                # bounded per-tool timeout so a slow scanner (e.g. psalm + 163k-line WP
-                # stubs on a whole plugin) can't stall the hunt for many minutes.
                 _stimeout = int(os.environ.get("AEGIS_SCANNER_TIMEOUT", "300") or 300)
                 tresults = ToolBridge(timeout=_stimeout).scan(str(scan_root), tools=avail,
                                                               on_event=emit)
                 trows = ToolBridge().findings(tresults)
-                if trows:
-                    report.setdefault("vulnerabilities", []).extend(trows)
                 scanner_candidates = len(trows)
                 tools_run += [tr.tool for tr in tresults if getattr(tr, "ran", False)]
         except Exception:
             pass
+
+        # --- then the LLM ensemble (the slow part) over EVERY file ---
+        _mf = os.environ.get("AEGIS_MAX_FILES", "all").strip().lower()
+        cover_all = _mf in ("all", "0", "")
+        max_files = 100000 if cover_all else int(_mf)
+        # max_per_dir=0 disables the per-component cap (default 3) that limited the LLM to a
+        # handful of files — the real reason coverage was ~10, not max_files.
+        hunt_config = RepoHuntConfig(max_files=max_files, subpath=target.subpath, samples=samples,
+                                     content_scan_pool=100000, operator_hint=effective_hint,
+                                     max_per_dir=0 if cover_all else 3)
+        emit("phase", {"repository": target.repository, "phase": "analyzing",
+                       "detail": "LLM ensemble over source files"})
+
+        def _file_progress(index, total, path):
+            emit("file", {"repository": target.repository, "i": index, "n": total,
+                          "path": str(path)})
+
+        with source_cm as source, DeepSeekClient(config) as client:
+            result = hunt_repository(source, client, target.repository,
+                                     config=hunt_config, pin_dir=pin_dir,
+                                     progress=_file_progress)
+        report = result.report()
+        # fold the scanner + skill rows (collected first) into the report
+        if srows:
+            report.setdefault("vulnerabilities", []).extend(srows)
+        if trows:
+            report.setdefault("vulnerabilities", []).extend(trows)
 
         # arm's-length Strix (autonomous AI pentester) — opt-in (AEGIS_ALLOW_STRIX=1), a
         # heavyweight engine that runs its own agent + PoC validation on the local source.

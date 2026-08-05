@@ -53,11 +53,30 @@ def rules_dir() -> str:
 
 
 def php_stubs_arg() -> str:
-    """`--stubs=<wordpress-stubs>` when AEGIS_PHP_STUBS points at an existing file, so
-    psalm can trace taint through WordPress functions; empty (no-op) otherwise."""
+    """Deprecated: psalm has no --stubs CLI flag. Kept for compatibility; returns ''."""
+    return ""
+
+
+def psalm_config(checkout_path: str) -> str:
+    """Write a per-scan psalm.xml (projectFiles=checkout + WordPress stubs when
+    AEGIS_PHP_STUBS is set) and return its path, so `psalm --config=<path>` actually runs
+    and traces taint through wp_*/$wpdb. Stubs belong in the config, not on the CLI."""
     import os
-    p = os.environ.get("AEGIS_PHP_STUBS", "").strip()
-    return f"--stubs={p}" if p and os.path.isfile(p) else ""
+    import tempfile
+    from pathlib import Path
+    stubs = os.environ.get("AEGIS_PHP_STUBS", "").strip()
+    stub_xml = (f'  <stubs><file name="{stubs}"/></stubs>\n'
+                if stubs and os.path.isfile(stubs) else "")
+    target = str(Path(checkout_path).resolve())
+    cfg = os.path.join(tempfile.mkdtemp(prefix="aegis-psalm-"), "psalm.xml")
+    Path(cfg).write_text(
+        '<?xml version="1.0"?>\n'
+        '<psalm errorLevel="8" resolveFromConfigFile="false" findUnusedCode="false"'
+        ' findUnusedBaselineEntry="false">\n'
+        f'  <projectFiles><directory name="{target}"/></projectFiles>\n'
+        f'{stub_xml}'
+        '</psalm>\n', encoding="utf-8")
+    return cfg
 
 
 def _scanner_env() -> dict:
@@ -93,12 +112,13 @@ class ToolBridge:
         import time
         emit = on_event or (lambda *_: None)
         chosen = tools if tools is not None else available_tools(lane)
+        _psalmcfg = psalm_config(str(checkout_path)) if any(t.name == "psalm" for t in chosen) else ""
         results: list[ToolResult] = []
         for tool in chosen:
             emit("scanner", {"tool": tool.name, "state": "run"})    # live: this one started
             t0 = time.monotonic()
             argv = shlex.split(tool.cmd.format(target=str(checkout_path), rules=rules_dir(),
-                                               phpstubs=php_stubs_arg()))
+                                               phpstubs=php_stubs_arg(), psalmcfg=_psalmcfg))
             resolved = resolve_binary(argv[0])           # use the venv/PATH-resolved path
             if resolved:
                 argv[0] = resolved

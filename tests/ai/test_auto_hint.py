@@ -56,12 +56,13 @@ def test_auto_hint_for_end_to_end(tmp_path: Path):
     assert hint and "nonce" in hint
 
 
-def test_php_stubs_arg(monkeypatch, tmp_path: Path):
-    from aegis.ai.tool_bridge import php_stubs_arg
+def test_psalm_config_generates_xml(monkeypatch, tmp_path: Path):
+    from aegis.ai.tool_bridge import psalm_config
     monkeypatch.delenv("AEGIS_PHP_STUBS", raising=False)
-    assert php_stubs_arg() == ""
+    cfg = psalm_config(str(tmp_path))
+    txt = Path(cfg).read_text(encoding="utf-8")
+    assert "<psalm" in txt and "projectFiles" in txt and "<stubs>" not in txt   # no stubs -> none
     stub = tmp_path / "wp.php"; stub.write_text("<?php", encoding="utf-8")
     monkeypatch.setenv("AEGIS_PHP_STUBS", str(stub))
-    assert php_stubs_arg() == f"--stubs={stub}"
-    monkeypatch.setenv("AEGIS_PHP_STUBS", "/nonexistent/x.php")
-    assert php_stubs_arg() == ""       # missing file -> no-op
+    txt2 = Path(psalm_config(str(tmp_path))).read_text(encoding="utf-8")
+    assert "<stubs>" in txt2 and "wp.php" in txt2         # stubs configured in XML, not CLI

@@ -241,9 +241,10 @@ TOOLS: tuple[Tool, ...] = (
     Tool("grype", "grype", ("deps",),
          "grype dir:{target} -o json", "Apache-2.0 (~8k*)", _parse_grype),
     Tool("psalm", "psalm", ("code",),
-         # {phpstubs} injects --stubs=<wordpress-stubs> when AEGIS_PHP_STUBS is set, so taint
-         # analysis resolves wp_*/$wpdb; empty (no-op) otherwise.
-         "psalm --taint-analysis --output-format=json --no-progress {phpstubs} {target}",
+         # {psalmcfg} is a per-scan psalm.xml (projectFiles=target + WordPress stubs). Stubs
+         # must be configured in XML, NOT via a --stubs flag (which psalm rejects, so it used
+         # to bail in 0.1s and never run).
+         "psalm --config={psalmcfg} --taint-analysis --output-format=json --no-progress",
          "MIT (~5k*)", _parse_psalm),
     Tool("mythril", "myth", ("contract",),
          "myth analyze {target} -o json", "MIT (~4k*)", _parse_mythril),
