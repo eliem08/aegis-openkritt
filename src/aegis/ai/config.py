@@ -51,6 +51,7 @@ class DeepSeekConfig:
     api_key: str
     base_url: str = DEFAULT_BASE_URL
     model: str = DEFAULT_MODEL
+    provider: str = "deepseek"    # "deepseek" (native, sends thinking) | "openrouter" (OpenAI-compat)
     connect_timeout: float = 10.0
     read_timeout: float = 60.0
     max_tokens: int = 4096
@@ -66,6 +67,9 @@ class DeepSeekConfig:
         self.model = str(self.model or "").strip()
         self.thinking = str(self.thinking or "").strip().lower()
         self.reasoning_effort = str(self.reasoning_effort or "").strip().lower()
+        self.provider = str(self.provider or "deepseek").strip().lower()
+        if self.provider not in {"deepseek", "openrouter"}:
+            raise DeepSeekConfigError("provider must be 'deepseek' or 'openrouter'")
 
         parsed = urlsplit(self.base_url)
         if parsed.scheme not in {"http", "https"} or not parsed.hostname:
@@ -106,9 +110,31 @@ class DeepSeekConfig:
     @classmethod
     def from_env(cls, env: dict | None = None) -> "DeepSeekConfig":
         env = env if env is not None else os.environ
+        # Provider resolution: DeepSeek is primary. Fall back to OpenRouter (OpenAI-compatible)
+        # when DeepSeek has no key, or when AEGIS_LLM_PROVIDER=openrouter forces it — lets the
+        # 24/7 hunt keep running on OpenRouter credits if DeepSeek is unset or rate-limited.
+        forced = str(env.get("AEGIS_LLM_PROVIDER", "")).strip().lower()
         key = str(env.get("DEEPSEEK_API_KEY", "")).strip()
+        or_key = str(env.get("OPENROUTER_API_KEY", "")).strip()
+        use_openrouter = forced == "openrouter" or (not key and or_key)
+        if use_openrouter:
+            if not or_key:
+                raise DeepSeekAuthError("AEGIS_LLM_PROVIDER=openrouter but OPENROUTER_API_KEY is unset")
+            return cls(
+                api_key=or_key,
+                base_url=env.get("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1"),
+                model=env.get("OPENROUTER_MODEL", "deepseek/deepseek-chat"),
+                provider="openrouter",
+                thinking="disabled",   # OpenRouter's OpenAI-compat API rejects DeepSeek's thinking field
+                connect_timeout=_number(env, "DEEPSEEK_CONNECT_TIMEOUT", 10.0),
+                read_timeout=_number(env, "DEEPSEEK_READ_TIMEOUT", 60.0),
+                max_tokens=_integer(env, "DEEPSEEK_MAX_TOKENS", 4096),
+                temperature=_number(env, "DEEPSEEK_TEMPERATURE", 0.2),
+                max_retries=_integer(env, "DEEPSEEK_MAX_RETRIES", 3),
+                retry_backoff=_number(env, "DEEPSEEK_RETRY_BACKOFF", 0.75),
+            )
         if not key:
-            raise DeepSeekAuthError("set DEEPSEEK_API_KEY in the environment")
+            raise DeepSeekAuthError("set DEEPSEEK_API_KEY (or OPENROUTER_API_KEY) in the environment")
         return cls(
             api_key=key,
             base_url=env.get("DEEPSEEK_BASE_URL", DEFAULT_BASE_URL),

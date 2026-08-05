@@ -63,9 +63,12 @@ class DeepSeekClient:
             "messages": messages,
             "stream": False,
             "max_tokens": self._config.max_tokens if max_tokens is None else max_tokens,
-            "thinking": {"type": self._config.thinking},
         }
-        if self._config.thinking == "enabled":
+        # DeepSeek's native API takes a `thinking` field; OpenRouter's OpenAI-compat API
+        # rejects it. Only send DeepSeek-specific params to the DeepSeek provider.
+        if self._config.provider == "deepseek":
+            payload["thinking"] = {"type": self._config.thinking}
+        if self._config.provider == "deepseek" and self._config.thinking == "enabled":
             payload["reasoning_effort"] = self._config.reasoning_effort
         else:
             payload["temperature"] = (

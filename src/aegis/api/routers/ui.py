@@ -225,13 +225,27 @@ def start_autohunt(request: Request, payload=Body(None)) -> dict:
     jobs = getattr(request.app.state, "autohunt_jobs", None)
     if jobs is None:
         jobs = request.app.state.autohunt_jobs = {}
+    continuous = bool(data.get("continuous", False))
+    interval = float(data.get("interval", 30.0))
     job_id = uuid.uuid4().hex[:12]
-    jobs[job_id] = {"id": job_id, "status": "queued", "events": [],
-                    "targets": len(targets), "confirmed_total": 0, "summary": None}
-    threading.Thread(target=_run_autohunt, args=(request.app, job_id, targets, config,
-                                                 str(report_root)),
+    jobs[job_id] = {"id": job_id, "status": "queued", "events": [], "continuous": continuous,
+                    "targets": len(targets), "confirmed_total": 0, "summary": None, "stop": False}
+    threading.Thread(target=_run_autohunt,
+                     args=(request.app, job_id, targets, config, str(report_root)),
+                     kwargs={"continuous": continuous, "interval": interval},
                      daemon=True, name=f"aegis-autohunt-{job_id}").start()
-    return {"job_id": job_id, "status": "queued", "status_url": f"/ui/autohunt/{job_id}"}
+    return {"job_id": job_id, "status": "queued", "continuous": continuous,
+            "status_url": f"/ui/autohunt/{job_id}", "stop_url": f"/ui/autohunt/{job_id}/stop"}
+
+
+@router.post("/ui/autohunt/{job_id}/stop", summary="Signal a continuous hunt to stop after the current target")
+def stop_autohunt(request: Request, job_id: str) -> dict:
+    jobs = getattr(request.app.state, "autohunt_jobs", {})
+    job = jobs.get(job_id)
+    if not job:
+        return {"error": "autohunt job not found"}
+    job["stop"] = True
+    return {"job_id": job_id, "status": "stopping"}
 
 
 @router.get("/ui/autohunt/{job_id}", summary="Autonomous hunt progress + confirmed candidates")
@@ -270,7 +284,10 @@ def hunt_console() -> HTMLResponse:
     return HTMLResponse(_hunt_console_html())
 
 
-def _run_autohunt(app, job_id, targets, config, report_root) -> None:
+def _run_autohunt(app, job_id, targets, config, report_root,
+                  *, continuous: bool = False, interval: float = 30.0) -> None:
+    import time
+
     from aegis.ai.auto_hunt import AutoHunter
     from aegis.ai.auto_hunt_run import make_hunt_fn
 
@@ -279,15 +296,36 @@ def _run_autohunt(app, job_id, targets, config, report_root) -> None:
 
     def on_event(kind, data):
         job["events"].append({"kind": kind, **{k: v for k, v in data.items() if k != "ranked"}})
+        # keep the live log bounded so a 24/7 job doesn't grow without limit
+        if len(job["events"]) > 500:
+            del job["events"][: len(job["events"]) - 500]
         if kind == "hunt_done":
             job["confirmed_total"] = job.get("confirmed_total", 0) + int(data.get("confirmed", 0))
 
     try:
         hunt_fn = make_hunt_fn(report_root=report_root)
-        session = AutoHunter(hunt_fn, config=config, on_event=on_event).run(targets)
-        job["summary"] = session.summary()
-        job["confirmed_total"] = session.confirmed_total
-        job["status"] = "completed"
+        hunter = AutoHunter(hunt_fn, config=config, on_event=on_event)
+        cycle, queue = 0, list(targets)
+        while True:
+            cycle += 1
+            job["cycle"] = cycle
+            on_event("cycle_start", {"cycle": cycle, "queued": len(queue)})
+            session = hunter.run(queue)
+            job["summary"] = session.summary()
+            job["confirmed_total"] = job.get("confirmed_total", 0)
+            if not continuous or job.get("stop"):
+                break
+            # rotate the queue so the next cycle hunts the following chunk (round-robin
+            # over the whole target list), and refresh clones to catch newly-shipped code.
+            step = max(1, config.max_targets)
+            queue = queue[step:] + queue[:step]
+            on_event("cycle_sleep", {"cycle": cycle, "seconds": interval})
+            slept = 0.0
+            while slept < interval and not job.get("stop"):
+                time.sleep(min(2.0, interval - slept)); slept += 2.0
+            if job.get("stop"):
+                break
+        job["status"] = "stopped" if job.get("stop") else "completed"
     except Exception as exc:
         job["status"] = "error"
         job["error"] = f"{type(exc).__name__}: {exc}"[:200]

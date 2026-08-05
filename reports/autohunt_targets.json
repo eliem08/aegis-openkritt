@@ -1,33 +1,41 @@
 [
   {
-    "repository": "matomo-org/matomo",
-    "handle": "matomo",
-    "reward_ceiling": 13000,
-    "findability": 0.7398,
-    "subpath": "plugins",
-    "kind": "repo"
-  },
-  {
-    "repository": "tronprotocol/java-tron",
-    "handle": "tron_dao",
-    "reward_ceiling": 5000,
-    "findability": 0.783,
+    "repository": "mainwp/mainwp",
+    "handle": "mainwp",
+    "reward_ceiling": 2500,
+    "findability": 0.72,
     "subpath": "",
     "kind": "repo"
   },
   {
-    "repository": "slackhq/nebula",
-    "handle": "slack",
-    "reward_ceiling": 5000,
-    "findability": 0.6177,
+    "repository": "mainwp/mainwp-child",
+    "handle": "mainwp",
+    "reward_ceiling": 2000,
+    "findability": 0.7,
     "subpath": "",
     "kind": "repo"
   },
   {
-    "repository": "DopplerHQ/cli",
-    "handle": "doppler",
-    "reward_ceiling": 1000,
-    "findability": 0.8447,
+    "repository": "WordPoints/wordpoints",
+    "handle": "wordpoints",
+    "reward_ceiling": 1500,
+    "findability": 0.66,
+    "subpath": "src",
+    "kind": "repo"
+  },
+  {
+    "repository": "hyperledger/fabric-chaincode-node",
+    "handle": "hyperledger",
+    "reward_ceiling": 3000,
+    "findability": 0.5,
+    "subpath": "",
+    "kind": "repo"
+  },
+  {
+    "repository": "coinbase/cb-mpc",
+    "handle": "coinbase",
+    "reward_ceiling": 50000,
+    "findability": 0.18,
     "subpath": "",
     "kind": "repo"
   },
@@ -35,7 +43,7 @@
     "repository": "discourse/discourse",
     "handle": "discourse",
     "reward_ceiling": 5000,
-    "findability": 0.1193,
+    "findability": 0.28,
     "subpath": "lib",
     "kind": "repo"
   }
