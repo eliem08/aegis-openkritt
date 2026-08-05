@@ -186,6 +186,22 @@ def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = ""):
                 validated = json.loads(report_path.read_text(encoding="utf-8"))
             except Exception:
                 pass
+
+        # guarded local-instance reproduction: if opt-in (AEGIS_ALLOW_REPRO=1) and the repo
+        # ships a docker-compose, bring up a disposable LOCALHOST instance and prove-or-
+        # refute each confirmed finding with a deterministic oracle. Default OFF; never a
+        # third party; any failure degrades to "not attempted".
+        repro_summary = {"attempted": False}
+        if counts.get("confirmed"):
+            try:
+                from .repro_hook import maybe_reproduce, repro_enabled
+                if repro_enabled():
+                    with DeepSeekClient(DeepSeekConfig.from_env(val_env)) as rc_client:
+                        repro_summary = maybe_reproduce(pin_dir, validated, rc_client)
+                    report_path.write_text(json.dumps(validated, indent=2), encoding="utf-8")
+            except Exception as exc:
+                repro_summary = {"attempted": False, "reason": f"{type(exc).__name__}"}
+
         from .economics import estimate
         findings = []
         for row in validated.get("vulnerabilities") or []:
@@ -217,10 +233,15 @@ def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = ""):
                 "trust_model_holds": enr.get("trust_model_holds"),
                 "exploit_practicality": enr.get("exploit_practicality"),
                 "chain_required": enr.get("chain_required"),
-                "remediation": enr.get("remediation")})
+                "remediation": enr.get("remediation"),
+                # local-instance reproduction verdict (reproduced / not_reproduced / None)
+                "reproduction": (row.get("reproduction") or {}).get("verdict"),
+                "repro_summary": (row.get("reproduction") or {}).get("summary")})
 
-        # corroborated findings first (multi-engine agreement), then by expected gain
-        findings.sort(key=lambda f: (-int(f.get("corroboration", 1)),
+        # rank: locally REPRODUCED first (proven exploitable), then multi-engine
+        # corroboration, then expected gain
+        findings.sort(key=lambda f: (0 if f.get("reproduction") == "reproduced" else 1,
+                                     -int(f.get("corroboration", 1)),
                                      -float(f.get("expected_gain", 0) or 0)))
 
         poc_dir = ""
