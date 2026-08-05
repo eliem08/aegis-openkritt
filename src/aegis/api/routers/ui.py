@@ -367,7 +367,8 @@ def _run_autohunt(app, job_id, targets, config, report_root,
     try:
         from aegis.ai.auto_hunt import rank_targets
 
-        hunt_fn = make_hunt_fn(report_root=report_root, hint=getattr(config, "hint", ""))
+        hunt_fn = make_hunt_fn(report_root=report_root, hint=getattr(config, "hint", ""),
+                               on_event=on_event)
         hunter = AutoHunter(hunt_fn, config=config, on_event=on_event)
         # Pre-rank ONCE (saturation-penalized EV), drop everything below min_ev — i.e.
         # the crowded/low-value tail — then walk the least-crowded pool in sequential

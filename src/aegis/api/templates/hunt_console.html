@@ -55,6 +55,30 @@ th{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.04em
 .note{font-size:12px;color:var(--mut)}a{color:var(--acc)}
 .econ{display:flex;gap:16px;flex-wrap:wrap;margin-top:9px;padding-top:9px;border-top:1px solid var(--line);font-size:12px;color:var(--mut)}
 .econ b{color:var(--ok);font-size:14px}.econ .agree{color:var(--acc)}
+/* live status */
+.livehdr{display:flex;align-items:center;gap:10px}
+.stepper{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:12px 0}
+.stp{font-size:11px;padding:4px 11px;border-radius:20px;border:1px solid var(--line);color:var(--mut);background:var(--panel2);transition:all .2s}
+.stp.active{background:var(--warn);color:#161000;border-color:var(--warn);box-shadow:0 0 0 3px color-mix(in srgb,var(--warn) 30%,transparent);font-weight:700}
+.stp.done{background:color-mix(in srgb,var(--ok) 20%,transparent);color:var(--ok);border-color:var(--ok)}
+.fprog{display:flex;align-items:center;gap:12px}.fprog .bar{flex:1}
+.lead{margin-top:12px;padding:11px 14px;border-radius:10px;border-left:3px solid var(--acc);background:color-mix(in srgb,var(--acc) 8%,transparent);font-size:13px}
+.lead b{color:var(--acc)}
+/* engine grid */
+.egrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px}
+.eng{border:1px solid var(--line);border-radius:9px;padding:8px 10px;background:var(--panel2);font-size:12px}
+.eng .en{font-weight:700;display:flex;align-items:center;gap:5px}
+.eng .es{font-size:11px;color:var(--mut);margin-top:3px}
+.eng .dot{width:7px;height:7px;border-radius:50%;background:var(--mut);flex:none}
+.eng.run .dot{background:var(--warn);animation:pulse 1s infinite}
+.eng.done .dot{background:var(--ok)}.eng.hit{border-color:var(--ok)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+/* findings + donut */
+.findwrap{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+.donutbox{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:140px}
+.dlegend{font-size:12px;display:flex;flex-direction:column;gap:3px}
+.dlegend span{display:flex;align-items:center;gap:6px;color:var(--mut)}
+.dlegend i{width:9px;height:9px;border-radius:2px;display:inline-block}
 </style></head>
 <body>
 <div class="top">
@@ -92,6 +116,25 @@ th{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.04em
       <span id="jobinfo" class="note"></span>
     </div>
   </div>
+  <!-- LIVE STATUS: pipeline stepper + per-file progress + self-hint lead -->
+  <div class="panel" id="live" style="display:none;padding:14px 16px;margin-top:16px">
+    <div class="livehdr"><span id="live-phase" class="pill run">idle</span>
+      <span id="live-detail" class="note"></span><span class="grow"></span>
+      <span id="live-target" class="mono note"></span></div>
+    <div class="stepper" id="stepper">
+      <span class="stp" data-p="self-hint">self-hint</span><span class="ar">&rarr;</span>
+      <span class="stp" data-p="analyzing">analyzing</span><span class="ar">&rarr;</span>
+      <span class="stp" data-p="scanning">scanning</span><span class="ar">&rarr;</span>
+      <span class="stp" data-p="validating">validating</span><span class="ar">&rarr;</span>
+      <span class="stp" data-p="poc">PoC</span>
+    </div>
+    <div class="fprog"><div class="bar" style="height:9px"><i id="fbar" style="width:0%"></i></div>
+      <span id="fmeta" class="note mono"></span></div>
+    <div id="lead" class="lead" style="display:none"></div>
+  </div>
+  <h2>Engines <span class="note">(the whole arsenal, live)</span></h2>
+  <div class="panel" style="padding:12px 16px"><div class="egrid" id="egrid">
+    <div class="empty" style="padding:10px">engines light up when a hunt runs</div></div></div>
   <h2>EV-ranked target queue</h2>
   <div class="panel"><table><thead><tr>
     <th>#</th><th>Target</th><th>Program</th><th>Findability</th><th>Crowding</th><th>Reward</th><th>Expected value</th><th>Status</th>
@@ -99,7 +142,13 @@ th{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.04em
   <h2>Live activity</h2>
   <div class="panel"><div class="log" id="log"><div>waiting to start&hellip;</div></div></div>
   <h2>Confirmed candidates <span class="note">(each needs human reproduction before submission)</span></h2>
-  <div id="findings"><div class="empty">No confirmed candidates yet.</div></div>
+  <div class="findwrap">
+    <div class="donutbox" id="donutbox" style="display:none">
+      <svg id="donut" viewBox="0 0 120 120" width="120" height="120"></svg>
+      <div id="donutlegend" class="dlegend"></div>
+    </div>
+    <div id="findings" style="flex:1"><div class="empty">No confirmed candidates yet.</div></div>
+  </div>
 </div>
 <script>
 const $=id=>document.getElementById(id);
@@ -151,6 +200,31 @@ async function adoptRunning(){
     if(run){logLine('re-attached to running job '+run.job_id);attach(run.job_id,run.continuous);}
   }catch(e){}
 }
+// --- live status: stepper, per-file progress, engine grid, severity donut ---
+const STEPS=['self-hint','analyzing','scanning','validating','poc'];
+let engines={};
+function showLive(){$('live').style.display='';}
+function resetLive(){engines={};$('egrid').innerHTML='';$('fbar').style.width='0%';$('fmeta').textContent='';
+  $('lead').style.display='none';document.querySelectorAll('.stp').forEach(s=>s.className='stp');}
+function setPhase(p,detail){$('live-phase').textContent=p;$('live-detail').textContent=detail||'';
+  const idx=STEPS.indexOf(p);document.querySelectorAll('.stp').forEach(s=>{const si=STEPS.indexOf(s.dataset.p);
+    s.className='stp'+(si<idx?' done':(si===idx?' active':''));});}
+function engine(name,state,count){if(!name)return;
+  engines[name]=engines[name]||{state:'idle',count:0};
+  if(state)engines[name].state=state;if(count!==undefined)engines[name].count=count;renderEngines();}
+function renderEngines(){const g=$('egrid');const keys=Object.keys(engines);if(!keys.length)return;
+  g.innerHTML=keys.map(k=>{const e=engines[k];const cls=e.state==='run'?'run':(e.state==='done'?'done':'');
+    const hit=e.count>0?' hit':'';const st=e.state==='run'?'running&hellip;':(e.state==='done'?(e.count>0?(e.count+' found'):'clean'):'idle');
+    return '<div class="eng '+cls+hit+'"><div class=en><span class=dot></span>'+k+'</div><div class=es>'+st+'</div></div>';}).join('');}
+function renderDonut(fs){const box=$('donutbox');if(!fs||!fs.length){box.style.display='none';return;}box.style.display='';
+  const order=['critical','high','medium','low'],col={critical:'#ff6a6a',high:'#f85149',medium:'#d29922',low:'#8b98a6'};
+  const cnt={};fs.forEach(f=>{const s=(f.severity||'medium').toLowerCase();cnt[s]=(cnt[s]||0)+1;});
+  const total=fs.length,R=48,C=2*Math.PI*R;let off=0,paths='',legend='';
+  order.forEach(s=>{const n=cnt[s]||0;if(!n)return;const len=n/total*C;
+    paths+='<circle cx=60 cy=60 r='+R+' fill=none stroke="'+col[s]+'" stroke-width=15 stroke-dasharray="'+len+' '+(C-len)+'" stroke-dashoffset="'+(-off)+'" transform="rotate(-90 60 60)"/>';
+    off+=len;legend+='<span><i style="background:'+col[s]+'"></i>'+n+' '+s+'</span>';});
+  $('donut').innerHTML=paths+'<text x=60 y=57 text-anchor=middle font-size=22 fill="currentColor" font-weight=800>'+total+'</text><text x=60 y=75 text-anchor=middle font-size=9 fill="#8b98a6">confirmed</text>';
+  $('donutlegend').innerHTML=legend;}
 async function poll(){
   if(!jobId)return;
   const j=await (await fetch('/ui/autohunt/'+jobId)).json();
@@ -169,12 +243,25 @@ async function poll(){
       }
     }
     if(e.kind==='cycle_start'){logLine('<span class=note>cycle '+e.cycle+' &mdash; '+(e.chunk||[]).join(', ')+'</span>');}
+    if(e.kind==='hunt_start'){resetLive();}
+    if(e.kind==='phase'){showLive();setPhase(e.phase,e.detail||'');$('live-target').textContent=e.repository||'';
+      if(e.phase==='analyzing')engine('LLM','run');
+      if(e.phase==='scanning')(e.detail||'').split(', ').forEach(t=>engine(t,'run'));
+      if(e.phase==='validating')engine('LLM','done');}
+    if(e.kind==='hint'){showLive();$('lead').style.display='';
+      $('lead').innerHTML='<b>&#9889; self-hint &middot; '+(e.repository||'')+'</b><br>'+(e.hint||'');
+      logLine('<span class=note>self-hint: '+(e.hint||'')+'</span>');}
+    if(e.kind==='file'){showLive();const pct=e.n?Math.round(e.i/e.n*100):0;
+      $('fbar').style.width=pct+'%';$('fmeta').textContent=e.i+' / '+e.n+' files &middot; '+(e.path||'');engine('LLM','run');}
+    if(e.kind==='hunt_done'&&!e.error){setPhase('poc','done');
+      (e.tools_run||[]).forEach(t=>engine(t.replace('skill:','skill·'),'done'));
+      engine('LLM','done',e.confirmed||0);}
   });
   if(j.summary){
     $('s-hunted').textContent=j.summary.targets_hunted||0;
     let cand=0,findings=[];
     (j.summary.results||[]).forEach(res=>{cand+=(res.confirmed+res.unresolved);(res.findings||[]).forEach(f=>findings.push(Object.assign({},f,{repo:res.repository,handle:res.handle,poc:res.poc_dir})));});
-    $('s-candidates').textContent=cand;renderFindings(findings);
+    $('s-candidates').textContent=cand;renderFindings(findings);renderDonut(findings);
   }
   if(j.cost){const c=j.cost;const cap=c.daily_cap>0?(' / $'+c.daily_cap+' cap'):'';
     $('spend').textContent='$'+(c.day_cost||0).toFixed(2)+' today'+cap+' · '+(c.day_calls||0)+' calls';

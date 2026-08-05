@@ -14,17 +14,19 @@ from pathlib import Path
 from .auto_hunt import HuntOutcome, HuntTarget
 
 
-def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = ""):
+def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = "", on_event=None):
     """A hunt function for AutoHunter that runs the full code-lane pipeline per target.
 
     Reuses clone -> ensemble hunt (retrieval+calibration auto-load) -> citation
     validation -> outcome recording -> PoC scaffold. Contract targets go through the
-    Etherscan source instead of a clone. Never submits."""
+    Etherscan source instead of a clone. Never submits. ``on_event(kind, data)`` (optional)
+    receives live phase/progress events for the dashboard."""
     from .client import DeepSeekClient
     from .config import DeepSeekConfig
     from .repo_hunt import RepoHuntConfig, hunt_repository
 
     root = Path(report_root).resolve()
+    emit = on_event or (lambda *_: None)
 
     def hunt_fn(target: HuntTarget, samples: int) -> HuntOutcome:
         env = dict(os.environ)
@@ -82,10 +84,14 @@ def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = ""):
         if not effective_hint and os.environ.get("AEGIS_AUTO_HINT", "").strip() == "1" \
                 and target.kind == "repo":
             try:
+                emit("phase", {"repository": target.repository, "phase": "self-hint",
+                               "detail": "model reading the code for a lead"})
                 from .auto_hint import auto_hint_for
                 with DeepSeekClient(config) as hc:
                     effective_hint = auto_hint_for(scan_root, target.repository, hc,
                                                    subpath=target.subpath)
+                if effective_hint:
+                    emit("hint", {"repository": target.repository, "hint": effective_hint})
             except Exception:
                 effective_hint = ""
 
@@ -100,9 +106,17 @@ def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = ""):
         hunt_config = RepoHuntConfig(max_files=max_files, subpath=target.subpath, samples=samples,
                                      content_scan_pool=100000, operator_hint=effective_hint,
                                      max_per_dir=0 if cover_all else 3)
+        emit("phase", {"repository": target.repository, "phase": "analyzing",
+                       "detail": "LLM ensemble over source files"})
+
+        def _file_progress(index, total, path):
+            emit("file", {"repository": target.repository, "i": index, "n": total,
+                          "path": str(path)})
+
         with source_cm as source, DeepSeekClient(config) as client:
             result = hunt_repository(source, client, target.repository,
-                                     config=hunt_config, pin_dir=pin_dir)
+                                     config=hunt_config, pin_dir=pin_dir,
+                                     progress=_file_progress)
         report = result.report()
 
         # --- full arsenal: fold arm's-length skills + installed OSS scanners into the
@@ -131,6 +145,8 @@ def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = ""):
                 avail += available_tools(ln)
             avail = list({t.name: t for t in avail}.values())
             if avail:
+                emit("phase", {"repository": target.repository, "phase": "scanning",
+                               "detail": ", ".join(sorted(t.name for t in avail))})
                 # bounded per-tool timeout so a slow scanner (e.g. psalm + 163k-line WP
                 # stubs on a whole plugin) can't stall the hunt for many minutes.
                 _stimeout = int(os.environ.get("AEGIS_SCANNER_TIMEOUT", "300") or 300)
@@ -173,6 +189,9 @@ def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = ""):
             return HuntOutcome(target=target, scanner_candidates=scanner_candidates,
                                skill_candidates=skill_candidates, tools_run=tools_run)
 
+        emit("phase", {"repository": target.repository, "phase": "validating",
+                       "detail": f"{len(report.get('vulnerabilities') or [])} candidate(s) "
+                                 "through the citation validator"})
         from .report_validation import validate_deepseek_report
         # Two-model split: DeepSeek did the bulk re-runs (dirty work); the FINAL check
         # runs on a stronger, separately-configured model when AEGIS_VALIDATOR_MODEL /
