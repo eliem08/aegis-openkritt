@@ -122,12 +122,30 @@ def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = ""):
                 avail += available_tools(ln)
             avail = list({t.name: t for t in avail}.values())
             if avail:
-                tresults = ToolBridge().scan(str(scan_root), tools=avail)   # whole repo, not just pinned slices
+                # bounded per-tool timeout so a slow scanner (e.g. psalm + 163k-line WP
+                # stubs on a whole plugin) can't stall the hunt for many minutes.
+                _stimeout = int(os.environ.get("AEGIS_SCANNER_TIMEOUT", "300") or 300)
+                tresults = ToolBridge(timeout=_stimeout).scan(str(scan_root), tools=avail)
                 trows = ToolBridge().findings(tresults)
                 if trows:
                     report.setdefault("vulnerabilities", []).extend(trows)
                 scanner_candidates = len(trows)
                 tools_run += [tr.tool for tr in tresults if getattr(tr, "ran", False)]
+        except Exception:
+            pass
+
+        # arm's-length Strix (autonomous AI pentester) — opt-in (AEGIS_ALLOW_STRIX=1), a
+        # heavyweight engine that runs its own agent + PoC validation on the local source.
+        # Its findings fold in like any other engine and are re-checked by Aegis's validator.
+        try:
+            from .strix_bridge import StrixBridge
+            strix = StrixBridge()
+            if strix.enabled and target.kind == "repo":
+                run_dir = strix.run(scan_root, instruction=effective_hint)
+                xrows = strix.to_findings(run_dir, repository=target.repository)
+                if xrows:
+                    report.setdefault("vulnerabilities", []).extend(xrows)
+                tools_run += ["strix"] if run_dir else []
         except Exception:
             pass
 

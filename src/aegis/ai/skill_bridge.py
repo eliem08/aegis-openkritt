@@ -24,7 +24,13 @@ class SkillBridge:
 
     def __init__(self, runner=None, *, cmd: str | None = None) -> None:
         cmd = cmd if cmd is not None else os.environ.get("AEGIS_SKILL_CMD")
-        self._runner = runner or (make_shell_runner(cmd) if cmd else None)
+        # bound each skill subprocess so a stalled LLM call inside it can't hang the hunt
+        # for the old 1800s default (AEGIS_SKILL_TIMEOUT, default 300s).
+        try:
+            timeout = int(os.environ.get("AEGIS_SKILL_TIMEOUT", "300") or 300)
+        except ValueError:
+            timeout = 300
+        self._runner = runner or (make_shell_runner(cmd, timeout=timeout) if cmd else None)
 
     @property
     def enabled(self) -> bool:
