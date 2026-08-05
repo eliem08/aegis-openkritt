@@ -219,7 +219,11 @@ def make_shell_runner(cmd_template: str, *, timeout: int = 1800, run=None):
     runner_impl = run or _default_run
 
     def runner(skill, target):
-        cmd = cmd_template.format(source=skill.source, target=target, name=skill.name)
+        # {python} -> the current interpreter (venv), shell-quoted so a path with spaces
+        # survives shlex.split. Lets AEGIS_SKILL_CMD stay portable across machines.
+        import sys
+        cmd = cmd_template.format(source=skill.source, target=target, name=skill.name,
+                                  python=shlex.quote(sys.executable))
         return runner_impl(shlex.split(cmd), timeout)
 
     return runner
