@@ -162,7 +162,7 @@ def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = ""):
                 val_env["DEEPSEEK_API_KEY"] = os.environ["AEGIS_VALIDATOR_API_KEY"]
             val_env["DEEPSEEK_THINKING"] = os.environ.get("AEGIS_VALIDATOR_THINKING", "enabled")
         with DeepSeekClient(DeepSeekConfig.from_env(val_env)) as client:
-            validated, model = validate_deepseek_report(report_path, pin_dir, client)
+            validated, model = validate_deepseek_report(report_path, scan_root, client)
         counts = validated["scan"]["validation_counts"]
 
         # reachability gate: a confirmed taint/sink is worthless if no call site can reach
@@ -178,7 +178,7 @@ def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = ""):
                 if v.get("verdict") != "confirmed":
                     continue
                 a = row.get("json_answer") or {}
-                rc = _reach(pin_dir, str(a.get("file_path") or ""), a.get("line") or 0)
+                rc = _reach(scan_root, str(a.get("file_path") or ""), a.get("line") or 0)
                 row["reachability"] = rc
                 if rc.get("verdict") == "arity-mismatch":
                     v["verdict"] = "false_positive"
@@ -218,7 +218,7 @@ def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = ""):
                 from .repro_hook import maybe_reproduce, repro_enabled
                 if repro_enabled():
                     with DeepSeekClient(DeepSeekConfig.from_env(val_env)) as rc_client:
-                        repro_summary = maybe_reproduce(pin_dir, validated, rc_client)
+                        repro_summary = maybe_reproduce(scan_root, validated, rc_client)
                     report_path.write_text(json.dumps(validated, indent=2), encoding="utf-8")
             except Exception as exc:
                 repro_summary = {"attempted": False, "reason": f"{type(exc).__name__}"}
@@ -270,7 +270,7 @@ def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = ""):
             from .poc_harness import build_pocs_from_report
             out = root / "poc" / target.repository.replace("/", "__").lower()
             build_pocs_from_report(report_path, out, program_handle=target.handle,
-                                   repo_root=pin_dir)
+                                   repo_root=scan_root)
             poc_dir = str(out)
 
         return HuntOutcome(target=target, confirmed=counts.get("confirmed", 0),

@@ -35,8 +35,12 @@ _EXCLUDED = re.compile(
     # (chia/_tests/...) were previously slipping through and crowding out real code.
     r"(^|/)_*(tests?|specs?)_*(/|$)|"
     r"(^|/)(example|examples|demo|demos|fixtures?|mocks?|benchmarks?|vendor|"
-    r"third_party|node_modules|docs?|\.github|anvil|scripts?)(/|$)|"
-    r"(_test|\.test|\.spec|_generated|\.pb|_pb2|\.t)\.",
+    r"third_party|node_modules|docs?|\.github|anvil|scripts?|"
+    # client-side/generated bundles: almost never the server-side attack surface, and
+    # they crowd out the real handlers (e.g. a WordPress plugin's assets/js/* libraries).
+    r"assets?|dist|build|static|public/js|bower_components|jquery|bootstrap)(/|$)|"
+    r"(_test|\.test|\.spec|_generated|\.pb|_pb2|\.t)\.|"
+    r"[.-]min\.(js|css)$|\.bundle\.js$",
     re.IGNORECASE,
 )
 

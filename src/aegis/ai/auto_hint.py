@@ -15,8 +15,20 @@ from __future__ import annotations
 
 from pathlib import Path
 
-_SRC_EXT = {".php", ".rb", ".py", ".js", ".ts", ".go", ".java", ".sol", ".rs"}
-_NOISE = ("/test", "test/", "/vendor/", "node_modules", "/dist/", ".min.", "/spec/")
+import re
+
+# server-side extensions (real attack surface) score above client-side .js/.ts
+_SERVER_EXT = {".php": 4, ".rb": 4, ".py": 4, ".go": 4, ".java": 4, ".rs": 3, ".sol": 4,
+               ".cs": 3, ".ts": 1, ".js": 1}
+_SRC_EXT = set(_SERVER_EXT)
+_NOISE = ("/test", "test/", "/vendor/", "node_modules", "/dist/", "/build/", "/assets/",
+          "/asset/", "/static/", ".min.", "/spec/", "bower_components", "jquery", "bootstrap")
+# request-input + dangerous-sink signals that mark a real handler
+_ATTACK = re.compile(
+    r"\$_(GET|POST|REQUEST|COOKIE|FILES|SERVER)\b|params\[|request\.|req\.(body|query|params)|"
+    r"add_action\(\s*['\"]wp_ajax|register_rest_route|route|controller|->query\(|\$wpdb|"
+    r"exec\(|system\(|shell_exec|unserialize\(|include\s|require\s|file_get_contents|curl_",
+    re.I)
 
 _SYSTEM = (
     "You are an elite application-security auditor doing rapid triage. Your job is to pick "
@@ -48,21 +60,31 @@ def sample_sources(repo_root: str | Path, *, max_files: int = 10, per_file: int 
     root = Path(repo_root) / subpath if subpath else Path(repo_root)
     if not root.is_dir():
         return []
-    out: list[tuple[str, str]] = []
-    for f in sorted(root.rglob("*")):
-        if len(out) >= max_files:
-            break
+    # score every eligible file by attack-surface signal, then take the TOP files — so the
+    # sample is the PHP/server handlers where bugs live, not vendored client-side JS libs.
+    scored: list[tuple[int, str, str]] = []
+    for f in root.rglob("*"):
         if not (f.is_file() and f.suffix.lower() in _SRC_EXT):
             continue
         try:
             rel = str(f.relative_to(root))
         except Exception:
             continue
-        # filter on the path RELATIVE to root (the full path may contain 'test' etc.)
-        if any(n in ("/" + rel.lower().replace("\\", "/")) for n in _NOISE):
+        relpath = "/" + rel.lower().replace("\\", "/")
+        if any(n in relpath for n in _NOISE):
             continue
-        out.append((rel, f.read_text(encoding="utf-8", errors="replace")[:per_file]))
-    return out
+        try:
+            content = f.read_text(encoding="utf-8", errors="replace")
+        except Exception:
+            continue
+        score = _SERVER_EXT.get(f.suffix.lower(), 1)
+        score += min(6, 2 * len(_ATTACK.findall(content[:per_file])))   # request/sink density
+        if any(w in relpath for w in ("admin", "ajax", "api", "route", "controller",
+                                      "handler", "upload", "import", "endpoint")):
+            score += 3
+        scored.append((score, rel, content[:per_file]))
+    scored.sort(key=lambda s: (-s[0], s[1]))
+    return [(rel, content) for _, rel, content in scored[:max_files]]
 
 
 def generate_hint(client, repository: str, sources: list[tuple[str, str]]) -> str:
