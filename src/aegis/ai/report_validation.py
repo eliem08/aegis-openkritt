@@ -69,6 +69,17 @@ def validate_deepseek_report(
                 "verification_test": "",
             }
         else:
+            # caller-tracing: pull in the functions that CALL the flagged code so the
+            # validator can resolve deferred-verification patterns (a helper that omits a
+            # guard is only vulnerable if a CALLER also fails to supply it).
+            try:
+                from .caller_trace import caller_slices
+                extra = caller_slices(repo_root, path, getattr(hypothesis, "line", 1),
+                                      max_callers=4)
+                if extra:
+                    slices = list(slices) + list(extra)
+            except Exception:
+                pass
             try:
                 validation = validator.validate(
                     hypothesis,
@@ -76,7 +87,11 @@ def validate_deepseek_report(
                     policy_notes=(
                         "Pinned source-only validation. Check documented intent, caller and role "
                         "restrictions, signed-message trust, state ordering, inherited guards, and "
-                        "SafeMath before confirming. No live execution or target interaction."
+                        "SafeMath before confirming. Slices whose path starts with 'caller::' show "
+                        "where the flagged function is INVOKED — if the flawed function defers a "
+                        "check to its caller (e.g. 'verify in caller'), it is only a vulnerability "
+                        "when a caller actually fails to supply that guard; confirm by reading "
+                        "these callers, and refute if every caller verifies. No live execution."
                     ),
                 )
                 payload = validation.model_dump(mode="json")
