@@ -99,6 +99,14 @@ def make_hunt_fn(*, report_root: str | Path = "reports"):
         except Exception:
             pass
 
+        # cross-engine corroboration: tag each candidate with how many DISTINCT engines
+        # (llm / scanner:x / skill:y) flagged the same file+line. Agreement is strong signal.
+        try:
+            from .corroboration import corroborate
+            corroborate(report.get("vulnerabilities", []))
+        except Exception:
+            pass
+
         report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
 
         # nothing at all to validate (no LLM hypotheses AND no scanner/skill rows)
@@ -152,11 +160,14 @@ def make_hunt_fn(*, report_root: str | Path = "reports"):
             # provenance: which engine originally proposed this (llm / scanner / skill)
             src = str(row.get("source") or "aegis:llm")
             origin = ("scanner" if ":tool:" in src else "skill" if ":skill:" in src else "llm")
+            corr = row.get("corroboration") or {"count": 1, "engines": []}
             findings.append({
                 "cwe": a.get("vulnerability_type", ""),
                 "location": f"{a.get('file_path','')}:{a.get('line','')}",
                 "summary": (a.get("summary") or "")[:160],
                 "origin": origin, "engine": src.split(":")[-1] if ":" in src else "deepseek",
+                "corroboration": int(corr.get("count", 1)),
+                "corroborated_by": corr.get("engines", []),
                 "severity": est["severity"], "agreement": est["agreement"],
                 "min_bounty": est["min_bounty"], "likely_bounty": est["likely_bounty"],
                 "expected_gain": est["expected_gain"], "vuln_type": est["vuln_type"],
@@ -166,6 +177,10 @@ def make_hunt_fn(*, report_root: str | Path = "reports"):
                 "exploit_practicality": enr.get("exploit_practicality"),
                 "chain_required": enr.get("chain_required"),
                 "remediation": enr.get("remediation")})
+
+        # corroborated findings first (multi-engine agreement), then by expected gain
+        findings.sort(key=lambda f: (-int(f.get("corroboration", 1)),
+                                     -float(f.get("expected_gain", 0) or 0)))
 
         poc_dir = ""
         if counts.get("confirmed"):

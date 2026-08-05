@@ -48,6 +48,7 @@ th{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.04em
 .prov.o-llm{background:color-mix(in srgb,var(--acc) 20%,transparent);color:var(--acc)}
 .prov.o-scan{background:color-mix(in srgb,var(--ok) 20%,transparent);color:var(--ok)}
 .prov.o-skill{background:color-mix(in srgb,var(--warn) 22%,transparent);color:var(--warn)}
+.prov.o-corr{background:var(--acc);color:#04121f}
 .empty{padding:26px;text-align:center;color:var(--mut)}
 .note{font-size:12px;color:var(--mut)}a{color:var(--acc)}
 .econ{display:flex;gap:16px;flex-wrap:wrap;margin-top:9px;padding-top:9px;border-top:1px solid var(--line);font-size:12px;color:var(--mut)}
@@ -194,7 +195,8 @@ function renderFindings(fs){
     const orgcls={llm:'o-llm',scanner:'o-scan',skill:'o-skill'}[org]||'o-llm';
     const orglabel={llm:'LLM',scanner:'SCANNER',skill:'SKILL'}[org]||'LLM';
     const prov='<span class="prov '+orgcls+'" title="found by '+(f.engine||org)+', validated by the LLM">'+orglabel+(f.engine&&f.engine!=='deepseek'?' · '+f.engine:'')+'</span>';
-    d.innerHTML='<div class=h><span class="sev '+sev+'">'+sev+'</span>'+prov+'<b>'+(f.cwe||'finding')+'</b><span class=mono>'+f.repo+'</span>'+(f.handle?'<span class=note>&middot; '+f.handle+'</span>':'')+'</div>'+
+    const corr=(f.corroboration||1)>1?'<span class="prov o-corr" title="'+(f.corroborated_by||[]).join(", ")+'">✦ '+f.corroboration+' ENGINES AGREE</span>':'';
+    d.innerHTML='<div class=h><span class="sev '+sev+'">'+sev+'</span>'+prov+corr+'<b>'+(f.cwe||'finding')+'</b><span class=mono>'+f.repo+'</span>'+(f.handle?'<span class=note>&middot; '+f.handle+'</span>':'')+'</div>'+
       '<div class=mono style="margin-top:6px">'+(f.location||'')+'</div>'+
       '<div style="margin-top:6px">'+(f.summary||'')+'</div>'+money+fix+
       (f.poc?'<div class=note style="margin-top:6px">PoC scaffold: <span class=mono>'+f.poc+'</span></div>':'');
