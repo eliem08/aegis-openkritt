@@ -35,6 +35,10 @@ def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = ""):
         slug = target.repository.replace("/", "_").replace("0x", "contract_0x")
         report_path = root / f"deepseek_{slug}.json"
 
+        # scan_root is where the deterministic scanners + auto-hint read the WHOLE code
+        # (the full clone), vs pin_dir which holds only the LLM's pinned slices. Scanners
+        # are cheap and should see every file, not just the ~10 the LLM sampled.
+        scan_root = None
         if target.kind == "contract":
             from .etherscan_source import EtherscanError, EtherscanSource
             pin_dir = root / "contracts" / target.repository.lower()
@@ -54,6 +58,7 @@ def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = ""):
                     cache_dir=os.environ.get("AEGIS_CLONE_DIR") or root / "clones",
                     token=os.environ.get("GITHUB_TOKEN", ""))
                 source_cm = LocalRepoSource(clone.path, clone.commit)
+                scan_root = clone.path            # full clone for scanners + auto-hint
             except RepoCloneError as exc:
                 return HuntOutcome(target=target, error=str(exc)[:200])
 
@@ -68,6 +73,8 @@ def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = ""):
             except Exception:
                 pass
 
+        scan_root = scan_root or pin_dir          # contracts scan the pinned .sol
+
         # self-hint: if no operator hint was given and AEGIS_AUTO_HINT=1, let the model read
         # a sample of the code and produce its own focused lead (the "small hint" edge,
         # generated automatically) to seed the ensemble. Cheap recon pass; degrades to "".
@@ -77,7 +84,7 @@ def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = ""):
             try:
                 from .auto_hint import auto_hint_for
                 with DeepSeekClient(config) as hc:
-                    effective_hint = auto_hint_for(pin_dir, target.repository, hc,
+                    effective_hint = auto_hint_for(scan_root, target.repository, hc,
                                                    subpath=target.subpath)
             except Exception:
                 effective_hint = ""
@@ -115,7 +122,7 @@ def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = ""):
                 avail += available_tools(ln)
             avail = list({t.name: t for t in avail}.values())
             if avail:
-                tresults = ToolBridge().scan(str(pin_dir), tools=avail)
+                tresults = ToolBridge().scan(str(scan_root), tools=avail)   # whole repo, not just pinned slices
                 trows = ToolBridge().findings(tresults)
                 if trows:
                     report.setdefault("vulnerabilities", []).extend(trows)
