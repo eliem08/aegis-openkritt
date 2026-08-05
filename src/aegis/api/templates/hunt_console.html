@@ -44,6 +44,10 @@ th{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.04em
 .sev{font-size:10px;font-weight:800;padding:2px 7px;border-radius:5px;text-transform:uppercase}
 .sev.critical{background:var(--crit);color:#180404}.sev.high{background:var(--bad);color:#fff}
 .sev.medium{background:var(--warn);color:#161000}.sev.low{background:var(--panel2);color:var(--mut)}
+.prov{font-size:10px;font-weight:800;padding:2px 7px;border-radius:5px;letter-spacing:.03em}
+.prov.o-llm{background:color-mix(in srgb,var(--acc) 20%,transparent);color:var(--acc)}
+.prov.o-scan{background:color-mix(in srgb,var(--ok) 20%,transparent);color:var(--ok)}
+.prov.o-skill{background:color-mix(in srgb,var(--warn) 22%,transparent);color:var(--warn)}
 .empty{padding:26px;text-align:center;color:var(--mut)}
 .note{font-size:12px;color:var(--mut)}a{color:var(--acc)}
 .econ{display:flex;gap:16px;flex-wrap:wrap;margin-top:9px;padding-top:9px;border-top:1px solid var(--line);font-size:12px;color:var(--mut)}
@@ -150,8 +154,15 @@ async function poll(){
     if(e.kind==='hunt_start'){setStatus(e.repository,'b-run','hunting');logLine('<b>'+e.repository+'</b> &mdash; hunting (EV $'+Math.round(e.ev||0)+')&hellip;');}
     if(e.kind==='hunt_done'){
       if(e.error){setStatus(e.repository,'b-err','error');logLine('<b>'+e.repository+'</b> &mdash; error: '+e.error);}
-      else{const c=e.confirmed||0;setStatus(e.repository,c>0?'b-done':'b-q',c>0?(c+' confirmed'):'clean');logLine('<b>'+e.repository+'</b> &mdash; '+(c>0?('✅ '+c+' confirmed'):'0 findings'));}
+      else{
+        const c=e.confirmed||0;setStatus(e.repository,c>0?'b-done':'b-q',c>0?(c+' confirmed'):'clean');
+        const arsenal=(e.tools_run&&e.tools_run.length)?' <span class=note>[arsenal: '+e.tools_run.join(', ')+']</span>':'';
+        const raw=((e.scanner_candidates||0)+(e.skill_candidates||0));
+        const rawtxt=raw?' <span class=note>('+(e.scanner_candidates||0)+' scanner + '+(e.skill_candidates||0)+' skill raw &rarr; validated)</span>':'';
+        logLine('<b>'+e.repository+'</b> &mdash; '+(c>0?('✅ '+c+' confirmed'):'0 confirmed')+rawtxt+arsenal);
+      }
     }
+    if(e.kind==='cycle_start'){logLine('<span class=note>cycle '+e.cycle+' &mdash; '+(e.chunk||[]).join(', ')+'</span>');}
   });
   if(j.summary){
     $('s-hunted').textContent=j.summary.targets_hunted||0;
@@ -179,7 +190,11 @@ function renderFindings(fs){
       (f.exploit_practicality?'<span>'+f.exploit_practicality+(f.chain_required?' · chain':'')+'</span>':'')+
       (f.agreement?'<span class=agree>'+f.agreement+' agreed</span>':'')+'</div>':'';
     const fix=f.remediation?'<div class=note style="margin-top:6px">Fix: '+f.remediation+'</div>':'';
-    d.innerHTML='<div class=h><span class="sev '+sev+'">'+sev+'</span><b>'+(f.cwe||'finding')+'</b><span class=mono>'+f.repo+'</span>'+(f.handle?'<span class=note>&middot; '+f.handle+'</span>':'')+'</div>'+
+    const org=(f.origin||'llm');
+    const orgcls={llm:'o-llm',scanner:'o-scan',skill:'o-skill'}[org]||'o-llm';
+    const orglabel={llm:'LLM',scanner:'SCANNER',skill:'SKILL'}[org]||'LLM';
+    const prov='<span class="prov '+orgcls+'" title="found by '+(f.engine||org)+', validated by the LLM">'+orglabel+(f.engine&&f.engine!=='deepseek'?' · '+f.engine:'')+'</span>';
+    d.innerHTML='<div class=h><span class="sev '+sev+'">'+sev+'</span>'+prov+'<b>'+(f.cwe||'finding')+'</b><span class=mono>'+f.repo+'</span>'+(f.handle?'<span class=note>&middot; '+f.handle+'</span>':'')+'</div>'+
       '<div class=mono style="margin-top:6px">'+(f.location||'')+'</div>'+
       '<div style="margin-top:6px">'+(f.summary||'')+'</div>'+money+fix+
       (f.poc?'<div class=note style="margin-top:6px">PoC scaffold: <span class=mono>'+f.poc+'</span></div>':'');

@@ -43,6 +43,9 @@ class HuntOutcome:
     poc_dir: str = ""
     error: str = ""
     findings: list[dict] = field(default_factory=list)   # confirmed finding summaries
+    scanner_candidates: int = 0   # raw findings folded in from OSS scanners (pre-validation)
+    skill_candidates: int = 0     # raw findings folded in from arm's-length skills
+    tools_run: list[str] = field(default_factory=list)   # which scanners/skills actually ran
 
 
 @dataclass
@@ -97,6 +100,8 @@ class AutoHuntSession:
                 {"repository": o.target.repository, "handle": o.target.handle,
                  "confirmed": o.confirmed, "unresolved": o.unresolved,
                  "rejected": o.rejected, "poc_dir": o.poc_dir, "error": o.error,
+                 "scanner_candidates": o.scanner_candidates,
+                 "skill_candidates": o.skill_candidates, "tools_run": o.tools_run,
                  "findings": o.findings}
                 for o in self.outcomes
             ],
@@ -136,7 +141,10 @@ class AutoHunter:
             session.outcomes.append(outcome)
             self._on_event("hunt_done",
                            {"n": index, "repository": target.repository,
-                            "confirmed": outcome.confirmed, "error": outcome.error})
+                            "confirmed": outcome.confirmed, "error": outcome.error,
+                            "scanner_candidates": outcome.scanner_candidates,
+                            "skill_candidates": outcome.skill_candidates,
+                            "tools_run": outcome.tools_run})
         session.status = "completed"
         self._on_event("completed", session.summary())
         return session

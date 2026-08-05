@@ -62,10 +62,49 @@ def make_hunt_fn(*, report_root: str | Path = "reports"):
         with source_cm as source, DeepSeekClient(config) as client:
             result = hunt_repository(source, client, target.repository,
                                      config=hunt_config, pin_dir=pin_dir)
-        report_path.write_text(json.dumps(result.report(), indent=2), encoding="utf-8")
+        report = result.report()
 
-        if not result.hypotheses:
-            return HuntOutcome(target=target)
+        # --- full arsenal: fold arm's-length skills + installed OSS scanners into the
+        # report BEFORE validation, so their findings run through the SAME citation
+        # validator as the LLM's (mutual cross-check). Each row is tagged with its source
+        # ("aegis:tool:<name>" / "aegis:skill:<name>") for UI provenance. ---
+        scanner_candidates = skill_candidates = 0
+        tools_run: list[str] = []
+        try:
+            from .skill_bridge import SkillBridge
+            sb = SkillBridge()
+            if sb.enabled:
+                runs = sb.run(target.repository, target_kind=target.kind)
+                srows = sb.to_findings(runs, repository=target.repository)
+                if srows:
+                    report.setdefault("vulnerabilities", []).extend(srows)
+                    skill_candidates = len(srows)
+                tools_run += [f"skill:{r.skill}" for r in runs if getattr(r, "ok", False)]
+        except Exception:
+            pass
+        try:
+            from .tool_bridge import ToolBridge, available_tools
+            lanes = ("contract",) if target.kind == "contract" else ("code", "secrets", "deps")
+            avail = []
+            for ln in lanes:
+                avail += available_tools(ln)
+            avail = list({t.name: t for t in avail}.values())
+            if avail:
+                tresults = ToolBridge().scan(str(pin_dir), tools=avail)
+                trows = ToolBridge().findings(tresults)
+                if trows:
+                    report.setdefault("vulnerabilities", []).extend(trows)
+                scanner_candidates = len(trows)
+                tools_run += [tr.tool for tr in tresults if getattr(tr, "ran", False)]
+        except Exception:
+            pass
+
+        report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
+
+        # nothing at all to validate (no LLM hypotheses AND no scanner/skill rows)
+        if not report.get("vulnerabilities"):
+            return HuntOutcome(target=target, scanner_candidates=scanner_candidates,
+                               skill_candidates=skill_candidates, tools_run=tools_run)
 
         from .report_validation import validate_deepseek_report
         # Two-model split: DeepSeek did the bulk re-runs (dirty work); the FINAL check
@@ -110,10 +149,14 @@ def make_hunt_fn(*, report_root: str | Path = "reports"):
                            agreement=int(row.get("agreement", 1) or 1),
                            samples=int(row.get("samples", 1) or 1)).as_dict()
             enr = row.get("enrichment") or {}
+            # provenance: which engine originally proposed this (llm / scanner / skill)
+            src = str(row.get("source") or "aegis:llm")
+            origin = ("scanner" if ":tool:" in src else "skill" if ":skill:" in src else "llm")
             findings.append({
                 "cwe": a.get("vulnerability_type", ""),
                 "location": f"{a.get('file_path','')}:{a.get('line','')}",
                 "summary": (a.get("summary") or "")[:160],
+                "origin": origin, "engine": src.split(":")[-1] if ":" in src else "deepseek",
                 "severity": est["severity"], "agreement": est["agreement"],
                 "min_bounty": est["min_bounty"], "likely_bounty": est["likely_bounty"],
                 "expected_gain": est["expected_gain"], "vuln_type": est["vuln_type"],
@@ -135,7 +178,9 @@ def make_hunt_fn(*, report_root: str | Path = "reports"):
         return HuntOutcome(target=target, confirmed=counts.get("confirmed", 0),
                            unresolved=counts.get("unresolved", 0),
                            rejected=counts.get("false_positive", 0),
-                           poc_dir=poc_dir, findings=findings)
+                           poc_dir=poc_dir, findings=findings,
+                           scanner_candidates=scanner_candidates,
+                           skill_candidates=skill_candidates, tools_run=tools_run)
 
     return hunt_fn
 
