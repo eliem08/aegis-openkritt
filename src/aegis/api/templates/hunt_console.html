@@ -58,6 +58,7 @@ th{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.04em
 <div class="top">
   <div class="logo">open&middot;<b>kritt</b> &middot; Aegis Autonomous Hunt</div>
   <span id="mode" class="pill">idle</span>
+  <span id="spend" class="pill" title="estimated LLM spend today / cumulative">$0 today</span>
   <div class="grow"></div>
   <span class="pill">code + contract lanes &middot; candidates only &middot; never auto-submits</span>
 </div>
@@ -171,6 +172,11 @@ async function poll(){
     (j.summary.results||[]).forEach(res=>{cand+=(res.confirmed+res.unresolved);(res.findings||[]).forEach(f=>findings.push(Object.assign({},f,{repo:res.repository,handle:res.handle,poc:res.poc_dir})));});
     $('s-candidates').textContent=cand;renderFindings(findings);
   }
+  if(j.cost){const c=j.cost;const cap=c.daily_cap>0?(' / $'+c.daily_cap+' cap'):'';
+    $('spend').textContent='$'+(c.day_cost||0).toFixed(2)+' today'+cap+' · '+(c.day_calls||0)+' calls';
+    $('spend').style.color=c.over_budget?'var(--bad)':'';}
+  if(j.status==='running'&&(j.events||[]).some(e=>e.kind==='budget_paused'&&!e._done)){
+    (j.events||[]).forEach(e=>{if(e.kind==='budget_paused'&&!e._done){e._done=true;logLine('<b>⏸ budget cap reached</b> — paused at $'+e.day_cost+' / $'+e.daily_cap+' (resumes at UTC midnight or raise AEGIS_DAILY_BUDGET_USD)');}});}
   if(j.cycle){$('mode').textContent=(continuous?'running 24/7':'running')+' · cycle '+j.cycle;}
   if(j.status==='completed'||j.status==='error'||j.status==='stopped'){
     clearInterval(timer);jobId=null;$('start').disabled=false;$('stop').style.display='none';$('stop').disabled=false;
@@ -203,6 +209,10 @@ function renderFindings(fs){
     box.appendChild(d);
   });
 }
-loadQueue();adoptRunning();
+async function refreshCost(){try{const c=await (await fetch('/ui/cost')).json();
+  if(c&&c.day_cost!==undefined){const cap=c.daily_cap>0?(' / $'+c.daily_cap+' cap'):'';
+    $('spend').textContent='$'+(c.day_cost||0).toFixed(2)+' today'+cap+' · $'+(c.total_cost||0).toFixed(2)+' total';
+    $('spend').style.color=c.over_budget?'var(--bad)':'';}}catch(e){}}
+loadQueue();adoptRunning();refreshCost();setInterval(refreshCost,15000);
 </script>
 </body></html>

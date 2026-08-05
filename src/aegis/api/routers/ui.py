@@ -320,6 +320,19 @@ def briefing() -> HTMLResponse:
     return HTMLResponse(html)
 
 
+def _cost_snapshot() -> dict:
+    try:
+        from aegis.ai.cost import TRACKER
+        return TRACKER.snapshot()
+    except Exception:
+        return {}
+
+
+@router.get("/ui/cost", summary="LLM spend today + cumulative, and the daily cap")
+def cost_snapshot() -> dict:
+    return _cost_snapshot()
+
+
 @router.get("/ui/briefing.md", summary="Morning briefing as raw Markdown")
 def briefing_md() -> "PlainTextResponse":
     import os
@@ -367,8 +380,23 @@ def _run_autohunt(app, job_id, targets, config, report_root,
         cycle = 0
         cum: dict[str, dict] = {}       # cumulative per-target results across cycles
         while True:
+            # budget cap: pause the loop if today's spend hit AEGIS_DAILY_BUDGET_USD
+            try:
+                from aegis.ai.cost import TRACKER
+                if TRACKER.over_budget():
+                    snap = TRACKER.snapshot()
+                    job["cost"] = snap
+                    on_event("budget_paused", {"day_cost": snap["day_cost"],
+                                               "daily_cap": snap["daily_cap"]})
+                    if not continuous or job.get("stop"):
+                        break
+                    time.sleep(min(interval, 60))
+                    continue
+            except Exception:
+                pass
             cycle += 1
             job["cycle"] = cycle
+            job["cost"] = _cost_snapshot()
             chunk = [pool[(offset + i) % len(pool)] for i in range(min(step, len(pool)))]
             on_event("cycle_start", {"cycle": cycle, "chunk": [t.repository for t in chunk],
                                      "pool": len(pool)})

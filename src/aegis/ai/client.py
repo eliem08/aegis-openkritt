@@ -139,6 +139,12 @@ class DeepSeekClient:
             for key, value in (raw_usage or {}).items()
             if key in _USAGE_KEYS and isinstance(value, (int, float)) and not isinstance(value, bool)
         }
+        # aggregate spend for the budget tracker (best-effort; never breaks a call)
+        try:
+            from .cost import TRACKER
+            TRACKER.record(usage)
+        except Exception:
+            pass
         return DeepSeekCompletion(
             content=content,
             model=str(body.get("model") or self._config.model),
