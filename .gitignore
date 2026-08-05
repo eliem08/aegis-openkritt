@@ -35,5 +35,24 @@ secrets/
 backups/
 drill-reports/
 
+# Ephemeral hunt artifacts — full target clones (gigabytes), per-scan outputs, PoC
+# scaffolds, briefings. Keep the curated inputs below tracked (see the ! re-includes).
+reports/clones/
+reports/repos/
+reports/contracts/
+reports/poc/
+reports/deepseek_*.json
+reports/deepseek_*.html
+reports/briefing.md
+reports/batch_hunt_summary.json
+reports/code_contract_open.json
+reports/web_scope_audit.json
+reports/fresh_watch_state.json
+# …but DO keep the intentional, curated data files:
+!reports/autohunt_targets.json
+!reports/autohunt_targets_full.json
+!reports/*_corpus*.jsonl
+!reports/contract_corpus_0xsimao.jsonl
+
 # learning-loop store
 aegis-learn.db
