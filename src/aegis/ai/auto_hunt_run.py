@@ -57,6 +57,17 @@ def make_hunt_fn(*, report_root: str | Path = "reports"):
             except RepoCloneError as exc:
                 return HuntOutcome(target=target, error=str(exc)[:200])
 
+            # scope gate: skip retired/archived/demo repos before spending any budget —
+            # no program pays for known issues in code its own README says not to use.
+            try:
+                from .repo_status import retirement_status
+                st = retirement_status(clone.path)
+                if st["retired"]:
+                    return HuntOutcome(target=target,
+                                       error=f"skipped (out of scope): {st['reason']}"[:200])
+            except Exception:
+                pass
+
         hunt_config = RepoHuntConfig(max_files=10, subpath=target.subpath, samples=samples,
                                      content_scan_pool=3000)
         with source_cm as source, DeepSeekClient(config) as client:
