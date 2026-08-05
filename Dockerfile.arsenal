@@ -44,8 +44,12 @@ RUN pip install mythril solc-select && solc-select install 0.8.24 && solc-select
 # kill the whole build, and Docker's layer cache re-runs only the tool that failed. The
 # self-check at the end reports which of the 14 actually resolved.
 ENV COMPOSER_ALLOW_SUPERUSER=1 COMPOSER_PROCESS_TIMEOUT=900
-RUN for i in 1 2 3; do composer global require --no-interaction vimeo/psalm && break || sleep 5; done \
+# Psalm + WordPress stubs so taint analysis resolves wp_*/$wpdb and traces through them
+# (psalm on a WP plugin is near-blind without these). AEGIS_PHP_STUBS is injected into the
+# psalm command when the file exists.
+RUN for i in 1 2 3; do composer global require --no-interaction vimeo/psalm php-stubs/wordpress-stubs && break || sleep 5; done \
     || echo "psalm skipped"
+ENV AEGIS_PHP_STUBS=/root/.composer/vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
 RUN gem install --no-document brakeman || echo "brakeman skipped"
 RUN npm install -g retire || echo "retire.js skipped"
 

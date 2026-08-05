@@ -52,6 +52,14 @@ def rules_dir() -> str:
     return str(Path(__file__).parent / "rules")
 
 
+def php_stubs_arg() -> str:
+    """`--stubs=<wordpress-stubs>` when AEGIS_PHP_STUBS points at an existing file, so
+    psalm can trace taint through WordPress functions; empty (no-op) otherwise."""
+    import os
+    p = os.environ.get("AEGIS_PHP_STUBS", "").strip()
+    return f"--stubs={p}" if p and os.path.isfile(p) else ""
+
+
 def _scanner_env() -> dict:
     """Env for scanner subprocesses: redirect HOME/cache to a writable temp dir so a tool
     like Semgrep never collides with a stray ~/.cache file, and works in air-gapped runs."""
@@ -85,7 +93,8 @@ class ToolBridge:
         chosen = tools if tools is not None else available_tools(lane)
         results: list[ToolResult] = []
         for tool in chosen:
-            argv = shlex.split(tool.cmd.format(target=str(checkout_path), rules=rules_dir()))
+            argv = shlex.split(tool.cmd.format(target=str(checkout_path), rules=rules_dir(),
+                                               phpstubs=php_stubs_arg()))
             resolved = resolve_binary(argv[0])           # use the venv/PATH-resolved path
             if resolved:
                 argv[0] = resolved

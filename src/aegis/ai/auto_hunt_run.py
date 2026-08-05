@@ -68,8 +68,22 @@ def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = ""):
             except Exception:
                 pass
 
+        # self-hint: if no operator hint was given and AEGIS_AUTO_HINT=1, let the model read
+        # a sample of the code and produce its own focused lead (the "small hint" edge,
+        # generated automatically) to seed the ensemble. Cheap recon pass; degrades to "".
+        effective_hint = hint
+        if not effective_hint and os.environ.get("AEGIS_AUTO_HINT", "").strip() == "1" \
+                and target.kind == "repo":
+            try:
+                from .auto_hint import auto_hint_for
+                with DeepSeekClient(config) as hc:
+                    effective_hint = auto_hint_for(pin_dir, target.repository, hc,
+                                                   subpath=target.subpath)
+            except Exception:
+                effective_hint = ""
+
         hunt_config = RepoHuntConfig(max_files=10, subpath=target.subpath, samples=samples,
-                                     content_scan_pool=3000, operator_hint=hint)
+                                     content_scan_pool=3000, operator_hint=effective_hint)
         with source_cm as source, DeepSeekClient(config) as client:
             result = hunt_repository(source, client, target.repository,
                                      config=hunt_config, pin_dir=pin_dir)

@@ -241,7 +241,9 @@ TOOLS: tuple[Tool, ...] = (
     Tool("grype", "grype", ("deps",),
          "grype dir:{target} -o json", "Apache-2.0 (~8k*)", _parse_grype),
     Tool("psalm", "psalm", ("code",),
-         "psalm --taint-analysis --output-format=json --no-progress {target}",
+         # {phpstubs} injects --stubs=<wordpress-stubs> when AEGIS_PHP_STUBS is set, so taint
+         # analysis resolves wp_*/$wpdb; empty (no-op) otherwise.
+         "psalm --taint-analysis --output-format=json --no-progress {phpstubs} {target}",
          "MIT (~5k*)", _parse_psalm),
     Tool("mythril", "myth", ("contract",),
          "myth analyze {target} -o json", "MIT (~4k*)", _parse_mythril),
