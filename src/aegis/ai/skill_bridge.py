@@ -31,7 +31,14 @@ class SkillBridge:
         return self._runner is not None
 
     def skills_for(self, target_kind: str) -> list[Skill]:
-        return recommend(target_kind)
+        """Recommended skills, capped by AEGIS_SKILL_MAX (default 3) so a per-target hunt
+        doesn't fan out into dozens of LLM calls. 0 or negative => no cap."""
+        skills = recommend(target_kind)
+        try:
+            cap = int(os.environ.get("AEGIS_SKILL_MAX", "3"))
+        except ValueError:
+            cap = 3
+        return skills[:cap] if cap > 0 else skills
 
     def run(self, target: str, *, target_kind: str = "repo") -> list[SkillRun]:
         if not self.enabled:
