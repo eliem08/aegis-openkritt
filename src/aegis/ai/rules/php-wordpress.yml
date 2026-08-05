@@ -1,0 +1,132 @@
+# Aegis-native offline Semgrep rules — PHP / WordPress high-value bug classes.
+# Bundled so Semgrep works WITHOUT its registry (which is unreachable in offline/air-gapped
+# runs). Original rules focused on the classes that actually pay in the WP/PHP ecosystem:
+# access-control-adjacent injection, XSS, LFI/RFI, command injection, object injection, SSRF.
+rules:
+  - id: aegis-php-sqli-wpdb-no-prepare
+    languages: [php]
+    severity: ERROR
+    message: >
+      Possible SQL injection: a request value is interpolated into a $wpdb query without
+      $wpdb->prepare(). Use $wpdb->prepare() with placeholders.
+    metadata: {cwe: "CWE-89", class: sql-injection}
+    patterns:
+      - pattern-either:
+          - pattern: $WPDB->query("...$X...")
+          - pattern: $WPDB->get_results("...$X...")
+          - pattern: $WPDB->get_var("...$X...")
+          - pattern: $WPDB->get_row("...$X...")
+          - pattern: $WPDB->get_col("...$X...")
+      - metavariable-pattern:
+          metavariable: $X
+          patterns:
+            - pattern-either:
+                - pattern: $_GET
+                - pattern: $_POST
+                - pattern: $_REQUEST
+                - pattern: $_COOKIE
+
+  - id: aegis-php-sqli-raw-query-concat
+    languages: [php]
+    severity: ERROR
+    message: "Possible SQL injection: request data concatenated into a raw SQL call."
+    metadata: {cwe: "CWE-89", class: sql-injection}
+    patterns:
+      - pattern-either:
+          - pattern: mysqli_query($CONN, "...$X...")
+          - pattern: mysql_query("...$X...")
+          - pattern: $PDO->query("...$X...")
+      - metavariable-pattern:
+          metavariable: $X
+          patterns:
+            - pattern-either:
+                - pattern: $_GET
+                - pattern: $_POST
+                - pattern: $_REQUEST
+
+  - id: aegis-php-reflected-xss-echo-request
+    languages: [php]
+    severity: ERROR
+    message: >
+      Reflected XSS: a request value is echoed without escaping. Use esc_html()/esc_attr()/
+      wp_kses() (or htmlspecialchars) before output.
+    metadata: {cwe: "CWE-79", class: xss}
+    patterns:
+      - pattern-either:
+          - pattern: echo $_GET[...];
+          - pattern: echo $_POST[...];
+          - pattern: echo $_REQUEST[...];
+          - pattern: echo $_COOKIE[...];
+          - pattern: print $_GET[...];
+          - pattern: print $_REQUEST[...];
+
+  - id: aegis-php-lfi-rfi-user-include
+    languages: [php]
+    severity: ERROR
+    message: >
+      Local/Remote file inclusion: a request value flows into include/require. An attacker
+      can include arbitrary files (or a remote URL if allow_url_include is on).
+    metadata: {cwe: "CWE-98", class: file-inclusion}
+    patterns:
+      - pattern-either:
+          - pattern: include $_GET[...];
+          - pattern: include $_REQUEST[...];
+          - pattern: include_once $_GET[...];
+          - pattern: require $_GET[...];
+          - pattern: require_once $_REQUEST[...];
+          - pattern: include "...$_GET...";
+          - pattern: require "...$_REQUEST...";
+
+  - id: aegis-php-command-injection
+    languages: [php]
+    severity: ERROR
+    message: "Command injection: a request value flows into a shell/exec sink."
+    metadata: {cwe: "CWE-78", class: command-injection}
+    patterns:
+      - pattern-either:
+          - pattern: system($X)
+          - pattern: exec($X)
+          - pattern: shell_exec($X)
+          - pattern: passthru($X)
+          - pattern: popen($X, ...)
+          - pattern: proc_open($X, ...)
+          - pattern: system("...$X...")
+          - pattern: exec("...$X...")
+          - pattern: shell_exec("...$X...")
+      - metavariable-pattern:
+          metavariable: $X
+          patterns:
+            - pattern-either:
+                - pattern: $_GET
+                - pattern: $_POST
+                - pattern: $_REQUEST
+
+  - id: aegis-php-object-injection-unserialize
+    languages: [php]
+    severity: ERROR
+    message: >
+      PHP object injection: unserialize() on request data can instantiate arbitrary objects
+      (gadget chains -> RCE/SQLi/file ops). Use json_decode, or unserialize with allowed_classes=false.
+    metadata: {cwe: "CWE-502", class: deserialization}
+    patterns:
+      - pattern-either:
+          - pattern: unserialize($_GET[...])
+          - pattern: unserialize($_POST[...])
+          - pattern: unserialize($_REQUEST[...])
+          - pattern: unserialize($_COOKIE[...])
+
+  - id: aegis-php-ssrf-remote-user-url
+    languages: [php]
+    severity: WARNING
+    message: >
+      Possible SSRF: a request value is used as a URL for an outbound request. Validate the
+      host against an allowlist and block internal ranges.
+    metadata: {cwe: "CWE-918", class: ssrf}
+    patterns:
+      - pattern-either:
+          - pattern: wp_remote_get($_GET[...], ...)
+          - pattern: wp_remote_get($_REQUEST[...], ...)
+          - pattern: wp_remote_post($_POST[...], ...)
+          - pattern: file_get_contents($_GET[...])
+          - pattern: curl_setopt($CH, CURLOPT_URL, $_GET[...])
+          - pattern: curl_setopt($CH, CURLOPT_URL, $_REQUEST[...])

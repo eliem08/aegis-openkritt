@@ -214,8 +214,10 @@ def _parse_retirejs(data) -> list[dict]:
 
 TOOLS: tuple[Tool, ...] = (
     Tool("semgrep", "semgrep", ("code",),
-         "semgrep --config auto --json --quiet {target}", "LGPL-2.1 (engine)/MIT (rules)",
-         _parse_semgrep),
+         # bundled offline rules ({rules}) so PHP/Ruby/etc. are covered without the registry
+         # (unreachable offline); --timeout caps per-rule time so semgrep-core can't hang.
+         "semgrep --config {rules} --json --quiet --timeout 60 --error {target}",
+         "LGPL-2.1 (engine) / Aegis rules", _parse_semgrep),
     Tool("gitleaks", "gitleaks", ("secrets",),
          "gitleaks detect --source {target} --report-format json --report-path -", "MIT",
          _parse_gitleaks),

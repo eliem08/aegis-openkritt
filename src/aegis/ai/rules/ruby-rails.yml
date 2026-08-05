@@ -1,0 +1,83 @@
+# Aegis-native offline Semgrep rules — Ruby / Rails high-value bug classes.
+# Bundled for offline use (no registry). Focus: SQLi, command injection, unsafe render/eval,
+# open redirect, deserialization — the classes that pay on Rails targets.
+rules:
+  - id: aegis-ruby-sqli-interpolation
+    languages: [ruby]
+    severity: ERROR
+    message: >
+      Possible SQL injection: string interpolation in a query method. Use parameterized
+      queries (where("col = ?", val)) or hash conditions.
+    metadata: {cwe: "CWE-89", class: sql-injection}
+    patterns:
+      - pattern-either:
+          - pattern: $M.where("...#{$X}...")
+          - pattern: $M.find_by_sql("...#{$X}...")
+          - pattern: $M.where("...#{$X}...", ...)
+          - pattern: $M.order("...#{$X}...")
+          - pattern: $M.group("...#{$X}...")
+          - pattern: $M.joins("...#{$X}...")
+          - pattern: $M.pluck("...#{$X}...")
+
+  - id: aegis-ruby-command-injection
+    languages: [ruby]
+    severity: ERROR
+    message: "Command injection: interpolated value into a shell sink."
+    metadata: {cwe: "CWE-78", class: command-injection}
+    patterns:
+      - pattern-either:
+          - pattern: system("...#{$X}...")
+          - pattern: exec("...#{$X}...")
+          - pattern: '`...#{$X}...`'
+          - pattern: IO.popen("...#{$X}...")
+          - pattern: Open3.capture2("...#{$X}...")
+          - pattern: Open3.capture3("...#{$X}...")
+          - pattern: '%x(...#{$X}...)'
+
+  - id: aegis-ruby-unsafe-render-inline
+    languages: [ruby]
+    severity: ERROR
+    message: >
+      Server-side template injection / XSS: user data passed to render inline: is evaluated
+      as ERB. Render a fixed template with locals instead.
+    metadata: {cwe: "CWE-1336", class: ssti}
+    patterns:
+      - pattern-either:
+          - pattern: "render inline: $X"
+          - pattern: "render(inline: $X)"
+          - pattern: 'render inline: "...#{$X}..."'
+
+  - id: aegis-ruby-code-eval
+    languages: [ruby]
+    severity: ERROR
+    message: "Code injection: dynamic eval/send of interpolated input."
+    metadata: {cwe: "CWE-94", class: code-injection}
+    patterns:
+      - pattern-either:
+          - pattern: eval("...#{$X}...")
+          - pattern: instance_eval("...#{$X}...")
+          - pattern: class_eval("...#{$X}...")
+          - pattern: constantize
+
+  - id: aegis-ruby-open-redirect
+    languages: [ruby]
+    severity: WARNING
+    message: >
+      Possible open redirect: redirecting to a request-controlled value. Restrict to a fixed
+      set of paths or use only_path: true.
+    metadata: {cwe: "CWE-601", class: open-redirect}
+    patterns:
+      - pattern-either:
+          - pattern: redirect_to params[...]
+          - pattern: redirect_to params[...][...]
+
+  - id: aegis-ruby-unsafe-deserialization
+    languages: [ruby]
+    severity: ERROR
+    message: "Deserialization: Marshal.load / YAML.load on untrusted data can execute code."
+    metadata: {cwe: "CWE-502", class: deserialization}
+    patterns:
+      - pattern-either:
+          - pattern: Marshal.load($X)
+          - pattern: YAML.load($X)
+          - pattern: Oj.load($X)

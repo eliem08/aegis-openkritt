@@ -46,9 +46,29 @@ def available_tools(lane: str | None = None) -> list[Tool]:
     return [t for t in pool if resolve_binary(t.binary)]
 
 
+def rules_dir() -> str:
+    """Absolute path to the bundled offline Semgrep rules (php/ruby/...)."""
+    from pathlib import Path
+    return str(Path(__file__).parent / "rules")
+
+
+def _scanner_env() -> dict:
+    """Env for scanner subprocesses: redirect HOME/cache to a writable temp dir so a tool
+    like Semgrep never collides with a stray ~/.cache file, and works in air-gapped runs."""
+    import os
+    import tempfile
+    cache = os.path.join(tempfile.gettempdir(), "aegis-scanner-home")
+    os.makedirs(os.path.join(cache, ".cache"), exist_ok=True)
+    env = dict(os.environ)
+    env.update(HOME=cache, XDG_CACHE_HOME=os.path.join(cache, ".cache"),
+               SEMGREP_ENABLE_VERSION_CHECK="0", SEMGREP_SEND_METRICS="off")
+    return env
+
+
 def _default_run(argv, timeout):
     import subprocess
-    p = subprocess.run(argv, capture_output=True, text=True, timeout=timeout, check=False)
+    p = subprocess.run(argv, capture_output=True, text=True, timeout=timeout, check=False,
+                       env=_scanner_env())
     return p.stdout or "", p.stderr or ""
 
 
@@ -65,7 +85,7 @@ class ToolBridge:
         chosen = tools if tools is not None else available_tools(lane)
         results: list[ToolResult] = []
         for tool in chosen:
-            argv = shlex.split(tool.cmd.format(target=str(checkout_path)))
+            argv = shlex.split(tool.cmd.format(target=str(checkout_path), rules=rules_dir()))
             resolved = resolve_binary(argv[0])           # use the venv/PATH-resolved path
             if resolved:
                 argv[0] = resolved

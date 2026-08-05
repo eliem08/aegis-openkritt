@@ -54,12 +54,12 @@ def test_no_gpl_or_agpl_license_text_in_source():
 
 def test_no_bundled_datasets_or_wordlists():
     # The package ships code only — no vendored wordlists/datasets (e.g. Arjun or
-    # Kiterunner data). Anything that is not Python/type-stub or a first-party UI
-    # template is suspect.
+    # Kiterunner data). Anything that is not Python/type-stub, a first-party UI template,
+    # or a first-party Semgrep ruleset (ai/rules/*.yml, Aegis-authored) is suspect.
     data_files = [
         p for p in SRC.rglob("*")
         if p.is_file() and "__pycache__" not in p.parts
-        and p.suffix not in (".py", ".pyi", ".typed", ".html")
+        and p.suffix not in (".py", ".pyi", ".typed", ".html", ".yml", ".yaml")
     ]
     assert data_files == [], f"unexpected non-code files bundled: {data_files}"
 

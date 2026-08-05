@@ -1,0 +1,65 @@
+# Aegis FULL-ARSENAL image — every scanner + language runtime, on Linux where they all work.
+#
+# The Windows dev box can't run a PHP runtime or semgrep-core reliably; this container is the
+# reproducible env where the WHOLE deterministic arsenal runs: semgrep (with the bundled
+# offline rules), PHP+psalm, Ruby+brakeman, Go+gosec+osv-scanner, node+retire.js, plus the
+# Python scanners. (The lean control-plane image is the default ./Dockerfile.)
+#
+#   docker build -f Dockerfile.arsenal -t aegis-arsenal .
+#   docker run --rm -it --env-file .env -p 8000:8000 aegis-arsenal      # dashboard :8000
+#   docker run --rm --env-file .env aegis-arsenal \
+#       python -m aegis.ai.hunt_repo owner/repo --files 12 --samples 3
+#
+FROM python:3.12-slim-bookworm
+
+ENV PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    AEGIS_HOST=0.0.0.0 \
+    AEGIS_PORT=8000 \
+    PATH="/root/.composer/vendor/bin:/root/go/bin:/usr/local/go/bin:${PATH}" \
+    AEGIS_SKILLS_DIR=/root/.aegis/skills \
+    AEGIS_SKILL_CMD="{python} -m aegis.ai.skill_runner --skill {source} --target {target}"
+
+# --- OS packages: language runtimes for the language-specific scanners ---
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      git curl ca-certificates unzip \
+      php-cli php-xml php-mbstring composer \
+      ruby-full \
+      nodejs npm \
+      golang-go \
+    && rm -rf /var/lib/apt/lists/*
+
+# --- Python scanners (semgrep, bandit, njsscan, slither, checkov, detect-secrets) ---
+RUN pip install --upgrade pip && \
+    pip install semgrep bandit njsscan slither-analyzer detect-secrets checkov
+
+# --- PHP: Psalm (taint) · Ruby: Brakeman · Node: retire.js · Go: gosec + osv-scanner ---
+RUN composer global require --no-interaction vimeo/psalm || true
+RUN gem install --no-document brakeman || true
+RUN npm install -g retire || true
+RUN go install github.com/securego/gosec/v2/cmd/gosec@latest || true && \
+    go install github.com/google/osv-scanner/cmd/osv-scanner@latest || true
+
+# --- Aegis itself (editable) ---
+WORKDIR /app
+COPY pyproject.toml README.md ./
+COPY src ./src
+RUN pip install -e ".[api]" || pip install -e .
+COPY . .
+
+# clone the arm's-length skill catalog so the prompt-only runner can read their instructions
+# (never executes a skill's own scripts — only reads SKILL.md and runs it via DeepSeek)
+RUN mkdir -p "$AEGIS_SKILLS_DIR" && \
+    for repo in pashov/skills cloudflare/security-audit-skill github/awesome-copilot \
+                trailofbits/skills getsentry/skills NMitchem/SkillScan \
+                dstiliadis/security-review-skill ; do \
+      name=$(echo "$repo" | tr '/' '_') ; \
+      git clone --depth 1 "https://github.com/$repo.git" "$AEGIS_SKILLS_DIR/$name" 2>/dev/null || true ; \
+    done
+
+# report which scanners resolved (non-fatal) so the build log shows the live arsenal
+RUN python -c "from aegis.ai.tool_bridge import available_tools; \
+print('SCANNERS AVAILABLE:', sorted({t.name for ln in ('code','secrets','deps','contract') for t in available_tools(ln)}))" || true
+
+EXPOSE 8000
+CMD ["python", "-m", "aegis.api"]
