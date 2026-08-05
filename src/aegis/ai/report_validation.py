@@ -69,16 +69,25 @@ def validate_deepseek_report(
                 "verification_test": "",
             }
         else:
-            validation = validator.validate(
-                hypothesis,
-                slices,
-                policy_notes=(
-                    "Pinned source-only validation. Check documented intent, caller and role "
-                    "restrictions, signed-message trust, state ordering, inherited guards, and "
-                    "SafeMath before confirming. No live execution or target interaction."
-                ),
-            )
-            payload = validation.model_dump(mode="json")
+            try:
+                validation = validator.validate(
+                    hypothesis,
+                    slices,
+                    policy_notes=(
+                        "Pinned source-only validation. Check documented intent, caller and role "
+                        "restrictions, signed-message trust, state ordering, inherited guards, and "
+                        "SafeMath before confirming. No live execution or target interaction."
+                    ),
+                )
+                payload = validation.model_dump(mode="json")
+            except Exception as exc:
+                # one flaky/oversized validation call must NOT sink the whole report —
+                # mark this row unresolved and keep going.
+                payload = {
+                    "verdict": "unresolved",
+                    "reason": f"validation call failed: {type(exc).__name__}",
+                    "confidence": 0.0, "anchors": [], "verification_test": "",
+                }
         row["validation"] = payload
         row["validation_status"] = payload["verdict"]
         if progress:
