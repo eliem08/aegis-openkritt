@@ -325,6 +325,7 @@ def _run_autohunt(app, job_id, targets, config, report_root,
         job["pool_size"] = len(pool)
         step = max(1, config.max_targets)
         offset = 0
+        cycle = 0
         cum: dict[str, dict] = {}       # cumulative per-target results across cycles
         while True:
             cycle += 1
