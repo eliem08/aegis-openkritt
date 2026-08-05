@@ -69,6 +69,18 @@ Refute (false_positive) findings of these shapes:
     none, and an attacker holding the token would not need CSRF);
   - anything reachable only by an operator, owner, or admin who is trusted by design.
 
+MISSING-CHECK / REPLAY discipline (mandatory before confirming any hypothesis of the
+form "check X is missing", "keyed without dimension Y", "no validation of Z", or any
+replay / cross-domain / cross-tenant / cross-chain claim): read the ENTIRE enclosing
+function and every modifier/inherited guard on the call path, then LIST each require /
+revert / guard that runs BEFORE the cited sink. Ask whether any of them already binds
+the dimension the finding says is unbound — the destination/chain/domain, the tenant or
+owner, the nonce scope, or a field covered by a verified signature/attestation over the
+whole message. If a signature or attestation covers the message, every field inside it
+is bound and cannot be forged. If any earlier guard binds the claimed-missing dimension,
+the verdict is false_positive. Never confirm a "missing check" finding without first
+proving no equivalent check exists earlier in the call path.
+
 Use confirmed only when the supplied code establishes a reachable security failure
 AND the attacker needs nothing they could not obtain. Use false_positive when
 guards, intended semantics, trust boundaries, or unreachable preconditions refute
