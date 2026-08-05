@@ -12,19 +12,15 @@ rules:
     metadata: {cwe: "CWE-89", class: sql-injection}
     patterns:
       - pattern-either:
-          - pattern: $WPDB->query("...$X...")
-          - pattern: $WPDB->get_results("...$X...")
-          - pattern: $WPDB->get_var("...$X...")
-          - pattern: $WPDB->get_row("...$X...")
-          - pattern: $WPDB->get_col("...$X...")
-      - metavariable-pattern:
-          metavariable: $X
-          patterns:
-            - pattern-either:
-                - pattern: $_GET[...]
-                - pattern: $_POST[...]
-                - pattern: $_REQUEST[...]
-                - pattern: $_COOKIE[...]
+          - pattern: $WPDB->query($Q)
+          - pattern: $WPDB->get_results($Q)
+          - pattern: $WPDB->get_var($Q)
+          - pattern: $WPDB->get_row($Q)
+          - pattern: $WPDB->get_col($Q)
+      - metavariable-regex:
+          metavariable: $Q
+          regex: '.*\$_(GET|POST|REQUEST|COOKIE).*'
+      - pattern-not: $WPDB->prepare(...)
 
   - id: aegis-php-sqli-raw-query-concat
     languages: [php]
@@ -33,16 +29,12 @@ rules:
     metadata: {cwe: "CWE-89", class: sql-injection}
     patterns:
       - pattern-either:
-          - pattern: mysqli_query($CONN, "...$X...")
-          - pattern: mysql_query("...$X...")
-          - pattern: $PDO->query("...$X...")
-      - metavariable-pattern:
-          metavariable: $X
-          patterns:
-            - pattern-either:
-                - pattern: $_GET[...]
-                - pattern: $_POST[...]
-                - pattern: $_REQUEST[...]
+          - pattern: mysqli_query($CONN, $Q)
+          - pattern: mysql_query($Q)
+          - pattern: $PDO->query($Q)
+      - metavariable-regex:
+          metavariable: $Q
+          regex: '.*\$_(GET|POST|REQUEST|COOKIE).*'
 
   - id: aegis-php-reflected-xss-echo-request
     languages: [php]

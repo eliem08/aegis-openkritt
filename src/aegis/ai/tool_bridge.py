@@ -111,17 +111,18 @@ def _parse(tool: Tool, stdout: str) -> list[dict]:
     text = (stdout or "").strip()
     if not text:
         return []
-    # tolerate leading banner text before the JSON body
-    for opener in ("{", "["):
-        i = text.find(opener)
-        if i < 0:
-            continue
-        try:
-            data, _ = json.JSONDecoder().raw_decode(text[i:])
-        except json.JSONDecodeError:
-            continue
-        try:
-            return tool.parse(data)
-        except Exception:
-            return []
-    return []
+    # Decode the JSON body, tolerating a leading banner. Start at the EARLIEST opener —
+    # a top-level array output like `[{...}]` (psalm, gitleaks) must decode as the whole
+    # array, not the first inner object (which the old '{'-before-'[' order picked up).
+    positions = [p for p in (text.find("{"), text.find("[")) if p >= 0]
+    if not positions:
+        return []
+    start = min(positions)
+    try:
+        data, _ = json.JSONDecoder().raw_decode(text[start:])
+    except json.JSONDecodeError:
+        return []
+    try:
+        return tool.parse(data)
+    except Exception:
+        return []
