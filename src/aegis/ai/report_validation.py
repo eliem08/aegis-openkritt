@@ -35,7 +35,30 @@ def validate_deepseek_report(
         path = str(answer.get("file_path") or "")
         if progress:
             progress(index - 1, total, path)
-        hypothesis = _hypothesis(row)
+        # A row without a file anchor (some scanner/skill outputs) can't be citation-
+        # validated. Mark it unresolved rather than crashing the whole report's validation.
+        if not path.strip():
+            row["validation"] = {
+                "verdict": "unresolved",
+                "reason": "no source file anchor to validate against",
+                "confidence": 0.0, "anchors": [], "verification_test": "",
+            }
+            row["validation_status"] = "unresolved"
+            if progress:
+                progress(index, total, path)
+            continue
+        try:
+            hypothesis = _hypothesis(row)
+        except Exception as exc:                       # malformed scanner/skill row
+            row["validation"] = {
+                "verdict": "unresolved",
+                "reason": f"row could not be normalized for validation: {type(exc).__name__}",
+                "confidence": 0.0, "anchors": [], "verification_test": "",
+            }
+            row["validation_status"] = "unresolved"
+            if progress:
+                progress(index, total, path)
+            continue
         slices = _context(repo_root, path)
         if not slices:
             payload = {
