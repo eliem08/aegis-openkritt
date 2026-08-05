@@ -312,22 +312,35 @@ def _run_autohunt(app, job_id, targets, config, report_root,
             job["confirmed_total"] = job.get("confirmed_total", 0) + int(data.get("confirmed", 0))
 
     try:
+        from aegis.ai.auto_hunt import rank_targets
+
         hunt_fn = make_hunt_fn(report_root=report_root)
         hunter = AutoHunter(hunt_fn, config=config, on_event=on_event)
-        cycle, queue = 0, list(targets)
+        # Pre-rank ONCE (saturation-penalized EV), drop everything below min_ev — i.e.
+        # the crowded/low-value tail — then walk the least-crowded pool in sequential
+        # chunks across cycles so an overnight run actually covers the whole shortlist
+        # instead of re-hunting the same top targets each cycle.
+        ranked_all = rank_targets(targets, config)
+        pool = [t for t, ev in ranked_all if ev >= config.min_ev] or [t for t, _ in ranked_all]
+        job["pool_size"] = len(pool)
+        step = max(1, config.max_targets)
+        offset = 0
+        cum: dict[str, dict] = {}       # cumulative per-target results across cycles
         while True:
             cycle += 1
             job["cycle"] = cycle
-            on_event("cycle_start", {"cycle": cycle, "queued": len(queue)})
-            session = hunter.run(queue)
-            job["summary"] = session.summary()
-            job["confirmed_total"] = job.get("confirmed_total", 0)
+            chunk = [pool[(offset + i) % len(pool)] for i in range(min(step, len(pool)))]
+            on_event("cycle_start", {"cycle": cycle, "chunk": [t.repository for t in chunk],
+                                     "pool": len(pool)})
+            session = hunter.run(chunk)
+            for res in session.summary().get("results", []):
+                cum[res["repository"]] = res      # latest verdict per target
+            job["summary"] = {"targets_hunted": len(cum), "results": list(cum.values())}
             if not continuous or job.get("stop"):
                 break
-            # rotate the queue so the next cycle hunts the following chunk (round-robin
-            # over the whole target list), and refresh clones to catch newly-shipped code.
-            step = max(1, config.max_targets)
-            queue = queue[step:] + queue[:step]
+            offset = (offset + step) % len(pool)
+            if offset < step:
+                on_event("pool_wrapped", {"cycle": cycle})   # completed a full sweep
             on_event("cycle_sleep", {"cycle": cycle, "seconds": interval})
             slept = 0.0
             while slept < interval and not job.get("stop"):
