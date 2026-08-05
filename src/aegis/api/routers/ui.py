@@ -254,6 +254,15 @@ def autohunt_status(request: Request, job_id: str) -> dict:
     return jobs.get(job_id) or {"error": "autohunt job not found"}
 
 
+@router.get("/ui/autohunt-jobs", summary="List autohunt jobs so the dashboard can re-attach")
+def autohunt_jobs(request: Request) -> dict:
+    jobs = getattr(request.app.state, "autohunt_jobs", {}) or {}
+    return {"jobs": [
+        {"job_id": j.get("id"), "status": j.get("status"), "continuous": j.get("continuous", False),
+         "cycle": j.get("cycle"), "confirmed_total": j.get("confirmed_total", 0)}
+        for j in jobs.values()]}
+
+
 @router.get("/ui/autohunt-targets", summary="Preview the EV-ranked target queue")
 def autohunt_targets(request: Request) -> dict:
     import os
@@ -274,7 +283,7 @@ def autohunt_targets(request: Request) -> dict:
     return {"targets": [
         {"repository": t.repository, "handle": t.handle, "kind": t.kind,
          "reward_ceiling": t.reward_ceiling, "findability": round(t.findability, 3),
-         "subpath": t.subpath, "ev": ev}
+         "saturation": round(t.saturation, 3), "subpath": t.subpath, "ev": ev}
         for t, ev in ranked]}
 
 

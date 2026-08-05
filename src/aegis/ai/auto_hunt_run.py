@@ -174,5 +174,6 @@ def build_targets_from_ranking(ranking_path: str | Path) -> list[HuntTarget]:
             repository=row["repository"], handle=row.get("handle", ""),
             reward_ceiling=float(row.get("reward_ceiling", 0) or 0),
             findability=float(row.get("findability", 0.5) or 0.5),
+            saturation=float(row.get("saturation", 0.0) or 0.0),
             subpath=row.get("subpath", ""), kind=row.get("kind", "repo")))
     return out

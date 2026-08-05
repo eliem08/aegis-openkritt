@@ -76,14 +76,17 @@ th{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.04em
       <label>Max targets<input id="c-max" type="number" value="3" min="1" max="20"></label>
       <label>Agents / file<input id="c-samples" type="number" value="5" min="1" max="12"></label>
       <label>Min EV ($)<input id="c-minev" type="number" value="0" min="0"></label>
+      <label title="Keep hunting, cycling the queue, until you stop it">24/7<input id="c-continuous" type="checkbox" checked></label>
+      <label>Cycle gap (s)<input id="c-interval" type="number" value="120" min="10" max="3600"></label>
       <button class="go" id="start">&#9654; Start autonomous hunt</button>
+      <button class="go" id="stop" style="display:none;background:#c0392b;color:#fff">&#9632; Stop</button>
       <span id="jobinfo" class="note"></span>
     </div>
   </div>
   <h2>EV-ranked target queue</h2>
   <div class="panel"><table><thead><tr>
-    <th>#</th><th>Target</th><th>Program</th><th>Findability</th><th>Reward</th><th>Expected value</th><th>Status</th>
-  </tr></thead><tbody id="queue"><tr><td colspan="7" class="empty">Loading queue&hellip;</td></tr></tbody></table></div>
+    <th>#</th><th>Target</th><th>Program</th><th>Findability</th><th>Crowding</th><th>Reward</th><th>Expected value</th><th>Status</th>
+  </tr></thead><tbody id="queue"><tr><td colspan="8" class="empty">Loading queue&hellip;</td></tr></tbody></table></div>
   <h2>Live activity</h2>
   <div class="panel"><div class="log" id="log"><div>waiting to start&hellip;</div></div></div>
   <h2>Confirmed candidates <span class="note">(each needs human reproduction before submission)</span></h2>
@@ -98,28 +101,46 @@ function logLine(html){const l=$('log');const d=document.createElement('div');d.
 async function loadQueue(){
   const d=await (await fetch('/ui/autohunt-targets')).json();
   const tb=$('queue');tb.innerHTML='';
-  if(!d.targets||!d.targets.length){tb.innerHTML='<tr><td colspan=7 class=empty>'+(d.note||d.error||'no targets')+'</td></tr>';return;}
+  if(!d.targets||!d.targets.length){tb.innerHTML='<tr><td colspan=8 class=empty>'+(d.note||d.error||'no targets')+'</td></tr>';return;}
   $('s-targets').textContent=d.targets.length;
   d.targets.forEach((t,i)=>{
     const tr=document.createElement('tr');
     tr.innerHTML='<td>'+(i+1)+'</td><td class=mono>'+t.repository+(t.subpath?' <span class=note>/'+t.subpath+'</span>':'')+'</td>'+
       '<td>'+(t.handle||'&mdash;')+'</td>'+
       '<td><div class=bar><i style="width:'+Math.round(t.findability*100)+'%"></i></div><span class=note>'+t.findability+'</span></td>'+
+      '<td><span class=note>'+(t.saturation!==undefined?Math.round(t.saturation*100)+'%':'&mdash;')+'</span></td>'+
       '<td>$'+t.reward_ceiling.toLocaleString()+'</td>'+
       '<td><b>$'+Math.round(t.ev).toLocaleString()+'</b></td>'+
       '<td><span class="badge b-q" id="st-'+cssid(t.repository)+'">queued</span></td>';
     tb.appendChild(tr);
   });
 }
+let continuous=false;
+function attach(id,cont){jobId=id;continuous=cont;$('jobinfo').textContent='job '+id+(cont?' · 24/7':'');
+  $('mode').className='pill run';$('mode').textContent=cont?'running 24/7':'running';
+  $('start').disabled=true;$('stop').style.display=cont?'':'none';
+  if(timer)clearInterval(timer);timer=setInterval(poll,2000);poll();}
 $('start').onclick=async()=>{
   $('start').disabled=true;$('log').innerHTML='';$('findings').innerHTML='<div class=empty>Hunting&hellip;</div>';
-  const body={max_targets:+$('c-max').value,samples:+$('c-samples').value,min_ev:+$('c-minev').value};
+  const cont=$('c-continuous').checked;
+  const body={max_targets:+$('c-max').value,samples:+$('c-samples').value,min_ev:+$('c-minev').value,
+              continuous:cont,interval:+$('c-interval').value};
   $('s-agents').textContent=body.samples;$('f-agents').textContent=body.samples+' DeepSeek agents';
   const d=await (await fetch('/ui/autohunt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})).json();
   if(d.error){$('jobinfo').textContent='⚠ '+d.error;$('start').disabled=false;return;}
-  jobId=d.job_id;$('jobinfo').textContent='job '+jobId;$('mode').className='pill run';$('mode').textContent='running';
-  timer=setInterval(poll,2000);poll();
+  attach(d.job_id,cont);
 };
+$('stop').onclick=async()=>{
+  if(!jobId)return;$('stop').disabled=true;
+  await fetch('/ui/autohunt/'+jobId+'/stop',{method:'POST'});
+  logLine('&mdash; stop requested (finishing current target) &mdash;');
+};
+async function adoptRunning(){
+  try{const d=await (await fetch('/ui/autohunt-jobs')).json();
+    const run=(d.jobs||[]).find(j=>j.status==='running');
+    if(run){logLine('re-attached to running job '+run.job_id);attach(run.job_id,run.continuous);}
+  }catch(e){}
+}
 async function poll(){
   if(!jobId)return;
   const j=await (await fetch('/ui/autohunt/'+jobId)).json();
@@ -138,7 +159,10 @@ async function poll(){
     (j.summary.results||[]).forEach(res=>{cand+=(res.confirmed+res.unresolved);(res.findings||[]).forEach(f=>findings.push(Object.assign({},f,{repo:res.repository,handle:res.handle,poc:res.poc_dir})));});
     $('s-candidates').textContent=cand;renderFindings(findings);
   }
-  if(j.status==='completed'||j.status==='error'){clearInterval(timer);$('start').disabled=false;$('mode').className='pill live';$('mode').textContent=j.status;logLine('&mdash; run '+j.status+' &mdash;');}
+  if(j.cycle){$('mode').textContent=(continuous?'running 24/7':'running')+' · cycle '+j.cycle;}
+  if(j.status==='completed'||j.status==='error'||j.status==='stopped'){
+    clearInterval(timer);jobId=null;$('start').disabled=false;$('stop').style.display='none';$('stop').disabled=false;
+    $('mode').className='pill live';$('mode').textContent=j.status;logLine('&mdash; run '+j.status+' &mdash;');}
 }
 function renderFindings(fs){
   const box=$('findings');
@@ -162,6 +186,6 @@ function renderFindings(fs){
     box.appendChild(d);
   });
 }
-loadQueue();
+loadQueue();adoptRunning();
 </script>
 </body></html>

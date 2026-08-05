@@ -29,6 +29,8 @@ class HuntTarget:
     findability: float = 0.5        # 0..1 softness (from saturation.findability)
     subpath: str = ""               # optional focus subtree
     kind: str = "repo"              # "repo" | "contract"
+    saturation: float = 0.0         # 0..1 how picked-over the program is (fame/hunter density);
+    #                                 higher = more competition, discounts EV quadratically
 
 
 @dataclass
@@ -53,11 +55,16 @@ class AutoHuntConfig:
 
 
 def expected_value(target: HuntTarget, config: AutoHuntConfig) -> float:
-    """EV(target) = findability × P(valid) × P(accept) × reward_ceiling.
+    """EV(target) = findability × (1-saturation)² × P(valid) × P(accept) × reward_ceiling.
 
     findability stands in for P(we surface something); the two priors discount to what
-    is actually paid; reward_ceiling scales by the money on offer. Deterministic."""
-    return round(max(0.0, target.findability) * config.p_valid * config.p_accept
+    is actually paid; reward_ceiling scales by the money on offer. The saturation term
+    is the "don't chase the overcrowded stuff" penalty: a famous, heavily-hunted program
+    (saturation→1) is discounted quadratically, so a big reward ceiling can no longer
+    float a target that every top hunter is already on. Deterministic."""
+    crowd = 1.0 - min(1.0, max(0.0, target.saturation))
+    return round(max(0.0, target.findability) * (crowd * crowd)
+                 * config.p_valid * config.p_accept
                  * max(0.0, target.reward_ceiling), 2)
 
 
