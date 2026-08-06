@@ -117,7 +117,9 @@ def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = "", on_even
             pass
         try:
             from .tool_bridge import ToolBridge, available_tools
-            lanes = ("contract",) if target.kind == "contract" else ("code", "secrets", "deps")
+            # repo targets also get the contract lane (slither/mythril) — they only fire on
+            # .sol files, so a Solidity REPO gets real contract analysis, not just semgrep.
+            lanes = ("contract",) if target.kind == "contract" else ("code", "secrets", "deps", "contract")
             avail = []
             for ln in lanes:
                 avail += available_tools(ln)

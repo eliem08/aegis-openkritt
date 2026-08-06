@@ -221,7 +221,7 @@ def start_autohunt(request: Request, payload=Body(None)) -> dict:
         max_targets=int(data.get("max_targets", 3)),
         samples=int(data.get("samples", 3)),
         min_ev=float(data.get("min_ev", 0.0)),
-        hint=str(data.get("hint", "") or "")[:600],
+        hint=str(data.get("hint", "") or "")[:2500],
     )
     jobs = getattr(request.app.state, "autohunt_jobs", None)
     if jobs is None:
