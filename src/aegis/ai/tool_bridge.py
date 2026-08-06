@@ -108,13 +108,14 @@ class ToolBridge:
 
     def scan(self, checkout_path: str, *, lane: str | None = None,
              tools: list[Tool] | None = None, on_event=None) -> list[ToolResult]:
+        import os
         import shlex
         import time
         emit = on_event or (lambda *_: None)
         chosen = tools if tools is not None else available_tools(lane)
         _psalmcfg = psalm_config(str(checkout_path)) if any(t.name == "psalm" for t in chosen) else ""
-        results: list[ToolResult] = []
-        for tool in chosen:
+
+        def _run_one(tool: Tool) -> ToolResult:
             emit("scanner", {"tool": tool.name, "state": "run"})    # live: this one started
             t0 = time.monotonic()
             argv = shlex.split(tool.cmd.format(target=str(checkout_path), rules=rules_dir(),
@@ -127,15 +128,23 @@ class ToolBridge:
             except Exception as exc:
                 emit("scanner", {"tool": tool.name, "state": "done", "count": 0,
                                  "ms": round((time.monotonic() - t0) * 1000), "error": True})
-                results.append(ToolResult(tool=tool.name, ran=False,
-                                          error=f"{type(exc).__name__}: {exc}"[:200]))
-                continue
+                return ToolResult(tool=tool.name, ran=False,
+                                  error=f"{type(exc).__name__}: {exc}"[:200])
             findings = _drop_noise_paths(_parse(tool, stdout))   # skip tests/vendored/minified
             emit("scanner", {"tool": tool.name, "state": "done", "count": len(findings),
                              "ms": round((time.monotonic() - t0) * 1000)})   # live: done + count + timing
-            results.append(ToolResult(tool=tool.name, ran=True, findings=findings,
-                                      error="" if (findings or not stderr) else stderr[:200]))
-        return results
+            return ToolResult(tool=tool.name, ran=True, findings=findings,
+                              error="" if (findings or not stderr) else stderr[:200])
+
+        # scanners are independent external processes, so run them concurrently — the scanning
+        # phase drops from sum-of-runtimes to ~max-single-scanner, so the LLM depth pass starts
+        # much sooner. Bounded (AEGIS_SCANNER_CONCURRENCY, default 4) to spare CPU/memory.
+        workers = max(1, int(os.environ.get("AEGIS_SCANNER_CONCURRENCY", "4") or 4))
+        if workers > 1 and len(chosen) > 1:
+            from concurrent.futures import ThreadPoolExecutor
+            with ThreadPoolExecutor(max_workers=workers) as ex:
+                return list(ex.map(_run_one, chosen))
+        return [_run_one(tool) for tool in chosen]
 
     def findings(self, results: list[ToolResult]) -> list[dict]:
         rows: list[dict] = []
