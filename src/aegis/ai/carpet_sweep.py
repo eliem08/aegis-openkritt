@@ -51,25 +51,9 @@ class Hit:
     message: str
     commit: str = ""
     ts: float = 0.0
-    triage: str = ""            # hostile-triager verdict: pass | downgrade | needs_evidence
-    triage_reason: str = ""
 
     def score(self) -> float:
-        # a triager-confirmed 'pass' outranks an untriaged/needs-evidence hit of equal reward
-        bump = {"pass": 1.6, "downgrade": 1.2, "needs_evidence": 1.0}.get(self.triage, 1.1)
-        return self.reward * (1 + _SEV_RANK.get((self.severity or "").lower(), 1)) * bump
-
-
-def _excerpt(clone_path, rel_file, line, ctx=45) -> str:
-    """The enclosing ~90 lines around a hit — enough for the triager to see adjacent guards
-    (e.g. a jwt.verify right after a jwt.decode, which is what made the juice-shop hit an FP)."""
-    try:
-        lines = (Path(clone_path) / rel_file).read_text(encoding="utf-8",
-                                                         errors="ignore").splitlines()
-        lo, hi = max(0, line - ctx), min(len(lines), line + ctx)
-        return "\n".join(lines[lo:hi])[:8000]
-    except Exception:
-        return ""
+        return self.reward * (1 + _SEV_RANK.get((self.severity or "").lower(), 1))
 
 
 def _fast_tools():
@@ -115,33 +99,9 @@ def _row_to_hit(program, repo, tool_name, commit, row, repo_root="") -> Hit | No
         commit=commit, ts=time.time())
 
 
-def _triage_hits(hits, clone_path, triager) -> list:
-    """Run each raw hit through the hostile-triager, which reads the enclosing code and rejects
-    false positives (a decode guarded by an adjacent verify, a check in dead/non-auth code...).
-    Drops 'reject'; keeps pass/downgrade/needs_evidence with the verdict attached. On any
-    triager error the hit is kept untriaged (never silently lost)."""
-    kept = []
-    for h in hits:
-        src = _excerpt(clone_path, h.file, h.line)
-        row = {"json_answer": {"vulnerability_type": h.cwe, "summary": h.message,
-                               "file_path": h.file, "line": h.line},
-               "severity": h.severity, "location": f"{h.file}:{h.line}"}
-        t = triager.triage(row, scope_text="", source=src)
-        v = t.get("verdict", "unreviewed")
-        if v == "reject":
-            continue                                     # confirmed false positive — drop it
-        h.triage = v if v in ("pass", "downgrade", "needs_evidence") else ""
-        h.triage_reason = str(t.get("reason", ""))[:300]
-        if v == "downgrade":
-            h.severity = t.get("corrected_severity", h.severity)
-        kept.append(h)
-    return kept
-
-
-def sweep_repo(program, repo, *, tools, state, cache_dir, token, timeout, force=False,
-               triager=None):
+def sweep_repo(program, repo, *, tools, state, cache_dir, token, timeout, force=False):
     """Clone (shallow, cached) + run the fast tools on one repo. Returns (hits, skipped).
-    If a triager is given, raw hits are auto-triaged (FPs dropped) before returning."""
+    Raw hits — a human (Claude, then the operator) debugs each one."""
     from .repo_clone import clone_repository
     from .tool_bridge import ToolBridge
     try:
@@ -155,40 +115,21 @@ def sweep_repo(program, repo, *, tools, state, cache_dir, token, timeout, force=
     results = ToolBridge(timeout=timeout).scan(str(clone.path), tools=tools)
     hits = [h for h in (_row_to_hit(program, repo, r.tool, commit, row, str(clone.path))
                         for r in results for row in r.findings) if h]
-    if triager is not None and hits:
-        hits = _triage_hits(hits, str(clone.path), triager)
     state[repo] = {"commit": commit, "ts": time.time(), "hits": len(hits)}
     return hits, False
 
 
-def _open_triager():
-    """Open an LLM-backed hostile-triager if AEGIS_CARPET_TRIAGE is on and a client can be
-    built. Returns (triager, client_cm) — the caller keeps client_cm open during the sweep.
-    (None, None) when triage is off or unavailable (sweep then returns raw hits)."""
-    if os.environ.get("AEGIS_CARPET_TRIAGE", "").strip().lower() not in ("1", "true", "yes"):
-        return None, None
-    try:
-        from .client import DeepSeekClient
-        from .config import DeepSeekConfig
-        from .triager import HostileTriager
-        cm = DeepSeekClient(DeepSeekConfig.from_env())
-        return HostileTriager, cm      # instantiate the triager once the client is entered
-    except Exception:
-        return None, None
-
-
 def sweep_once(programs=None, *, concurrency=None, timeout=None, hits_file=HITS_FILE,
-               state_file=STATE_FILE, on_hit=None, force=False, triager=None) -> dict:
-    """One pass over every in-scope source repo. Persists ranked hits + per-repo state.
-    If AEGIS_CARPET_TRIAGE=1, each raw hit is auto-triaged (FPs dropped) before it's kept."""
-    import contextlib
-
+               state_file=STATE_FILE, on_hit=None, force=False) -> dict:
+    """One pass over every in-scope source repo. Persists ranked RAW hits + per-repo state.
+    Hits are leads — a human (Claude, then the operator) debugs each one."""
     from .registry import load_registry
     programs = programs if programs is not None else load_registry()
     tools = _fast_tools()
     token = os.environ.get("GITHUB_TOKEN", "")
     cache_dir = os.environ.get("AEGIS_CLONE_DIR") or "reports/clones"
-    timeout = timeout or int(os.environ.get("AEGIS_SCANNER_TIMEOUT", "120") or 120)
+    timeout = timeout or int(os.environ.get("AEGIS_CARPET_TIMEOUT")
+                             or os.environ.get("AEGIS_SCANNER_TIMEOUT", "180") or 180)
     workers = concurrency or int(os.environ.get("AEGIS_CARPET_CONCURRENCY", "4") or 4)
     state = _load(state_file, {})
     prior = _load(hits_file, [])
@@ -198,38 +139,32 @@ def sweep_once(programs=None, *, concurrency=None, timeout=None, hits_file=HITS_
     new_hits: list[Hit] = []
     swept = skipped = 0
 
-    with contextlib.ExitStack() as stack:
-        if triager is None:               # not injected by a test — build from env if enabled
-            Trg, cm = _open_triager()
-            if cm is not None:
-                triager = Trg(stack.enter_context(cm))
+    def _work(job):
+        p, repo = job
+        return sweep_repo(p, repo, tools=tools, state=state, cache_dir=cache_dir,
+                          token=token, timeout=timeout, force=force)
 
-        def _work(job):
-            p, repo = job
-            return sweep_repo(p, repo, tools=tools, state=state, cache_dir=cache_dir,
-                              token=token, timeout=timeout, force=force, triager=triager)
-
-        if workers > 1 and len(jobs) > 1:
-            from concurrent.futures import ThreadPoolExecutor, as_completed
-            with ThreadPoolExecutor(max_workers=workers) as ex:
-                futs = [ex.submit(_work, j) for j in jobs]
-                for fut in as_completed(futs):
-                    try:
-                        hits, was_skip = fut.result()
-                    except Exception:
-                        continue
-                    skipped += 1 if was_skip else 0
-                    swept += 0 if was_skip else 1
-                    for h in hits:
-                        new_hits.append(h)
-                        if on_hit:
-                            on_hit(h)
-        else:
-            for j in jobs:
-                hits, was_skip = _work(j)
+    if workers > 1 and len(jobs) > 1:
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        with ThreadPoolExecutor(max_workers=workers) as ex:
+            futs = [ex.submit(_work, j) for j in jobs]
+            for fut in as_completed(futs):
+                try:
+                    hits, was_skip = fut.result()
+                except Exception:
+                    continue
                 skipped += 1 if was_skip else 0
                 swept += 0 if was_skip else 1
-                new_hits.extend(hits)
+                for h in hits:
+                    new_hits.append(h)
+                    if on_hit:
+                        on_hit(h)
+    else:
+        for j in jobs:
+            hits, was_skip = _work(j)
+            skipped += 1 if was_skip else 0
+            swept += 0 if was_skip else 1
+            new_hits.extend(hits)
 
     # merge: dedup by (repo, file, line, cwe); newest hit wins; rank by reward x severity
     merged = {}

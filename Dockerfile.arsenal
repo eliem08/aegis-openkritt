@@ -43,10 +43,7 @@ ENV PYTHONUNBUFFERED=1 \
     # (INTERVAL sec, CONCURRENCY, IMPORT_EVERY cycles). Hits show in the dashboard 'Carpet sweep'.
     AEGIS_AUTOSTART_CARPET=1 \
     AEGIS_CARPET_CONCURRENCY=4 \
-    AEGIS_CARPET_INTERVAL=1800 \
-    # auto-triage each sweep hit through the hostile-triager so the panel shows confirmed
-    # findings, not raw scanner matches (drops FPs like a decode guarded by an adjacent verify).
-    AEGIS_CARPET_TRIAGE=1
+    AEGIS_CARPET_INTERVAL=1800
 
 # --- OS packages: language runtimes for the language-specific scanners ---
 RUN apt-get update && apt-get install -y --no-install-recommends \
