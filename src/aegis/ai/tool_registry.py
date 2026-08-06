@@ -90,10 +90,22 @@ def _parse_slither(data) -> list[dict]:
     return rows
 
 
+# njsscan's low-precision "pattern-only" rules: they fire on a shape (a regex, a ===, a
+# conditional) and ASSUME the input is attacker-controlled. On framework/compiler/library code
+# that assumption is almost always wrong (developer config, compiler source, internal state),
+# so they produce near-pure false positives. Drop them; keep njsscan's real sinks (injection,
+# hardcoded secrets, dangerous APIs).
+_NJSSCAN_NOISE = frozenset({
+    "regex_dos", "node_timing_attack", "node_logic_bypass",
+})
+
+
 def _parse_njsscan(data) -> list[dict]:
     rows = []
     sec = (data or {}).get("nodejs", {}) if isinstance(data, dict) else {}
     for rule, body in sec.items():
+        if rule in _NJSSCAN_NOISE:
+            continue                      # skip pattern-only rules that FP on framework code
         for f in body.get("files", []):
             rows.append(_row("njsscan", rule, f.get("file_path"),
                              (f.get("match_lines") or [0])[0],
