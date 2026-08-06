@@ -1,0 +1,302 @@
+[
+  {
+    "rank": 1,
+    "handle": "kubernetes",
+    "repo": "kubernetes/csi-api",
+    "lang": null,
+    "size": null,
+    "workflow_id": "4",
+    "score": 184.0,
+    "reward_floor": "low"
+  },
+  {
+    "rank": 2,
+    "handle": "hyperledger",
+    "repo": "hyperledger/fabric",
+    "lang": "Go",
+    "size": 157970,
+    "workflow_id": "7",
+    "score": 92.0,
+    "reward_floor": "low"
+  },
+  {
+    "rank": 3,
+    "handle": "circle-bbp",
+    "repo": "circlefin/evm-cctp-contracts",
+    "lang": "Solidity",
+    "size": 1911,
+    "workflow_id": "6",
+    "score": 88.0,
+    "reward_floor": "low"
+  },
+  {
+    "rank": 4,
+    "handle": "owncloud",
+    "repo": "owncloud/core",
+    "lang": "PHP",
+    "size": 358429,
+    "workflow_id": "4",
+    "score": 48.0,
+    "reward_floor": "low"
+  },
+  {
+    "rank": 5,
+    "handle": "paragonie",
+    "repo": "paragonie/sodium_compat",
+    "lang": "PHP",
+    "size": 2144,
+    "workflow_id": "4",
+    "score": 48.0,
+    "reward_floor": "low"
+  },
+  {
+    "rank": 6,
+    "handle": "ibb",
+    "repo": "rubygems/rubygems",
+    "lang": null,
+    "size": null,
+    "workflow_id": "4",
+    "score": 48.0,
+    "reward_floor": "low"
+  },
+  {
+    "rank": 7,
+    "handle": "gsa_bbp",
+    "repo": "18f/federalist-proxy",
+    "lang": null,
+    "size": null,
+    "workflow_id": "4",
+    "score": 40.0,
+    "reward_floor": "low"
+  },
+  {
+    "rank": 8,
+    "handle": "lightspark_bbp",
+    "repo": "lightsparkdev/lightspark-crypto-uniffi",
+    "lang": "Rust",
+    "size": 111307,
+    "workflow_id": "7",
+    "score": 32.0,
+    "reward_floor": "low"
+  },
+  {
+    "rank": 9,
+    "handle": "kiwicom",
+    "repo": "kiwicom/js-iam-middleware",
+    "lang": "TypeScript",
+    "size": 533,
+    "workflow_id": "4",
+    "score": 30.0,
+    "reward_floor": "low"
+  },
+  {
+    "rank": 10,
+    "handle": "oasisprotocol",
+    "repo": "oasisprotocol/oasis-core",
+    "lang": "Go",
+    "size": 34448,
+    "workflow_id": "7",
+    "score": 28.0,
+    "reward_floor": "low"
+  },
+  {
+    "rank": 11,
+    "handle": "toolsforhumanity",
+    "repo": "worldcoin/orb-software",
+    "lang": "Rust",
+    "size": 45072,
+    "workflow_id": "7",
+    "score": 28.0,
+    "reward_floor": "low"
+  },
+  {
+    "rank": 12,
+    "handle": "gitlab",
+    "repo": "gitlab-org/gitlab",
+    "lang": null,
+    "size": null,
+    "workflow_id": "4",
+    "score": 24.0,
+    "reward_floor": "low"
+  },
+  {
+    "rank": 13,
+    "handle": "chia_network",
+    "repo": "Chia-Network/chia-blockchain",
+    "lang": "Python",
+    "size": 92010,
+    "workflow_id": "4",
+    "score": 24.0,
+    "reward_floor": "low"
+  },
+  {
+    "rank": 14,
+    "handle": "plaid",
+    "repo": "plaid/plaid-link-ios",
+    "lang": "Swift",
+    "size": 1442898,
+    "workflow_id": "4",
+    "score": 20.0,
+    "reward_floor": "low"
+  },
+  {
+    "rank": 15,
+    "handle": "chainlink",
+    "repo": "smartcontractkit/staking-v0.1",
+    "lang": "TypeScript",
+    "size": 1121,
+    "workflow_id": "4",
+    "score": 19.0,
+    "reward_floor": "low"
+  },
+  {
+    "rank": 16,
+    "handle": "cosmos",
+    "repo": "cosmos/iavl",
+    "lang": null,
+    "size": null,
+    "workflow_id": "4",
+    "score": 17.0,
+    "reward_floor": "low"
+  },
+  {
+    "rank": 17,
+    "handle": "skale_network",
+    "repo": "skalenetwork/skale-consensus",
+    "lang": null,
+    "size": null,
+    "workflow_id": "4",
+    "score": 16.0,
+    "reward_floor": "low"
+  },
+  {
+    "rank": 18,
+    "handle": "northerntechhq",
+    "repo": "mendersoftware/mender",
+    "lang": null,
+    "size": null,
+    "workflow_id": "4",
+    "score": 11.0,
+    "reward_floor": "low"
+  },
+  {
+    "rank": 19,
+    "handle": "cloudflare",
+    "repo": "cloudflare/workerd",
+    "lang": null,
+    "size": null,
+    "workflow_id": "4",
+    "score": 8.0,
+    "reward_floor": "low"
+  },
+  {
+    "rank": 20,
+    "handle": "irccloud",
+    "repo": "irccloud/ios",
+    "lang": null,
+    "size": null,
+    "workflow_id": "4",
+    "score": 8.0,
+    "reward_floor": "low"
+  },
+  {
+    "rank": 21,
+    "handle": "matomo",
+    "repo": "matomo-org/matomo",
+    "lang": null,
+    "size": null,
+    "workflow_id": "4",
+    "score": 8.0,
+    "reward_floor": "low"
+  },
+  {
+    "rank": 22,
+    "handle": "mainwp",
+    "repo": "mainwp/mainwp",
+    "lang": null,
+    "size": null,
+    "workflow_id": "4",
+    "score": 8.0,
+    "reward_floor": "low"
+  },
+  {
+    "rank": 23,
+    "handle": "agoric",
+    "repo": "endojs/endo",
+    "lang": null,
+    "size": null,
+    "workflow_id": "4",
+    "score": 8.0,
+    "reward_floor": "low"
+  },
+  {
+    "rank": 24,
+    "handle": "slack",
+    "repo": "slackhq/nebula",
+    "lang": null,
+    "size": null,
+    "workflow_id": "4",
+    "score": 4.0,
+    "reward_floor": "low"
+  },
+  {
+    "rank": 25,
+    "handle": "urbandictionary",
+    "repo": "github.com/urbandictionary",
+    "lang": null,
+    "size": null,
+    "workflow_id": "4",
+    "score": 4.0,
+    "reward_floor": "low"
+  },
+  {
+    "rank": 26,
+    "handle": "wordpoints",
+    "repo": "WordPoints/wordpoints",
+    "lang": null,
+    "size": null,
+    "workflow_id": "4",
+    "score": 4.0,
+    "reward_floor": "low"
+  },
+  {
+    "rank": 27,
+    "handle": "cornershop",
+    "repo": "cornershop/*",
+    "lang": null,
+    "size": null,
+    "workflow_id": "4",
+    "score": 4.0,
+    "reward_floor": "low"
+  },
+  {
+    "rank": 28,
+    "handle": "brave",
+    "repo": "brave/*,",
+    "lang": null,
+    "size": null,
+    "workflow_id": "4",
+    "score": 4.0,
+    "reward_floor": "low"
+  },
+  {
+    "rank": 29,
+    "handle": "discourse",
+    "repo": "discourse/discourse",
+    "lang": null,
+    "size": null,
+    "workflow_id": "4",
+    "score": 4.0,
+    "reward_floor": "low"
+  },
+  {
+    "rank": 30,
+    "handle": "nodejs",
+    "repo": "nodejs/node",
+    "lang": null,
+    "size": null,
+    "workflow_id": "4",
+    "score": 4.0,
+    "reward_floor": "low"
+  }
+]

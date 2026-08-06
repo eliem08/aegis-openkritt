@@ -1,0 +1,37 @@
+[
+  {
+    "handle": "kubernetes",
+    "score": 184.0,
+    "top": "critical",
+    "repo": "kubernetes/csi-api",
+    "floor": "low"
+  },
+  {
+    "handle": "hyperledger",
+    "score": 92.0,
+    "top": "critical",
+    "repo": "hyperledger/fabric",
+    "floor": "low"
+  },
+  {
+    "handle": "circle-bbp",
+    "score": 88.0,
+    "top": "critical",
+    "repo": "circlefin/evm-cctp-contracts",
+    "floor": "low"
+  },
+  {
+    "handle": "owncloud",
+    "score": 48.0,
+    "top": "critical",
+    "repo": "owncloud/core",
+    "floor": "low"
+  },
+  {
+    "handle": "paragonie",
+    "score": 48.0,
+    "top": "critical",
+    "repo": "paragonie/sodium_compat",
+    "floor": "low"
+  }
+]

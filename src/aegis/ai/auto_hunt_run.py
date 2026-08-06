@@ -184,6 +184,14 @@ def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = "", on_even
         # handful of files — the real reason coverage was ~10, not max_files.
         from .scope import scope_from_env
         scope_text = scope_from_env()
+        if not scope_text and target.handle:
+            # fall back to the program registry: if this target's program has a stored scope
+            # page, use it — so a run is scoped without needing AEGIS_SCOPE_FILE each time.
+            try:
+                from .registry import scope_text_for
+                scope_text = scope_text_for(target.handle)
+            except Exception:
+                scope_text = ""
         if scope_text:
             emit("phase", {"repository": target.repository, "phase": "scope",
                            "detail": f"program scope loaded ({len(scope_text)} chars) — "
@@ -288,6 +296,42 @@ def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = "", on_even
                     if vd in c:
                         c[vd] += 1
                 counts = validated["scan"]["validation_counts"] = c
+                report_path.write_text(json.dumps(validated, indent=2), encoding="utf-8")
+        except Exception:
+            pass
+
+        # hostile-triager pass (mdp_sec's P10): an adversarial reviewer that tries to REJECT
+        # each still-confirmed finding — scope, attacker position, prerequisites, severity —
+        # and may NOT invent a new angle to save it. A reject demotes the row out of the
+        # confirmed set. What survives this is the only thing worth the operator's time.
+        try:
+            confirmed_now = [r for r in (validated.get("vulnerabilities") or [])
+                             if (r.get("validation") or {}).get("verdict") == "confirmed"]
+            if confirmed_now:
+                from .triager import triage_report
+                emit("phase", {"repository": target.repository, "phase": "triage",
+                               "detail": f"hostile triager reviewing {len(confirmed_now)} "
+                                         "confirmed finding(s)"})
+
+                def _src_for(row):
+                    a = row.get("json_answer") or {}
+                    try:
+                        fp = Path(scan_root) / str(a.get("file_path") or "")
+                        return fp.read_text(encoding="utf-8", errors="ignore")[:8000] \
+                            if fp.is_file() else ""
+                    except Exception:
+                        return ""
+
+                with DeepSeekClient(DeepSeekConfig.from_env(val_env)) as tc:
+                    tsumm = triage_report(validated, tc, scope_text=scope_text,
+                                          source_for=_src_for, on_event=emit)
+                c = {"confirmed": 0, "false_positive": 0, "unresolved": 0}
+                for row in validated.get("vulnerabilities") or []:
+                    vd = (row.get("validation") or {}).get("verdict")
+                    if vd in c:
+                        c[vd] += 1
+                counts = validated["scan"]["validation_counts"] = c
+                validated["scan"]["triage_summary"] = tsumm
                 report_path.write_text(json.dumps(validated, indent=2), encoding="utf-8")
         except Exception:
             pass

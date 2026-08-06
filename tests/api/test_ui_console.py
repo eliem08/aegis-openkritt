@@ -26,6 +26,7 @@ def test_console_page_is_served_self_contained():
     r = _app().get("/ui")
     assert r.status_code == 200 and "text/html" in r.headers["content-type"]
     assert "review console" in r.text
+    assert "automatic code validation" in r.text
     assert "http" not in r.text.split("<style>")[1].split("</style>")[0]  # no external asset URLs in CSS
 
 
@@ -193,3 +194,40 @@ def test_review_degrades_when_backend_configured_but_unreachable():
     r = TestClient(app).get("/ui/review")
     assert r.status_code == 200                              # not a 500
     assert "not reachable" in r.json()["note"]
+
+
+
+def test_latest_deepseek_model_downgrades_example_only_confirmation():
+    from aegis.ai.report_validation import _review_model
+
+    report = {
+        "scan": {"id": "unit"},
+        "vulnerabilities": [{
+            "dedupe_is_canonical": True,
+            "confidence": 0.9,
+            "json_answer": {
+                "vulnerability_type": "CWE-754",
+                "file_path": "src/examples/Wrapper.sol",
+                "line": 12,
+                "summary": "ignored hook failure",
+                "explanation": "hook result is unchecked",
+                "trigger_flow": "owner calls relay",
+                "malicious_input_example": "",
+                "malicious_actor": "untrusted hook",
+                "severity": "high",
+            },
+            "validation": {
+                "verdict": "confirmed",
+                "reason": "exact source quote matched",
+                "confidence": 0.95,
+                "anchors": [],
+                "verification_test": "forge test",
+            },
+        }],
+    }
+
+    model = _review_model(report)
+
+    assert model["totals"]["confirmed"] == 0
+    assert model["totals"]["unresolved"] == 1
+    assert "Example-only source is not report-ready" in model["items"][0]["validation_reason"]

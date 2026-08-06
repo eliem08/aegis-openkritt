@@ -24,15 +24,35 @@ def repro_enabled() -> bool:
     return os.environ.get("AEGIS_ALLOW_REPRO", "").strip() == "1"
 
 
+# Safety primer for file-upload (CWE-434) reproduction: prove code execution on the LOCAL
+# instance with a HARMLESS marker that only echoes a nonce — never a functional webshell,
+# reverse shell, or destructive payload. The oracle is "did the marker echo back", which is
+# sufficient proof of arbitrary-code execution without shipping a weapon.
+_UPLOAD_SIGNS = ("upload", "cwe-434", "file upload", "webshell", "arbitrary file",
+                 "unrestricted file")
+_BENIGN_UPLOAD_NOTE = (
+    "\n\nREPRODUCTION SAFETY (mandatory): this is a file-upload finding. On the local "
+    "instance, upload ONLY a benign marker payload whose entire body is a single echo of a "
+    "unique nonce (e.g. `<?php echo \"AEGIS-REPRO-\".\"<nonce>\"; ?>`). Prove execution by "
+    "confirming the nonce appears in the response when the file is fetched. NEVER upload a "
+    "functional webshell, reverse shell, command runner, or any destructive/persistent "
+    "payload, even to prove impact.")
+
+
 def _hypothesis_from_row(row: dict):
     from .agents.contracts import Hypothesis, VerificationProposal
     a = row.get("json_answer") or {}
+    _blob = (str(a.get("vulnerability_type") or "") + " " + str(a.get("summary") or "") + " "
+             + str(row.get("vuln_type") or "")).lower()
+    _rationale = str(a.get("explanation") or a.get("summary") or "confirmed finding")[:4000]
+    if any(s in _blob for s in _UPLOAD_SIGNS):
+        _rationale = (_rationale + _BENIGN_UPLOAD_NOTE)[:4300]
     return Hypothesis(
         weakness=str(a.get("vulnerability_type") or "finding")[:200],
         title=str(a.get("summary") or a.get("vulnerability_type") or "finding")[:300],
         file_path=str(a.get("file_path") or "unknown")[:500],
         line=int(a.get("line") or 1) or 1,
-        rationale=str(a.get("explanation") or a.get("summary") or "confirmed finding")[:4000],
+        rationale=_rationale,
         confidence=0.9,
         verification=VerificationProposal(method="http",
                                           expected_observation="impact visible in the response"),

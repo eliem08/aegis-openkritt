@@ -1,0 +1,1443 @@
+{
+  "total": 591,
+  "web_only": 439,
+  "code_bounty": [
+    {
+      "handle": "cloudflare",
+      "repos": [
+        [
+          "cloudflare/workerd",
+          "critical"
+        ],
+        [
+          "cloudflare/vinext",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "slack",
+      "repos": [
+        [
+          "slackhq/nebula",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "coinbase",
+      "repos": [
+        [
+          "coinbase/cb-mpc",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "irccloud",
+      "repos": [
+        [
+          "irccloud/ios",
+          "critical"
+        ],
+        [
+          "irccloud/android",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "urbandictionary",
+      "repos": [
+        [
+          "github.com/urbandictionary",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "gitlab",
+      "repos": [
+        [
+          "gitlab-org/gitlab",
+          "critical"
+        ],
+        [
+          "gitlab-org/gitlab-runner",
+          "critical"
+        ],
+        [
+          "gitlab-org/gitaly",
+          "critical"
+        ],
+        [
+          "gitlab-org/gitlab-pages",
+          "critical"
+        ],
+        [
+          "gitlab-org/gitlab-shell",
+          "critical"
+        ],
+        [
+          "gitlab-org/gitlab-vscode-extension",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "wordpoints",
+      "repos": [
+        [
+          "WordPoints/wordpoints",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "shopify",
+      "repos": [
+        [
+          "Shopify/*",
+          "medium"
+        ]
+      ]
+    },
+    {
+      "handle": "matomo",
+      "repos": [
+        [
+          "matomo-org/matomo",
+          "critical"
+        ],
+        [
+          "matomo-org/docker",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "deriv",
+      "repos": [
+        [
+          "github.com/binary-com",
+          "medium"
+        ]
+      ]
+    },
+    {
+      "handle": "owncloud",
+      "repos": [
+        [
+          "owncloud/core",
+          "critical"
+        ],
+        [
+          "owncloud/user_ldap",
+          "critical"
+        ],
+        [
+          "owncloud/oauth2",
+          "critical"
+        ],
+        [
+          "owncloud/customgroups",
+          "critical"
+        ],
+        [
+          "owncloud/guests",
+          "critical"
+        ],
+        [
+          "owncloud/richdocuments",
+          "critical"
+        ],
+        [
+          "owncloud/activity",
+          "critical"
+        ],
+        [
+          "owncloud/files",
+          "critical"
+        ],
+        [
+          "owncloud/notifications",
+          "critical"
+        ],
+        [
+          "owncloud/gallery",
+          "critical"
+        ],
+        [
+          "owncloud/updater",
+          "critical"
+        ],
+        [
+          "owncloud/ocis",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "paragonie",
+      "repos": [
+        [
+          "paragonie/sodium_compat",
+          "critical"
+        ],
+        [
+          "paragonie/easydb",
+          "critical"
+        ],
+        [
+          "paragonie/halite",
+          "critical"
+        ],
+        [
+          "paragonie/random_compat",
+          "critical"
+        ],
+        [
+          "paragonie/anti-csrf",
+          "critical"
+        ],
+        [
+          "paragonie/constant_time_encoding",
+          "critical"
+        ],
+        [
+          "paragonie/certainty",
+          "critical"
+        ],
+        [
+          "paragonie/password_lock",
+          "critical"
+        ],
+        [
+          "paragonie/gpg-mailer",
+          "critical"
+        ],
+        [
+          "paragonie/chronicle",
+          "critical"
+        ],
+        [
+          "paragonie/sapient",
+          "critical"
+        ],
+        [
+          "paragonie/paseto",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "kiwicom",
+      "repos": [
+        [
+          "kiwicom/js-iam-middleware",
+          "high"
+        ],
+        [
+          "kiwicom/k8s-vault-operator",
+          "high"
+        ],
+        [
+          "kiwicom/kiwi-cache",
+          "high"
+        ],
+        [
+          "kiwicom/kiwi-json",
+          "high"
+        ],
+        [
+          "kiwicom/kiwi-structlog-config",
+          "high"
+        ],
+        [
+          "kiwicom/konfetti",
+          "high"
+        ],
+        [
+          "kiwicom/navigation-compose-typed",
+          "high"
+        ],
+        [
+          "kiwicom/orbit",
+          "high"
+        ],
+        [
+          "kiwicom/pg2avro",
+          "high"
+        ],
+        [
+          "kiwicom/request-session",
+          "high"
+        ]
+      ]
+    },
+    {
+      "handle": "mainwp",
+      "repos": [
+        [
+          "mainwp/mainwp",
+          "critical"
+        ],
+        [
+          "mainwp/mainwp-child",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "plaid",
+      "repos": [
+        [
+          "plaid/plaid-link-ios",
+          "critical"
+        ],
+        [
+          "plaid/plaid-link-android",
+          "critical"
+        ],
+        [
+          "plaid/plaid-ruby",
+          "critical"
+        ],
+        [
+          "plaid/react-native-plaid-link-sdk",
+          "critical"
+        ],
+        [
+          "plaid/react-plaid-link",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "cornershop",
+      "repos": [
+        [
+          "cornershop/*",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "brave",
+      "repos": [
+        [
+          "brave/*,",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "discourse",
+      "repos": [
+        [
+          "discourse/discourse",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "hyperledger",
+      "repos": [
+        [
+          "hyperledger/fabric",
+          "critical"
+        ],
+        [
+          "hyperledger/fabric-ca",
+          "critical"
+        ],
+        [
+          "hyperledger/fabric-sdk-node",
+          "medium"
+        ],
+        [
+          "hyperledger/fabric-sdk-java",
+          "medium"
+        ],
+        [
+          "hyperledger/fabric-chaincode-java",
+          "critical"
+        ],
+        [
+          "hyperledger/fabric-chaincode-node",
+          "critical"
+        ],
+        [
+          "hyperledger/fabric-samples",
+          "none"
+        ],
+        [
+          "hyperledger/fabric-sdk-go",
+          "medium"
+        ],
+        [
+          "hyperledger/fabric-sdk-py",
+          "medium"
+        ],
+        [
+          "hyperledger/fabric-amcl",
+          "critical"
+        ],
+        [
+          "hyperledger/fabric-cli",
+          "critical"
+        ],
+        [
+          "hyperledger/fabric-chaincode-go",
+          "critical"
+        ],
+        [
+          "hyperledger/fabric-config",
+          "critical"
+        ],
+        [
+          "hyperledger/fabric-contract-api-go",
+          "critical"
+        ],
+        [
+          "hyperledger/fabric-gateway-java",
+          "critical"
+        ],
+        [
+          "hyperledger/fabric-gateway",
+          "critical"
+        ],
+        [
+          "hyperledger/fabric-lib-go",
+          "critical"
+        ],
+        [
+          "hyperledger/fabric-private-chaincode",
+          "critical"
+        ],
+        [
+          "hyperledger/fabric-protos-go-apiv2",
+          "critical"
+        ],
+        [
+          "hyperledger/fabric-protos-go",
+          "critical"
+        ],
+        [
+          "hyperledger/fabric-protos",
+          "critical"
+        ],
+        [
+          "hyperledger/besu",
+          "critical"
+        ],
+        [
+          "hyperledger/fabric-admin-sdk",
+          "critical"
+        ],
+        [
+          "hyperledger/besu-errorprone-checks",
+          "critical"
+        ],
+        [
+          "hyperledger/besu-native",
+          "critical"
+        ],
+        [
+          "hyperledger/besu-verkle-trie",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "nodejs",
+      "repos": [
+        [
+          "nodejs/node",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "cosmos",
+      "repos": [
+        [
+          "cosmos/iavl",
+          "critical"
+        ],
+        [
+          "cosmos/ledger-cosmos",
+          "low"
+        ],
+        [
+          "cosmos/gaia",
+          "critical"
+        ],
+        [
+          "cosmos/ics23",
+          "critical"
+        ],
+        [
+          "cosmos/evm",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "liberapay",
+      "repos": [
+        [
+          "liberapay/liberapay.com",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "chainlink",
+      "repos": [
+        [
+          "smartcontractkit/staking-v0.1",
+          "critical"
+        ],
+        [
+          "smartcontractkit/external-adapters-js",
+          "high"
+        ],
+        [
+          "smartcontractkit/chainlink-evm",
+          "critical"
+        ],
+        [
+          "smartcontractkit/chainlink-solana",
+          "critical"
+        ],
+        [
+          "smartcontractkit/chainlink",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "apache_kafka_h1c",
+      "repos": [
+        [
+          "apache/kafka",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "kubernetes",
+      "repos": [
+        [
+          "kubernetes/csi-api",
+          "critical"
+        ],
+        [
+          "kubernetes/kubernetes",
+          "critical"
+        ],
+        [
+          "kubernetes/dns",
+          "critical"
+        ],
+        [
+          "kubernetes/kube-openapi",
+          "critical"
+        ],
+        [
+          "kubernetes/git-sync",
+          "critical"
+        ],
+        [
+          "kubernetes/gengo",
+          "critical"
+        ],
+        [
+          "kubernetes/cluster-bootstrap",
+          "critical"
+        ],
+        [
+          "kubernetes/kube-controller-manager",
+          "critical"
+        ],
+        [
+          "kubernetes/kube-scheduler",
+          "critical"
+        ],
+        [
+          "kubernetes/kubelet",
+          "critical"
+        ],
+        [
+          "kubernetes/kube-proxy",
+          "critical"
+        ],
+        [
+          "kubernetes/cli-runtime",
+          "critical"
+        ],
+        [
+          "kubernetes/metrics",
+          "critical"
+        ],
+        [
+          "kubernetes/apiextensions-apiserver",
+          "critical"
+        ],
+        [
+          "kubernetes/kube-aggregator",
+          "critical"
+        ],
+        [
+          "kubernetes/apiserver",
+          "critical"
+        ],
+        [
+          "kubernetes/component-base",
+          "critical"
+        ],
+        [
+          "kubernetes/client-go",
+          "critical"
+        ],
+        [
+          "kubernetes/api",
+          "critical"
+        ],
+        [
+          "kubernetes/apimachinery",
+          "critical"
+        ],
+        [
+          "kubernetes/code-generator",
+          "critical"
+        ],
+        [
+          "kubernetes/publishing-bot",
+          "critical"
+        ],
+        [
+          "kubernetes/cluster-registry",
+          "critical"
+        ],
+        [
+          "kubernetes/k8s.io",
+          "critical"
+        ],
+        [
+          "kubernetes/klog",
+          "critical"
+        ],
+        [
+          "kubernetes/utils",
+          "critical"
+        ],
+        [
+          "kubernetes/website",
+          "critical"
+        ],
+        [
+          "kubernetes/test-infra",
+          "critical"
+        ],
+        [
+          "kubernetes/kops",
+          "critical"
+        ],
+        [
+          "kubernetes/minikube",
+          "critical"
+        ],
+        [
+          "kubernetes/kompose",
+          "critical"
+        ],
+        [
+          "kubernetes/kube-state-metrics",
+          "critical"
+        ],
+        [
+          "kubernetes/autoscaler",
+          "critical"
+        ],
+        [
+          "kubernetes/kube-deploy",
+          "critical"
+        ],
+        [
+          "kubernetes/release",
+          "critical"
+        ],
+        [
+          "kubernetes/node-problem-detector",
+          "critical"
+        ],
+        [
+          "kubernetes/repo-infra",
+          "critical"
+        ],
+        [
+          "kubernetes/kubectl",
+          "critical"
+        ],
+        [
+          "kubernetes/org",
+          "critical"
+        ],
+        [
+          "kubernetes/sig-release",
+          "critical"
+        ],
+        [
+          "kubernetes/kubeadm",
+          "critical"
+        ],
+        [
+          "kubernetes/cri-api",
+          "critical"
+        ],
+        [
+          "kubernetes/node-api",
+          "critical"
+        ],
+        [
+          "kubernetes/csi-translation-lib",
+          "critical"
+        ],
+        [
+          "kubernetes/cloud-provider",
+          "critical"
+        ],
+        [
+          "github.com/kubernetes-csi",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "oasisprotocol",
+      "repos": [
+        [
+          "oasisprotocol/oasis-core",
+          "critical"
+        ],
+        [
+          "oasisprotocol/deoxysii",
+          "critical"
+        ],
+        [
+          "oasisprotocol/deoxysii-rust",
+          "critical"
+        ],
+        [
+          "oasisprotocol/oasis-sdk",
+          "critical"
+        ],
+        [
+          "oasisprotocol/curve25519-voi",
+          "critical"
+        ],
+        [
+          "oasisprotocol/oasis-wallet-web",
+          "critical"
+        ],
+        [
+          "oasisprotocol/explorer",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "skale_network",
+      "repos": [
+        [
+          "skalenetwork/skale-consensus",
+          "critical"
+        ],
+        [
+          "skalenetwork/libBLS",
+          "critical"
+        ],
+        [
+          "skalenetwork/sgxwallet",
+          "critical"
+        ],
+        [
+          "skalenetwork/skale-manager",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "gsa_bbp",
+      "repos": [
+        [
+          "18f/federalist-proxy",
+          "critical"
+        ],
+        [
+          "18f/federalist",
+          "critical"
+        ],
+        [
+          "18f/federalist-builder",
+          "critical"
+        ],
+        [
+          "18f/federalist-docker-build",
+          "critical"
+        ],
+        [
+          "18f/identity-idp",
+          "critical"
+        ],
+        [
+          "18f/identity-saml-sinatra",
+          "critical"
+        ],
+        [
+          "18f/identity-saml-rails",
+          "critical"
+        ],
+        [
+          "gsa/datagov-deploy",
+          "critical"
+        ],
+        [
+          "gsa/data.gov",
+          "critical"
+        ],
+        [
+          "18f/docker-ruby-ubuntu",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "doppler",
+      "repos": [
+        [
+          "DopplerHQ/cli",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "ibb",
+      "repos": [
+        [
+          "rubygems/rubygems",
+          "critical"
+        ],
+        [
+          "openssl/openssl",
+          "critical"
+        ],
+        [
+          "nodejs/node",
+          "critical"
+        ],
+        [
+          "apache/airflow",
+          "critical"
+        ],
+        [
+          "apache/httpd",
+          "critical"
+        ],
+        [
+          "spiffe/spiffe",
+          "critical"
+        ],
+        [
+          "spiffe/spire",
+          "critical"
+        ],
+        [
+          "rust-lang/rust",
+          "critical"
+        ],
+        [
+          "argoproj/argoproj",
+          "critical"
+        ],
+        [
+          "rack/rack",
+          "critical"
+        ],
+        [
+          "apache/tomcat",
+          "critical"
+        ],
+        [
+          "libuv/libuv",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "agoric",
+      "repos": [
+        [
+          "endojs/endo",
+          "critical"
+        ],
+        [
+          "Agoric/agoric-sdk",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "tron_dao",
+      "repos": [
+        [
+          "tronprotocol/java-tron",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "toolsforhumanity",
+      "repos": [
+        [
+          "worldcoin/orb-software",
+          "critical"
+        ],
+        [
+          "worldcoin/orb-firmware",
+          "critical"
+        ],
+        [
+          "worldcoin/orb-core",
+          "critical"
+        ],
+        [
+          "worldcoin/orb-messages",
+          "critical"
+        ],
+        [
+          "worldcoin/orb-secure-element",
+          "critical"
+        ],
+        [
+          "worldcoin/orb-relay-messages",
+          "critical"
+        ],
+        [
+          "worldcoin/orb-rustzone",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "lightspark_bbp",
+      "repos": [
+        [
+          "lightsparkdev/lightspark-crypto-uniffi",
+          "critical"
+        ],
+        [
+          "lightsparkdev/kotlin-sdk",
+          "critical"
+        ],
+        [
+          "lightsparkdev/js-sdk",
+          "critical"
+        ],
+        [
+          "lightsparkdev/flutter-sdk",
+          "critical"
+        ],
+        [
+          "lightsparkdev/go-sdk",
+          "critical"
+        ],
+        [
+          "lightsparkdev/lightspark-rs",
+          "critical"
+        ],
+        [
+          "lightsparkdev/python-sdk",
+          "critical"
+        ],
+        [
+          "buildonspark/spark",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "fireblocks_mpc",
+      "repos": [
+        [
+          "fireblocks/mpc-lib",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "leather_wallet",
+      "repos": [
+        [
+          "leather-wallet/extension",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "anthropic",
+      "repos": [
+        [
+          "github.com/anthropics",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "chia_network",
+      "repos": [
+        [
+          "Chia-Network/chia-blockchain",
+          "critical"
+        ],
+        [
+          "Chia-Network/chia-blockchain-gui",
+          "critical"
+        ],
+        [
+          "Chia-Network/clvm_rs",
+          "critical"
+        ],
+        [
+          "Chia-Network/chia_rs",
+          "critical"
+        ],
+        [
+          "Chia-Network/chiapos",
+          "critical"
+        ],
+        [
+          "Chia-Network/chiavdf",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "nimiq",
+      "repos": [
+        [
+          "nimiq/core-rs-albatross",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "circle-bbp",
+      "repos": [
+        [
+          "circlefin/evm-cctp-contracts",
+          "critical"
+        ],
+        [
+          "circlefin/noble-cctp",
+          "critical"
+        ],
+        [
+          "circlefin/solana-cctp-contracts",
+          "critical"
+        ],
+        [
+          "circlefin/stablecoin-sui",
+          "critical"
+        ],
+        [
+          "circlefin/buidl-wallet-contracts",
+          "critical"
+        ],
+        [
+          "circlefin/stablecoin-evm",
+          "critical"
+        ],
+        [
+          "circlefin/noble-fiattokenfactory",
+          "critical"
+        ],
+        [
+          "circlefin/stablecoin-aptos",
+          "critical"
+        ],
+        [
+          "circlefin/sui-cctp",
+          "critical"
+        ],
+        [
+          "circlefin/evm-gateway-contracts",
+          "critical"
+        ],
+        [
+          "circlefin/stablecoin-starknet",
+          "critical"
+        ],
+        [
+          "circlefin/evm-xreserve-contracts",
+          "critical"
+        ],
+        [
+          "circlefin/aptos-cctp",
+          "critical"
+        ],
+        [
+          "circlefin/starknet-cctp",
+          "critical"
+        ],
+        [
+          "circlefin/evm-cpn-contracts",
+          "critical"
+        ],
+        [
+          "circlefin/stablecoin-near",
+          "critical"
+        ],
+        [
+          "circlefin/solana-gateway-contracts",
+          "critical"
+        ],
+        [
+          "circlefin/malachite",
+          "critical"
+        ],
+        [
+          "circlefin/arc-node",
+          "critical"
+        ],
+        [
+          "circlefin/stablecoin-xlm",
+          "critical"
+        ],
+        [
+          "circlefin/arc-remote-signer",
+          "critical"
+        ],
+        [
+          "circlefin/stellar-cctp",
+          "critical"
+        ]
+      ]
+    },
+    {
+      "handle": "northerntechhq",
+      "repos": [
+        [
+          "mendersoftware/mender",
+          "critical"
+        ],
+        [
+          "mendersoftware/mender-server",
+          "critical"
+        ],
+        [
+          "cfengine/core",
+          "high"
+        ]
+      ]
+    }
+  ],
+  "code_vdp": [
+    {
+      "handle": "rails",
+      "repos": [
+        "rails/rails"
+      ]
+    },
+    {
+      "handle": "concretecms",
+      "repos": [
+        "concrete5/concrete5"
+      ]
+    },
+    {
+      "handle": "basecamp",
+      "repos": [
+        "basecamp/writebook",
+        "basecamp/once-campfire"
+      ]
+    },
+    {
+      "handle": "revive_adserver",
+      "repos": [
+        "revive-adserver/revive-adserver"
+      ]
+    },
+    {
+      "handle": "versioncake",
+      "repos": [
+        "bwillis/versioncake"
+      ]
+    },
+    {
+      "handle": "ruby",
+      "repos": [
+        "ruby/ruby"
+      ]
+    },
+    {
+      "handle": "rubygems",
+      "repos": [
+        "rubygems/rubygems"
+      ]
+    },
+    {
+      "handle": "phpbb",
+      "repos": [
+        "phpbb/phpbb"
+      ]
+    },
+    {
+      "handle": "duckduckgo",
+      "repos": [
+        "duckduckgo/duckduckgo-privacy-extension"
+      ]
+    },
+    {
+      "handle": "nextcloud",
+      "repos": [
+        "nextcloud/server",
+        "nextcloud/activity",
+        "nextcloud/files_accesscontrol",
+        "nextcloud/3rdparty",
+        "nextcloud/files_pdfviewer",
+        "nextcloud/files_texteditor",
+        "nextcloud/firstrunwizard",
+        "nextcloud/notifications",
+        "nextcloud/password_policy",
+        "nextcloud/user_saml",
+        "nextcloud/files_automatedtagging",
+        "nextcloud/files_retention",
+        "nextcloud/serverinfo",
+        "nextcloud/nextcloud_announcements",
+        "nextcloud/logreader",
+        "nextcloud/survey_client",
+        "nextcloud/updater",
+        "nextcloud/spreed",
+        "nextcloud/photos",
+        "nextcloud/mail",
+        "nextcloud/files_rightclick",
+        "nextcloud/privacy",
+        "nextcloud/recommendations",
+        "nextcloud/viewer",
+        "nextcloud/text",
+        "nextcloud/circles",
+        "nextcloud/data_request",
+        "nextcloud/files_antivirus",
+        "nextcloud/fulltextsearch",
+        "nextcloud/flow_notifications",
+        "nextcloud/fulltextsearch_elasticsearch",
+        "nextcloud/files_fulltextsearch",
+        "nextcloud/groupfolders",
+        "nextcloud/guests",
+        "nextcloud/sharepoint",
+        "nextcloud/socialsharing",
+        "nextcloud/suspicious_login",
+        "nextcloud/terms_of_service",
+        "nextcloud/twofactor_totp",
+        "nextcloud/user_oidc",
+        "nextcloud/workflow_script",
+        "nextcloud/calendar",
+        "nextcloud/contacts",
+        "nextcloud/richdocuments",
+        "nextcloud/end_to_end_encryption",
+        "nextcloud/deck",
+        "nextcloud/bruteforcesettings",
+        "nextcloud/related_resources",
+        "nextcloud/approval",
+        "nextcloud/files_lock",
+        "nextcloud/user_migration",
+        "nextcloud/twofactor_webauthn",
+        "nextcloud/preferred_providers",
+        "nextcloud/external",
+        "nextcloud/notify_push",
+        "nextcloud/calendar_resource_management",
+        "nextcloud/globalsiteselector",
+        "nextcloud/notes",
+        "roundcube/roundcubemail",
+        "nextcloud/files_confidential",
+        "nextcloud/tables",
+        "nextcloud/collectives",
+        "nextcloud/files_fulltextsearch_tesseract"
+      ]
+    },
+    {
+      "handle": "pyca",
+      "repos": [
+        "pyca/cryptography",
+        "pyca/pynacl",
+        "pyca/bcrypt",
+        "pyca/pyopenssl",
+        "pyca/infra"
+      ]
+    },
+    {
+      "handle": "weblate",
+      "repos": [
+        "WeblateOrg/weblate",
+        "WeblateOrg/wlc",
+        "WeblateOrg/docker",
+        "WeblateOrg/website",
+        "WeblateOrg/translation-finder"
+      ]
+    },
+    {
+      "handle": "rocket_chat",
+      "repos": [
+        "RocketChat/Rocket.Chat",
+        "RocketChat/Rocket.Chat.Electron",
+        "RocketChat/Rocket.Chat.ReactNative"
+      ]
+    },
+    {
+      "handle": "deconf_com",
+      "repos": [
+        "deconf/Google-Analytics-Dashboard-for-WP"
+      ]
+    },
+    {
+      "handle": "ed",
+      "repos": [
+        "EdOverflow/*",
+        "securitytxt/*"
+      ]
+    },
+    {
+      "handle": "passhash",
+      "repos": [
+        "dhui/passhash"
+      ]
+    },
+    {
+      "handle": "arkadiyt-projects",
+      "repos": [
+        "arkadiyt/ssrf_filter",
+        "arkadiyt/bounty-targets",
+        "arkadiyt/aws_public_ips",
+        "arkadiyt/zoom-redirector",
+        "arkadiyt/protodump",
+        "arkadiyt/ddexport",
+        "arkadiyt/free-ft"
+      ]
+    },
+    {
+      "handle": "eslint",
+      "repos": [
+        "eslint/eslint-github-bot",
+        "eslint/eslint"
+      ]
+    },
+    {
+      "handle": "defectdojo",
+      "repos": [
+        "DefectDojo/django-DefectDojo"
+      ]
+    },
+    {
+      "handle": "curl",
+      "repos": [
+        "curl/curl"
+      ]
+    },
+    {
+      "handle": "impresscms",
+      "repos": [
+        "impresscms/impresscms"
+      ]
+    },
+    {
+      "handle": "raivo",
+      "repos": [
+        "raivo-otp/ios-application",
+        "raivo-otp/issuer-icons",
+        "raivo-otp/apns-server",
+        "raivo-otp/macos-receiver"
+      ]
+    },
+    {
+      "handle": "solidus",
+      "repos": [
+        "solidusio/solidus",
+        "solidusio/solidus_auth_devise"
+      ]
+    },
+    {
+      "handle": "openmage",
+      "repos": [
+        "OpenMage/magento-lts"
+      ]
+    },
+    {
+      "handle": "lichess",
+      "repos": [
+        "lichess-org/lila",
+        "lichess-org/lila-ws",
+        "lichess-org/lichobile"
+      ]
+    },
+    {
+      "handle": "who-covid-19-mobile-app",
+      "repos": [
+        "WorldHealthOrganization/app"
+      ]
+    },
+    {
+      "handle": "mcuboot",
+      "repos": [
+        "mcu-tools/mcuboot"
+      ]
+    },
+    {
+      "handle": "pagerduty",
+      "repos": [
+        "rundeck/rundeck-cli",
+        "rundeck/rundeck"
+      ]
+    },
+    {
+      "handle": "dailypay_vdp",
+      "repos": [
+        "dailypay/*"
+      ]
+    },
+    {
+      "handle": "tomtom",
+      "repos": [
+        "tomtom-international/*"
+      ]
+    },
+    {
+      "handle": "aws_vdp",
+      "repos": [
+        "aws/amazon-ecs-agent",
+        "aws/amazon-ecs-cli",
+        "aws/amazon-vpc-cni-k8s",
+        "aws/aws-cdk",
+        "aws/aws-cli",
+        "aws/aws-sdk",
+        "aws/s2n-tls",
+        "amazonlinux/amazon-linux-2023",
+        "awslabs/*"
+      ]
+    },
+    {
+      "handle": "supabase",
+      "repos": [
+        "supabase-community/supabase-mcp"
+      ]
+    },
+    {
+      "handle": "epicgames-vdp",
+      "repos": [
+        "EpicGames/UnrealEngine_v5.2"
+      ]
+    }
+  ]
+}

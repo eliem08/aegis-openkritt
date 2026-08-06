@@ -85,10 +85,14 @@ COPY . .
 
 # clone the arm's-length skill catalog so the prompt-only runner can read their instructions
 # (never executes a skill's own scripts — only reads SKILL.md and runs it via DeepSeek)
+# NOTE: these are read ARM'S-LENGTH — the prompt-only skill_runner reads a skill's SKILL.md
+# and runs it via the LLM over LOCAL source; it never executes a skill's own scripts, never
+# copies their text into Aegis, and never performs the live-target actions some describe.
+# Gabson0x/bountyforge is unlicensed, so it is invoke-only here (read, never vendored).
 RUN mkdir -p "$AEGIS_SKILLS_DIR" && \
     for repo in pashov/skills cloudflare/security-audit-skill github/awesome-copilot \
                 trailofbits/skills getsentry/skills NMitchem/SkillScan \
-                dstiliadis/security-review-skill ; do \
+                dstiliadis/security-review-skill Gabson0x/bountyforge ; do \
       name=$(echo "$repo" | tr '/' '_') ; \
       git clone --depth 1 "https://github.com/$repo.git" "$AEGIS_SKILLS_DIR/$name" 2>/dev/null || true ; \
     done

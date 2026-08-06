@@ -1,0 +1,67 @@
+# Aegis-native offline Semgrep rules — file-upload -> RCE bug class (PHP).
+# Original rules for the exact pattern behind most upload webshells: validation that trusts
+# a client-controlled signal (the multipart Content-Type / $_FILES['type'] MIME), or no
+# extension allow-list at all, followed by a write of the uploaded file into a web-served
+# directory under a caller-influenced name. Detected in SOURCE only — Aegis never fires an
+# upload at a live target; a confirmed hit is reproduced against a LOCAL instance.
+rules:
+  - id: aegis-php-upload-trusts-client-mime
+    languages: [php]
+    severity: ERROR
+    message: >
+      File-upload validation trusts $_FILES[...]['type'] (the client-supplied multipart
+      Content-Type). An attacker sets it to an allowed value (e.g. application/pdf) while
+      uploading a .php payload. Validate by re-derived MIME (finfo) AND an extension
+      allow-list; never by the request's own type field.
+    metadata: {cwe: "CWE-434", class: unrestricted-file-upload}
+    patterns:
+      - pattern-either:
+          - pattern: $T = $_FILES[$K]['type'];
+          - pattern: if ($_FILES[$K]['type'] == $V) { ... }
+          - pattern: if ($_FILES[$K]['type'] === $V) { ... }
+          - pattern: in_array($_FILES[$K]['type'], $ALLOWED)
+          - pattern: strpos($_FILES[$K]['type'], $V)
+
+  - id: aegis-php-upload-move-original-name
+    languages: [php]
+    severity: ERROR
+    message: >
+      Uploaded file is moved using its original client-supplied filename. With no extension
+      allow-list this writes attacker-named files (rev.php, .htaccess, double extensions,
+      %00 tricks) into the target dir. Store under a server-generated name with a validated
+      extension, outside the web root.
+    metadata: {cwe: "CWE-434", class: unrestricted-file-upload}
+    patterns:
+      - pattern-either:
+          - pattern: move_uploaded_file($_FILES[$K]['tmp_name'], "...$_FILES...")
+          - pattern: move_uploaded_file($_FILES[$K]['tmp_name'], $DEST . $_FILES[$K]['name'])
+          - pattern: move_uploaded_file($_FILES[$K]['tmp_name'], "...".$_FILES[$K]['name'])
+          - pattern: move_uploaded_file($TMP, $DEST . basename($_FILES[$K]['name']))
+
+  - id: aegis-php-upload-no-extension-allowlist
+    languages: [php]
+    severity: WARNING
+    message: >
+      move_uploaded_file() with no visible extension allow-list nearby. If the destination
+      extension is derived from the upload rather than fixed to a validated safe set, this is
+      an unrestricted upload. Confirm an allow-list (jpg/png/pdf...) gates the destination.
+    metadata: {cwe: "CWE-434", class: unrestricted-file-upload}
+    patterns:
+      - pattern: move_uploaded_file($_FILES[$K]['tmp_name'], $DEST)
+      - pattern-not-inside: |
+          if (in_array($EXT, [...])) { ... }
+      - pattern-not-inside: |
+          if (preg_match("...(jpg|jpeg|png|gif|pdf)...", $N)) { ... }
+
+  - id: aegis-php-upload-getimagesize-only
+    languages: [php]
+    severity: WARNING
+    message: >
+      getimagesize()/exif_imagetype() used as the sole upload gate. A polyglot (valid image
+      header + PHP tail) passes it, so this does not prevent a webshell. Pair it with an
+      extension allow-list and store outside the web root.
+    metadata: {cwe: "CWE-434", class: unrestricted-file-upload}
+    patterns:
+      - pattern-either:
+          - pattern: if (getimagesize($_FILES[$K]['tmp_name'])) { ... }
+          - pattern: if (exif_imagetype($_FILES[$K]['tmp_name'])) { ... }

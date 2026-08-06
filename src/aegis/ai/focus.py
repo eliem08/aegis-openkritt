@@ -100,6 +100,14 @@ _FRAMEWORK_SIGNS: tuple[tuple[re.Pattern, str], ...] = (
     (re.compile(r"openzeppelin|Ownable|AccessControl", re.I),
      "OpenZeppelin detected: functions should carry onlyOwner/onlyRole — flag any "
      "state-changer that lacks the modifier its siblings use."),
+    (re.compile(r"\$_FILES|move_uploaded_file|multipart/form-data|MultipartFile|"
+                r"multer|formidable|busboy", re.I),
+     "FILE UPLOAD handler detected: this is a CWE-434 surface. Check the validation is not "
+     "bypassable — a client-controlled MIME/Content-Type ($_FILES['type']) or extension is "
+     "NOT trustworthy; getimagesize() alone is defeated by a polyglot. A real bug is: no "
+     "server-side extension allow-list, the file stored under its original name, and/or the "
+     "upload dir web-served (so rev.php / double-extension / %00 / .htaccess -> code exec). "
+     "Trace: is the destination extension fixed to a validated safe set, or attacker-derived?"),
 )
 
 
