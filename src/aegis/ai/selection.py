@@ -63,7 +63,7 @@ class Scored:
 
     def why(self) -> str:
         p = self.program
-        return (f"audits={p.audits}·age={p.age_months}mo·paid={p.paid_reports} "
+        return (f"audits={p.audits} age={p.age_months}mo paid={p.paid_reports} "
                 f"-> discount {self.discount:.2f}; base {self.base_profit:.1f} "
                 f"-> yield {self.yield_score:.1f}")
 
