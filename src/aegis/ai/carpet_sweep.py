@@ -78,11 +78,17 @@ def _save(path: str, obj) -> None:
     p.write_text(json.dumps(obj, indent=2), encoding="utf-8")
 
 
-def _row_to_hit(program, repo, tool_name, commit, row) -> Hit | None:
+def _row_to_hit(program, repo, tool_name, commit, row, repo_root="") -> Hit | None:
     a = row.get("json_answer") or {}
     fp = str(a.get("file_path") or "")
     if not fp:
         return None
+    # scanners emit absolute clone-cache paths; show the path RELATIVE to the repo root so a
+    # hit reads "routes/verify.ts" not "reports/clones/owner__repo/routes/verify.ts".
+    norm = fp.replace("\\", "/")
+    root = str(repo_root).replace("\\", "/").rstrip("/")
+    if root and root in norm:
+        fp = norm.split(root, 1)[1].lstrip("/")
     return Hit(
         program=program.handle, handle=program.handle, platform=program.platform,
         reward=float(program.reward_ceiling or 0), repo=repo, detector=tool_name,
@@ -106,8 +112,7 @@ def sweep_repo(program, repo, *, tools, state, cache_dir, token, timeout, force=
     if commit and prev == commit and not force:
         return [], True                                  # unchanged since last sweep — skip
     results = ToolBridge(timeout=timeout).scan(str(clone.path), tools=tools)
-    rows = ToolBridge().findings(results)
-    hits = [h for h in (_row_to_hit(program, repo, r.tool, commit, row)
+    hits = [h for h in (_row_to_hit(program, repo, r.tool, commit, row, str(clone.path))
                         for r in results for row in r.findings) if h]
     state[repo] = {"commit": commit, "ts": time.time(), "hits": len(hits)}
     return hits, False

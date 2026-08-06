@@ -46,7 +46,14 @@ def _parse_semgrep(data) -> list[dict]:
         extra = r.get("extra", {})
         sev = {"ERROR": "high", "WARNING": "medium", "INFO": "low"}.get(
             str(extra.get("severity", "")).upper(), "medium")
-        rows.append(_row("semgrep", r.get("check_id", "semgrep-finding"), r.get("path"),
+        # prefer the rule's CWE metadata over the raw (path-prefixed) check_id, so a hit reads
+        # "CWE-434" not "src.aegis.ai.rules.aegis-php-upload-...".
+        md = extra.get("metadata", {}) or {}
+        cwe = md.get("cwe")
+        if isinstance(cwe, list):
+            cwe = cwe[0] if cwe else ""
+        vtype = cwe or md.get("class") or str(r.get("check_id", "semgrep-finding")).split(".")[-1]
+        rows.append(_row("semgrep", vtype, r.get("path"),
                          (r.get("start") or {}).get("line"), extra.get("message", ""), sev,
                          extra.get("message", "")))
     return rows
