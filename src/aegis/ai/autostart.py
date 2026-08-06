@@ -68,6 +68,13 @@ def maybe_autostart(app) -> None:
                     collect()
                 except Exception:
                     pass
+                # enrich the registry so selection can rank by money + maturity: real reward
+                # from disclosed payouts, crowding, labeled priors (+ GitHub age if opted in).
+                try:
+                    from .program_enrich import enrich
+                    enrich(use_github=_on("AEGIS_AUTOSTART_GITHUB_AGE"))
+                except Exception:
+                    pass
             jobs = getattr(app.state, "autohunt_jobs", None)
             if jobs is None:
                 jobs = app.state.autohunt_jobs = {}
