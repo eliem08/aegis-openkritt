@@ -37,7 +37,13 @@ ENV PYTHONUNBUFFERED=1 \
     AEGIS_CONCURRENCY=6 \
     # global cap on total in-flight LLM calls (files x samples both submit through it), so the
     # two concurrency layers can't multiply past the provider rate limit. Tune to your tier.
-    AEGIS_LLM_CONCURRENCY=8
+    AEGIS_LLM_CONCURRENCY=8 \
+    # 24/7 carpet sweep on boot: fast deterministic detectors over every in-scope source repo,
+    # forever, skipping unchanged repos. The always-on cheap hunter. Tunables: AEGIS_CARPET_*
+    # (INTERVAL sec, CONCURRENCY, IMPORT_EVERY cycles). Hits show in the dashboard 'Carpet sweep'.
+    AEGIS_AUTOSTART_CARPET=1 \
+    AEGIS_CARPET_CONCURRENCY=4 \
+    AEGIS_CARPET_INTERVAL=1800
 
 # --- OS packages: language runtimes for the language-specific scanners ---
 RUN apt-get update && apt-get install -y --no-install-recommends \

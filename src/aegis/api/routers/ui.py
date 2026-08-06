@@ -303,6 +303,45 @@ def disclosed(limit: int = 60) -> dict:
     return {"reports": load(root, limit=limit)}
 
 
+@router.get("/ui/carpet", summary="24/7 carpet-sweep hits (fast deterministic detectors)")
+def carpet(limit: int = 80) -> dict:
+    import os
+
+    from aegis.ai.carpet_sweep import load_hits
+    root = os.environ.get("AEGIS_REPORT_DIR", "reports")
+    last = {}
+    try:
+        import json
+        from pathlib import Path
+        p = Path(root) / "carpet_last.json"
+        if p.is_file():
+            last = json.loads(p.read_text(encoding="utf-8"))
+    except Exception:
+        last = {}
+    return {"hits": load_hits(limit=limit, report_dir=root), "last": last}
+
+
+@router.post("/ui/carpet/scan", summary="Run a carpet-sweep pass now")
+def carpet_scan(request: Request) -> dict:
+    import threading
+
+    st = request.app.state
+    if getattr(st, "_carpet_running", False):
+        return {"status": "already running"}
+    st._carpet_running = True
+
+    def _go():
+        try:
+            from aegis.ai.carpet_sweep import sweep_once
+            sweep_once()
+        except Exception:
+            pass
+        finally:
+            st._carpet_running = False
+    threading.Thread(target=_go, daemon=True, name="aegis-carpet-once").start()
+    return {"status": "sweeping"}
+
+
 @router.post("/ui/disclosed/refresh", summary="Fetch newly disclosed reports")
 def disclosed_refresh(request: Request) -> dict:
     import threading

@@ -75,6 +75,15 @@ def maybe_autostart(app) -> None:
                     enrich(use_github=_on("AEGIS_AUTOSTART_GITHUB_AGE"))
                 except Exception:
                     pass
+            # 24/7 carpet sweep: fast deterministic detectors (JWT/upload/secrets) over every
+            # in-scope source repo, forever, in its own thread — the always-on cheap hunter.
+            if _on("AEGIS_AUTOSTART_CARPET"):
+                try:
+                    from .carpet_sweep import run_forever
+                    threading.Thread(target=run_forever, daemon=True,
+                                     name="aegis-carpet").start()
+                except Exception:
+                    pass
             jobs = getattr(app.state, "autohunt_jobs", None)
             if jobs is None:
                 jobs = app.state.autohunt_jobs = {}

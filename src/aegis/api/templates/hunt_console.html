@@ -226,6 +226,9 @@ tbody tr{transition:background .15s}tbody tr:hover td{background:color-mix(in sr
   <div class="panel"><table><thead><tr>
     <th>#</th><th>Target</th><th>Program</th><th>Findability</th><th>Crowding</th><th>Reward</th><th>Expected value</th><th>Status</th>
   </tr></thead><tbody id="queue"><tr><td colspan="8" class="empty">Loading queue&hellip;</td></tr></tbody></table></div>
+  <h2>Carpet sweep <span class="note">(24/7 deterministic hunter &middot; JWT + upload-RCE + secrets over every in-scope repo &middot; ranked by reward)</span>
+    <span class="grow"></span><span id="cs-stat" class="note"></span>&nbsp;<button class="cpy" id="cs-scan" style="font-size:11px;padding:5px 11px">&#128293; Sweep now</button></h2>
+  <div class="panel"><div id="carpet" class="log" style="max-height:300px"><div class=note>no hits yet &mdash; click &ldquo;Sweep now&rdquo; or enable AEGIS_AUTOSTART_CARPET.</div></div></div>
   <h2>Program radar <span class="note">(new programs &middot; scope changes &middot; pause/resume &mdash; from the public feeds)</span>
     <span class="grow"></span><button class="cpy" id="pm-scan" style="font-size:11px;padding:5px 11px">&#128260; Scan now</button></h2>
   <div class="panel"><div id="radar" class="log" style="max-height:240px"><div class=note>no alerts yet &mdash; click &ldquo;Scan now&rdquo; or enable AEGIS_AUTOSTART_MONITOR.</div></div></div>
@@ -551,8 +554,29 @@ async function loadDisclosed(){try{const d=await (await fetch('/ui/disclosed?lim
 $('dr-scan').onclick=async(e)=>{const b=e.currentTarget;const o=b.innerHTML;b.disabled=true;b.innerHTML='⏳ fetching…';
   try{await fetch('/ui/disclosed/refresh',{method:'POST'});}catch(_){}
   setTimeout(()=>{loadDisclosed();b.disabled=false;b.innerHTML=o;},6000);};
+// --- Carpet sweep hits ---
+function csLine(h){
+  const col={critical:'var(--crit)',high:'var(--bad)',error:'var(--bad)',medium:'var(--warn)',warning:'var(--warn)',low:'var(--mut)'}[(h.severity||'').toLowerCase()]||'var(--mut)';
+  const det={semgrep:'🔎',gitleaks:'🔑','detect-secrets':'🔑',njsscan:'📜'}[h.detector]||'•';
+  const loc=(h.repo||'')+':'+(h.file||'')+(h.line?(':'+h.line):'');
+  return '<div><b style="color:var(--ok)">$'+Math.round(h.reward||0).toLocaleString()+'</b> '+
+    '<span style="color:'+col+';font-weight:700">'+det+' '+(h.cwe||h.detector)+'</span> '+
+    '<span class=note>'+(h.handle||'')+' &middot; '+(h.platform||'')+'</span><br>'+
+    '<span class=mono style="font-size:11px">'+loc+'</span> <span class=note>'+(h.message||'')+'</span></div>';
+}
+async function loadCarpet(){try{const d=await (await fetch('/ui/carpet?limit=80')).json();
+  const box=$('carpet');const hs=d.hits||[];
+  const l=d.last||{};
+  if(l.cycle!==undefined||l.total_hits!==undefined)
+    $('cs-stat').textContent=(l.swept!==undefined?('swept '+l.swept+' · skipped '+(l.skipped_unchanged||0)+' · '):'')+(l.total_hits||hs.length)+' hits'+(l.cycle?(' · cycle '+l.cycle):'');
+  if(!hs.length)return;box.innerHTML=hs.map(csLine).join('');}catch(e){}}
+$('cs-scan').onclick=async(e)=>{const b=e.currentTarget;const o=b.innerHTML;b.disabled=true;b.innerHTML='⏳ sweeping…';
+  try{await fetch('/ui/carpet/scan',{method:'POST'});}catch(_){}
+  setTimeout(()=>{loadCarpet();b.disabled=false;b.innerHTML=o;},8000);
+  const t=setInterval(loadCarpet,8000);setTimeout(()=>clearInterval(t),120000);};
 loadQueue();adoptRunning();refreshCost();setInterval(refreshCost,15000);
 loadRadar();setInterval(loadRadar,20000);
 loadDisclosed();setInterval(loadDisclosed,30000);
+loadCarpet();setInterval(loadCarpet,15000);
 </script>
 </body></html>
