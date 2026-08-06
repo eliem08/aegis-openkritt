@@ -152,6 +152,11 @@ input:focus,textarea:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0
 .log::-webkit-scrollbar-thumb:hover{background:var(--mut)}
 tbody tr{transition:background .15s}tbody tr:hover td{background:color-mix(in srgb,var(--acc) 7%,transparent)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
+.jwtpoc{margin-top:9px;padding:10px 12px;border-radius:9px;border:1px solid color-mix(in srgb,var(--pur) 40%,var(--line));
+  background:color-mix(in srgb,var(--pur) 9%,transparent)}
+.jwtpoc .tok{margin-top:6px;padding:8px 10px;border-radius:7px;background:var(--panel2);border:1px solid var(--line);
+  word-break:break-all;font-size:11px;color:var(--acc2);user-select:all;cursor:text}
+.jwtpoc b{color:var(--pur)}
 </style></head>
 <body>
 <div class="top">
@@ -401,6 +406,10 @@ function renderFindings(fs){
       (f.exploit_practicality?'<span>'+f.exploit_practicality+(f.chain_required?' · chain':'')+'</span>':'')+
       (f.agreement?'<span class=agree>'+f.agreement+' agreed</span>':'')+'</div>':'';
     const fix=f.remediation?'<div class=note style="margin-top:6px">Fix: '+f.remediation+'</div>':'';
+    const jp=f.jwt_poc?('<div class="jwtpoc"><div class=note><b>&#128273; Forged JWT PoC</b> &middot; '+
+      (f.jwt_poc.attack||'')+(f.jwt_poc.secret_used?(' &middot; secret <span class=mono>'+f.jwt_poc.secret_used+'</span>'):'')+
+      '</div><div class="tok mono" title="click to select">'+(f.jwt_poc.forged_token||'')+'</div>'+
+      '<div class=note style="margin-top:4px">'+(f.jwt_poc.how||'')+'</div></div>'):'';
     const org=(f.origin||'llm');
     const orgcls={llm:'o-llm',scanner:'o-scan',skill:'o-skill'}[org]||'o-llm';
     const orglabel={llm:'LLM',scanner:'SCANNER',skill:'SKILL'}[org]||'LLM';
@@ -411,7 +420,7 @@ function renderFindings(fs){
     const trg=tv?'<span class="prov o-triage" title="'+((f.triage.reason||'')+'').replace(/"/g,"&quot;")+'">&#128110; TRIAGER: '+tv.toUpperCase().replace("_"," ")+'</span>':'';
     d.innerHTML='<div class=h><span class="sev '+sev+'">'+sev+'</span>'+repro+trg+prov+corr+'<b>'+(f.cwe||'finding')+'</b><span class=mono>'+f.repo+'</span>'+(f.handle?'<span class=note>&middot; '+f.handle+'</span>':'')+'</div>'+
       '<div class=mono style="margin-top:6px">'+(f.location||'')+'</div>'+
-      '<div style="margin-top:6px">'+(f.summary||'')+'</div>'+money+fix+
+      '<div style="margin-top:6px">'+(f.summary||'')+'</div>'+money+fix+jp+
       (f.poc?'<div class=note style="margin-top:6px">PoC scaffold: <span class=mono>'+f.poc+'</span></div>':'');
     box.appendChild(d);
   });

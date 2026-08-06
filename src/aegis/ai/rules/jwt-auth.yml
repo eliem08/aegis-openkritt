@@ -1,0 +1,73 @@
+# Aegis-native offline Semgrep rules — JWT authentication bug classes.
+# The classic, high-frequency JWT flaws, in source: alg=none accepted, signature verification
+# disabled, a hardcoded signing secret, and using decode-without-verify for auth. A confirmed
+# hit is turned into a forged-token PoC by aegis.ai.jwt_lab (offline, human-fired).
+# NOTE: patterns containing ':' or '{' are single-quoted so the YAML parser doesn't choke.
+rules:
+  - id: aegis-jwt-py-decode-verify-false
+    languages: [python]
+    severity: ERROR
+    message: >
+      JWT signature verification disabled: jwt.decode(..., verify=False) or
+      options={"verify_signature": False}. Any forged token is accepted.
+    metadata: {cwe: "CWE-347", class: jwt-auth}
+    patterns:
+      - pattern-either:
+          - pattern: 'jwt.decode(..., verify=False, ...)'
+          - pattern: 'jwt.decode(..., options={..., "verify_signature": False, ...}, ...)'
+
+  - id: aegis-jwt-py-alg-none
+    languages: [python]
+    severity: ERROR
+    message: >
+      JWT 'none' algorithm accepted: an attacker can strip the signature and forge any claim.
+      Pin an explicit strong algorithm allow-list (e.g. algorithms=["RS256"]).
+    metadata: {cwe: "CWE-347", class: jwt-auth}
+    patterns:
+      - pattern: 'jwt.decode(..., algorithms=$A, ...)'
+      - metavariable-regex:
+          metavariable: $A
+          regex: '.*(none|None).*'
+
+  - id: aegis-jwt-js-verify-none
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >
+      JWT verify allows the 'none' algorithm (jsonwebtoken). Restrict algorithms to a strong
+      allow-list; never include 'none'.
+    metadata: {cwe: "CWE-347", class: jwt-auth}
+    patterns:
+      - pattern-either:
+          - pattern: 'jwt.verify($T, $K, {..., algorithms: [..., "none", ...], ...})'
+          - pattern: 'jwt.verify($T, $K, {..., algorithms: ["none"], ...})'
+
+  - id: aegis-jwt-js-decode-as-auth
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: >
+      jwt.decode() does NOT verify the signature — using its output for authorization trusts
+      an unverified token. Use jwt.verify() with an algorithm allow-list instead.
+    metadata: {cwe: "CWE-347", class: jwt-auth}
+    patterns:
+      - pattern: 'jwt.decode($T)'
+
+  - id: aegis-jwt-hardcoded-secret
+    languages: [python, javascript, typescript, go, php, ruby, java]
+    severity: ERROR
+    message: >
+      Hardcoded JWT/HMAC signing secret. Anyone with the source can mint valid tokens (full
+      auth bypass). Load the secret from a secret store / env, and rotate this one.
+    metadata: {cwe: "CWE-798", class: jwt-auth}
+    patterns:
+      - pattern-regex: '(?i)(jwt[_-]?secret|signing[_-]?key|hmac[_-]?key)\s*[:=]\s*["''`][^"''`\n]{6,}["''`]'
+
+  - id: aegis-jwt-go-parse-unverified
+    languages: [go]
+    severity: WARNING
+    message: >
+      golang-jwt ParseUnverified skips signature checks — its claims must never gate auth.
+    metadata: {cwe: "CWE-347", class: jwt-auth}
+    patterns:
+      - pattern-either:
+          - pattern: 'jwt.ParseUnverified(...)'
+          - pattern: '$P.ParseUnverified(...)'

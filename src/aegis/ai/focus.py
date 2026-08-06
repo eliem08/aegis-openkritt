@@ -100,6 +100,14 @@ _FRAMEWORK_SIGNS: tuple[tuple[re.Pattern, str], ...] = (
     (re.compile(r"openzeppelin|Ownable|AccessControl", re.I),
      "OpenZeppelin detected: functions should carry onlyOwner/onlyRole — flag any "
      "state-changer that lacks the modifier its siblings use."),
+    (re.compile(r"\bjwt\b|jsonwebtoken|pyjwt|jose\.|golang-jwt|firebase/php-jwt|"
+                r"decode.{0,20}token|verify.{0,20}token", re.I),
+     "JWT / token auth detected: this is a CWE-347 surface. Check the verification is not "
+     "bypassable — algorithms must be an explicit strong allow-list (NEVER 'none'); a "
+     "hardcoded HMAC secret means anyone can mint tokens; jwt.decode()/ParseUnverified() do "
+     "NOT verify signatures so their claims must not gate auth; and an RS256 verifier that "
+     "also accepts HS256 is vulnerable to alg-confusion using the public key as the HMAC "
+     "secret. Also flag a missing exp check."),
     (re.compile(r"\$_FILES|move_uploaded_file|multipart/form-data|MultipartFile|"
                 r"multer|formidable|busboy", re.I),
      "FILE UPLOAD handler detected: this is a CWE-434 surface. Check the validation is not "

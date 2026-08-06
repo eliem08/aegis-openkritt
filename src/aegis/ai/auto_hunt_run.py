@@ -336,6 +336,36 @@ def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = "", on_even
         except Exception:
             pass
 
+        # JWT auto-PoC: for any confirmed JWT/token-auth finding, build the forged-token PoC
+        # offline (hardcoded-secret sign, or alg=none) and attach it to the finding/report,
+        # so the operator sees a ready PoC in the dashboard and fires it themselves.
+        try:
+            from .jwt_lab import poc_for_finding
+            attached = 0
+            for row in validated.get("vulnerabilities") or []:
+                if (row.get("validation") or {}).get("verdict") != "confirmed":
+                    continue
+                a = row.get("json_answer") or {}
+                blob = (str(a.get("vulnerability_type") or "") + " " + str(row.get("cwe") or "")
+                        + " " + str(a.get("summary") or "")).lower()
+                if "jwt" not in blob and "cwe-347" not in blob and "json web token" not in blob:
+                    continue
+                src = ""
+                try:
+                    fp = Path(scan_root) / str(a.get("file_path") or "")
+                    src = fp.read_text(encoding="utf-8", errors="ignore")[:20000] \
+                        if fp.is_file() else ""
+                except Exception:
+                    src = ""
+                row["jwt_poc"] = poc_for_finding(source=src)
+                attached += 1
+            if attached:
+                report_path.write_text(json.dumps(validated, indent=2), encoding="utf-8")
+                emit("phase", {"repository": target.repository, "phase": "poc",
+                               "detail": f"forged JWT PoC attached to {attached} finding(s)"})
+        except Exception:
+            pass
+
         _record(validated, target.handle)
         # professional per-finding triage (trust-model gate, CVSS, chain, prior-art,
         # bounty, remediation) — Aegis-native, one DeepSeek call per confirmed finding
@@ -398,7 +428,10 @@ def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = "", on_even
                 "remediation": enr.get("remediation"),
                 # local-instance reproduction verdict (reproduced / not_reproduced / None)
                 "reproduction": (row.get("reproduction") or {}).get("verdict"),
-                "repro_summary": (row.get("reproduction") or {}).get("summary")})
+                "repro_summary": (row.get("reproduction") or {}).get("summary"),
+                # hostile-triager verdict + auto-built forged-token PoC (JWT findings)
+                "triage": row.get("triage"),
+                "jwt_poc": row.get("jwt_poc")})
 
         # rank: locally REPRODUCED first (proven exploitable), then multi-engine
         # corroboration, then expected gain
