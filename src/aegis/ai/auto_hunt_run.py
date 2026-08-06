@@ -137,6 +137,32 @@ def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = "", on_even
             pass
 
         # --- then the LLM ensemble (the slow part) over EVERY file ---
+        # SCANNERS-ONLY fast mode: skip the slow LLM ensemble AND per-candidate validation,
+        # surface the deterministic scanner + skill findings directly as candidates. For a
+        # quick real-repo pass when the LLM is too slow / to be done later.
+        scanners_only = os.environ.get("AEGIS_SCANNERS_ONLY", "").strip() == "1"
+        if scanners_only:
+            report = {"scan": {"repository": target.repository, "commit": "",
+                               "source_files": 0, "status": "completed"},
+                      "vulnerabilities": list(srows) + list(trows)}
+            report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
+            findings = []
+            for row in report["vulnerabilities"]:
+                a = row.get("json_answer") or {}
+                src = str(row.get("source") or "")
+                origin = ("scanner" if ":tool:" in src else "skill" if ":skill:" in src else "llm")
+                findings.append({"cwe": a.get("vulnerability_type", ""),
+                                 "location": f"{a.get('file_path','')}:{a.get('line','')}",
+                                 "summary": (a.get("summary") or "")[:160],
+                                 "origin": origin, "engine": src.split(":")[-1] if ":" in src else "?",
+                                 "severity": row.get("severity", "medium"), "corroboration": 1,
+                                 "reproduction": None})
+            emit("phase", {"repository": target.repository, "phase": "validating",
+                           "detail": "scanners-only — findings unverified (LLM validation later)"})
+            return HuntOutcome(target=target, confirmed=len(findings), findings=findings,
+                               scanner_candidates=scanner_candidates,
+                               skill_candidates=skill_candidates, tools_run=tools_run)
+
         _mf = os.environ.get("AEGIS_MAX_FILES", "all").strip().lower()
         cover_all = _mf in ("all", "0", "")
         max_files = 100000 if cover_all else int(_mf)
