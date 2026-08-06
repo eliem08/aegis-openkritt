@@ -157,6 +157,13 @@ tbody tr{transition:background .15s}tbody tr:hover td{background:color-mix(in sr
 .jwtpoc .tok{margin-top:6px;padding:8px 10px;border-radius:7px;background:var(--panel2);border:1px solid var(--line);
   word-break:break-all;font-size:11px;color:var(--acc2);user-select:all;cursor:text}
 .jwtpoc b{color:var(--pur)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px;padding-top:10px;border-top:1px solid var(--line)}
+.cpy{font-size:12px;font-weight:700;cursor:pointer;padding:7px 13px;border-radius:8px;
+  border:1px solid color-mix(in srgb,var(--acc) 40%,var(--line));background:color-mix(in srgb,var(--acc) 12%,transparent);
+  color:var(--acc);transition:transform .12s,background .2s,border-color .2s}
+.cpy:hover{transform:translateY(-1px);background:color-mix(in srgb,var(--acc) 22%,transparent)}
+.cpy:active{transform:translateY(1px)}
+.cpy.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 22%,transparent);color:var(--ok)}
 </style></head>
 <body>
 <div class="top">
@@ -391,6 +398,31 @@ async function poll(){
     clearInterval(timer);jobId=null;$('start').disabled=false;$('stop').style.display='none';$('stop').disabled=false;
     $('mode').className='pill live';$('mode').textContent=j.status;logLine('&mdash; run '+j.status+' &mdash;');}
 }
+function copyText(txt,btn){
+  const done=()=>{if(btn){const o=btn.textContent;btn.textContent='✓ Copied';btn.classList.add('ok');
+    setTimeout(()=>{btn.textContent=o;btn.classList.remove('ok');},1400);}};
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done,()=>fallback(txt,done));}
+  else fallback(txt,done);}
+function fallback(txt,cb){const t=document.createElement('textarea');t.value=txt;document.body.appendChild(t);
+  t.select();try{document.execCommand('copy');}catch(e){}t.remove();cb&&cb();}
+function reportMd(f){
+  const L=[];
+  L.push('# '+(f.cwe||'Security finding')+' — '+(f.repo||''));
+  if(f.handle)L.push('Program: '+f.handle);
+  L.push('Severity: '+(f.severity||'medium')+(f.cvss?(' (CVSS '+f.cvss+')'):''));
+  L.push('Location: '+(f.location||''));
+  L.push('');L.push('## Summary');L.push(f.summary||'');
+  if(f.exploit_practicality){L.push('');L.push('Exploitability: '+f.exploit_practicality+(f.chain_required?' (chain required)':''));}
+  if(f.jwt_poc){L.push('');L.push('## Proof of Concept (forged JWT)');
+    L.push('Attack: '+(f.jwt_poc.attack||''));
+    if(f.jwt_poc.secret_used)L.push('Signing secret (from source): '+f.jwt_poc.secret_used);
+    L.push('');L.push('Forged token:');L.push('```');L.push(f.jwt_poc.forged_token||'');L.push('```');
+    L.push('');L.push(f.jwt_poc.how||'');}
+  if(f.reproduction==='reproduced'){L.push('');L.push('Reproduced locally: '+(f.repro_summary||''));}
+  if(f.remediation){L.push('');L.push('## Remediation');L.push(f.remediation);}
+  L.push('');L.push('_Found by Aegis ('+(f.engine||'llm')+'), validated + hostile-triaged. Reproduce before final submission._');
+  return L.join('\n');
+}
 function renderFindings(fs){
   const box=$('findings');
   if(!fs.length){box.innerHTML='<div class=empty>No confirmed candidates yet.</div>';return;}
@@ -421,7 +453,13 @@ function renderFindings(fs){
     d.innerHTML='<div class=h><span class="sev '+sev+'">'+sev+'</span>'+repro+trg+prov+corr+'<b>'+(f.cwe||'finding')+'</b><span class=mono>'+f.repo+'</span>'+(f.handle?'<span class=note>&middot; '+f.handle+'</span>':'')+'</div>'+
       '<div class=mono style="margin-top:6px">'+(f.location||'')+'</div>'+
       '<div style="margin-top:6px">'+(f.summary||'')+'</div>'+money+fix+jp+
-      (f.poc?'<div class=note style="margin-top:6px">PoC scaffold: <span class=mono>'+f.poc+'</span></div>':'');
+      (f.poc?'<div class=note style="margin-top:6px">PoC scaffold: <span class=mono>'+f.poc+'</span></div>':'')+
+      '<div class=acts><button class="cpy cpy-report">&#9112; Copy report</button>'+
+      (f.jwt_poc?'<button class="cpy cpy-token">&#128273; Copy JWT</button>':'')+
+      (f.poc?'<button class="cpy cpy-poc">&#9112; Copy PoC path</button>':'')+'</div>';
+    d.querySelector('.cpy-report').onclick=(e)=>copyText(reportMd(f),e.currentTarget);
+    const bt=d.querySelector('.cpy-token');if(bt)bt.onclick=(e)=>copyText(f.jwt_poc.forged_token,e.currentTarget);
+    const bp=d.querySelector('.cpy-poc');if(bp)bp.onclick=(e)=>copyText(f.poc,e.currentTarget);
     box.appendChild(d);
   });
 }
