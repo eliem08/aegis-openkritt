@@ -36,6 +36,8 @@ _C4 = [
      "html_url": "https://github.com/code-423n4/2026-01-freshdefi",
      "description": "Fresh DeFi audit", "archived": False, "fork": False},
     {"full_name": "code-423n4/old", "name": "old", "archived": True, "fork": False},
+    {"full_name": "code-423n4/2026-01-freshdefi-findings", "name": "2026-01-freshdefi-findings",
+     "html_url": "x", "archived": False, "fork": False},        # result repo -> noise, skipped
 ]
 
 

@@ -36,6 +36,11 @@ _BTD_FILES = {
 }
 # Code4rena publishes each contest as a public repo in this org.
 _C4_ORG = "https://api.github.com/orgs/code-423n4/repos?per_page=100&sort=created&direction=desc"
+# auto-created result/ops repos in the c4 org that are NOT hunt targets (findings/validation
+# dumps, submission temp repos, org tooling). Real contests are '<date>-<name>' code repos.
+_C4_NOISE = re.compile(
+    r"(-findings|-validation|-submissions|submissions-tmp|-tmp-|-tmp$|template|dashboard|"
+    r"website|^docs|\.github|media|brand|backstage|org-|-org$)", re.IGNORECASE)
 
 _GITHUB_RE = re.compile(r"github\.com[:/]+([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)", re.I)
 # in-scope items arrive in many shapes across platforms; try these keys for the identifier.
@@ -174,6 +179,9 @@ class Code4renaSource:
             if not full:
                 continue
             name = str(repo.get("name") or "")
+            # skip the auto-created result/ops repos — they aren't hunt targets
+            if _C4_NOISE.search(name):
+                continue
             out.append(Program(
                 handle=f"code4rena-{name}", platform="code4rena",
                 url=str(repo.get("html_url") or ""), targets=[full], kind="contract",
@@ -226,6 +234,11 @@ def import_programs(sources: list[str] | None = None, *, store=None,
         fetched.extend(got)
 
     existing = {p.handle: p for p in load_registry(store)}
+    # prune previously-stored Code4rena result/ops repos that the noise filter now rejects
+    pruned = [h for h, p in existing.items()
+              if p.platform == "code4rena" and _C4_NOISE.search(h)]
+    for h in pruned:
+        del existing[h]
     added = updated = 0
     for prog in fetched:
         if prog.handle in existing:

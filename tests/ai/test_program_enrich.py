@@ -61,6 +61,16 @@ def test_github_age_fills_missing_only():
     assert n == 1 and progs[0].age_months > 40
 
 
+def test_github_sets_saturation_from_stars():
+    progs = [Program(handle="p", platform="hackerone", targets=["big/repo"])]
+
+    def fake(url, headers):
+        return {"created_at": "2019-01-01T00:00:00Z", "stargazers_count": 45000}
+    enrich_age_from_github(progs, fetch_json=fake)
+    assert progs[0].saturation >= 0.85          # famous repo -> heavily saturated
+    assert progs[0].age_months > 60
+
+
 def test_github_age_degrades_on_error():
     progs = [Program(handle="p", platform="hackerone", targets=["owner/repo"])]
 

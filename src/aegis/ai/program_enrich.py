@@ -86,24 +86,35 @@ def apply_reward_priors(programs: list) -> int:
     return n
 
 
-def _github_created_months(repo: str, fetch_json, token: str = "") -> int | None:
+def _stars_to_saturation(stars: int) -> float:
+    """Fame proxy: more stars = more eyes = more picked-over. log-scaled, capped at 0.9.
+    ~50 stars -> 0.34, ~500 -> 0.54, ~5k -> 0.74, ~50k -> 0.90."""
+    import math
+    if stars <= 0:
+        return 0.0
+    return min(0.9, round(math.log10(stars + 1) / 5.0, 3))
+
+
+def _github_repo_meta(repo: str, fetch_json, token: str = ""):
+    """Return (age_months|None, stars). One call, used for both age and the saturation proxy."""
     import datetime
     headers = {"User-Agent": "aegis-enrich"}
     if token:
         headers["Authorization"] = f"Bearer {token}"
     try:
-        d = fetch_json(f"https://api.github.com/repos/{repo}", headers)
+        d = fetch_json(f"https://api.github.com/repos/{repo}", headers) or {}
     except Exception:
-        return None
-    created = (d or {}).get("created_at")
-    if not created:
-        return None
-    try:
-        dt = datetime.datetime.fromisoformat(created.replace("Z", "+00:00"))
-        now = datetime.datetime.now(datetime.timezone.utc)
-        return max(0, (now - dt).days // 30)
-    except Exception:
-        return None
+        return None, 0
+    stars = int(d.get("stargazers_count") or 0)
+    created = d.get("created_at")
+    age = None
+    if created:
+        try:
+            dt = datetime.datetime.fromisoformat(created.replace("Z", "+00:00"))
+            age = max(0, (datetime.datetime.now(datetime.timezone.utc) - dt).days // 30)
+        except Exception:
+            age = None
+    return age, stars
 
 
 def enrich_age_from_github(programs: list, *, fetch_json=None, cap: int | None = None) -> int:
@@ -124,15 +135,21 @@ def enrich_age_from_github(programs: list, *, fetch_json=None, cap: int | None =
     for p in programs:
         if done >= cap:
             break
-        if p.age_months or not p.targets:
-            continue
+        if not p.targets or (p.age_months and p.saturation):
+            continue        # need a fetch only if age OR saturation is still missing
         repo = next((t for t in p.targets if re.match(r"^[\w.-]+/[\w.-]+$", t)), "")
         if not repo:
             continue
-        m = _github_created_months(repo, fetch_json, token)
+        m, stars = _github_repo_meta(repo, fetch_json, token)
+        if m is None and not stars:
+            continue
         if m is not None:
             p.age_months = m
-            done += 1
+        # saturation = fame (stars) OR crowding (disclosed reports), whichever is higher
+        sat = max(_stars_to_saturation(stars), min(0.9, p.paid_reports / 40.0))
+        if sat > p.saturation:
+            p.saturation = sat
+        done += 1
     return done
 
 
