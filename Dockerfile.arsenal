@@ -25,7 +25,10 @@ ENV PYTHONUNBUFFERED=1 \
     # AEGIS_AUTOSTART_TARGETS (top-N, default 8), AEGIS_AUTOSTART_SAMPLES (default 2),
     # AEGIS_AUTOSTART_IMPORT=1 (refresh feeds first), AEGIS_AUTOSTART_ONCE=1 (no 24/7 loop).
     AEGIS_AUTOSTART=1 \
-    AEGIS_AUTOSTART_RANKING=/app/reports/mattermost_targets.json
+    AEGIS_AUTOSTART_RANKING=/app/reports/mattermost_targets.json \
+    # program radar on boot: diff public feeds vs the registry so paused programs are skipped
+    # (no wasted compute) and new ones are caught. Alerts show in the dashboard 'Program radar'.
+    AEGIS_AUTOSTART_MONITOR=1
 
 # --- OS packages: language runtimes for the language-specific scanners ---
 RUN apt-get update && apt-get install -y --no-install-recommends \

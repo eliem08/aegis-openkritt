@@ -226,6 +226,9 @@ tbody tr{transition:background .15s}tbody tr:hover td{background:color-mix(in sr
   <div class="panel"><table><thead><tr>
     <th>#</th><th>Target</th><th>Program</th><th>Findability</th><th>Crowding</th><th>Reward</th><th>Expected value</th><th>Status</th>
   </tr></thead><tbody id="queue"><tr><td colspan="8" class="empty">Loading queue&hellip;</td></tr></tbody></table></div>
+  <h2>Program radar <span class="note">(new programs &middot; scope changes &middot; pause/resume &mdash; from the public feeds)</span>
+    <span class="grow"></span><button class="cpy" id="pm-scan" style="font-size:11px;padding:5px 11px">&#128260; Scan now</button></h2>
+  <div class="panel"><div id="radar" class="log" style="max-height:240px"><div class=note>no alerts yet &mdash; click &ldquo;Scan now&rdquo; or enable AEGIS_AUTOSTART_MONITOR.</div></div></div>
   <h2>Live activity</h2>
   <div class="panel"><div class="log" id="log"><div>waiting to start&hellip;</div></div></div>
   <h2>Confirmed candidates <span class="note">(each needs human reproduction before submission)</span></h2>
@@ -515,6 +518,22 @@ async function jsPoll(id){
     tb.appendChild(tr);
   });
 }
+// --- Program radar: new programs, scope changes, pause/resume ---
+function radarLine(a){
+  const ic={new_program:'🆕',scope_changed:'🎯',reward_changed:'💰',paused:'⏸',resumed:'▶'}[a.type]||'•';
+  const cls={paused:'var(--bad)',new_program:'var(--ok)',resumed:'var(--acc)'}[a.type]||'var(--warn)';
+  const when=a.ts?new Date(a.ts*1000).toLocaleString():'';
+  return '<div><span style="color:'+cls+';font-weight:700">'+ic+' '+a.type.replace("_"," ")+'</span> '+
+    '<b>'+(a.handle||'')+'</b> <span class=note>'+(a.platform||'')+' &middot; '+(a.detail||'')+'</span>'+
+    (when?' <span class=note style="opacity:.6">'+when+'</span>':'')+'</div>';
+}
+async function loadRadar(){try{const d=await (await fetch('/ui/program-alerts?limit=60')).json();
+  const box=$('radar');const al=d.alerts||[];
+  if(!al.length){return;}box.innerHTML=al.map(radarLine).join('');}catch(e){}}
+$('pm-scan').onclick=async(e)=>{const b=e.currentTarget;const o=b.innerHTML;b.disabled=true;b.innerHTML='⏳ scanning feeds…';
+  try{await fetch('/ui/program-monitor',{method:'POST'});}catch(_){}
+  setTimeout(()=>{loadRadar();b.disabled=false;b.innerHTML=o;},6000);};
 loadQueue();adoptRunning();refreshCost();setInterval(refreshCost,15000);
+loadRadar();setInterval(loadRadar,20000);
 </script>
 </body></html>

@@ -54,6 +54,14 @@ def maybe_autostart(app) -> None:
                     import_programs()
                 except Exception:
                     pass
+            if _on("AEGIS_AUTOSTART_MONITOR"):
+                # diff feeds vs registry so paused programs are marked inactive (skipped by
+                # selection) and new ones get picked up before we rank.
+                try:
+                    from .program_monitor import monitor
+                    monitor()
+                except Exception:
+                    pass
             jobs = getattr(app.state, "autohunt_jobs", None)
             if jobs is None:
                 jobs = app.state.autohunt_jobs = {}

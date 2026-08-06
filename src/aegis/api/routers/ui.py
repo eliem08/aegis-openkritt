@@ -264,6 +264,36 @@ def autohunt_jobs(request: Request) -> dict:
         for j in jobs.values()]}
 
 
+@router.get("/ui/program-alerts", summary="Recent program-monitor alerts (new/scope/pause/resume)")
+def program_alerts(limit: int = 60) -> dict:
+    import os
+
+    from aegis.ai.program_monitor import load_alerts
+    root = os.environ.get("AEGIS_REPORT_DIR", "reports")
+    return {"alerts": load_alerts(root, limit=limit)}
+
+
+@router.post("/ui/program-monitor", summary="Run a program-monitor pass (diff feeds vs registry)")
+def run_program_monitor(request: Request) -> dict:
+    import threading
+
+    st = request.app.state
+    if getattr(st, "_monitor_running", False):
+        return {"status": "already running"}
+    st._monitor_running = True
+
+    def _go():
+        try:
+            from aegis.ai.program_monitor import monitor
+            monitor()
+        except Exception:
+            pass
+        finally:
+            st._monitor_running = False
+    threading.Thread(target=_go, daemon=True, name="aegis-progmon").start()
+    return {"status": "scanning"}
+
+
 def _run_js_secrets(app, job_id, js_dir) -> None:
     from pathlib import Path
 
