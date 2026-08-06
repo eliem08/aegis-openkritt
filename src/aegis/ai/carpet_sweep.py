@@ -99,50 +99,95 @@ def _row_to_hit(program, repo, tool_name, commit, row, repo_root="") -> Hit | No
         commit=commit, ts=time.time())
 
 
+def _tree_size_mb(path, skip=frozenset({".git", "node_modules", "vendor"})) -> float:
+    """Working-tree size in MB (for reporting only — nothing is skipped from scanning)."""
+    total = 0
+    for root, dirs, files in os.walk(path):
+        dirs[:] = [d for d in dirs if d not in skip]
+        for f in files:
+            try:
+                total += os.path.getsize(os.path.join(root, f))
+            except OSError:
+                pass
+    return round(total / 1024 / 1024, 1)
+
+
 def sweep_repo(program, repo, *, tools, state, cache_dir, token, timeout, force=False):
-    """Clone (shallow, cached) + run the fast tools on one repo. Returns (hits, skipped).
-    Raw hits — a human (Claude, then the operator) debugs each one."""
+    """Clone (shallow, cached) + run the fast tools on one repo. Scans EVERYTHING — no size
+    cap, no skip. Returns (hits, skipped, secs, size_mb). Raw hits; a human debugs each."""
     from .repo_clone import clone_repository
     from .tool_bridge import ToolBridge
+    t0 = time.monotonic()
     try:
         clone = clone_repository(repo, cache_dir=cache_dir, token=token, depth=1, refresh=True)
     except Exception:
-        return [], False
+        return [], False, round(time.monotonic() - t0, 1), 0.0
     commit = clone.commit or ""
     prev = (state.get(repo) or {}).get("commit")
     if commit and prev == commit and not force:
-        return [], True                                  # unchanged since last sweep — skip
-    results = ToolBridge(timeout=timeout).scan(str(clone.path), tools=tools)
+        return [], True, round(time.monotonic() - t0, 1), 0.0   # unchanged — skip
+    size_mb = _tree_size_mb(clone.path)
+    results = ToolBridge(timeout=timeout).scan(str(clone.path), tools=tools)  # timeout None = unbounded
     hits = [h for h in (_row_to_hit(program, repo, r.tool, commit, row, str(clone.path))
                         for r in results for row in r.findings) if h]
-    state[repo] = {"commit": commit, "ts": time.time(), "hits": len(hits)}
-    return hits, False
+    state[repo] = {"commit": commit, "ts": time.time(), "hits": len(hits), "mb": size_mb}
+    return hits, False, round(time.monotonic() - t0, 1), size_mb
+
+
+def _resolve_timeout(timeout):
+    """Unbounded by default (scan everything). AEGIS_CARPET_TIMEOUT=0/unset -> None (no
+    timeout); a positive value caps per-scanner wall time."""
+    if timeout is not None:
+        return timeout
+    t = os.environ.get("AEGIS_CARPET_TIMEOUT")
+    if t in (None, "", "0", "none", "None"):
+        return None
+    try:
+        return int(t)
+    except ValueError:
+        return None
 
 
 def sweep_once(programs=None, *, concurrency=None, timeout=None, hits_file=HITS_FILE,
-               state_file=STATE_FILE, on_hit=None, force=False) -> dict:
-    """One pass over every in-scope source repo. Persists ranked RAW hits + per-repo state.
-    Hits are leads — a human (Claude, then the operator) debugs each one."""
+               state_file=STATE_FILE, on_hit=None, force=False, progress=None) -> dict:
+    """One pass over every in-scope source repo — scans EVERYTHING, no size cap, no timeout by
+    default. Persists ranked RAW hits + per-repo state. `progress(kind, data)` streams live
+    events. Hits are leads — a human (Claude, then the operator) debugs each one."""
     from .registry import load_registry
     programs = programs if programs is not None else load_registry()
     tools = _fast_tools()
     token = os.environ.get("GITHUB_TOKEN", "")
     cache_dir = os.environ.get("AEGIS_CLONE_DIR") or "reports/clones"
-    timeout = timeout or int(os.environ.get("AEGIS_CARPET_TIMEOUT")
-                             or os.environ.get("AEGIS_SCANNER_TIMEOUT", "180") or 180)
+    timeout = _resolve_timeout(timeout)
     workers = concurrency or int(os.environ.get("AEGIS_CARPET_CONCURRENCY", "4") or 4)
     state = _load(state_file, {})
     prior = _load(hits_file, [])
+    emit = progress or (lambda *_: None)
 
     jobs = [(p, repo) for p in programs if p.active
             for repo in (p.targets or []) if repo.count("/") == 1]
+    emit("start", {"repos": len(jobs), "tools": [t.name for t in tools], "workers": workers,
+                   "timeout": timeout})
     new_hits: list[Hit] = []
-    swept = skipped = 0
+    swept = skipped = done = 0
+    n = len(jobs)
 
     def _work(job):
         p, repo = job
-        return sweep_repo(p, repo, tools=tools, state=state, cache_dir=cache_dir,
-                          token=token, timeout=timeout, force=force)
+        return (repo,) + sweep_repo(p, repo, tools=tools, state=state, cache_dir=cache_dir,
+                                    token=token, timeout=timeout, force=force)
+
+    def _record(repo, hits, was_skip, secs, mb):
+        nonlocal swept, skipped, done
+        done += 1
+        skipped += 1 if was_skip else 0
+        swept += 0 if was_skip else 1
+        for h in hits:
+            new_hits.append(h)
+            if on_hit:
+                on_hit(h)
+        emit("repo", {"i": done, "n": n, "repo": repo, "hits": len(hits), "secs": secs,
+                      "mb": mb, "skipped": was_skip, "running_hits": len(new_hits)})
 
     if workers > 1 and len(jobs) > 1:
         from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -150,21 +195,14 @@ def sweep_once(programs=None, *, concurrency=None, timeout=None, hits_file=HITS_
             futs = [ex.submit(_work, j) for j in jobs]
             for fut in as_completed(futs):
                 try:
-                    hits, was_skip = fut.result()
+                    repo, hits, was_skip, secs, mb = fut.result()
                 except Exception:
                     continue
-                skipped += 1 if was_skip else 0
-                swept += 0 if was_skip else 1
-                for h in hits:
-                    new_hits.append(h)
-                    if on_hit:
-                        on_hit(h)
+                _record(repo, hits, was_skip, secs, mb)
     else:
         for j in jobs:
-            hits, was_skip = _work(j)
-            skipped += 1 if was_skip else 0
-            swept += 0 if was_skip else 1
-            new_hits.extend(hits)
+            repo, hits, was_skip, secs, mb = _work(j)
+            _record(repo, hits, was_skip, secs, mb)
 
     # merge: dedup by (repo, file, line, cwe); newest hit wins; rank by reward x severity
     merged = {}
@@ -205,19 +243,58 @@ def load_hits(limit: int = 100, report_dir: str = "reports") -> list[dict]:
     return (_load(str(Path(report_dir) / "carpet_hits.json"), []) or [])[:limit]
 
 
+def _cli_printer():
+    """A live progress printer for the CLI: repos found, each repo as it's scanned with timing
+    + hit count, a running total, and every hit inline."""
+    import sys
+    t0 = [0.0]
+
+    def emit(kind, d):
+        if kind == "start":
+            t0[0] = time.monotonic()
+            to = d["timeout"]
+            print(f"\n🧹 CARPET SWEEP — {d['repos']} in-scope repos found | tools: "
+                  f"{', '.join(d['tools'])} | {d['workers']} parallel | "
+                  f"timeout: {'none (scan everything)' if to is None else str(to)+'s'}\n"
+                  + "-" * 78, flush=True)
+        elif kind == "repo":
+            el = time.monotonic() - t0[0]
+            tag = ("· unchanged" if d["skipped"]
+                   else (f"→ {d['hits']} HIT(S)" if d["hits"] else "clean"))
+            mark = "🔴" if d["hits"] else ("  " if d["skipped"] else "✓ ")
+            print(f"{mark}[{d['i']:>3}/{d['n']}] {d['repo']:<44} {d['mb']:>6}MB "
+                  f"{d['secs']:>6.1f}s  {tag:<12} | total hits: {d['running_hits']} "
+                  f"| elapsed {el/60:.1f}m", flush=True)
+    return emit
+
+
 def main(argv=None) -> int:
     import sys
     args = list(argv if argv is not None else sys.argv[1:])
     if "--forever" in args:
-        run_forever()
-        return 0
-    s = sweep_once(force="--force" in args)
-    print(f"carpet sweep — tools: {', '.join(s['tools'])}")
-    print(f"  repos {s['repos_total']} · swept {s['swept']} · skipped(unchanged) {s['skipped_unchanged']}")
-    print(f"  new hits {s['new_hits']} · total stored {s['total_hits']}")
-    for h in load_hits(15):
-        print(f"  [{h['severity']:8}] ${int(h['reward']):>7,} {h['detector']:8} {h['cwe'][:22]:22} "
+        # 24/7: sweep, sleep, repeat — printing each cycle
+        pr = _cli_printer()
+        while True:
+            s = sweep_once(force="--force" in args, progress=pr)
+            print("-" * 78)
+            print(f"CYCLE DONE — swept {s['swept']} · unchanged {s['skipped_unchanged']} · "
+                  f"new hits {s['new_hits']} · stored {s['total_hits']}")
+            print("TOP HITS:")
+            for h in load_hits(20):
+                print(f"  [{h['severity']:8}] ${int(h['reward']):>7,} {h['detector']:9} "
+                      f"{h['cwe'][:22]:22} {h['repo']}:{h['file']}:{h['line']}")
+            gap = int(os.environ.get("AEGIS_CARPET_INTERVAL", "1800") or 1800)
+            print(f"\n😴 sleeping {gap}s, then re-sweeping changed repos…\n", flush=True)
+            time.sleep(max(60, gap))
+    s = sweep_once(force="--force" in args, progress=_cli_printer())
+    print("-" * 78)
+    print(f"DONE — {s['repos_total']} repos · swept {s['swept']} · unchanged "
+          f"{s['skipped_unchanged']} · new hits {s['new_hits']} · stored {s['total_hits']}")
+    print("\nTOP HITS (reward × severity):")
+    for h in load_hits(25):
+        print(f"  [{h['severity']:8}] ${int(h['reward']):>7,} {h['detector']:9} {h['cwe'][:22]:22} "
               f"{h['repo']}:{h['file']}:{h['line']}")
+    print("\nfull list: reports/carpet_hits.json  ·  next: point Claude at any hit to debug it")
     return 0
 
 

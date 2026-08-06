@@ -223,10 +223,17 @@ TOOLS: tuple[Tool, ...] = (
     Tool("semgrep", "semgrep", ("code",),
          # bundled offline rules ({rules}) so PHP/Ruby/etc. are covered without the registry
          # (unreachable offline); --timeout caps per-rule time so semgrep-core can't hang.
-         "semgrep --config {rules} --json --quiet --timeout 60 --error {target}",
+         # Speed on big repos: skip heavy non-source trees + huge/generated files so a 40M
+         # monorepo doesn't blow the wall-clock timeout (the carpet-sweep TimeoutExpired bug).
+         # scan everything the target wrote (no size cap, no per-rule timeout); only skip
+         # node_modules/vendor/.git (third-party deps + VCS — not the target's own code).
+         "semgrep --config {rules} --json --quiet --timeout 0 "
+         "--exclude node_modules --exclude vendor --exclude .git --error {target}",
          "LGPL-2.1 (engine) / Aegis rules", _parse_semgrep),
     Tool("gitleaks", "gitleaks", ("secrets",),
-         "gitleaks detect --source {target} --report-format json --report-path -", "MIT",
+         # --no-git scans the working tree (current code) instead of the whole git history —
+         # far faster on big repos, and we want secrets in the code, not old commits.
+         "gitleaks detect --no-git --source {target} --report-format json --report-path -", "MIT",
          _parse_gitleaks),
     Tool("bandit", "bandit", ("code",),
          "bandit -r {target} -f json -q", "Apache-2.0", _parse_bandit),
