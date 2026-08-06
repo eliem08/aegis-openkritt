@@ -130,7 +130,7 @@ class ToolBridge:
                 results.append(ToolResult(tool=tool.name, ran=False,
                                           error=f"{type(exc).__name__}: {exc}"[:200]))
                 continue
-            findings = _parse(tool, stdout)
+            findings = _drop_noise_paths(_parse(tool, stdout))   # skip tests/vendored/minified
             emit("scanner", {"tool": tool.name, "state": "done", "count": len(findings),
                              "ms": round((time.monotonic() - t0) * 1000)})   # live: done + count + timing
             results.append(ToolResult(tool=tool.name, ran=True, findings=findings,
@@ -142,6 +142,23 @@ class ToolBridge:
         for r in results:
             rows.extend(r.findings)
         return rows
+
+
+def _drop_noise_paths(rows: list[dict]) -> list[dict]:
+    """Drop scanner rows whose file is in tests/, vendored libs, minified bundles, etc. —
+    the same non-production paths the LLM file-selection already excludes. On mature repos
+    these are the bulk of the false positives (vendored ExtJS/MooTools, test fixtures)."""
+    try:
+        from .repo_hunt import _EXCLUDED
+    except Exception:
+        return rows
+    kept = []
+    for r in rows:
+        path = str((r.get("json_answer") or {}).get("file_path", "")).replace("\\", "/")
+        if path and _EXCLUDED.search(path):
+            continue
+        kept.append(r)
+    return kept
 
 
 def _parse(tool: Tool, stdout: str) -> list[dict]:
