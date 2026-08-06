@@ -78,6 +78,18 @@ def _save(path: str, obj) -> None:
     p.write_text(json.dumps(obj, indent=2), encoding="utf-8")
 
 
+def _persist(prior, new_hits, hits_file) -> list:
+    """Merge prior + new hits (dedup by repo/file/line/cwe), rank by reward x severity, write.
+    Called after EACH repo so hits land in the file the instant they're found (real-time
+    debuggable), not only at cycle-end."""
+    merged = {}
+    for h in [Hit(**x) if isinstance(x, dict) else x for x in prior] + new_hits:
+        merged[(h.repo, h.file, h.line, h.cwe)] = h
+    ranked = sorted(merged.values(), key=lambda h: -h.score())[:_MAX_HITS]
+    _save(hits_file, [asdict(h) for h in ranked])
+    return ranked
+
+
 def _row_to_hit(program, repo, tool_name, commit, row, repo_root="") -> Hit | None:
     a = row.get("json_answer") or {}
     fp = str(a.get("file_path") or "")
@@ -186,6 +198,11 @@ def sweep_once(programs=None, *, concurrency=None, timeout=None, hits_file=HITS_
             new_hits.append(h)
             if on_hit:
                 on_hit(h)
+        # persist per-repo: hits land in the file the instant they're found (real-time
+        # debuggable), and state saves each repo so a restart resumes via skip-unchanged.
+        if hits:
+            _persist(prior, new_hits, hits_file)
+        _save(state_file, state)
         emit("repo", {"i": done, "n": n, "repo": repo, "hits": len(hits), "secs": secs,
                       "mb": mb, "skipped": was_skip, "running_hits": len(new_hits)})
 
@@ -204,12 +221,8 @@ def sweep_once(programs=None, *, concurrency=None, timeout=None, hits_file=HITS_
             repo, hits, was_skip, secs, mb = _work(j)
             _record(repo, hits, was_skip, secs, mb)
 
-    # merge: dedup by (repo, file, line, cwe); newest hit wins; rank by reward x severity
-    merged = {}
-    for h in [Hit(**x) if isinstance(x, dict) else x for x in prior] + new_hits:
-        merged[(h.repo, h.file, h.line, h.cwe)] = h
-    ranked = sorted(merged.values(), key=lambda h: -h.score())[:_MAX_HITS]
-    _save(hits_file, [asdict(h) for h in ranked])
+    # final merge/rank/persist (also written incrementally per-repo in _record)
+    ranked = _persist(prior, new_hits, hits_file)
     _save(state_file, state)
     return {"repos_total": len(jobs), "swept": swept, "skipped_unchanged": skipped,
             "new_hits": len(new_hits), "total_hits": len(ranked),
