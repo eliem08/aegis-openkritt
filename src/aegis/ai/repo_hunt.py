@@ -389,25 +389,30 @@ def hunt_repository(fetcher, client, repository: str, *,
                 calibration = Calibration.from_outcomes(outcomes)
     except Exception:
         calibration = None
-    agent = SpecializedAgent(
-        client, max_hypotheses=config.max_hypotheses_per_file,
-        require_reachability=config.require_reachability,
-        min_confidence=config.min_confidence,
-        samples=config.samples, retriever=retriever, calibration=calibration,
-    )
+    def _make_agent():
+        # a FRESH agent per file: the agent is stateful (samples_run + vote tracking), so it
+        # can't be shared across worker threads. The httpx-backed client IS thread-safe and is
+        # shared. Construction is cheap (just stores config).
+        return SpecializedAgent(
+            client, max_hypotheses=config.max_hypotheses_per_file,
+            require_reachability=config.require_reachability,
+            min_confidence=config.min_confidence,
+            samples=config.samples, retriever=retriever, calibration=calibration,
+        )
     seen: set[tuple[str, int, str]] = set()          # cross-file hypothesis dedup
 
-    for index, item in enumerate(selected, start=1):
-        if progress:
-            progress(index, len(selected), item.path)
+    def _analyze_file(item):
+        """Worker (thread-safe): read bundle, build the task, run a fresh agent. Returns
+        (item, rows, failure) where rows are (hypothesis, agreement, samples) fully computed
+        so the main thread only has to dedupe + append."""
         bundle = _read_bundle(fetcher, repository, item.path, paths, config, result, pin_dir)
         if bundle is None:
-            continue
+            return item, [], None
         primary = [s for s in bundle if s.path == item.path]
         if not primary:
-            continue
-        from .taint import extract_flows, taint_hints_text
+            return item, [], None
         from .focus import focus_text, framework_note
+        from .taint import extract_flows, taint_hints_text
         hints = taint_hints_text(extract_flows(primary[0].content)) if config.taint_hints else ""
         if config.stack_focus:
             hints = focus_text(item.path) + framework_note(primary[0].content) + hints
@@ -419,11 +424,7 @@ def hunt_repository(fetcher, client, repository: str, *,
             target=f"{repository}:{item.path}",
             source_slices=bundle,
             policy_notes=(
-                # program scope first — the authoritative definition of what's eligible, so
-                # the model never spends a report on an out-of-scope asset (dep, tooling, ...)
                 _scope_prompt(config.scope_text)
-                # operator lead next — a human hint focuses the whole budget on a
-                # suspected flaw (the force-multiplier edge). Still verified like any claim.
                 + (f"OPERATOR LEAD (prioritise, but only report if you can PROVE it in the "
                  f"supplied code): {config.operator_hint}\n\n" if config.operator_hint else "")
                 + f"Authorized static source review of {repository}. The PRIMARY file under "
@@ -435,24 +436,49 @@ def hunt_repository(fetcher, client, repository: str, *,
                 + hints
             ),
         )
+        agent = _make_agent()
         try:
-            hypotheses = agent.analyze(task)
+            hyps = agent.analyze(task)
         except Exception as exc:
-            # surface the reason, not just the type — a swallowed message hides
-            # truncated json, rate limits, and context-length errors alike
-            result.failures.append(
-                f"{item.path}: analysis failed ({type(exc).__name__}: {str(exc)[:200]})")
-            continue
-        for hypothesis in hypotheses:
-            if hypothesis.file_path != item.path:
-                continue                              # context files are read-only evidence
+            return item, [], f"{item.path}: analysis failed ({type(exc).__name__}: {str(exc)[:200]})"
+        rows = [(h, agent.agreement_for(h), agent.samples_run)
+                for h in hyps if h.file_path == item.path]   # context files are evidence only
+        return item, rows, None
+
+    def _merge(item, rows, failure, index):
+        if progress:
+            progress(index, len(selected), item.path)
+        if failure:
+            result.failures.append(failure)
+            return
+        for hypothesis, agreement, samples in rows:
             key = (hypothesis.file_path, hypothesis.line, hypothesis.weakness.lower())
             if key in seen:
                 continue                              # same issue re-reported from a neighbour
             seen.add(key)
-            result.hypotheses.append(_row(
-                repository, hypothesis,
-                agreement=agent.agreement_for(hypothesis), samples=agent.samples_run))
+            result.hypotheses.append(_row(repository, hypothesis,
+                                          agreement=agreement, samples=samples))
+
+    # Concurrency: file analysis is I/O-bound (LLM API calls), so a bounded thread pool gives
+    # a near-linear speedup. AEGIS_CONCURRENCY=1 keeps the original serial path. Merge is done
+    # in this thread only, so the shared `seen`/result stay consistent.
+    import os
+    workers = max(1, int(os.environ.get("AEGIS_CONCURRENCY", "1") or 1))
+    if workers > 1 and len(selected) > 1:
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        with ThreadPoolExecutor(max_workers=workers) as ex:
+            futs = [ex.submit(_analyze_file, it) for it in selected]
+            for i, fut in enumerate(as_completed(futs), start=1):
+                try:
+                    item, rows, failure = fut.result()
+                except Exception as exc:
+                    result.failures.append(f"worker error ({type(exc).__name__}: {str(exc)[:150]})")
+                    continue
+                _merge(item, rows, failure, i)
+    else:
+        for index, item in enumerate(selected, start=1):
+            item, rows, failure = _analyze_file(item)
+            _merge(item, rows, failure, index)
     return result
 
 

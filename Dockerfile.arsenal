@@ -31,7 +31,10 @@ ENV PYTHONUNBUFFERED=1 \
     AEGIS_AUTOSTART_MONITOR=1 \
     # backfill real repo ages from GitHub on boot (needs GITHUB_TOKEN in --env-file) so the
     # maturity discount down-ranks ancient/picked-over repos and floats fresh targets.
-    AEGIS_AUTOSTART_GITHUB_AGE=1
+    AEGIS_AUTOSTART_GITHUB_AGE=1 \
+    # analyse files concurrently — LLM calls are I/O-bound, so a bounded pool is a near-linear
+    # speedup. 6 is a safe default vs provider rate limits; raise/lower per your model tier.
+    AEGIS_CONCURRENCY=6
 
 # --- OS packages: language runtimes for the language-specific scanners ---
 RUN apt-get update && apt-get install -y --no-install-recommends \

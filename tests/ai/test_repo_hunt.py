@@ -167,6 +167,30 @@ def test_hunt_analyzes_only_selected_files_and_shapes_a_report(tmp_path):
     assert (tmp_path / "pkg/auth/session.go").is_file()
 
 
+def test_hunt_parallel_matches_serial(tmp_path, monkeypatch):
+    files = {
+        "pkg/auth/session.go": "package auth\n",
+        "pkg/rbac/authorizer.go": "package rbac\n",
+        "svc/api/handler.go": "package api\n",
+        "svc/db/query.go": "package db\n",
+    }
+    # serial baseline
+    serial = hunt_repository(FakeFetcher(files), FakeClient(), "acme/repo",
+                             config=RepoHuntConfig(max_files=10), pin_dir=tmp_path / "s")
+    # parallel run — must produce the same set of hypotheses, no races/dupes
+    monkeypatch.setenv("AEGIS_CONCURRENCY", "4")
+    par = hunt_repository(FakeFetcher(files), FakeClient(), "acme/repo",
+                          config=RepoHuntConfig(max_files=10), pin_dir=tmp_path / "p")
+    def key(r):
+        out = []
+        for h in r.hypotheses:
+            a = h.get("json_answer", h) if isinstance(h, dict) else h
+            out.append((a.get("file_path"), a.get("line"), a.get("vulnerability_type")))
+        return sorted(out)
+    assert key(par) == key(serial)
+    assert len(par.hypotheses) == len(serial.hypotheses) == len({f.path for f in par.selected})
+
+
 def test_hunt_records_failures_without_aborting(tmp_path):
     class Flaky(FakeFetcher):
         def read(self, repository, path):
