@@ -149,6 +149,20 @@ th{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.04em
     </div>
     <div id="findings" style="flex:1"><div class="empty">No confirmed candidates yet.</div></div>
   </div>
+
+  <h2>JS secret lane <span class="note">(hardcoded-credential leaks &middot; analytical only &middot; local, already-acquired JS)</span></h2>
+  <div class="panel">
+    <div class="controls">
+      <label style="flex:1;min-width:280px">In-scope JS directory<input id="js-dir" type="text" style="width:100%"
+        placeholder="path to .js you already acquired within authorized scope"></label>
+      <button class="go" id="js-scan">&#128269; Triage secrets</button>
+      <span id="js-info" class="note"></span>
+    </div>
+    <div class="note" style="padding:0 16px 12px">Never fetches live hosts &middot; never uses a found key &middot; values redacted. Reads local .js, extracts candidates, and the LLM classifies each: <b>secret</b> vs <b>public</b> vs <b>placeholder</b>.</div>
+  </div>
+  <div class="panel" style="margin-top:10px"><table><thead><tr>
+    <th></th><th>Severity</th><th>Type</th><th>Source</th><th>Redacted</th><th>Verdict</th><th>Live~</th><th>Reason</th>
+  </tr></thead><tbody id="js-rows"><tr><td colspan="8" class="empty">Point it at a directory of in-scope JS and triage.</td></tr></tbody></table></div>
 </div>
 <script>
 const $=id=>document.getElementById(id);
@@ -312,6 +326,43 @@ async function refreshCost(){try{const c=await (await fetch('/ui/cost')).json();
   if(c&&c.day_cost!==undefined){const cap=c.daily_cap>0?(' / $'+c.daily_cap+' cap'):'';
     $('spend').textContent='$'+(c.day_cost||0).toFixed(2)+' today'+cap+' · $'+(c.total_cost||0).toFixed(2)+' total';
     $('spend').style.color=c.over_budget?'var(--bad)':'';}}catch(e){}}
+// --- JS secret lane ---
+let jsTimer=null;
+const jsSev={critical:'critical',high:'high',medium:'medium',low:'low',info:'low'};
+$('js-scan').onclick=async()=>{
+  const dir=$('js-dir').value.trim();
+  if(!dir){$('js-info').textContent='enter a directory';return;}
+  $('js-scan').disabled=true;$('js-info').textContent='scanning…';
+  $('js-rows').innerHTML='<tr><td colspan=8 class=empty>Extracting + triaging…</td></tr>';
+  const d=await (await fetch('/ui/js-secrets',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dir})})).json();
+  if(d.error){$('js-info').textContent='⚠ '+d.error;$('js-scan').disabled=false;return;}
+  if(jsTimer)clearInterval(jsTimer);jsTimer=setInterval(()=>jsPoll(d.job_id),1500);jsPoll(d.job_id);
+};
+async function jsPoll(id){
+  const j=await (await fetch('/ui/js-secrets/'+id)).json();
+  if(j.status==='running'||j.status==='queued'){$('js-info').textContent=j.status+(j.files?(' · '+j.files+' files'):'');return;}
+  clearInterval(jsTimer);$('js-scan').disabled=false;
+  if(j.status==='error'){$('js-info').textContent='⚠ '+(j.error||'error');return;}
+  const rows=j.findings||[];
+  $('js-info').textContent=(j.files||0)+' files · '+rows.length+' candidates · '+(j.real_secrets||0)+' likely-real secret(s)';
+  const tb=$('js-rows');
+  if(!rows.length){tb.innerHTML='<tr><td colspan=8 class=empty>'+(j.note||'no secrets found')+'</td></tr>';return;}
+  tb.innerHTML='';
+  rows.forEach(r=>{
+    const real=(r.verdict==='secret'&&!r.is_public_client_key);
+    const vcls={secret:'b-done',public:'b-q','test-or-placeholder':'b-q',unknown:'b-run'}[r.verdict]||'b-q';
+    const tr=document.createElement('tr');
+    tr.innerHTML='<td>'+(real?'<b style="color:var(--bad)">▶</b>':'')+'</td>'+
+      '<td><span class="sev '+(jsSev[r.severity]||'low')+'">'+r.severity+'</span></td>'+
+      '<td class=mono>'+r.kind+'</td>'+
+      '<td class=mono>'+(r.source||'')+':'+(r.line||0)+'</td>'+
+      '<td class=mono>'+(r.redacted||'')+'</td>'+
+      '<td><span class="badge '+vcls+'">'+r.verdict+'</span></td>'+
+      '<td>'+(typeof r.likely_live==='number'?r.likely_live.toFixed(2):'&mdash;')+'</td>'+
+      '<td class=note>'+((r.reason||'').slice(0,120))+'</td>';
+    tb.appendChild(tr);
+  });
+}
 loadQueue();adoptRunning();refreshCost();setInterval(refreshCost,15000);
 </script>
 </body></html>

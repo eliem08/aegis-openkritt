@@ -264,6 +264,65 @@ def autohunt_jobs(request: Request) -> dict:
         for j in jobs.values()]}
 
 
+def _run_js_secrets(app, job_id, js_dir) -> None:
+    from pathlib import Path
+
+    from aegis.ai.client import DeepSeekClient
+    from aegis.ai.config import DeepSeekConfig
+    from aegis.ai.js_secret_hunt import _read_js_dir, hunt_js_secrets
+
+    job = app.state.js_secret_jobs[job_id]
+    job["status"] = "running"
+    try:
+        sources = _read_js_dir(Path(js_dir))
+        job["files"] = len(sources)
+        if not sources:
+            job["status"] = "completed"
+            job["findings"] = []
+            job["note"] = "no .js files found in the supplied directory"
+            return
+        with DeepSeekClient(DeepSeekConfig.from_env()) as client:
+            findings = hunt_js_secrets(sources, client)
+        rows = [f.as_dict() for f in findings]
+        job["findings"] = rows
+        job["real_secrets"] = sum(1 for r in rows
+                                  if r["verdict"] == "secret" and not r["is_public_client_key"])
+        job["status"] = "completed"
+    except Exception as exc:
+        job["status"] = "error"
+        job["error"] = f"{type(exc).__name__}: {exc}"[:200]
+
+
+@router.post("/ui/js-secrets", summary="Scan a directory of ALREADY-ACQUIRED, in-scope JS for hardcoded secrets")
+def start_js_secrets(request: Request, payload=Body(None)) -> dict:
+    """Analytical only: reads local .js the operator already acquired within authorized
+    scope, extracts candidate secrets, and triages each (secret vs public vs placeholder)
+    with the LLM. Never fetches live hosts, never uses a found key. Values are redacted."""
+    import threading
+    import uuid
+    from pathlib import Path
+
+    data = payload if isinstance(payload, dict) else {}
+    js_dir = str(data.get("dir") or "").strip()
+    if not js_dir or not Path(js_dir).is_dir():
+        return {"error": f"not a directory: {js_dir or '(empty)'} — pass an existing local "
+                         "path of in-scope .js files you have already acquired"}
+    jobs = getattr(request.app.state, "js_secret_jobs", None)
+    if jobs is None:
+        jobs = request.app.state.js_secret_jobs = {}
+    job_id = uuid.uuid4().hex[:12]
+    jobs[job_id] = {"id": job_id, "status": "queued", "dir": js_dir, "findings": None}
+    threading.Thread(target=_run_js_secrets, args=(request.app, job_id, js_dir),
+                     daemon=True, name=f"aegis-jssecrets-{job_id}").start()
+    return {"job_id": job_id, "status": "queued", "status_url": f"/ui/js-secrets/{job_id}"}
+
+
+@router.get("/ui/js-secrets/{job_id}", summary="JS-secret scan progress + ranked findings")
+def js_secrets_status(request: Request, job_id: str) -> dict:
+    jobs = getattr(request.app.state, "js_secret_jobs", {}) or {}
+    return jobs.get(job_id) or {"error": "js-secret job not found"}
+
+
 @router.get("/ui/autohunt-targets", summary="Preview the EV-ranked target queue")
 def autohunt_targets(request: Request) -> dict:
     import os
