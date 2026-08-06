@@ -323,6 +323,65 @@ def js_secrets_status(request: Request, job_id: str) -> dict:
     return jobs.get(job_id) or {"error": "js-secret job not found"}
 
 
+def _run_js_discovery(app, job_id, urls) -> None:
+    from aegis.ai.client import DeepSeekClient
+    from aegis.ai.config import DeepSeekConfig
+    from aegis.ai.js_discovery import FetchScope, fetch_js
+    from aegis.ai.js_secret_hunt import hunt_js_secrets
+
+    job = app.state.js_secret_jobs[job_id]
+    job["status"] = "running"
+    try:
+        scope = FetchScope(urls=urls, authorized=True)   # operator asserted authorization at the API
+        sources = fetch_js(scope)
+        job["files"] = len(sources)
+        job["fetched"] = list(sources.keys())
+        if not sources:
+            job["status"] = "completed"; job["findings"] = []
+            job["note"] = "no JS fetched (unreachable, non-JS, or redirected off-host)"
+            return
+        with DeepSeekClient(DeepSeekConfig.from_env()) as client:
+            findings = hunt_js_secrets(sources, client)
+        rows = [f.as_dict() for f in findings]
+        job["findings"] = rows
+        job["real_secrets"] = sum(1 for r in rows
+                                  if r["verdict"] == "secret" and not r["is_public_client_key"])
+        job["status"] = "completed"
+    except Exception as exc:
+        job["status"] = "error"
+        job["error"] = f"{type(exc).__name__}: {exc}"[:200]
+
+
+@router.post("/ui/js-discover", summary="Fetch AUTHORIZED JS URLs, then triage them for secrets")
+def start_js_discovery(request: Request, payload=Body(None)) -> dict:
+    """Operator-gated acquisition in front of the secret lane. Fetches ONLY the exact URLs
+    supplied (no crawl, no scope expansion, no cross-host redirects) and requires the
+    operator to assert authorization. Plain GETs of JS assets; never uses a found key."""
+    import threading
+    import uuid
+
+    data = payload if isinstance(payload, dict) else {}
+    raw = data.get("urls")
+    if isinstance(raw, str):
+        urls = [u.strip() for u in raw.replace(",", "\n").splitlines() if u.strip()]
+    else:
+        urls = [str(u).strip() for u in (raw or []) if str(u).strip()]
+    urls = [u for u in urls if u.startswith(("http://", "https://"))]
+    if not urls:
+        return {"error": "supply one or more http(s) JS URLs you are authorized to fetch"}
+    if not bool(data.get("authorized")):
+        return {"error": "authorization required: set 'authorized' true to confirm you may "
+                         "fetch these exact URLs (they are live third-party hosts)"}
+    jobs = getattr(request.app.state, "js_secret_jobs", None)
+    if jobs is None:
+        jobs = request.app.state.js_secret_jobs = {}
+    job_id = uuid.uuid4().hex[:12]
+    jobs[job_id] = {"id": job_id, "status": "queued", "urls": len(urls), "findings": None}
+    threading.Thread(target=_run_js_discovery, args=(request.app, job_id, urls),
+                     daemon=True, name=f"aegis-jsdiscover-{job_id}").start()
+    return {"job_id": job_id, "status": "queued", "status_url": f"/ui/js-secrets/{job_id}"}
+
+
 @router.get("/ui/autohunt-targets", summary="Preview the EV-ranked target queue")
 def autohunt_targets(request: Request) -> dict:
     import os

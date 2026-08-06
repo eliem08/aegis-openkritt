@@ -155,10 +155,16 @@ th{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.04em
     <div class="controls">
       <label style="flex:1;min-width:280px">In-scope JS directory<input id="js-dir" type="text" style="width:100%"
         placeholder="path to .js you already acquired within authorized scope"></label>
-      <button class="go" id="js-scan">&#128269; Triage secrets</button>
+      <button class="go" id="js-scan">&#128269; Triage local dir</button>
       <span id="js-info" class="note"></span>
     </div>
-    <div class="note" style="padding:0 16px 12px">Never fetches live hosts &middot; never uses a found key &middot; values redacted. Reads local .js, extracts candidates, and the LLM classifies each: <b>secret</b> vs <b>public</b> vs <b>placeholder</b>.</div>
+    <div class="note" style="padding:0 16px 8px">Local mode never fetches live hosts. The LLM classifies each candidate: <b>secret</b> vs <b>public</b> vs <b>placeholder</b>; values redacted.</div>
+    <div class="controls" style="border-top:1px solid var(--line)">
+      <label style="flex:1;min-width:280px">Or fetch authorized JS URLs (one per line)<textarea id="js-urls" rows="3" style="width:100%;font-family:var(--mono);font-size:12px" placeholder="https://app.example.com/main.js&#10;https://app.example.com/vendor.js"></textarea></label>
+      <label title="You assert you are authorized to fetch these exact URLs">Authorized<input id="js-auth" type="checkbox"></label>
+      <button class="go" id="js-fetch">&#127760; Fetch + triage</button>
+    </div>
+    <div class="note" style="padding:0 16px 12px">Fetch mode reaches LIVE hosts &mdash; it GETs <b>only the exact URLs you supply</b> (no crawl, no scope expansion, no cross-host redirects) and requires the Authorized box. Never uses a found key.</div>
   </div>
   <div class="panel" style="margin-top:10px"><table><thead><tr>
     <th></th><th>Severity</th><th>Type</th><th>Source</th><th>Redacted</th><th>Verdict</th><th>Live~</th><th>Reason</th>
@@ -336,6 +342,17 @@ $('js-scan').onclick=async()=>{
   $('js-rows').innerHTML='<tr><td colspan=8 class=empty>Extracting + triaging…</td></tr>';
   const d=await (await fetch('/ui/js-secrets',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dir})})).json();
   if(d.error){$('js-info').textContent='⚠ '+d.error;$('js-scan').disabled=false;return;}
+  if(jsTimer)clearInterval(jsTimer);jsTimer=setInterval(()=>jsPoll(d.job_id),1500);jsPoll(d.job_id);
+};
+$('js-fetch').onclick=async()=>{
+  const urls=$('js-urls').value.trim();
+  if(!urls){$('js-info').textContent='enter authorized JS URLs';return;}
+  if(!$('js-auth').checked){$('js-info').textContent='⚠ tick Authorized to fetch live URLs';return;}
+  $('js-fetch').disabled=true;$('js-info').textContent='fetching + triaging…';
+  $('js-rows').innerHTML='<tr><td colspan=8 class=empty>Fetching authorized URLs + triaging…</td></tr>';
+  const d=await (await fetch('/ui/js-discover',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({urls,authorized:true})})).json();
+  $('js-fetch').disabled=false;
+  if(d.error){$('js-info').textContent='⚠ '+d.error;return;}
   if(jsTimer)clearInterval(jsTimer);jsTimer=setInterval(()=>jsPoll(d.job_id),1500);jsPoll(d.job_id);
 };
 async function jsPoll(id){
