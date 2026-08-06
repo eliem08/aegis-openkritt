@@ -133,10 +133,22 @@ def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = "", on_even
                 tresults = ToolBridge(timeout=_stimeout).scan(str(scan_root), tools=avail,
                                                               on_event=emit)
                 trows = ToolBridge().findings(tresults)
-                scanner_candidates = len(trows)
                 tools_run += [tr.tool for tr in tresults if getattr(tr, "ran", False)]
         except Exception:
             pass
+        # Drop out-of-scope dependency/lockfile artifacts (package-lock.json, go.sum, ...)
+        # from BOTH scanner and skill rows. An SCA CVE in a transitive dep read from a
+        # lockfile is out of scope for code & contract programs — surfacing it only wastes
+        # triage (this is exactly what the SSV run's lone "confirmed" undici hit was).
+        from .scope import filter_out_of_scope
+        trows, _drop_t = filter_out_of_scope(trows)
+        srows, _drop_s = filter_out_of_scope(srows)
+        if _drop_t or _drop_s:
+            emit("phase", {"repository": target.repository, "phase": "scanning",
+                           "detail": f"dropped {len(_drop_t) + len(_drop_s)} out-of-scope "
+                                     "dependency/lockfile finding(s)"})
+        scanner_candidates = len(trows)
+        skill_candidates = len(srows)
 
         # --- then the LLM ensemble (the slow part) over EVERY file ---
         # SCANNERS-ONLY fast mode: skip the slow LLM ensemble AND per-candidate validation,
@@ -170,8 +182,15 @@ def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = "", on_even
         max_files = 100000 if cover_all else int(_mf)
         # max_per_dir=0 disables the per-component cap (default 3) that limited the LLM to a
         # handful of files — the real reason coverage was ~10, not max_files.
+        from .scope import scope_from_env
+        scope_text = scope_from_env()
+        if scope_text:
+            emit("phase", {"repository": target.repository, "phase": "scope",
+                           "detail": f"program scope loaded ({len(scope_text)} chars) — "
+                                     "in-scope assets only"})
         hunt_config = RepoHuntConfig(max_files=max_files, subpath=target.subpath, samples=samples,
                                      content_scan_pool=100000, operator_hint=effective_hint,
+                                     scope_text=scope_text,
                                      max_per_dir=0 if cover_all else 3)
         emit("phase", {"repository": target.repository, "phase": "analyzing",
                        "detail": "LLM ensemble over source files"})

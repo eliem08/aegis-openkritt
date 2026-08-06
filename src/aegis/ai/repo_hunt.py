@@ -27,6 +27,7 @@ from pathlib import Path
 
 from .agents.contracts import AgentKind, AgentTask, SourceSlice
 from .agents.runner import SpecializedAgent
+from .scope import scope_prompt as _scope_prompt
 
 #: Path fragments that mark non-production code — never selected for analysis.
 _EXCLUDED = re.compile(
@@ -124,6 +125,7 @@ class RepoHuntConfig:
     taint_hints: bool = True          # feed heuristic source->sink leads to the generator
     stack_focus: bool = True          # add per-language framework-guard + anchor-CWE focus
     operator_hint: str = ""           # a human lead to seed the generator (the "small hint" edge)
+    scope_text: str = ""              # bounty program's scope page — primes the prompt to in-scope assets
     changed_ranges: dict = field(default_factory=dict)  # path -> [(start,end)] just-changed lines
     # Ensemble: generate this many times per file over a temperature spread and union
     # the findings, to catch borderline bugs a single generation misses ~7/8 of the time.
@@ -417,9 +419,12 @@ def hunt_repository(fetcher, client, repository: str, *,
             target=f"{repository}:{item.path}",
             source_slices=bundle,
             policy_notes=(
-                # operator lead first — a human hint focuses the whole budget on a
+                # program scope first — the authoritative definition of what's eligible, so
+                # the model never spends a report on an out-of-scope asset (dep, tooling, ...)
+                _scope_prompt(config.scope_text)
+                # operator lead next — a human hint focuses the whole budget on a
                 # suspected flaw (the force-multiplier edge). Still verified like any claim.
-                (f"OPERATOR LEAD (prioritise, but only report if you can PROVE it in the "
+                + (f"OPERATOR LEAD (prioritise, but only report if you can PROVE it in the "
                  f"supplied code): {config.operator_hint}\n\n" if config.operator_hint else "")
                 + f"Authorized static source review of {repository}. The PRIMARY file under "
                 f"review is {item.path}; the other slices are supporting context (callers, "
