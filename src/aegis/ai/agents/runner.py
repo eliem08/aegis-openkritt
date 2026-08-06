@@ -19,6 +19,28 @@ _SAFE_METHODS = frozenset({
 
 import re as _re
 
+# Global cap on concurrent LLM calls across the whole process. File-level (AEGIS_CONCURRENCY)
+# and sample-level parallelism both submit through this, so total in-flight requests never
+# exceed AEGIS_LLM_CONCURRENCY (default 8) — one throttle that protects the provider rate
+# limit regardless of how the two pools multiply. Set to 1 to force fully-serial LLM calls.
+_LLM_SEM = None
+_LLM_SEM_LOCK = None
+
+
+def _llm_semaphore():
+    global _LLM_SEM, _LLM_SEM_LOCK
+    if _LLM_SEM is None:
+        import os
+        import threading
+        if _LLM_SEM_LOCK is None:
+            _LLM_SEM_LOCK = threading.Lock()
+        with _LLM_SEM_LOCK:
+            if _LLM_SEM is None:
+                n = max(1, int(os.environ.get("AEGIS_LLM_CONCURRENCY", "8") or 8))
+                _LLM_SEM = threading.BoundedSemaphore(n)
+    return _LLM_SEM
+
+
 _METHODS = sorted([
     "static_analysis", "response_differential", "harmless_canary",
     "contract_property", "private_oast_callback", "manual_review",
@@ -192,9 +214,22 @@ class SpecializedAgent:
         self.last_dropped = []
         self.sample_hits = []
         self.agreement = {}
-        for index in range(self._samples):
+
+        def _run(index):
             temperature = self._temperatures[index % len(self._temperatures)]
-            found = self._analyze_once(task, temperature=temperature)
+            return self._analyze_once(task, temperature=temperature)
+
+        # Run the N ensemble agents concurrently (each is an independent LLM call); the global
+        # _llm_semaphore bounds total in-flight requests. The MERGE below stays serial in this
+        # thread, so agreement voting + highest-confidence selection are race-free.
+        if self._samples > 1:
+            from concurrent.futures import ThreadPoolExecutor
+            with ThreadPoolExecutor(max_workers=self._samples) as ex:
+                per_sample = list(ex.map(_run, range(self._samples)))
+        else:
+            per_sample = [_run(0)]
+
+        for found in per_sample:
             self.sample_hits.append(len(found))
             seen_this_sample: set[tuple[str, int, str]] = set()
             for hypothesis in found:
@@ -224,10 +259,11 @@ class SpecializedAgent:
             if exemplars:
                 user += "\n" + exemplars
         try:
-            data = self._client.complete_json([
-                {"role": "system", "content": _SYSTEM},
-                {"role": "user", "content": user},
-            ], **kwargs)
+            with _llm_semaphore():        # global in-flight cap; safe under file+sample pools
+                data = self._client.complete_json([
+                    {"role": "system", "content": _SYSTEM},
+                    {"role": "user", "content": user},
+                ], **kwargs)
         except Exception:
             # one flaky sample must not sink the ensemble; record and move on
             self.last_dropped.append({"reason": "sample_failed"})
