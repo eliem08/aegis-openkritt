@@ -106,10 +106,13 @@ def _github_created_months(repo: str, fetch_json, token: str = "") -> int | None
         return None
 
 
-def enrich_age_from_github(programs: list, *, fetch_json=None, cap: int = 40) -> int:
+def enrich_age_from_github(programs: list, *, fetch_json=None, cap: int | None = None) -> int:
     """Fill age_months from a program's first GitHub repo target (real maturity). Bounded by
-    `cap` (GitHub unauth allows 60/hr; set GITHUB_TOKEN to raise it). Only fills missing ages."""
+    `cap` (GitHub unauth allows 60/hr; a GITHUB_TOKEN raises it to 5000/hr). With a token the
+    default cap is 1000 (full backfill); unauth it stays conservative at 40. Fills missing only."""
     token = os.environ.get("GITHUB_TOKEN", "").strip()
+    if cap is None:
+        cap = int(os.environ.get("AEGIS_GITHUB_AGE_CAP", "1000" if token else "40") or 40)
     if fetch_json is None:
         import httpx
 

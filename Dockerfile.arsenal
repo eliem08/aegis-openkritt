@@ -28,7 +28,10 @@ ENV PYTHONUNBUFFERED=1 \
     AEGIS_AUTOSTART_RANKING=/app/reports/mattermost_targets.json \
     # program radar on boot: diff public feeds vs the registry so paused programs are skipped
     # (no wasted compute) and new ones are caught. Alerts show in the dashboard 'Program radar'.
-    AEGIS_AUTOSTART_MONITOR=1
+    AEGIS_AUTOSTART_MONITOR=1 \
+    # backfill real repo ages from GitHub on boot (needs GITHUB_TOKEN in --env-file) so the
+    # maturity discount down-ranks ancient/picked-over repos and floats fresh targets.
+    AEGIS_AUTOSTART_GITHUB_AGE=1
 
 # --- OS packages: language runtimes for the language-specific scanners ---
 RUN apt-get update && apt-get install -y --no-install-recommends \
