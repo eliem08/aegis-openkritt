@@ -229,6 +229,9 @@ tbody tr{transition:background .15s}tbody tr:hover td{background:color-mix(in sr
   <h2>Program radar <span class="note">(new programs &middot; scope changes &middot; pause/resume &mdash; from the public feeds)</span>
     <span class="grow"></span><button class="cpy" id="pm-scan" style="font-size:11px;padding:5px 11px">&#128260; Scan now</button></h2>
   <div class="panel"><div id="radar" class="log" style="max-height:240px"><div class=note>no alerts yet &mdash; click &ldquo;Scan now&rdquo; or enable AEGIS_AUTOSTART_MONITOR.</div></div></div>
+  <h2>Disclosed reports <span class="note">(newly disclosed &middot; VDP/N-A/informational + curl-slop filtered &middot; est. bounty when hidden)</span>
+    <span class="grow"></span><button class="cpy" id="dr-scan" style="font-size:11px;padding:5px 11px">&#128260; Fetch</button></h2>
+  <div class="panel"><div id="disclosed" class="log" style="max-height:260px"><div class=note>no disclosed reports yet &mdash; click &ldquo;Fetch&rdquo;.</div></div></div>
   <h2>Live activity</h2>
   <div class="panel"><div class="log" id="log"><div>waiting to start&hellip;</div></div></div>
   <h2>Confirmed candidates <span class="note">(each needs human reproduction before submission)</span></h2>
@@ -533,7 +536,23 @@ async function loadRadar(){try{const d=await (await fetch('/ui/program-alerts?li
 $('pm-scan').onclick=async(e)=>{const b=e.currentTarget;const o=b.innerHTML;b.disabled=true;b.innerHTML='⏳ scanning feeds…';
   try{await fetch('/ui/program-monitor',{method:'POST'});}catch(_){}
   setTimeout(()=>{loadRadar();b.disabled=false;b.innerHTML=o;},6000);};
+// --- Disclosed reports feed ---
+function drLine(r){
+  const col={critical:'var(--crit)',high:'var(--bad)',medium:'var(--warn)',low:'var(--mut)'}[r.severity]||'var(--mut)';
+  const amt=r.amount?('$'+Math.round(r.amount).toLocaleString()+(r.amount_estimated?' est':'')):'—';
+  const link=r.program_url?('<a href="'+r.program_url+'" target="_blank" rel="noopener">'+(r.program||'')+'</a>'):(r.program||'');
+  return '<div><span class="sev '+(r.severity||'low')+'" style="font-size:9px">'+(r.severity||'?')+'</span> '+
+    '<b style="color:'+col+'">'+amt+'</b> <span class=note>'+link+'</span><br>'+
+    '<span class=note>'+(r.summary||r.subject||'')+'</span></div>';
+}
+async function loadDisclosed(){try{const d=await (await fetch('/ui/disclosed?limit=60')).json();
+  const box=$('disclosed');const rs=d.reports||[];if(!rs.length)return;
+  box.innerHTML=rs.map(drLine).join('');}catch(e){}}
+$('dr-scan').onclick=async(e)=>{const b=e.currentTarget;const o=b.innerHTML;b.disabled=true;b.innerHTML='⏳ fetching…';
+  try{await fetch('/ui/disclosed/refresh',{method:'POST'});}catch(_){}
+  setTimeout(()=>{loadDisclosed();b.disabled=false;b.innerHTML=o;},6000);};
 loadQueue();adoptRunning();refreshCost();setInterval(refreshCost,15000);
 loadRadar();setInterval(loadRadar,20000);
+loadDisclosed();setInterval(loadDisclosed,30000);
 </script>
 </body></html>

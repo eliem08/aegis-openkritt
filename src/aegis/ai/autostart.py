@@ -62,6 +62,12 @@ def maybe_autostart(app) -> None:
                     monitor()
                 except Exception:
                     pass
+                # newly disclosed public reports (Bugcrowd), filtered + estimated.
+                try:
+                    from .disclosed_reports import collect
+                    collect()
+                except Exception:
+                    pass
             jobs = getattr(app.state, "autohunt_jobs", None)
             if jobs is None:
                 jobs = app.state.autohunt_jobs = {}

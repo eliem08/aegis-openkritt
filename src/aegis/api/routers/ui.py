@@ -294,6 +294,36 @@ def run_program_monitor(request: Request) -> dict:
     return {"status": "scanning"}
 
 
+@router.get("/ui/disclosed", summary="Recently disclosed public reports (filtered + summarised)")
+def disclosed(limit: int = 60) -> dict:
+    import os
+
+    from aegis.ai.disclosed_reports import load
+    root = os.environ.get("AEGIS_REPORT_DIR", "reports")
+    return {"reports": load(root, limit=limit)}
+
+
+@router.post("/ui/disclosed/refresh", summary="Fetch newly disclosed reports")
+def disclosed_refresh(request: Request) -> dict:
+    import threading
+
+    st = request.app.state
+    if getattr(st, "_disclosed_running", False):
+        return {"status": "already running"}
+    st._disclosed_running = True
+
+    def _go():
+        try:
+            from aegis.ai.disclosed_reports import collect
+            collect()
+        except Exception:
+            pass
+        finally:
+            st._disclosed_running = False
+    threading.Thread(target=_go, daemon=True, name="aegis-disclosed").start()
+    return {"status": "fetching"}
+
+
 def _run_js_secrets(app, job_id, js_dir) -> None:
     from pathlib import Path
 

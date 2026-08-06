@@ -73,6 +73,8 @@ def diff(old: dict, fresh: dict, fetched: set[str]) -> list[Change]:
     for h, fp in fresh.items():
         op = old.get(h)
         if op is None:
+            if not fp.active:
+                continue          # VDP / non-bounty program (offers_bounties=false) — skip alert
             events.append(Change("new_program", h, fp.platform,
                                  f"{fp.platform} · reward {int(fp.reward_ceiling) or '?'} · "
                                  f"{len(fp.targets)} repo(s)", ts=now))
