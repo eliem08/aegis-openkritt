@@ -1,0 +1,98 @@
+[
+  {
+    "repository": "mattermost/mattermost-plugin-jira",
+    "handle": "bugcrowd-mattermost-mbb-public",
+    "reward_ceiling": 2000,
+    "findability": 0.6,
+    "subpath": "",
+    "kind": "repo"
+  },
+  {
+    "repository": "mattermost/mattermost-plugin-zoom",
+    "handle": "bugcrowd-mattermost-mbb-public",
+    "reward_ceiling": 2000,
+    "findability": 0.6,
+    "subpath": "",
+    "kind": "repo"
+  },
+  {
+    "repository": "mattermost/mattermost-plugin-github",
+    "handle": "bugcrowd-mattermost-mbb-public",
+    "reward_ceiling": 2000,
+    "findability": 0.6,
+    "subpath": "",
+    "kind": "repo"
+  },
+  {
+    "repository": "mattermost/mattermost-plugin-gitlab",
+    "handle": "bugcrowd-mattermost-mbb-public",
+    "reward_ceiling": 2000,
+    "findability": 0.6,
+    "subpath": "",
+    "kind": "repo"
+  },
+  {
+    "repository": "mattermost/mattermost-plugin-calls",
+    "handle": "bugcrowd-mattermost-mbb-public",
+    "reward_ceiling": 2000,
+    "findability": 0.6,
+    "subpath": "",
+    "kind": "repo"
+  },
+  {
+    "repository": "mattermost/mattermost-plugin-playbooks",
+    "handle": "bugcrowd-mattermost-mbb-public",
+    "reward_ceiling": 2000,
+    "findability": 0.6,
+    "subpath": "",
+    "kind": "repo"
+  },
+  {
+    "repository": "mattermost/mattermost-plugin-boards",
+    "handle": "bugcrowd-mattermost-mbb-public",
+    "reward_ceiling": 2000,
+    "findability": 0.6,
+    "subpath": "",
+    "kind": "repo"
+  },
+  {
+    "repository": "mattermost/mattermost-plugin-ai",
+    "handle": "bugcrowd-mattermost-mbb-public",
+    "reward_ceiling": 2000,
+    "findability": 0.6,
+    "subpath": "",
+    "kind": "repo"
+  },
+  {
+    "repository": "mattermost/mattermost-plugin-mscalendar",
+    "handle": "bugcrowd-mattermost-mbb-public",
+    "reward_ceiling": 2000,
+    "findability": 0.6,
+    "subpath": "",
+    "kind": "repo"
+  },
+  {
+    "repository": "mattermost/mattermost-plugin-msteams-meetings",
+    "handle": "bugcrowd-mattermost-mbb-public",
+    "reward_ceiling": 2000,
+    "findability": 0.6,
+    "subpath": "",
+    "kind": "repo"
+  },
+  {
+    "repository": "mattermost/mattermost-plugin-confluence",
+    "handle": "bugcrowd-mattermost-mbb-public",
+    "reward_ceiling": 2000,
+    "findability": 0.6,
+    "subpath": "",
+    "kind": "repo"
+  },
+  {
+    "repository": "mattermost/mattermost-plugin-msteams",
+    "handle": "bugcrowd-mattermost-mbb-public",
+    "reward_ceiling": 2000,
+    "findability": 0.6,
+    "subpath": "",
+    "kind": "repo"
+  }
+]

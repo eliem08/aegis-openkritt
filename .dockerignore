@@ -25,3 +25,5 @@ reports/
 !reports/autohunt_targets.json
 !reports/autohunt_targets_full.json
 !reports/contract_corpus_0xsimao.jsonl
+!reports/programs.json
+!reports/mattermost_targets.json

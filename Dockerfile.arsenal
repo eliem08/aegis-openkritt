@@ -18,7 +18,14 @@ ENV PYTHONUNBUFFERED=1 \
     AEGIS_PORT=8000 \
     PATH="/root/.composer/vendor/bin:/root/go/bin:/usr/local/go/bin:${PATH}" \
     AEGIS_SKILLS_DIR=/root/.aegis/skills \
-    AEGIS_SKILL_CMD="{python} -m aegis.ai.skill_runner --skill {source} --target {target}"
+    AEGIS_SKILL_CMD="{python} -m aegis.ai.skill_runner --skill {source} --target {target}" \
+    # Auto-start the hunt on boot: launching the container becomes the whole pipeline
+    # (rank -> hunt -> dashboard). Operator just watches /ui and submits. Tunables:
+    # AEGIS_AUTOSTART_RANKING (a targets json; else yield-ranked registry),
+    # AEGIS_AUTOSTART_TARGETS (top-N, default 8), AEGIS_AUTOSTART_SAMPLES (default 2),
+    # AEGIS_AUTOSTART_IMPORT=1 (refresh feeds first), AEGIS_AUTOSTART_ONCE=1 (no 24/7 loop).
+    AEGIS_AUTOSTART=1 \
+    AEGIS_AUTOSTART_RANKING=/app/reports/mattermost_targets.json
 
 # --- OS packages: language runtimes for the language-specific scanners ---
 RUN apt-get update && apt-get install -y --no-install-recommends \

@@ -43,6 +43,13 @@ def create_app(config: ControlPlaneConfig | None = None) -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
+        # auto-start a hunt on boot if AEGIS_AUTOSTART=1 — launching the service becomes the
+        # whole pipeline (rank -> hunt -> dashboard), so the operator just watches + submits.
+        try:
+            from aegis.ai.autostart import maybe_autostart
+            maybe_autostart(app)
+        except Exception:
+            pass
         yield
         repo = getattr(app.state, "repository", None)
         if repo is not None and hasattr(repo, "close"):

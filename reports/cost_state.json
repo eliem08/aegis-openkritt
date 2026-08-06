@@ -1,8 +1,8 @@
 {
  "day": "2026-08-06",
- "day_cost": "0.00001092",
- "day_calls": 6,
- "day_tokens": 60,
- "total_cost": "0.0044912896",
- "total_calls": 56
+ "day_cost": "0.00361256",
+ "day_calls": 22,
+ "day_tokens": 18895,
+ "total_cost": "0.00361256",
+ "total_calls": 22
 }

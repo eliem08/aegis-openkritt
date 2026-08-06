@@ -51,6 +51,7 @@ th{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.04em
 .prov.o-corr{background:var(--acc);color:#04121f}
 .prov.o-repro{background:var(--ok);color:#04121f}
 .prov.o-norepro{background:var(--panel2);color:var(--mut)}
+.prov.o-triage{background:color-mix(in srgb,#b07cff 26%,transparent);color:#c9a9ff}
 .empty{padding:26px;text-align:center;color:var(--mut)}
 .note{font-size:12px;color:var(--mut)}a{color:var(--acc)}
 .econ{display:flex;gap:16px;flex-wrap:wrap;margin-top:9px;padding-top:9px;border-top:1px solid var(--line);font-size:12px;color:var(--mut)}
@@ -123,9 +124,11 @@ th{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.04em
       <span id="live-target" class="mono note"></span></div>
     <div class="stepper" id="stepper">
       <span class="stp" data-p="self-hint">self-hint</span><span class="ar">&rarr;</span>
-      <span class="stp" data-p="analyzing">analyzing</span><span class="ar">&rarr;</span>
+      <span class="stp" data-p="scope">scope</span><span class="ar">&rarr;</span>
       <span class="stp" data-p="scanning">scanning</span><span class="ar">&rarr;</span>
+      <span class="stp" data-p="analyzing">analyzing</span><span class="ar">&rarr;</span>
       <span class="stp" data-p="validating">validating</span><span class="ar">&rarr;</span>
+      <span class="stp" data-p="triage">triage</span><span class="ar">&rarr;</span>
       <span class="stp" data-p="poc">PoC</span>
     </div>
     <div class="fprog"><div class="bar" style="height:9px"><i id="fbar" style="width:0%"></i></div>
@@ -221,10 +224,11 @@ async function adoptRunning(){
   }catch(e){}
 }
 // --- live status: stepper, per-file progress, engine grid, severity donut ---
-const STEPS=['self-hint','analyzing','scanning','validating','poc'];
+const STEPS=['self-hint','scope','scanning','analyzing','validating','triage','poc'];
 let engines={};
+let triageTally={pass:0,downgrade:0,needs_evidence:0,reject:0,unreviewed:0};
 function showLive(){$('live').style.display='';}
-function resetLive(){engines={};$('egrid').innerHTML='';$('fbar').style.width='0%';$('fmeta').textContent='';
+function resetLive(){engines={};triageTally={pass:0,downgrade:0,needs_evidence:0,reject:0,unreviewed:0};$('egrid').innerHTML='';$('fbar').style.width='0%';$('fmeta').textContent='';
   $('lead').style.display='none';document.querySelectorAll('.stp').forEach(s=>s.className='stp');}
 function setPhase(p,detail){$('live-phase').textContent=p;$('live-detail').textContent=detail||'';
   const idx=STEPS.indexOf(p);document.querySelectorAll('.stp').forEach(s=>{const si=STEPS.indexOf(s.dataset.p);
@@ -275,13 +279,22 @@ async function poll(){
       $('lead').innerHTML='<b>&#9889; self-hint &middot; '+(e.repository||'')+'</b><br>'+(e.hint||'');
       logLine('<span class=note>self-hint: '+(e.hint||'')+'</span>');}
     if(e.kind==='file'){showLive();const pct=e.n?Math.round(e.i/e.n*100):0;
-      $('fbar').style.width=pct+'%';$('fmeta').textContent=e.i+' / '+e.n+' files &middot; '+(e.path||'');engine('LLM','run');}
+      $('fbar').style.width=pct+'%';$('fmeta').textContent=e.i+' / '+e.n+' files · '+(e.path||'');engine('LLM','run');}
     if(e.kind==='scanner'){showLive();
       const stt=e.state==='queued'?'idle':(e.state==='run'?'run':'done');
       engine(e.tool,stt,e.count,e.ms);
       if(e.state==='done')logLine('<span class=note>scanner <b>'+e.tool+'</b> &mdash; '+(e.count||0)+' finding(s) in '+((e.ms||0)/1000).toFixed(1)+'s'+(e.error?' (error)':'')+'</span>');}
+    if(e.kind==='triage'){showLive();
+      const v=(e.verdict||'unreviewed');triageTally[v]=(triageTally[v]||0)+1;
+      const t=triageTally;const kept=(t.pass||0)+(t.downgrade||0);
+      engine('hostile-triager','run',kept);
+      $('live-detail').textContent='triager: '+(t.pass||0)+' pass · '+(t.downgrade||0)+' downgrade · '+(t.reject||0)+' reject';
+      const ic={pass:'✅',downgrade:'▼',needs_evidence:'?',reject:'✗',unreviewed:'…'}[v]||'·';
+      logLine('<span class=note>'+ic+' triager <b>'+v+'</b> &mdash; '+((e.reason||'')+'').slice(0,140)+'</span>');}
     if(e.kind==='hunt_done'&&!e.error){setPhase('poc','done');
       (e.tools_run||[]).forEach(t=>{if(t.indexOf('skill:')===0)engine(t.replace('skill:','skill·'),'done');});
+      if((triageTally.pass||0)+(triageTally.downgrade||0)+(triageTally.reject||0)>0)
+        engine('hostile-triager','done',(triageTally.pass||0)+(triageTally.downgrade||0));
       engine('LLM','done',e.confirmed||0);}
   });
   if(j.summary){
@@ -321,7 +334,9 @@ function renderFindings(fs){
     const prov='<span class="prov '+orgcls+'" title="found by '+(f.engine||org)+', validated by the LLM">'+orglabel+(f.engine&&f.engine!=='deepseek'?' · '+f.engine:'')+'</span>';
     const corr=(f.corroboration||1)>1?'<span class="prov o-corr" title="'+(f.corroborated_by||[]).join(", ")+'">✦ '+f.corroboration+' ENGINES AGREE</span>':'';
     const repro=f.reproduction==='reproduced'?'<span class="prov o-repro" title="'+(f.repro_summary||'')+'">✓ REPRODUCED (local)</span>':(f.reproduction==='not_reproduced'?'<span class="prov o-norepro" title="'+(f.repro_summary||'')+'">✗ not reproduced</span>':'');
-    d.innerHTML='<div class=h><span class="sev '+sev+'">'+sev+'</span>'+repro+prov+corr+'<b>'+(f.cwe||'finding')+'</b><span class=mono>'+f.repo+'</span>'+(f.handle?'<span class=note>&middot; '+f.handle+'</span>':'')+'</div>'+
+    const tv=(f.triage&&f.triage.verdict)||'';
+    const trg=tv?'<span class="prov o-triage" title="'+((f.triage.reason||'')+'').replace(/"/g,"&quot;")+'">&#128110; TRIAGER: '+tv.toUpperCase().replace("_"," ")+'</span>':'';
+    d.innerHTML='<div class=h><span class="sev '+sev+'">'+sev+'</span>'+repro+trg+prov+corr+'<b>'+(f.cwe||'finding')+'</b><span class=mono>'+f.repo+'</span>'+(f.handle?'<span class=note>&middot; '+f.handle+'</span>':'')+'</div>'+
       '<div class=mono style="margin-top:6px">'+(f.location||'')+'</div>'+
       '<div style="margin-top:6px">'+(f.summary||'')+'</div>'+money+fix+
       (f.poc?'<div class=note style="margin-top:6px">PoC scaffold: <span class=mono>'+f.poc+'</span></div>':'');
