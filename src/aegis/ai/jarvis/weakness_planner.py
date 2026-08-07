@@ -11,6 +11,9 @@ from dataclasses import dataclass
 from typing import Iterable
 
 from ..agentic_os import AgentContext, AgentProposal, AgentRole, RiskClass
+from .hunt_generator import generate_hunt_candidates, infer_surfaces
+from .profit_controls import CandidateDisposition, ProgramEligibility
+from .state_store import JarvisStateStore
 from .weakness_catalog import HuntCandidate, SeverityTier, rank_candidates
 
 
@@ -49,6 +52,8 @@ _COMPATIBLE_TAGS = {
     frozenset(("parser", "authz")),
     frozenset(("cache", "privacy")),
     frozenset(("client", "session")),
+    frozenset(("oauth", "client")),
+    frozenset(("supply-chain", "secrets")),
 }
 
 
@@ -96,24 +101,62 @@ class UniversalHuntAgent:
 
     role = AgentRole.HYPOTHESIS
 
+    def __init__(self, state_store: JarvisStateStore | None = None) -> None:
+        self.state_store = state_store
+
+    def _candidates_from_context(self, context: AgentContext) -> tuple[HuntCandidate, ...]:
+        explicit = context.memory.get("universal:hunt_candidates")
+        if explicit is not None and isinstance(explicit.value, list):
+            return tuple(candidate for candidate in explicit.value if isinstance(candidate, HuntCandidate))
+
+        paths_item = context.memory.get("repository:paths")
+        if paths_item is None or not isinstance(paths_item.value, list):
+            return ()
+        hints_item = context.memory.get("repository:text_hints")
+        program_item = context.memory.get("program:id")
+        coverage_item = context.memory.get("coverage:attempts")
+        paths = [str(path) for path in paths_item.value]
+        hints = [str(value) for value in hints_item.value] if hints_item and isinstance(hints_item.value, list) else []
+        program_id = str(program_item.value) if program_item is not None else "unknown-program"
+        coverage = coverage_item.value if coverage_item and isinstance(coverage_item.value, dict) else {}
+        signals = infer_surfaces(paths, hints)
+        return generate_hunt_candidates(
+            program_id=program_id,
+            signals=signals,
+            state_store=self.state_store,
+            coverage_attempts=coverage,
+        )
+
     def propose(self, context: AgentContext) -> Iterable[AgentProposal]:
-        item = context.memory.get("universal:hunt_candidates")
-        if item is None or not isinstance(item.value, list):
+        candidates = self._candidates_from_context(context)
+        if not candidates:
             return ()
-        candidates = [candidate for candidate in item.value if isinstance(candidate, HuntCandidate)]
+        eligibility_item = context.memory.get("program:eligibility")
+        eligibility = (
+            eligibility_item.value
+            if eligibility_item is not None and isinstance(eligibility_item.value, ProgramEligibility)
+            else ProgramEligibility()
+        )
         ranked = rank_candidates(candidates, minimum_net_usd=0.0)
-        if not ranked:
-            return ()
         proposals: list[AgentProposal] = []
-        for candidate in ranked[:12]:
+        for candidate in ranked:
+            disposition = eligibility.disposition(candidate)
+            if disposition is CandidateDisposition.IGNORE:
+                continue
+            action = (
+                "investigate_universal_weakness_candidate"
+                if disposition is CandidateDisposition.DIRECT
+                else "retain_for_chain_analysis"
+            )
             proposals.append(
                 AgentProposal(
                     role=self.role,
-                    action="investigate_universal_weakness_candidate",
+                    action=action,
                     rationale=(
                         f"Investigate {candidate.family.title} on {candidate.surface}; "
-                        f"severity={candidate.severity.value}, expected_net=${candidate.expected_net_usd:.2f}, "
-                        f"novelty={candidate.novelty_score:.2f}, chainability={candidate.chainability:.2f}."
+                        f"severity={candidate.severity.value}, disposition={disposition.value}, "
+                        f"expected_net=${candidate.expected_net_usd:.2f}, novelty={candidate.novelty_score:.2f}, "
+                        f"chainability={candidate.chainability:.2f}."
                     ),
                     risk=RiskClass.OFFLINE,
                     expected_information_gain=max(
@@ -125,16 +168,24 @@ class UniversalHuntAgent:
                             + 0.30 * candidate.chainability,
                         ),
                     ),
-                    expected_cost_usd=max(0.0, candidate.validation_cost_usd),
+                    expected_cost_usd=(
+                        max(0.0, candidate.validation_cost_usd)
+                        if disposition is CandidateDisposition.DIRECT
+                        else 0.0
+                    ),
                     metadata={
                         "family_id": candidate.family.family_id,
                         "surface": candidate.surface,
                         "severity": candidate.severity.value,
+                        "disposition": disposition.value,
                         "expected_net_usd": candidate.expected_net_usd,
                         "validation_mode": candidate.family.default_validation_mode,
+                        "chain_tags": candidate.family.chain_tags,
                     },
                 )
             )
+            if len(proposals) >= 16:
+                break
         return tuple(proposals)
 
 
