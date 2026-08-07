@@ -36,6 +36,8 @@ from .learning_agents import (
     RuleSynthesisAgent,
     VulnerabilityFamilyAgent,
 )
+from .profit_controls import StopLossAgent
+from .state_store import JarvisStateStore
 from .weakness_planner import ChainReasoningAgent, UniversalHuntAgent
 
 
@@ -68,10 +70,15 @@ class MemoryTriggeredAgent:
         )
 
 
-def default_agents(*, human_hour_cost_usd: float = 0.0) -> tuple[SecurityAgent, ...]:
+def default_agents(
+    *,
+    human_hour_cost_usd: float = 0.0,
+    state_store: JarvisStateStore | None = None,
+) -> tuple[SecurityAgent, ...]:
     """Return the advanced specialist council used by the Jarvis orchestrator."""
     return (
         MissionSchedulerAgent(),
+        StopLossAgent(),
         MemoryTriggeredAgent(
             AgentRole.PROGRAM_POLICY,
             "program:policy",
@@ -104,7 +111,7 @@ def default_agents(*, human_hour_cost_usd: float = 0.0) -> tuple[SecurityAgent, 
             0.8,
         ),
         CoverageOptimizerAgent(),
-        UniversalHuntAgent(),
+        UniversalHuntAgent(state_store=state_store),
         MemoryTriggeredAgent(
             AgentRole.STATIC_ANALYSIS,
             "scanner:candidates",
@@ -177,6 +184,15 @@ def default_agents(*, human_hour_cost_usd: float = 0.0) -> tuple[SecurityAgent, 
     )
 
 
-def build_jarvis(*, human_hour_cost_usd: float = 0.0) -> AgenticOrchestrator:
+def build_jarvis(
+    *,
+    human_hour_cost_usd: float = 0.0,
+    state_store: JarvisStateStore | None = None,
+) -> AgenticOrchestrator:
     """Build the advanced council under centralized authorization control."""
-    return AgenticOrchestrator(default_agents(human_hour_cost_usd=human_hour_cost_usd))
+    return AgenticOrchestrator(
+        default_agents(
+            human_hour_cost_usd=human_hour_cost_usd,
+            state_store=state_store,
+        )
+    )
