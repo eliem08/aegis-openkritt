@@ -1,16 +1,20 @@
-"""Aegis-Bench runner — measure the bundled detectors against the labeled corpus.
+"""Aegis-Bench runner — measure bundled detector rules against a labeled corpus.
 
-Writes the vulnerable snippets into one temp tree and the clean snippets into another, runs
-the installed scanners over each (via the tool bridge), and scores per case:
+Writes vulnerable snippets into one temp tree and clean snippets into another, runs the
+installed scanners over each via the real tool bridge, and scores per case:
 
-  * detected (true positive)  — a matching finding in the vulnerable file
-  * missed  (false negative)  — no matching finding in the vulnerable file
-  * false positive           — a matching finding in the CLEAN file (negative control)
+  * detected (true positive) — a matching finding in the vulnerable file
+  * missed (false negative) — no matching finding in the vulnerable file
+  * false positive — a matching finding in the CLEAN file (negative control)
 
-Metrics (recall, precision, FP rate) are MEASURED from real scanner output, and also folded
-into :class:`aegis.benchmarking.BenchmarkRun` so the existing release gate can consume them.
-If no scanners are installed the run reports zero tools and empty results (callers skip the
-scanner-dependent assertions) — it never fabricates numbers.
+These are DETECTOR metrics only. A static scanner match never counts as a reproduced
+vulnerability in Aegis's evidence lifecycle. ``as_benchmark_run()`` therefore carries the
+detection counts into the canonical benchmark model while leaving ``reproduced=0``.
+
+CI intentionally runs the canonical corpus with a pinned Semgrep version. A richer local
+arsenal may contribute additional detectors when installed, but those tools are reported by
+name and are not implied by the CI result. If no scanners are installed the run reports zero
+tools and empty results; it never fabricates numbers.
 """
 
 from __future__ import annotations
@@ -54,16 +58,29 @@ class BenchResult:
         return round(self.false_positives / self.total, 4) if self.total else 0.0
 
     def as_benchmark_run(self):
+        """Map detector metrics without falsely promoting detections to reproductions."""
         from aegis.benchmarking import BenchmarkRun
-        # static-detection: a deterministic corpus match is the "reproduction" of the finding.
-        return BenchmarkRun(benchmark="aegis-bench", detected=self.detected,
-                            reproduced=self.detected, false_positives=self.false_positives)
+
+        return BenchmarkRun(
+            benchmark="aegis-bench",
+            detected=self.detected,
+            reproduced=0,
+            false_positives=self.false_positives,
+            missed=self.missed,
+        )
 
     def summary(self) -> dict:
-        return {"tools": self.tools, "total": self.total, "detected": self.detected,
-                "missed": self.missed, "false_positives": self.false_positives,
-                "recall": self.recall, "precision": self.precision, "fp_rate": self.fp_rate,
-                "cases": [asdict(c) for c in self.cases]}
+        return {
+            "tools": self.tools,
+            "total": self.total,
+            "detected": self.detected,
+            "missed": self.missed,
+            "false_positives": self.false_positives,
+            "recall": self.recall,
+            "precision": self.precision,
+            "fp_rate": self.fp_rate,
+            "cases": [asdict(c) for c in self.cases],
+        }
 
 
 def _ext(case: Case) -> str:
@@ -78,28 +95,42 @@ def _write_tree(cases, attr: str) -> Path:
 
 
 def _findings_by_file(scan_root: Path, tools) -> dict[str, list[dict]]:
-    """basename -> list of (cwe, message) for every scanner finding in scan_root."""
+    """basename -> normalized scanner findings for every result in ``scan_root``."""
     from aegis.ai.tool_bridge import ToolBridge
+
     results = ToolBridge(timeout=300).scan(str(scan_root), tools=tools)
     by_file: dict[str, list[dict]] = {}
-    for r in results:
-        for row in r.findings:
-            a = row.get("json_answer") or {}
-            base = Path(str(a.get("file_path") or "").replace("\\", "/")).name
-            text = (str(a.get("vulnerability_type") or "") + " "
-                    + str(a.get("summary") or "") + " " + str(a.get("explanation") or "")).lower()
-            by_file.setdefault(base, []).append({"tool": r.tool, "text": text})
+    for result in results:
+        for row in result.findings:
+            answer = row.get("json_answer") or {}
+            base = Path(str(answer.get("file_path") or "").replace("\\", "/")).name
+            text = (
+                str(answer.get("vulnerability_type") or "")
+                + " "
+                + str(answer.get("summary") or "")
+                + " "
+                + str(answer.get("explanation") or "")
+            ).lower()
+            by_file.setdefault(base, []).append({"tool": result.tool, "text": text})
     return by_file
 
 
 def run_bench(cases=CASES) -> BenchResult:
     from aegis.ai.tool_bridge import available_tools
-    # code + secrets lanes cover our bundled rules (semgrep) + gitleaks/detect-secrets.
-    tools = list({t.name: t for ln in ("code", "secrets") for t in available_tools(ln)}.values())
+
+    # The corpus targets bundled Semgrep rules. Additional installed code/secrets scanners may
+    # contribute observations locally, but CI's canonical lane intentionally pins Semgrep.
+    tools = list({tool.name: tool for lane in ("code", "secrets")
+                  for tool in available_tools(lane)}.values())
     if not tools:
-        return BenchResult(tools=[], total=len(cases), detected=0, missed=len(cases),
-                           false_positives=0,
-                           cases=[CaseResult(c.id, c.cwe, False, False) for c in cases])
+        return BenchResult(
+            tools=[],
+            total=len(cases),
+            detected=0,
+            missed=len(cases),
+            false_positives=0,
+            cases=[CaseResult(case.id, case.cwe, False, False) for case in cases],
+        )
 
     vuln_dir = _write_tree(cases, "vulnerable")
     clean_dir = _write_tree(cases, "clean")
@@ -107,33 +138,50 @@ def run_bench(cases=CASES) -> BenchResult:
     clean_hits = _findings_by_file(clean_dir, tools)
 
     results: list[CaseResult] = []
-    for c in cases:
-        base = f"{c.id}.{_ext(c)}"
-        vmatch = [f for f in vuln_hits.get(base, []) if c.match in f["text"]]
-        cmatch = [f for f in clean_hits.get(base, []) if c.match in f["text"]]
-        results.append(CaseResult(id=c.id, cwe=c.cwe, detected=bool(vmatch),
-                                  false_positive=bool(cmatch),
-                                  detectors=sorted({f["tool"] for f in vmatch})))
-    detected = sum(1 for r in results if r.detected)
-    fps = sum(1 for r in results if r.false_positive)
-    return BenchResult(tools=[t.name for t in tools], total=len(cases), detected=detected,
-                       missed=len(cases) - detected, false_positives=fps, cases=results)
+    for case in cases:
+        base = f"{case.id}.{_ext(case)}"
+        vulnerable_matches = [f for f in vuln_hits.get(base, []) if case.match in f["text"]]
+        clean_matches = [f for f in clean_hits.get(base, []) if case.match in f["text"]]
+        results.append(
+            CaseResult(
+                id=case.id,
+                cwe=case.cwe,
+                detected=bool(vulnerable_matches),
+                false_positive=bool(clean_matches),
+                detectors=sorted({finding["tool"] for finding in vulnerable_matches}),
+            )
+        )
+    detected = sum(1 for result in results if result.detected)
+    false_positives = sum(1 for result in results if result.false_positive)
+    return BenchResult(
+        tools=[tool.name for tool in tools],
+        total=len(cases),
+        detected=detected,
+        missed=len(cases) - detected,
+        false_positives=false_positives,
+        cases=results,
+    )
 
 
 def main(argv=None) -> int:
     res = run_bench()
     print(f"\nAEGIS-BENCH — detectors: {', '.join(res.tools) or '(none installed)'}")
     print("-" * 72)
-    for c in res.cases:
-        mark = "✓ DETECT" if c.detected else "✗ MISS  "
-        fp = "  ⚠ FP-on-clean" if c.false_positive else ""
-        print(f"  {mark}  {c.cwe:9} {c.id:28} {','.join(c.detectors)}{fp}")
+    for case in res.cases:
+        mark = "✓ DETECT" if case.detected else "✗ MISS  "
+        fp = "  ⚠ FP-on-clean" if case.false_positive else ""
+        print(f"  {mark}  {case.cwe:9} {case.id:28} {','.join(case.detectors)}{fp}")
     print("-" * 72)
-    print(f"  cases {res.total} | detected {res.detected} | missed {res.missed} | "
-          f"false-positives {res.false_positives}")
-    print(f"  recall {res.recall:.2f} | precision {res.precision:.2f} | fp_rate {res.fp_rate:.2f}")
+    print(
+        f"  cases {res.total} | detected {res.detected} | missed {res.missed} | "
+        f"false-positives {res.false_positives}"
+    )
+    print(
+        f"  recall {res.recall:.2f} | precision {res.precision:.2f} | "
+        f"fp_rate {res.fp_rate:.2f}"
+    )
     if not res.tools:
-        print("  (no scanners installed — run inside the arsenal image for real numbers)")
+        print("  (no scanners installed — run inside the scanner environment for real numbers)")
     return 0
 
 
