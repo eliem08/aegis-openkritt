@@ -15,7 +15,7 @@ Design for always-on:
     work — the fresh-code edge, automated.
   * fast lanes only: semgrep (bundled JWT/upload/PHP/Ruby rules) + gitleaks + detect-secrets
     + njsscan. No LLM, no SCA-of-dependencies noise.
-  * concurrent across repos, bounded. Hits ranked by program reward x severity, persisted for
+  * concurrent across repos, bounded. Hits ranked by program reward x severity x scanner signal, persisted for
     the dashboard. Candidates only — a human still reproduces + submits.
 """
 
@@ -55,9 +55,24 @@ class Hit:
     message: str
     commit: str = ""
     ts: float = 0.0
+    signal: float = 0.5
+    rule_id: str = ""
+    detectors: list[str] = field(default_factory=list)
+    evidence_count: int = 1
+    corroborated: bool = False
 
     def score(self) -> float:
-        return self.reward * (1 + _SEV_RANK.get((self.severity or "").lower(), 1))
+        """Rank by payout potential *and* deterministic scanner signal.
+
+        A large bounty no longer floats a weak pattern-only warning above a high-confidence
+        source-to-sink result. Independent scanners agreeing on one location add a modest
+        boost, but never convert the observation into a confirmed finding.
+        """
+        signal = min(1.0, max(0.20, float(self.signal or 0.0)))
+        evidence = max(1, int(self.evidence_count or 1))
+        corroboration = 1.0 + min(0.50, 0.20 * (evidence - 1))
+        return (self.reward * (1 + _SEV_RANK.get((self.severity or "").lower(), 1))
+                * signal * corroboration)
 
 
 def _fast_tools():
@@ -83,12 +98,43 @@ def _save(path: str, obj) -> None:
 
 
 def _persist(prior, new_hits, hits_file) -> list:
-    """Merge prior + new hits (dedup by repo/file/line/cwe), rank by reward x severity, write.
-    Called after EACH repo so hits land in the file the instant they're found (real-time
-    debuggable), not only at cycle-end."""
+    """Merge, corroborate and rank scanner observations.
+
+    Deduplication is by repo/file/line/CWE. When independent scanners hit the same location,
+    their names are retained and the candidate is marked corroborated. This raises review
+    priority but deliberately does not mark the finding confirmed.
+    """
+    fields = set(Hit.__dataclass_fields__)
+
+    def _coerce(value):
+        if not isinstance(value, dict):
+            return value
+        return Hit(**{k: v for k, v in value.items() if k in fields})
+
     merged = {}
-    for h in [Hit(**x) if isinstance(x, dict) else x for x in prior] + new_hits:
-        merged[(h.repo, h.file, h.line, h.cwe)] = h
+    for h in [_coerce(x) for x in prior] + new_hits:
+        if not h.detectors:
+            h.detectors = [h.detector] if h.detector else []
+        key = (h.repo, h.file, h.line, h.cwe)
+        current = merged.get(key)
+        if current is None:
+            h.evidence_count = max(1, len(set(h.detectors)))
+            h.corroborated = h.evidence_count > 1
+            merged[key] = h
+            continue
+        detectors = sorted(set(current.detectors or [current.detector])
+                           | set(h.detectors or [h.detector]))
+        current.detectors = [d for d in detectors if d]
+        current.evidence_count = max(1, len(current.detectors))
+        current.corroborated = current.evidence_count > 1
+        current.signal = max(float(current.signal or 0.0), float(h.signal or 0.0))
+        if h.score() > current.score():
+            current.detector = h.detector
+            current.message = h.message
+            current.severity = h.severity
+            current.rule_id = h.rule_id
+            current.commit = h.commit or current.commit
+            current.ts = max(current.ts, h.ts)
     ranked = sorted(merged.values(), key=lambda h: -h.score())[:_MAX_HITS]
     _save(hits_file, [asdict(h) for h in ranked])
     return ranked
@@ -105,14 +151,29 @@ def _row_to_hit(program, repo, tool_name, commit, row, repo_root="") -> Hit | No
     root = str(repo_root).replace("\\", "/").rstrip("/")
     if root and root in norm:
         fp = norm.split(root, 1)[1].lstrip("/")
+    severity = str(row.get("severity") or a.get("severity") or "warning").lower()
+    fallback_signal = {"critical": 0.90, "high": 0.82, "error": 0.82,
+                       "medium": 0.62, "warning": 0.62, "low": 0.42, "info": 0.30}
+    try:
+        signal = float(row.get("confidence") or 0.0)
+    except (TypeError, ValueError):
+        signal = 0.0
+    signal = min(1.0, max(0.0, signal or fallback_signal.get(severity, 0.50)))
+    try:
+        min_signal = float(os.environ.get("AEGIS_CARPET_MIN_SIGNAL", "0.50") or 0.50)
+    except ValueError:
+        min_signal = 0.50
+    if signal < min_signal:
+        return None
+    metadata = row.get("scanner_metadata") or {}
     return Hit(
         program=program.handle, handle=program.handle, platform=program.platform,
         reward=float(program.reward_ceiling or 0), repo=repo, detector=tool_name,
         cwe=str(a.get("vulnerability_type") or a.get("cwe") or "")[:60],
-        severity=str(row.get("severity") or a.get("severity") or "warning"),
-        file=fp, line=int(a.get("line") or 0) or 0,
+        severity=severity, file=fp, line=int(a.get("line") or 0) or 0,
         message=str(a.get("summary") or a.get("explanation") or "")[:240],
-        commit=commit, ts=time.time())
+        commit=commit, ts=time.time(), signal=signal,
+        rule_id=str(metadata.get("rule_id") or "")[:160], detectors=[tool_name])
 
 
 def _tree_size_mb(path, skip=frozenset({".git", "node_modules", "vendor"})) -> float:
