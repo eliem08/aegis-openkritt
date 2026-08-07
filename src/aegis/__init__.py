@@ -6,4 +6,4 @@ Packages: ``policy`` (deterministic safety gate), ``api`` (control plane),
 ``detect`` (vulnerability detectors), ``report`` (acceptance-grade reporting).
 """
 
-__version__ = "0.3.0"
+__version__ = "0.7.0"

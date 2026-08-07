@@ -3,9 +3,13 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "aegis-policy"
-version = "0.3.0"
-description = "Deterministic policy & authorization core for the Autonomous Exposure-to-Fix Agent."
+# Identity aligned with the actual system: Aegis is a full agentic, evidence-led,
+# profit-aware bug-bounty research platform — not just the policy core. Versioning is
+# semantic-ish 0.MAJOR.MINOR while pre-1.0; 0.6 was the "profit-first foundations" line,
+# 0.7 is the correctness/hardening pass (canonical identity, real benchmark, CI gates).
+name = "aegis"
+version = "0.7.0"
+description = "Aegis — agentic, evidence-led, profit-aware bug-bounty research platform (authorized use only)."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "Proprietary" }

@@ -26,7 +26,7 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
-    continue-on-error: true  # advisory for now; not a merge gate
+    # now a real gate: ruff is pinned to a satisfiable rule set (F/E9/I — real bugs, not style)
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -34,3 +34,27 @@ jobs:
           python-version: "3.12"
       - run: pip install ruff
       - run: ruff check src
+
+  bench:
+    # Aegis-Bench: measure the bundled detectors against the labeled corpus on Linux where the
+    # scanners actually run (semgrep-core does not run on Windows). Informational for now — it
+    # prints real recall/precision/FP-rate to the logs; flip AEGIS_BENCH_STRICT on the pytest
+    # step to a hard gate once the measured numbers are confirmed stable.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install (deps + semgrep)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,ai]"
+          pip install semgrep
+      - name: Run Aegis-Bench (prints measured recall/precision/FP-rate)
+        run: python -m aegis.bench
+      - name: Detector-signal gate (advisory until first measured numbers are confirmed)
+        continue-on-error: true
+        env:
+          AEGIS_BENCH_STRICT: "1"
+        run: pytest -q tests/bench/test_aegis_bench.py
