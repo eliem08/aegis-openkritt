@@ -7,12 +7,12 @@ from enum import Enum
 
 from .asset_capabilities import AssetKind, Requirement, plan_asset_scan
 from .asset_deep_capabilities import (
+    _EXTENDED,
+    _EXTRA_EXISTING,
     ExtendedAssetKind,
     PlannedMethod,
     TargetAssetKind,
     _conditional_existing,
-    _EXTENDED,
-    _EXTRA_EXISTING,
 )
 
 
@@ -78,9 +78,6 @@ def method_capability_requirements(method: PlannedMethod) -> tuple[CapabilityReq
         requirements.append(method.requirement)
     requirements.extend(_RUNTIME_REQUIREMENTS.get(key, ()))
 
-    # The deep registry deliberately keeps a base-compatible shape. For a few
-    # isolated-runtime methods ENDPOINT is only a placeholder there; replace it
-    # with the precise runtime requirement in this authoritative planner.
     if key in _RUNTIME_REQUIREMENTS:
         runtime = _RUNTIME_REQUIREMENTS[key]
         if Requirement.ENDPOINT not in runtime and Requirement.ENDPOINT in requirements:
