@@ -74,6 +74,11 @@ class CostTracker:
             self._day_tokens = 0
 
     def _cost_of(self, usage: dict) -> Decimal:
+        # Prefer the provider's EXACT cost when present (OpenRouter returns usage.cost in USD) —
+        # more accurate than recomputing from tokens against a fixed price table.
+        exact = usage.get("cost")
+        if isinstance(exact, (int, float)) and not isinstance(exact, bool) and exact > 0:
+            return Decimal(str(exact))
         pt = int(usage.get("prompt_tokens", 0) or 0)
         ct = int(usage.get("completion_tokens", 0) or 0)
         hit = int(usage.get("prompt_cache_hit_tokens", 0) or 0)

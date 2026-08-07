@@ -405,6 +405,15 @@ def hunt_repository(fetcher, client, repository: str, *,
         """Worker (thread-safe): read bundle, build the task, run a fresh agent. Returns
         (item, rows, failure) where rows are (hypothesis, agreement, samples) fully computed
         so the main thread only has to dedupe + append."""
+        # HARD budget cap, checked PER FILE: once today's spend hits AEGIS_DAILY_BUDGET_USD,
+        # every remaining worker returns without making an LLM call — so a single big target
+        # (e.g. a 735-file SDK) can't blow the budget mid-run. No cap set (=0) -> never trips.
+        try:
+            from .cost import TRACKER
+            if TRACKER.over_budget():
+                return item, [], "budget cap reached — analysis skipped"
+        except Exception:
+            pass
         bundle = _read_bundle(fetcher, repository, item.path, paths, config, result, pin_dir)
         if bundle is None:
             return item, [], None

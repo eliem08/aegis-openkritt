@@ -18,6 +18,7 @@ _USAGE_KEYS = frozenset({
     "total_tokens",
     "prompt_cache_hit_tokens",
     "prompt_cache_miss_tokens",
+    "cost",   # OpenRouter returns the exact USD cost of the call — used directly when present
 })
 
 
