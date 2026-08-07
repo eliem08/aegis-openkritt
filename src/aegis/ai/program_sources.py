@@ -47,10 +47,13 @@ _GITHUB_RE = re.compile(r"github\.com[:/]+([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)", re
 _ASSET_KEYS = ("asset_identifier", "target", "endpoint", "url", "asset", "identifier", "name")
 
 
-def _default_fetch_json(url: str, timeout: float = 30.0):
-    """Fetch and JSON-decode a URL. Isolated so tests inject a fake fetcher instead."""
+def _default_fetch_json(url: str, timeout: float = 30.0, headers: dict | None = None):
+    """Fetch and JSON-decode a URL. Isolated so tests inject a fake fetcher instead.
+    Optional ``headers`` lets authenticated connectors pass an Authorization header."""
     import httpx
-    resp = httpx.get(url, timeout=timeout, headers={"User-Agent": "aegis-registry-import"})
+    hdrs = {"User-Agent": "aegis-registry-import", "Accept": "application/json"}
+    hdrs.update(headers or {})
+    resp = httpx.get(url, timeout=timeout, headers=hdrs)
     resp.raise_for_status()
     return resp.json()
 
@@ -210,11 +213,14 @@ def _merge(existing: Program, fresh: Program) -> Program:
 
 
 def import_programs(sources: list[str] | None = None, *, store=None,
-                    source_code_only: bool = False, fetch_json=None) -> dict:
+                    source_code_only: bool = False, fetch_json=None,
+                    include_connectors: bool = True) -> dict:
     """Fetch the named sources, merge into the registry store, and return a summary.
 
-    `sources`: any of _SOURCES keys (default all). `fetch_json(url)->obj` is injectable for
-    tests. Existing operator annotations are preserved (see `_merge`)."""
+    `sources`: any of _SOURCES keys (default all public feeds). Authenticated first-party
+    connectors (HackerOne/Bugcrowd/Intigriti/YesWeHack/Immunefi APIs) are also run when
+    `include_connectors` is set; blocked ones (no credentials) are reported, not fatal.
+    `fetch_json(url)->obj` is injectable for tests. Operator annotations are preserved."""
     from .registry import load_registry, save_registry
     names = sources or list(_SOURCES)
     fetched: list[Program] = []
@@ -231,6 +237,18 @@ def import_programs(sources: list[str] | None = None, *, store=None,
         got = src.fetch()
         per_source[name] = len(got)
         fetched.extend(got)
+
+    # authenticated first-party connectors — usable ones contribute, blocked ones are reported
+    # (never invent creds; a blocked platform never fails the import). Only when the caller
+    # didn't restrict to specific public sources.
+    connector_status: list = []
+    if include_connectors and sources is None:
+        from .program_connectors import fetch_connectors
+        cres = fetch_connectors()
+        fetched.extend(cres.programs)
+        for st in cres.statuses:
+            per_source[st.name] = st.fetched
+        connector_status = [st.__dict__ for st in cres.statuses]
 
     existing = {p.handle: p for p in load_registry(store)}
     # prune previously-stored Code4rena result/ops repos that the noise filter now rejects
@@ -251,18 +269,33 @@ def import_programs(sources: list[str] | None = None, *, store=None,
     with_repo = sum(1 for p in merged if p.targets)
     return {"per_source": per_source, "fetched": len(fetched), "added": added,
             "updated": updated, "total_in_registry": len(merged),
-            "with_source_repo": with_repo}
+            "with_source_repo": with_repo, "connectors": connector_status}
 
 
 def main(argv=None) -> int:
     import sys
     args = list(argv if argv is not None else sys.argv[1:])
+    if "--status" in args:
+        # show source availability WITHOUT touching the network (which connectors are usable)
+        from .program_connectors import connector_status
+        print("bounty source connectors:")
+        for name in _SOURCES:
+            print(f"  {name:16} available=True  (public feed, no auth)")
+        for st in connector_status():
+            tag = "available=True " if st.available else "available=False"
+            print(f"  {st.name:16} {tag} {st.blocked_reason}")
+        return 0
     src_arg = [a for a in args if not a.startswith("-")]
     sources = None if (not src_arg or src_arg == ["all"]) else src_arg
     summary = import_programs(sources, source_code_only="--source-code-only" in args)
     print("imported program feeds -> reports/programs.json")
     for k, v in summary["per_source"].items():
-        print(f"  {k:14} {v} programs")
+        print(f"  {k:16} {v} programs")
+    for st in summary.get("connectors", []):
+        if not st.get("available"):
+            print(f"  {st['name']:16} BLOCKED - {st['blocked_reason']}")
+        elif st.get("error"):
+            print(f"  {st['name']:16} ERROR - {st['error']}")
     print(f"  added {summary['added']}, updated {summary['updated']}, "
           f"total {summary['total_in_registry']} ({summary['with_source_repo']} with a source repo)")
     print("next: `python -m aegis.ai.selection` to rank them by yield")
