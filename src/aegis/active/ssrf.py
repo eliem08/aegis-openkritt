@@ -15,8 +15,8 @@ request through the gateway. This detector only orchestrates the callbacks.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable
 
 # Parameter names that commonly carry a URL a server will fetch.
 SSRF_PARAM_HINTS = (

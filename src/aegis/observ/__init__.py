@@ -10,10 +10,10 @@ from .telemetry import (
 )
 
 __all__ = [
-    "Telemetry",
-    "MetricNames",
     "InMemoryExporter",
-    "SpanRecord",
-    "MetricRecord",
     "LogRecord",
+    "MetricNames",
+    "MetricRecord",
+    "SpanRecord",
+    "Telemetry",
 ]

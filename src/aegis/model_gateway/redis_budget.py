@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from decimal import Decimal, ROUND_CEILING
+from decimal import ROUND_CEILING, Decimal
 
 from .budget import CostReservation, ModelBudgetError
 
@@ -71,8 +71,8 @@ class RedisModelBudget:
         client,
         *,
         namespace: str = "aegis-prod:model-cost",
-        cycle_limit: Decimal = Decimal("2"),
-        daily_limit: Decimal = Decimal("10"),
+        cycle_limit: Decimal = Decimal(2),
+        daily_limit: Decimal = Decimal(10),
         reservation_ttl: int = 172800,
     ) -> None:
         prefix = namespace.strip(" :")

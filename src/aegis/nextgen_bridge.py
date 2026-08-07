@@ -6,8 +6,14 @@ from decimal import Decimal
 from aegis.graph.model import AssetKind, Observation
 from aegis.model.finding import Candidate
 from aegis.nextgen import (
-    AttackSurfaceGraph, EventBus, EventType, FindingLifecycle, SecurityEvent,
-    WorkOpportunity, WorkScore, score_opportunity,
+    AttackSurfaceGraph,
+    EventBus,
+    EventType,
+    FindingLifecycle,
+    SecurityEvent,
+    WorkOpportunity,
+    WorkScore,
+    score_opportunity,
 )
 
 _ASSET_EVENTS = {

@@ -13,9 +13,8 @@ provokes is validated like any other.
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import re
+from pathlib import Path
 
 # server-side extensions (real attack surface) score above client-side .js/.ts
 _SERVER_EXT = {".php": 4, ".rb": 4, ".py": 4, ".go": 4, ".java": 4, ".rs": 3, ".sol": 4,
@@ -28,7 +27,7 @@ _ATTACK = re.compile(
     r"\$_(GET|POST|REQUEST|COOKIE|FILES|SERVER)\b|params\[|request\.|req\.(body|query|params)|"
     r"add_action\(\s*['\"]wp_ajax|register_rest_route|route|controller|->query\(|\$wpdb|"
     r"exec\(|system\(|shell_exec|unserialize\(|include\s|require\s|file_get_contents|curl_",
-    re.I)
+    re.IGNORECASE)
 
 _SYSTEM = (
     "You are an elite application-security auditor doing rapid triage. Your job is to pick "

@@ -324,7 +324,6 @@ def load_hits(limit: int = 100, report_dir: str = "reports") -> list[dict]:
 def _cli_printer():
     """A live progress printer for the CLI: repos found, each repo as it's scanned with timing
     + hit count, a running total, and every hit inline."""
-    import sys
     t0 = [0.0]
 
     def emit(kind, d):

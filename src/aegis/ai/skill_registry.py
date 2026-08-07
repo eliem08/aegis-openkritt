@@ -13,7 +13,7 @@ the installed ones as part of a hunt — powerful, and clean on licensing.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 
 

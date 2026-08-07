@@ -5,21 +5,21 @@ The model proposes; deterministic filters and the policy gate dispose. See
 """
 
 from .client import DeepSeekClient, DeepSeekCompletion, DeepSeekError
-from .config import DeepSeekAuthError, DeepSeekConfig, DeepSeekConfigError
 from .code_validation import CodeAnchor, CodeValidation, CodeValidationAgent, ValidationVerdict
+from .config import DeepSeekAuthError, DeepSeekConfig, DeepSeekConfigError
 from .planner import ALLOWED_ACTIONS, LLMPlanner
 
 __all__ = [
-    "DeepSeekClient",
-    "DeepSeekCompletion",
-    "DeepSeekError",
-    "DeepSeekConfig",
-    "DeepSeekAuthError",
-    "DeepSeekConfigError",
+    "ALLOWED_ACTIONS",
     "CodeAnchor",
     "CodeValidation",
     "CodeValidationAgent",
-    "ValidationVerdict",
+    "DeepSeekAuthError",
+    "DeepSeekClient",
+    "DeepSeekCompletion",
+    "DeepSeekConfig",
+    "DeepSeekConfigError",
+    "DeepSeekError",
     "LLMPlanner",
-    "ALLOWED_ACTIONS",
+    "ValidationVerdict",
 ]

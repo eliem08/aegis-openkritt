@@ -9,9 +9,10 @@ testable without live tooling.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Callable, Protocol, runtime_checkable
+from datetime import UTC, datetime
+from typing import Protocol, runtime_checkable
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -39,7 +40,7 @@ class WorkerResult(BaseModel):
 class WorkerContext:
     engagement_id: str
     surface: AttackSurface
-    now: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    now: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @runtime_checkable

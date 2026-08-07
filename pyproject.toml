@@ -32,7 +32,10 @@ where = ["src"]
 aegis = ["py.typed", "ai/rules/*.yml"]
 
 [tool.pytest.ini_options]
-pythonpath = ["src"]
+# "tests" is on the path so shared helpers (tests/policy_helpers.py) import cleanly even
+# though tests/ is a package (tests/__init__.py) — without it, `from policy_helpers import ...`
+# in conftest.py fails to resolve under pytest's prepend import mode.
+pythonpath = ["src", "tests"]
 testpaths = ["tests"]
 addopts = "-q"
 filterwarnings = [
@@ -44,3 +47,11 @@ filterwarnings = [
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+
+[tool.ruff.lint]
+# Pin a meaningful, satisfiable rule set. ruff's broad version-default flagged ~460 mostly-
+# stylistic issues (line-length, blind-except, try-except-pass) that this deliberately
+# defensive codebase doesn't follow — so lint was perpetually red and ignored. Enforce the
+# rules that catch REAL bugs instead: F (pyflakes: undefined names, unused vars/imports),
+# E9 (syntax errors), I (import sorting). Green + actually useful.
+select = ["F", "E9", "I"]

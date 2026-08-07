@@ -48,7 +48,7 @@ class DeepSeekClient:
         self._client = client or httpx.Client(base_url=config.base_url, timeout=config.timeout)
 
     @classmethod
-    def from_env(cls, env: dict | None = None, **kwargs) -> "DeepSeekClient":
+    def from_env(cls, env: dict | None = None, **kwargs) -> DeepSeekClient:
         return cls(DeepSeekConfig.from_env(env), **kwargs)
 
     def _payload(
@@ -186,7 +186,7 @@ class DeepSeekClient:
         if self._owns_client:
             self._client.close()
 
-    def __enter__(self) -> "DeepSeekClient":
+    def __enter__(self) -> DeepSeekClient:
         return self
 
     def __exit__(self, *exc) -> None:

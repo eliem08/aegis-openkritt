@@ -46,7 +46,7 @@ class AgentActionProposal(BaseModel):
         return value
 
     @model_validator(mode="after")
-    def approval_for_state_change(self) -> "AgentActionProposal":
+    def approval_for_state_change(self) -> AgentActionProposal:
         if self.risk == ActionRisk.CONTROLLED_STATE_CHANGE and not self.human_approval_ref:
             raise ValueError("controlled state changes require a human approval reference")
         return self
@@ -115,7 +115,7 @@ class AuthenticatedSessionPlan(BaseModel):
     human_approval_ref: str | None = None
 
     @model_validator(mode="after")
-    def state_change_requires_approval(self) -> "AuthenticatedSessionPlan":
+    def state_change_requires_approval(self) -> AuthenticatedSessionPlan:
         if BrowserAction.MUTATE_STATE in self.actions and not self.human_approval_ref:
             raise ValueError("browser state mutation requires human approval")
         if len(set(self.roles)) != len(self.roles):
@@ -135,7 +135,7 @@ class SkillMethodology(BaseModel):
     content_digest: str
 
     @classmethod
-    def from_untrusted_json(cls, skill_id: str, raw: str) -> "SkillMethodology":
+    def from_untrusted_json(cls, skill_id: str, raw: str) -> SkillMethodology:
         """Accept only JSON data fields; raw imperative text never reaches an agent."""
         try:
             parsed = json.loads(raw)
@@ -264,7 +264,7 @@ class StatefulApiPlan(BaseModel):
     human_approval_ref: str | None = None
 
     @model_validator(mode="after")
-    def approval_for_mutation(self) -> "StatefulApiPlan":
+    def approval_for_mutation(self) -> StatefulApiPlan:
         if any(op.state_changing for op in self.operations) and not self.human_approval_ref:
             raise ValueError("state-changing API sequences require human approval")
         ids = [op.operation_id for op in self.operations]

@@ -17,13 +17,13 @@ from .classifier import (
 )
 
 __all__ = [
-    "SensitiveDataClassifier",
-    "ClassifierConfig",
-    "Classification",
     "Category",
-    "Method",
+    "Classification",
+    "ClassifierConfig",
     "Match",
-    "redact",
-    "SensitiveDataBoundary",
+    "Method",
     "QuarantineOutcome",
+    "SensitiveDataBoundary",
+    "SensitiveDataClassifier",
+    "redact",
 ]

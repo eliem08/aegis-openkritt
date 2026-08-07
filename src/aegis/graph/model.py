@@ -25,7 +25,7 @@ import hashlib
 import json
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from urllib.parse import parse_qsl, urlsplit
 
@@ -33,7 +33,7 @@ _DEFAULT_PORTS = {"http": 80, "https": 443}
 
 
 def _now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class AssetKind(str, Enum):
@@ -147,7 +147,7 @@ class Asset:
     last_seen: datetime = field(default_factory=_now)
     observation_count: int = 0
 
-    def merge_observation(self, obs: Observation) -> "Asset":
+    def merge_observation(self, obs: Observation) -> Asset:
         """Fold an observation in. Provenance only ever grows."""
         for key, value in obs.data.items():
             if value is not None and value != "":

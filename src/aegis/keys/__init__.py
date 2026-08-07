@@ -10,10 +10,10 @@ from .keyring import (
 )
 
 __all__ = [
-    "KeyRing",
     "EnvelopeEncryptor",
-    "ManagedKey",
     "KeyManagementError",
-    "KeyUnavailable",
     "KeyRevoked",
+    "KeyRing",
+    "KeyUnavailable",
+    "ManagedKey",
 ]

@@ -10,7 +10,7 @@ here as explicit, audited allowances rather than ambient trust.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 
 class ProtectionError(RuntimeError):
@@ -39,7 +39,7 @@ class ProtectionLimits:
 
 
 def _now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def enforce_body_size(size_bytes: int, limits: ProtectionLimits) -> None:

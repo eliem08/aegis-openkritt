@@ -22,9 +22,9 @@ from __future__ import annotations
 
 import math
 import re
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Callable
 
 
 class Category(str, Enum):
@@ -132,7 +132,7 @@ class SensitiveDataClassifier:
         self.config = config or ClassifierConfig()
         self._tenant_re = [re.compile(p) for p in self.config.tenant_patterns]
 
-    def classify(self, artifact, *, ml_hook: Callable[[object], "Classification | None"] | None = None) -> Classification:
+    def classify(self, artifact, *, ml_hook: Callable[[object], Classification | None] | None = None) -> Classification:
         matches: list[Match] = []
         self._scan(artifact, matches, field_name="")
 

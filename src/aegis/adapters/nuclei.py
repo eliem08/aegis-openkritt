@@ -23,10 +23,9 @@ protocol, request budget, and capability tier. The adapter:
 from __future__ import annotations
 
 import hashlib
-import json
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Callable
+from collections.abc import Callable
+from dataclasses import dataclass
+from datetime import UTC, datetime
 
 from .base import JsonLinesAdapter, SchemaMismatch
 from .contract import AdapterManifest, CapabilityTier, EventKind, ExecutionEnvelope
@@ -158,7 +157,7 @@ class TemplateManifest:
         return sorted(self.entries)
 
     @classmethod
-    def from_dict(cls, data: dict) -> "TemplateManifest":
+    def from_dict(cls, data: dict) -> TemplateManifest:
         entries = {
             tid: TemplateEntry(
                 template_id=e["template_id"], checksum=e["checksum"], signer=e["signer"],
@@ -310,5 +309,5 @@ def new_template_manifest(*, manifest_id: str, executable_digest: str, template_
         manifest_id=manifest_id, version=version, executable_digest=executable_digest,
         template_commit=template_commit, entries={e.template_id: e for e in entries},
         trusted_signers=frozenset(trusted_signers), allowed_protocols=frozenset(allowed_protocols),
-        created_at=datetime.now(timezone.utc).isoformat(),
+        created_at=datetime.now(UTC).isoformat(),
     )

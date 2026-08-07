@@ -13,18 +13,19 @@ import os
 import re
 import uuid
 from collections import defaultdict, deque
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Iterable
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 def utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class EventType(str, Enum):
@@ -66,7 +67,7 @@ class SecurityEvent(BaseModel):
         return value
 
     @model_validator(mode="after")
-    def expiry_after_observation(self) -> "SecurityEvent":
+    def expiry_after_observation(self) -> SecurityEvent:
         if self.expires_at is not None and self.expires_at <= self.observed_at:
             raise ValueError("expires_at must be later than observed_at")
         return self
@@ -263,7 +264,7 @@ def score_opportunity(item: WorkOpportunity) -> WorkScore:
              * Decimal(str(item.report_quality)))
     cost = item.model_cost + item.scanner_cost + item.review_cost
     net = gross - cost
-    information = Decimal(str(item.information_gain)) * max(bounty, Decimal("1"))
+    information = Decimal(str(item.information_gain)) * max(bounty, Decimal(1))
     return WorkScore(item.opportunity_id, gross, cost, net, information, net + information, net > 0)
 
 

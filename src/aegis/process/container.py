@@ -9,7 +9,6 @@ prevents adapters from widening the runtime profile.
 from __future__ import annotations
 
 import hashlib
-
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 

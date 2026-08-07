@@ -27,7 +27,7 @@ class ReportCorpus:
         self._reports.extend(reports)
 
     @classmethod
-    def from_jsonl(cls, path: str | Path) -> "ReportCorpus":
+    def from_jsonl(cls, path: str | Path) -> ReportCorpus:
         corpus = cls()
         text = Path(path).read_text(encoding="utf-8")
         for line_no, line in enumerate(text.splitlines(), 1):
@@ -41,15 +41,14 @@ class ReportCorpus:
         return corpus
 
     @classmethod
-    def from_json(cls, path: str | Path) -> "ReportCorpus":
+    def from_json(cls, path: str | Path) -> ReportCorpus:
         data = json.loads(Path(path).read_text(encoding="utf-8"))
         items = data.get("reports", data) if isinstance(data, dict) else data
         return cls(DisclosedReport(**item) for item in items)
 
     def to_jsonl(self, path: str | Path) -> None:
         with Path(path).open("w", encoding="utf-8") as fh:
-            for report in self._reports:
-                fh.write(report.model_dump_json() + "\n")
+            fh.writelines(report.model_dump_json() + "\n" for report in self._reports)
 
     # -- access --
 

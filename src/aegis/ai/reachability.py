@@ -87,7 +87,7 @@ def _args_after(name: str, line: str) -> int:
 
 # names that are entry points (called by framework/routing/reflection, not by a local caller)
 _ENTRYPOINT = re.compile(r"^(main|handler|handle|index|create|update|destroy|show|new|run|"
-                         r"get|post|put|delete|patch|call|invoke|test_|setup|teardown)", re.I)
+                         r"get|post|put|delete|patch|call|invoke|test_|setup|teardown)", re.IGNORECASE)
 
 
 def check(repo_root: str | Path, rel_file: str, line: int) -> dict:

@@ -12,7 +12,14 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from aegis.model import AttackSurface, Canary, CanaryKind, Candidate, EvidenceBundle, InteractionStep
+from aegis.model import (
+    AttackSurface,
+    Canary,
+    CanaryKind,
+    Candidate,
+    EvidenceBundle,
+    InteractionStep,
+)
 
 from .base import DetectionResult, DetectorContext, path_of
 

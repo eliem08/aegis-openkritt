@@ -27,7 +27,7 @@ class Severity(IntEnum):
     CRITICAL = 4
 
     @classmethod
-    def parse(cls, value) -> "Severity":
+    def parse(cls, value) -> Severity:
         if value is None or value == "":
             return cls.NONE
         if isinstance(value, (int, float)) and not isinstance(value, bool):

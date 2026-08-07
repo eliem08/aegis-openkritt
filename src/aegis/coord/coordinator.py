@@ -13,7 +13,7 @@ semaphores from durable leases without ever touching reservations.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 
 PASSIVE_TIERS = frozenset({"passive_discovery"})
@@ -30,7 +30,7 @@ class Admission(str, Enum):
 
 
 def _now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class InMemoryBackend:

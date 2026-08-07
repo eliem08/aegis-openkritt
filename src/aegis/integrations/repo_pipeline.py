@@ -23,9 +23,7 @@ from dataclasses import dataclass, field, replace
 from aegis.ingest.hackerone import map_program
 from aegis.report import build_console
 
-from .openkritt import ingest_openkritt_findings
-
-_REPO_RE = re.compile(r"(?:github\.com|gitlab\.com|bitbucket\.org)[/:]([^/\s]+/[^/\s#?]+)", re.I)
+_REPO_RE = re.compile(r"(?:github\.com|gitlab\.com|bitbucket\.org)[/:]([^/\s]+/[^/\s#?]+)", re.IGNORECASE)
 _BARE_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 
 

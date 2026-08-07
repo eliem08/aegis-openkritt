@@ -89,19 +89,19 @@ def focus_text(path: str) -> str:
 
 # Cheap content signals -> a more specific framework note, layered on top of the language.
 _FRAMEWORK_SIGNS: tuple[tuple[re.Pattern, str], ...] = (
-    (re.compile(r"from django|django\.", re.I),
+    (re.compile(r"from django|django\.", re.IGNORECASE),
      "Django detected: CSRF + permission_classes are enforced by default; the real bugs "
      "are missing object-level ownership checks and raw() queries."),
-    (re.compile(r"@RestController|@PreAuthorize|springframework", re.I),
+    (re.compile(r"@RestController|@PreAuthorize|springframework", re.IGNORECASE),
      "Spring detected: check for endpoints lacking the @PreAuthorize their siblings carry."),
-    (re.compile(r"express\(\)|require\('express'|from 'express'", re.I),
+    (re.compile(r"express\(\)|require\('express'|from 'express'", re.IGNORECASE),
      "Express detected: auth is middleware — look for a route that omits the auth "
      "middleware mounted on its sibling routes."),
-    (re.compile(r"openzeppelin|Ownable|AccessControl", re.I),
+    (re.compile(r"openzeppelin|Ownable|AccessControl", re.IGNORECASE),
      "OpenZeppelin detected: functions should carry onlyOwner/onlyRole — flag any "
      "state-changer that lacks the modifier its siblings use."),
     (re.compile(r"\bjwt\b|jsonwebtoken|pyjwt|jose\.|golang-jwt|firebase/php-jwt|"
-                r"decode.{0,20}token|verify.{0,20}token", re.I),
+                r"decode.{0,20}token|verify.{0,20}token", re.IGNORECASE),
      "JWT / token auth detected: this is a CWE-347 surface. Check the verification is not "
      "bypassable — algorithms must be an explicit strong allow-list (NEVER 'none'); a "
      "hardcoded HMAC secret means anyone can mint tokens; jwt.decode()/ParseUnverified() do "
@@ -109,7 +109,7 @@ _FRAMEWORK_SIGNS: tuple[tuple[re.Pattern, str], ...] = (
      "also accepts HS256 is vulnerable to alg-confusion using the public key as the HMAC "
      "secret. Also flag a missing exp check."),
     (re.compile(r"\$_FILES|move_uploaded_file|multipart/form-data|MultipartFile|"
-                r"multer|formidable|busboy", re.I),
+                r"multer|formidable|busboy", re.IGNORECASE),
      "FILE UPLOAD handler detected: this is a CWE-434 surface. Check the validation is not "
      "bypassable — a client-controlled MIME/Content-Type ($_FILES['type']) or extension is "
      "NOT trustworthy; getimagesize() alone is defeated by a polyglot. A real bug is: no "

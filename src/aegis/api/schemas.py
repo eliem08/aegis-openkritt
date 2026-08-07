@@ -14,7 +14,6 @@ from aegis.policy import ConsequenceTier
 
 from .store import ApprovalGrant, Engagement
 
-
 # --- engagements ----------------------------------------------------------
 
 class EngagementOut(BaseModel):
@@ -31,7 +30,7 @@ class EngagementOut(BaseModel):
     approval_required_for: list[str]
 
     @classmethod
-    def from_engagement(cls, e: Engagement) -> "EngagementOut":
+    def from_engagement(cls, e: Engagement) -> EngagementOut:
         a = e.authorization
         return cls(
             id=e.id,
@@ -119,7 +118,7 @@ class ApprovalOut(BaseModel):
     revoked: bool
 
     @classmethod
-    def from_grant(cls, g: ApprovalGrant) -> "ApprovalOut":
+    def from_grant(cls, g: ApprovalGrant) -> ApprovalOut:
         return cls(
             grant_id=g.grant_id,
             action=g.action,
@@ -187,7 +186,7 @@ class ScanOut(BaseModel):
     created_at: datetime
 
     @classmethod
-    def from_scan(cls, s) -> "ScanOut":
+    def from_scan(cls, s) -> ScanOut:
         return cls(
             scan_id=s.scan_id, tenant_id=s.tenant_id, engagement_id=s.engagement_id,
             status=s.status, scope_digest=s.scope_digest, manifest_set=list(s.manifest_set),
@@ -202,7 +201,7 @@ class StageOut(BaseModel):
     status: str
 
     @classmethod
-    def from_stage(cls, s) -> "StageOut":
+    def from_stage(cls, s) -> StageOut:
         return cls(stage_id=s.stage_id, stage_type=s.stage_type,
                    depends_on=list(s.depends_on), status=s.status)
 
@@ -220,7 +219,7 @@ class TaskOut(BaseModel):
     result_summary: dict | None
 
     @classmethod
-    def from_task(cls, t) -> "TaskOut":
+    def from_task(cls, t) -> TaskOut:
         return cls(
             task_id=t.task_id, stage_id=t.stage_id, target=t.target, adapter=t.adapter,
             adapter_version=t.adapter_version, capability_tier=t.capability_tier, status=t.status,
@@ -239,7 +238,7 @@ class ArtifactOut(BaseModel):
     created_at: datetime
 
     @classmethod
-    def from_artifact(cls, a) -> "ArtifactOut":
+    def from_artifact(cls, a) -> ArtifactOut:
         return cls(artifact_id=a.artifact_id, task_id=a.task_id, kind=a.kind,
                    classification=a.classification, size=a.size, created_at=a.created_at)
 

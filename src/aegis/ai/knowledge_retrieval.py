@@ -16,7 +16,6 @@ generator prompt. Pure scoring so retrieval is deterministic and testable; degra
 from __future__ import annotations
 
 import os
-import re
 from pathlib import Path
 
 from .agents.contracts import AgentKind

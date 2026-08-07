@@ -56,7 +56,7 @@ class BrowserExecutor:
 
 def _build_playwright_driver():
     try:
-        from playwright.sync_api import sync_playwright   # noqa: F401
+        from playwright.sync_api import sync_playwright  # noqa: F401
     except Exception as exc:                              # not installed
         raise BrowserUnavailable(
             "playwright is not installed; `pip install playwright && playwright install "

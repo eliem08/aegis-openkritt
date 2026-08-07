@@ -13,8 +13,8 @@ from __future__ import annotations
 
 import secrets as _secrets
 import uuid
-from datetime import datetime, timedelta, timezone
-from typing import Callable
+from collections.abc import Callable
+from datetime import UTC, datetime, timedelta
 
 from aegis.api.crypto import Encryptor, NullEncryptor
 
@@ -105,7 +105,7 @@ class PrivateOastService:
         self._config = config
         self._enc = encryptor or NullEncryptor()
         self._secrets = secrets or SecretsService()
-        self._clock = clock or (lambda: datetime.now(timezone.utc))
+        self._clock = clock or (lambda: datetime.now(UTC))
         self._on_audit = on_audit
         self._sessions: dict[str, OastSession] = {}      # session_ref -> session
         self._by_correlation: dict[str, str] = {}        # correlation_id -> session_ref

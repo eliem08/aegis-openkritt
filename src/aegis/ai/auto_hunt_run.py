@@ -50,8 +50,7 @@ def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = "", on_even
             except EtherscanError as exc:
                 return HuntOutcome(target=target, error=str(exc)[:200])
         else:
-            from .repo_clone import RepoCloneError, clone_repository
-            from .repo_clone import LocalRepoSource
+            from .repo_clone import LocalRepoSource, RepoCloneError, clone_repository
             pin_dir = root / "repos" / target.repository.replace("/", "__")
             pin_dir.mkdir(parents=True, exist_ok=True)
             try:
@@ -383,16 +382,16 @@ def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = "", on_even
         # ships a docker-compose, bring up a disposable LOCALHOST instance and prove-or-
         # refute each confirmed finding with a deterministic oracle. Default OFF; never a
         # third party; any failure degrades to "not attempted".
-        repro_summary = {"attempted": False}
         if counts.get("confirmed"):
             try:
                 from .repro_hook import maybe_reproduce, repro_enabled
                 if repro_enabled():
                     with DeepSeekClient(DeepSeekConfig.from_env(val_env)) as rc_client:
-                        repro_summary = maybe_reproduce(scan_root, validated, rc_client)
+                        # side effects: annotates `validated` in place + writes the report
+                        maybe_reproduce(scan_root, validated, rc_client)
                     report_path.write_text(json.dumps(validated, indent=2), encoding="utf-8")
-            except Exception as exc:
-                repro_summary = {"attempted": False, "reason": f"{type(exc).__name__}"}
+            except Exception:
+                pass
 
         from .economics import estimate
         findings = []

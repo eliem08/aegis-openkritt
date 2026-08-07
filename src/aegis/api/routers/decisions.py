@@ -7,7 +7,7 @@ has actually executed an allowed action.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -22,7 +22,7 @@ router = APIRouter(prefix="/engagements/{engagement_id}/decisions", tags=["decis
 
 
 def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 @router.post(

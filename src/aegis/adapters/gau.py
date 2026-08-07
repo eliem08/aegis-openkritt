@@ -12,7 +12,7 @@ asset graph can say not just "this URL exists" but "Wayback saw it in 2024".
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from .base import QUOTA_EXHAUSTED, JsonLinesAdapter, SchemaMismatch
 from .contract import AdapterManifest, CapabilityTier, EventKind, ExecutionEnvelope
@@ -142,11 +142,11 @@ def _parse_timestamp(raw) -> datetime | None:
     text = str(raw).strip()
     for fmt in ("%Y%m%d%H%M%S", "%Y%m%d", "%Y%m"):
         try:
-            return datetime.strptime(text, fmt).replace(tzinfo=timezone.utc)
+            return datetime.strptime(text, fmt).replace(tzinfo=UTC)
         except ValueError:
             continue
     try:
         parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
     except ValueError:
         return None
-    return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+    return parsed if parsed.tzinfo else parsed.replace(tzinfo=UTC)

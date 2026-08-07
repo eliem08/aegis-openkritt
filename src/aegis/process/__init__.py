@@ -23,16 +23,16 @@ from .runner import (
 )
 
 __all__ = [
-    "SafeProcessRunner",
-    "ProcessLimits",
-    "ProcessResult",
-    "ProcessOutcome",
-    "CancelToken",
-    "verify_binary",
     "BinaryVerificationError",
+    "CancelToken",
     "ContainerLimits",
     "ContainerPolicyError",
     "HardenedDockerCommandBuilder",
+    "ProcessLimits",
+    "ProcessOutcome",
+    "ProcessResult",
     "ReadOnlyMount",
+    "SafeProcessRunner",
     "directory_sha256",
+    "verify_binary",
 ]

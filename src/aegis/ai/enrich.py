@@ -13,9 +13,7 @@ the finding un-enriched rather than sinking the pipeline.
 
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
-
-from .agents.contracts import Severity
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class FindingEnrichment(BaseModel):

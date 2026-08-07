@@ -12,8 +12,8 @@ The rate limiter is a token bucket, which handles fractional rates
 from __future__ import annotations
 
 import threading
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Callable
 
 
 @dataclass
@@ -113,7 +113,7 @@ class SpendBudget:
         self,
         limit: float | None = None,
         spent: float = 0.0,
-        on_change: "Callable[[float], None] | None" = None,
+        on_change: Callable[[float], None] | None = None,
     ) -> None:
         if limit is not None and limit < 0:
             raise ValueError("limit must be >= 0")

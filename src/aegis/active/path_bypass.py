@@ -12,8 +12,8 @@ them with path-as-is), never a payload; ``probe(path)`` returns the status code.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable
 
 GATED_STATUSES = frozenset({401, 403})
 _ABSENT = frozenset({404, 410})

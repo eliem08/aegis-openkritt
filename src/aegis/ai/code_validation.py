@@ -176,7 +176,7 @@ def _checked_anchor(anchor: CodeAnchor, content: str) -> CodeAnchor | None:
     width = max(1, len(anchor.quote.splitlines()))
     matches: list[tuple[int, int]] = []
     needle = _normalise(anchor.quote)
-    for start in range(0, max(0, len(lines) - width + 1)):
+    for start in range(max(0, len(lines) - width + 1)):
         end = start + width
         if needle and needle in _normalise("\n".join(lines[start:end])):
             matches.append((start + 1, end))

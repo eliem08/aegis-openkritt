@@ -9,10 +9,11 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, Iterable, Mapping, Sequence
+from typing import Any
 
 
 class FindingStage(str, Enum):
@@ -132,7 +133,7 @@ class NormalizedFinding:
     stage: FindingStage = FindingStage.SCANNER_CANDIDATE
     provenance: Mapping[str, str] = field(default_factory=dict)
 
-    def promote(self, stage: FindingStage) -> "NormalizedFinding":
+    def promote(self, stage: FindingStage) -> NormalizedFinding:
         current = _STAGE_ORDER.index(self.stage)
         requested = _STAGE_ORDER.index(stage)
         if requested != current + 1:

@@ -20,7 +20,7 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 
@@ -63,7 +63,7 @@ def pin_from_file(path: str, *, tool: str, version: str, expected_sha256: str | 
             f"{tool} {version}: computed {computed} != publisher {expected_sha256} "
             "(tampered/corrupt download — refusing to pin)")
     return PinnedTool(tool=tool, version=version, sha256=computed, source=source,
-                      signed_by=signed_by, pinned_at=datetime.now(timezone.utc).isoformat())
+                      signed_by=signed_by, pinned_at=datetime.now(UTC).isoformat())
 
 
 def save_pins(pins, path: str = "pins.json") -> None:

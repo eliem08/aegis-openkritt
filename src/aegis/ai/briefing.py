@@ -12,7 +12,7 @@ from __future__ import annotations
 import glob
 import json
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 
@@ -60,7 +60,7 @@ def collect(report_dir: str | Path = "reports") -> tuple[list[dict], dict]:
             })
     survivors.sort(key=lambda f: (-f["corroboration"], -(f.get("bounty_likely") or 0)))
     stats = {"targets_scanned": scanned, "survivors": len(survivors),
-             "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")}
+             "generated_at": datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC")}
     return survivors, stats
 
 

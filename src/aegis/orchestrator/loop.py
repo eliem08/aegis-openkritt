@@ -13,7 +13,7 @@ and both gates behave identically.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from pydantic import BaseModel, Field
 
@@ -34,7 +34,7 @@ from .workers import WorkerContext, WorkerRegistry
 
 
 def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def _host_of(target: str) -> str:

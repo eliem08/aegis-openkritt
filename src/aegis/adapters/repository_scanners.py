@@ -17,7 +17,6 @@ from aegis.supply import verify_image_pin
 from .base import JsonDocumentAdapter, SchemaMismatch, ToolUnavailable
 from .contract import AdapterManifest, CapabilityTier, EventKind, ExecutionEnvelope
 
-
 SEMGREP_IMAGE = "docker.io/semgrep/semgrep@sha256:207983631beecdbe7fa29196c7f4a7a5f29033933cdb76c687ce4a672e07618d"
 GITLEAKS_IMAGE = "ghcr.io/gitleaks/gitleaks@sha256:c00b6bd0aeb3071cbcb79009cb16a60dd9e0a7c60e2be9ab65d25e6bc8abbb7f"
 OSV_SCANNER_IMAGE = "ghcr.io/google/osv-scanner@sha256:5116601dedc01c1c580eb92371883ec052fc4c13c3fbc109d621a63ac416d475"

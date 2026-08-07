@@ -9,8 +9,8 @@ scanning the login page it now redirects to. Unrelated origins are never touched
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from dataclasses import dataclass
+from datetime import UTC, datetime
 
 DEFAULT_LOGIN_MARKERS = (
     "/login", "/signin", "/sign-in", "please sign in", "please log in",
@@ -19,7 +19,7 @@ DEFAULT_LOGIN_MARKERS = (
 
 
 def _now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 @dataclass(frozen=True)

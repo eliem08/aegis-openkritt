@@ -10,9 +10,9 @@ sensitive-data redactor before it leaves.
 from __future__ import annotations
 
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Callable
+from datetime import UTC, datetime
 
 from aegis.sensitive import SensitiveDataClassifier, redact
 
@@ -123,4 +123,4 @@ class Notifier:
 
 
 def _now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)

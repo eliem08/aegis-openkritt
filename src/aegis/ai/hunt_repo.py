@@ -74,8 +74,9 @@ def main(argv=None) -> int:
     # last N days (needs the GitHub API for the commit history)
     include_paths: frozenset = frozenset()
     if args.since_days > 0:
-        from .fresh_commits import recent_source_files
         import httpx as _httpx
+
+        from .fresh_commits import recent_source_files
         headers = {"Accept": "application/vnd.github+json"}
         if token:
             headers["Authorization"] = f"Bearer {token}"

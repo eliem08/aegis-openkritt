@@ -12,9 +12,9 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import IntEnum
-from typing import Mapping
 
 from aegis.policy import (
     Ed25519SignatureVerifier,
@@ -39,7 +39,7 @@ class Role(IntEnum):
     WORKER = 4
 
     @classmethod
-    def parse(cls, value: str | int) -> "Role":
+    def parse(cls, value: str | int) -> Role:
         if isinstance(value, int):
             return cls(value)
         key = str(value).strip().upper().replace("-", "_")
@@ -135,7 +135,7 @@ class ControlPlaneConfig:
         return RejectAllVerifier()
 
     @classmethod
-    def from_env(cls, env: Mapping[str, str] | None = None) -> "ControlPlaneConfig":
+    def from_env(cls, env: Mapping[str, str] | None = None) -> ControlPlaneConfig:
         env = os.environ if env is None else env
 
         api_keys: dict[str, ApiPrincipal] = {}

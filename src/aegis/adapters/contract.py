@@ -14,13 +14,13 @@ capabilities.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Protocol, runtime_checkable
 
 
 def _now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class CapabilityTier(str, Enum):
@@ -121,7 +121,7 @@ class ExecutionEnvelope:
     def for_manifest(
         cls, manifest: AdapterManifest, *, tenant_id, engagement_id, scan_id, stage_id, task_id,
         target, scope_digest, idempotency_key, **kwargs,
-    ) -> "ExecutionEnvelope":
+    ) -> ExecutionEnvelope:
         """Build an envelope whose adapter fields are copied from the manifest."""
         return cls(
             tenant_id=tenant_id, engagement_id=engagement_id, scan_id=scan_id, stage_id=stage_id,

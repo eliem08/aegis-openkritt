@@ -17,7 +17,7 @@ class ModelPrice:
     cache_hit_input_per_million: Decimal
     cache_miss_input_per_million: Decimal
     output_per_million: Decimal
-    peak_multiplier: Decimal = Decimal("2")
+    peak_multiplier: Decimal = Decimal(2)
 
     def cost(self, usage: ModelUsage, *, peak: bool = True) -> Decimal:
         hit = Decimal(usage.prompt_cache_hit_tokens)

@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
+from datetime import UTC
 
 
 @dataclass(frozen=True)
@@ -71,7 +72,7 @@ def gather_signals(repository: str, *, gh_client, program_age_days: int = 3650) 
     """Best-effort GitHub signal collection. ``gh_client`` is an httpx.Client with the
     GitHub Accept/Authorization headers already set. Missing data degrades to the
     conservative (harder-looking) default rather than raising."""
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     def _get_json(url, **params):
         try:
@@ -88,7 +89,7 @@ def gather_signals(repository: str, *, gh_client, program_age_days: int = 3650) 
     if pushed:
         try:
             dt = datetime.fromisoformat(pushed.replace("Z", "+00:00"))
-            pushed_days = max(0, (datetime.now(timezone.utc) - dt).days)
+            pushed_days = max(0, (datetime.now(UTC) - dt).days)
         except ValueError:
             pass
 

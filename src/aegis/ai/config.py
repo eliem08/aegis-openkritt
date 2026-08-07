@@ -108,7 +108,7 @@ class DeepSeekConfig:
         )
 
     @classmethod
-    def from_env(cls, env: dict | None = None) -> "DeepSeekConfig":
+    def from_env(cls, env: dict | None = None) -> DeepSeekConfig:
         env = env if env is not None else os.environ
         # Provider resolution: DeepSeek is primary. Fall back to OpenRouter (OpenAI-compatible)
         # when DeepSeek has no key, or when AEGIS_LLM_PROVIDER=openrouter forces it — lets the
@@ -150,7 +150,7 @@ class DeepSeekConfig:
         )
 
     @classmethod
-    def maybe_from_env(cls, env: dict | None = None) -> "DeepSeekConfig | None":
+    def maybe_from_env(cls, env: dict | None = None) -> DeepSeekConfig | None:
         """Return a config if a key is set, else None (enables graceful fallback)."""
         try:
             return cls.from_env(env)

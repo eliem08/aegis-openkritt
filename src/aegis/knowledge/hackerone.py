@@ -9,7 +9,8 @@ free of ToS-sensitive scraping.
 
 from __future__ import annotations
 
-from typing import Any, Iterable
+from collections.abc import Iterable
+from typing import Any
 
 from .report import DisclosedReport
 

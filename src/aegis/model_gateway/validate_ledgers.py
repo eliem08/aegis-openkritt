@@ -33,11 +33,11 @@ def validate(redis_url: str, database_url: str) -> None:
     try:
         first = RedisModelBudget(
             redis_client, namespace=namespace,
-            cycle_limit=Decimal("1"), daily_limit=Decimal("1"),
+            cycle_limit=Decimal(1), daily_limit=Decimal(1),
         )
         second = RedisModelBudget(
             redis_client, namespace=namespace,
-            cycle_limit=Decimal("1"), daily_limit=Decimal("1"),
+            cycle_limit=Decimal(1), daily_limit=Decimal(1),
         )
         first.reserve(
             reservation_id, tenant_id=tenant, cycle_id="cycle", day="2026-08-03",

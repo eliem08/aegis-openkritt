@@ -13,8 +13,9 @@ answer to "handle any type of bug", not a promise that every class is covered.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Callable, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 from urllib.parse import urljoin, urlsplit
 
 import httpx
@@ -93,7 +94,7 @@ class DetectionResult:
         self.candidates.append(candidate)
         self.evidence.append(evidence)
 
-    def extend(self, other: "DetectionResult") -> None:
+    def extend(self, other: DetectionResult) -> None:
         self.candidates.extend(other.candidates)
         self.evidence.extend(other.evidence)
         self.sensitive_data_encountered = (

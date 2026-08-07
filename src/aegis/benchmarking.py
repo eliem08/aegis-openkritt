@@ -66,7 +66,7 @@ class BenchmarkRun:
 class ReleaseGate:
     minimum_precision: float = 0.70
     minimum_reproduction_rate: float = 0.20
-    maximum_cost_per_reproduced: Decimal = Decimal("250")
+    maximum_cost_per_reproduced: Decimal = Decimal(250)
     require_nonnegative_net_value: bool = False
 
     def evaluate(self, run: BenchmarkRun) -> tuple[bool, list[str]]:

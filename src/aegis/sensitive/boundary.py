@@ -19,12 +19,12 @@ from __future__ import annotations
 
 import json
 import uuid
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from dataclasses import dataclass
+from datetime import UTC, datetime
 
 from aegis.api.crypto import Encryptor, NullEncryptor
 
-from .classifier import Category, Classification, Method, redact
+from .classifier import Category, Classification, redact
 
 
 @dataclass(frozen=True)
@@ -53,7 +53,7 @@ class SensitiveDataBoundary:
     def quarantine(self, artifact, classification: Classification, *, context: dict | None = None) -> QuarantineOutcome:
         if not classification.sensitive:
             raise ValueError("quarantine() called for a non-sensitive classification")
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         qid = uuid.uuid4().hex
         ctx = dict(context or {})
 

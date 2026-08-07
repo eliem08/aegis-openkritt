@@ -16,9 +16,8 @@ detail + its structured scopes into a platform-agnostic
 from __future__ import annotations
 
 import os
-
 import time
-from typing import Callable
+from collections.abc import Callable
 
 import httpx
 
@@ -90,7 +89,7 @@ class HackerOneClient:
         return self._backoff_factor * (2 ** attempt)
 
     @classmethod
-    def from_env(cls, env: dict | None = None, **kwargs) -> "HackerOneClient":
+    def from_env(cls, env: dict | None = None, **kwargs) -> HackerOneClient:
         env = env if env is not None else os.environ
         username = env.get("HACKERONE_API_USERNAME", "")
         token = env.get("HACKERONE_API_TOKEN", "")
@@ -158,7 +157,7 @@ class HackerOneClient:
         if self._owns_client:
             self._client.close()
 
-    def __enter__(self) -> "HackerOneClient":
+    def __enter__(self) -> HackerOneClient:
         return self
 
     def __exit__(self, *exc) -> None:

@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from urllib.parse import quote
 
@@ -32,7 +32,7 @@ def _write(path: Path, value: str | bytes, *, force: bool) -> None:
 
 
 def _certificate_pair(hostname: str):
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     ca_key = rsa.generate_private_key(public_exponent=65537, key_size=3072)
     ca_name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "Aegis local production CA")])
     ca_cert = (

@@ -33,7 +33,7 @@ class TemplateRisk(BaseModel):
     requires_human_approval: bool = True
 
     @model_validator(mode="after")
-    def consistency(self) -> "TemplateRisk":
+    def consistency(self) -> TemplateRisk:
         if self.mode in {RiskMode.PASSIVE, RiskMode.READ_ONLY} and self.state_changes:
             raise ValueError("passive and read-only templates cannot change state")
         if self.mode == RiskMode.CONTROLLED_STATE_CHANGE and not self.requires_human_approval:

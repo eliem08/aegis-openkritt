@@ -7,8 +7,8 @@ candidate/validation counts. It never submits reports and never performs live te
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Callable
 
 
 @dataclass

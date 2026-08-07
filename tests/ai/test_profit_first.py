@@ -62,12 +62,14 @@ def test_hunter_stops_before_projected_budget_overrun():
             estimated_compute_cost_usd=6,
         ),
     ]
+    # each target's projected cost is $11 = $6 compute + $5 default review (15 min @ $20/h).
+    # cap=15 lets the first target through ($11 <= $15) but blocks the second ($22 > $15).
     session = AutoHunter(
         hunt_fn,
-        config=AutoHuntConfig(max_targets=2, max_projected_spend_usd=10),
+        config=AutoHuntConfig(max_targets=2, max_projected_spend_usd=15),
     ).run(targets)
     assert hunted == ["a"]
     assert session.status == "budget_exhausted"
-    assert session.projected_spend_usd == 6
+    assert session.projected_spend_usd == 11    # $6 compute + $5 default review for target "a"
     assert session.candidate_total == 1
     assert session.confirmed_total == 0

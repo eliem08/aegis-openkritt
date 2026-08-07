@@ -59,7 +59,7 @@ class SessionBoundary:
         self._jar.clear()
         self._closed = True
 
-    def __enter__(self) -> "SessionBoundary":
+    def __enter__(self) -> SessionBoundary:
         return self
 
     def __exit__(self, *exc) -> None:

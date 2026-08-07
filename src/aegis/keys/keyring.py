@@ -14,7 +14,7 @@ Replaces flat ``.env`` secrets with a rotate-able key ring. Data is sealed in an
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from aegis.api.crypto import FernetEncryptor
 
@@ -47,7 +47,7 @@ class KeyRing:
     def add(self, key_id: str, material: str, *, activate: bool = False) -> ManagedKey:
         if key_id in self._keys:
             raise KeyManagementError(f"key {key_id!r} already exists")
-        key = ManagedKey(key_id, FernetEncryptor(material), datetime.now(timezone.utc))
+        key = ManagedKey(key_id, FernetEncryptor(material), datetime.now(UTC))
         self._keys[key_id] = key
         if activate or self._active_id is None:
             self._active_id = key_id

@@ -71,10 +71,10 @@ class DifferentialTarget:
     attacker_auth: str = ""         # a different, lower-privileged (or no) identity
     allow_destructive: bool = False
 
-    def as_victim(self) -> "ReproTarget":
+    def as_victim(self) -> ReproTarget:
         return ReproTarget(self.base_url, self.victim_auth, self.allow_destructive)
 
-    def as_attacker(self) -> "ReproTarget":
+    def as_attacker(self) -> ReproTarget:
         return ReproTarget(self.base_url, self.attacker_auth, self.allow_destructive)
 
 

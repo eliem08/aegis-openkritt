@@ -5,9 +5,9 @@ from __future__ import annotations
 import base64
 import ipaddress
 import os
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable
 from urllib.parse import urljoin, urlsplit, urlunsplit
 
 import httpx
@@ -62,7 +62,7 @@ class EgressServiceConfig:
     oast_domain: str | None = None
 
     @classmethod
-    def from_env(cls) -> "EgressServiceConfig":
+    def from_env(cls) -> EgressServiceConfig:
         path = os.environ.get("AEGIS_EGRESS_SIGNING_KEY_FILE")
         if not path or not Path(path).is_file():
             raise RuntimeError("AEGIS_EGRESS_SIGNING_KEY_FILE is required")

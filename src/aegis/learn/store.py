@@ -13,7 +13,7 @@ from __future__ import annotations
 import sqlite3
 import threading
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 
@@ -41,7 +41,7 @@ class Outcome:
     asset: str = ""
     program: str = ""
     summary: str = ""                # short, redacted description (no payloads)
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
 
 class OutcomeStore:

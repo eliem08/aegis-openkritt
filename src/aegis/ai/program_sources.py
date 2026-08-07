@@ -42,7 +42,7 @@ _C4_NOISE = re.compile(
     r"(-findings|-validation|-submissions|submissions-tmp|-tmp-|-tmp$|template|dashboard|"
     r"website|^docs|\.github|media|brand|backstage|org-|-org$)", re.IGNORECASE)
 
-_GITHUB_RE = re.compile(r"github\.com[:/]+([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)", re.I)
+_GITHUB_RE = re.compile(r"github\.com[:/]+([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)", re.IGNORECASE)
 # in-scope items arrive in many shapes across platforms; try these keys for the identifier.
 _ASSET_KEYS = ("asset_identifier", "target", "endpoint", "url", "asset", "identifier", "name")
 
@@ -72,8 +72,7 @@ def repo_from_asset(asset: str) -> str:
     if not m:
         return ""
     slug = m.group(1)
-    if slug.endswith(".git"):
-        slug = slug[:-4]
+    slug = slug.removesuffix(".git")
     return slug.rstrip("/")
 
 
@@ -187,7 +186,7 @@ class Code4renaSource:
                 url=str(repo.get("html_url") or ""), targets=[full], kind="contract",
                 reward_ceiling=0.0, findability=0.6,
                 scope_text=f"Code4rena contest repo {full}. "
-                           f"{str(repo.get('description') or '')}"[:8000],
+                           f"{repo.get('description') or ''!s}"[:8000],
                 notes="reward pool not in feed — fill reward_ceiling from the c4 contest page",
                 active=not bool(repo.get("archived")),
             ))

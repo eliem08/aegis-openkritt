@@ -15,15 +15,15 @@ from .supplychain import (
 )
 
 __all__ = [
-    "Component",
+    "COPYLEFT_LICENSES",
     "SBOM",
-    "generate_sbom",
-    "verify_image_pin",
-    "UnpinnedImage",
-    "Severity",
-    "Vulnerability",
+    "Component",
     "PolicyException",
     "PolicyResult",
+    "Severity",
     "SeverityPolicy",
-    "COPYLEFT_LICENSES",
+    "UnpinnedImage",
+    "Vulnerability",
+    "generate_sbom",
+    "verify_image_pin",
 ]

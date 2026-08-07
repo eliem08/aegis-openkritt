@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Protocol
 
@@ -28,7 +28,7 @@ class ProgramSnapshot(BaseModel):
 
     @property
     def expired(self) -> bool:
-        return self.authorization_expires_at <= datetime.now(timezone.utc)
+        return self.authorization_expires_at <= datetime.now(UTC)
 
 
 class ProgramSource(Protocol):
@@ -42,7 +42,7 @@ def _parse_time(value: str, name: str) -> datetime:
         raise SourceFormatError(f"{name} must be an ISO-8601 timestamp") from exc
     if parsed.tzinfo is None:
         raise SourceFormatError(f"{name} must include a timezone")
-    return parsed.astimezone(timezone.utc)
+    return parsed.astimezone(UTC)
 
 
 def map_platform_export(document: dict, *, platform: str) -> list[ProgramSnapshot]:
