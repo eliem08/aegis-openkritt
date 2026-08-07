@@ -29,6 +29,13 @@ from ..research_agents import (
     JudgeAgent,
     ReproductionAgent,
 )
+from .learning_agents import (
+    CoverageOptimizerAgent,
+    MissionSchedulerAgent,
+    OutcomeLearningAgent,
+    RuleSynthesisAgent,
+    VulnerabilityFamilyAgent,
+)
 
 
 @dataclass(frozen=True)
@@ -63,6 +70,7 @@ class MemoryTriggeredAgent:
 def default_agents(*, human_hour_cost_usd: float = 0.0) -> tuple[SecurityAgent, ...]:
     """Return the advanced specialist council used by the Jarvis orchestrator."""
     return (
+        MissionSchedulerAgent(),
         MemoryTriggeredAgent(
             AgentRole.PROGRAM_POLICY,
             "program:policy",
@@ -94,6 +102,7 @@ def default_agents(*, human_hour_cost_usd: float = 0.0) -> tuple[SecurityAgent, 
             "Correlate newly discovered endpoints, services, repositories, and ownership edges.",
             0.8,
         ),
+        CoverageOptimizerAgent(),
         MemoryTriggeredAgent(
             AgentRole.STATIC_ANALYSIS,
             "scanner:candidates",
@@ -101,6 +110,7 @@ def default_agents(*, human_hour_cost_usd: float = 0.0) -> tuple[SecurityAgent, 
             "Prioritize high-signal static candidates by reachability and evidence quality.",
             0.72,
         ),
+        RuleSynthesisAgent(),
         MemoryTriggeredAgent(
             AgentRole.DATAFLOW,
             "dataflow:paths",
@@ -148,9 +158,11 @@ def default_agents(*, human_hour_cost_usd: float = 0.0) -> tuple[SecurityAgent, 
         BusinessLogicAgent(),
         AuthorizationAgent(),
         HistoryVariantAgent(),
+        VulnerabilityFamilyAgent(),
         ReproductionAgent(),
         EvidenceAgent(),
         JudgeAgent(),
+        OutcomeLearningAgent(),
         ProfitabilityAgent(human_hour_cost_usd=human_hour_cost_usd),
         MemoryTriggeredAgent(
             AgentRole.REPORT,
