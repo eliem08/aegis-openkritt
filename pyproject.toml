@@ -29,7 +29,7 @@ postgres = ["psycopg[binary]>=3.1", "psycopg_pool>=3.2"]
 where = ["src"]
 
 [tool.setuptools.package-data]
-aegis = ["py.typed"]
+aegis = ["py.typed", "ai/rules/*.yml"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
