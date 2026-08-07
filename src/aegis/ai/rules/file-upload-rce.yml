@@ -52,6 +52,11 @@ rules:
           if (in_array($EXT, [...])) { ... }
       - pattern-not-inside: |
           if (preg_match("...(jpg|jpeg|png|gif|pdf)...", $N)) { ... }
+      # Safe when the destination filename ends in a hardcoded safe extension literal
+      # (server-generated name + fixed extension) — the upload extension is not attacker-derived.
+      - metavariable-regex:
+          metavariable: $DEST
+          regex: '^(?!.*\.(png|jpe?g|gif|pdf|webp|bmp|svg|txt|csv)[''"]\s*$).*'
 
   - id: aegis-php-upload-getimagesize-only
     languages: [php]

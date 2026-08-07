@@ -20,7 +20,14 @@ rules:
       - metavariable-regex:
           metavariable: $Q
           regex: '.*\$_(GET|POST|REQUEST|COOKIE).*'
-      - pattern-not: $WPDB->prepare(...)
+      # Safe when the query argument is itself a $wpdb->prepare(...) call — the request value is
+      # a bound placeholder param, not interpolated SQL. (The old `pattern-not: $WPDB->prepare(...)`
+      # never matched: the outer call is ->query(...), so prepared queries were false-flagged.)
+      - pattern-not: $WPDB->query($WPDB->prepare(...))
+      - pattern-not: $WPDB->get_results($WPDB->prepare(...))
+      - pattern-not: $WPDB->get_var($WPDB->prepare(...))
+      - pattern-not: $WPDB->get_row($WPDB->prepare(...))
+      - pattern-not: $WPDB->get_col($WPDB->prepare(...))
 
   - id: aegis-php-sqli-raw-query-concat
     languages: [php]
@@ -35,6 +42,9 @@ rules:
       - metavariable-regex:
           metavariable: $Q
           regex: '.*\$_(GET|POST|REQUEST|COOKIE).*'
+      # `$PDO->query($Q)` also matches `$wpdb->query(...)`; a query wrapping ->prepare(...) is a
+      # bound placeholder call, not raw concatenation (covered by the dedicated wpdb rule).
+      - pattern-not: $PDO->query($PDO->prepare(...))
 
   - id: aegis-php-reflected-xss-echo-request
     languages: [php]
