@@ -29,48 +29,11 @@ jobs:
       - name: Run autonomous self-hunt (authorized local checkout only)
         env:
           AEGIS_SCANNER_CONCURRENCY: "4"
-        run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
-
-          from aegis.ai.tool_bridge import ToolBridge, available_tools
-
-          lanes = ("code", "secrets", "deps")
-          tools = []
-          for lane in lanes:
-              tools.extend(available_tools(lane))
-          tools = list({tool.name: tool for tool in tools}.values())
-          if not tools:
-              raise SystemExit("no real scanners resolved on PATH")
-
-          events = []
-          def emit(kind, data):
-              events.append({"kind": kind, "data": data})
-              print(kind, json.dumps(data, sort_keys=True))
-
-          bridge = ToolBridge(timeout=600)
-          results = bridge.scan(".", tools=tools, on_event=emit)
-          findings = bridge.findings(results)
-          report = {
-              "target": "eliem08/aegis-openkritt",
-              "authorization": "repository-owner self-audit",
-              "mode": "local-static-candidate-hunt",
-              "evidence_stage": "candidate",
-              "tools": [
-                  {"tool": r.tool, "ran": r.ran, "count": len(r.findings), "error": r.error}
-                  for r in results
-              ],
-              "candidate_count": len(findings),
-              "findings": findings,
-              "events": events,
-              "note": "Scanner observations are unverified candidates, not reproduced vulnerabilities.",
-          }
-          out = Path("reports/self_hunt")
-          out.mkdir(parents=True, exist_ok=True)
-          (out / "self_hunt.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
-          print(json.dumps({"candidate_count": len(findings), "tools": [r.tool for r in results]}, indent=2))
-          PY
+        # Runs the installed scanners over THIS checkout (repository-owner self-audit) and
+        # reduces hundreds of raw observations to a small ranked set of candidate families via
+        # the deterministic candidate_reduction funnel — candidates only, nothing reproduced or
+        # submitted. Logic lives in aegis.ai.self_hunt (unit-tested), not an inline heredoc.
+        run: python -m aegis.ai.self_hunt
       - name: Upload candidate evidence
         uses: actions/upload-artifact@v4
         with:
