@@ -70,12 +70,26 @@ SUBFINDER = ScannerMethod(
     requires_network=True,
     purpose="passive subdomain discovery",
 )
+DNSX = ScannerMethod(
+    "dnsx",
+    "dns-resolution-and-wildcard-filtering",
+    ("dnsx", "-l", "{target_list}", "-json", "-auto-wildcard"),
+    requires_network=True,
+    purpose="DNS record resolution, normalization and wildcard filtering",
+)
 HTTPX = ScannerMethod(
     "httpx",
     "http-service-enrichment",
     ("httpx", "-u", "{target}", "-json", "-silent"),
     requires_network=True,
     purpose="HTTP/TLS/service metadata and reachability",
+)
+KATANA = ScannerMethod(
+    "katana",
+    "scoped-endpoint-crawl",
+    ("katana", "-u", "{target}", "-jsonl", "-d", "3", "-mdp", "100"),
+    requires_network=True,
+    purpose="scope-controlled web/API endpoint and JavaScript discovery",
 )
 NAABU = ScannerMethod(
     "naabu",
@@ -132,11 +146,19 @@ CODEQL = ScannerMethod(
 )
 GITLEAKS = ScannerMethod(
     "gitleaks",
-    "secret-detection",
-    ("gitleaks", "detect", "--source", "{target}", "--report-format", "json"),
+    "git-secret-detection",
+    (
+        "gitleaks",
+        "git",
+        "--report-format",
+        "json",
+        "--report-path",
+        "{output}",
+        "{target}",
+    ),
     requirement=Requirement.ARTIFACT,
     local_only=True,
-    purpose="repository secret discovery with redacted evidence",
+    purpose="repository history secret discovery with redacted evidence",
 )
 TRIVY_FS = ScannerMethod(
     "trivy",
@@ -270,8 +292,8 @@ _GENERIC_CLASSIFIER = ScannerMethod(
 
 _BASE: dict[AssetKind, tuple[ScannerMethod, ...]] = {
     AssetKind.CIDR: (NAABU, HTTPX, NUCLEI),
-    AssetKind.DOMAIN: (SUBFINDER, HTTPX, NUCLEI),
-    AssetKind.WILDCARD: (SUBFINDER, HTTPX, NUCLEI),
+    AssetKind.DOMAIN: (SUBFINDER, DNSX, HTTPX, KATANA, NUCLEI),
+    AssetKind.WILDCARD: (SUBFINDER, DNSX, HTTPX, KATANA, NUCLEI),
     AssetKind.IP_ADDRESS: (NAABU, HTTPX, NUCLEI),
     AssetKind.IOS_APP_STORE: (_STORE_METADATA, MOBSF),
     AssetKind.IOS_TESTFLIGHT: (_STORE_METADATA, MOBSF),
@@ -284,7 +306,7 @@ _BASE: dict[AssetKind, tuple[ScannerMethod, ...]] = {
     AssetKind.SMART_CONTRACT: (SLITHER,),
     AssetKind.HARDWARE: (BINWALK, SYFT, GRYPE, TRIVY_FS),
     AssetKind.AI_MODEL: (MODELSCAN, GARAK, PROMPTFOO),
-    AssetKind.API: (HTTPX, NUCLEI, RESTLER),
+    AssetKind.API: (HTTPX, KATANA, NUCLEI, RESTLER),
     AssetKind.AWS_ACCOUNT: (PROWLER_AWS,),
     AssetKind.AZURE_ACCOUNT: (PROWLER_AZURE,),
     AssetKind.OTHER_ASSET: (_GENERIC_CLASSIFIER,),
