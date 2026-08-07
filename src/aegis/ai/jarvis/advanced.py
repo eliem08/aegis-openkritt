@@ -30,6 +30,7 @@ from ..research_agents import (
     ReproductionAgent,
 )
 from .asset_agent import AssetCapabilityAgent
+from .asset_deep_dive_agents import default_asset_deep_dive_agents
 from .learning_agents import (
     CoverageOptimizerAgent,
     MissionSchedulerAgent,
@@ -98,6 +99,7 @@ def default_agents(
             20,
         ),
         AssetCapabilityAgent(),
+        *default_asset_deep_dive_agents(),
         MemoryTriggeredAgent(
             AgentRole.REPOSITORY_INTELLIGENCE,
             "repository:profile",
