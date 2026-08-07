@@ -27,9 +27,13 @@ import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
-# fast, high-signal, no-LLM tools. (Excludes slow/whole-build or SCA tools: gosec, psalm,
-# mythril, trivy, grype, osv-scanner, checkov, brakeman — those belong in the deep hunt.)
-FAST_TOOLS = ("semgrep", "gitleaks", "detect-secrets", "njsscan")
+# fast, high-signal, no-LLM tools. njsscan was DROPPED: across every repo swept (vercel,
+# svelte, ExodusOSS) 100% of its hits were false positives — it matches identifier NAMES
+# ("...Secret", "...Password"), every Math.random, and every === without proving reachability
+# or that a value is actually a secret. Keep the precise ones: our curated semgrep rules
+# (JWT/upload/PHP/Ruby sinks) + gitleaks/detect-secrets (entropy-based real secrets).
+# (Also excludes slow whole-build/SCA tools: gosec, psalm, mythril, trivy, grype, osv, checkov.)
+FAST_TOOLS = ("semgrep", "gitleaks", "detect-secrets")
 HITS_FILE = "reports/carpet_hits.json"
 STATE_FILE = "reports/carpet_state.json"
 _MAX_HITS = 2000
