@@ -23,6 +23,7 @@ from .firewall import (
     envelope_untrusted_source,
 )
 from .guards import PolicyGate
+from .hunt_generator import SurfaceSignal, generate_hunt_candidates, infer_surfaces
 from .learning_agents import (
     BountyOutcome,
     ConfirmedFinding,
@@ -53,6 +54,14 @@ from .models import (
     RuntimePlan,
     SecurityInvariant,
 )
+from .profit_controls import (
+    CandidateDisposition,
+    ProgramEligibility,
+    ResearchRunMetrics,
+    StopLossAgent,
+    StopLossDecision,
+    evaluate_stop_loss,
+)
 from .profit_feedback import (
     calibrate_opportunities,
     calibrate_opportunity,
@@ -75,14 +84,34 @@ from .state_store import (
     RuleCandidateRecord,
     VulnerabilityFamily,
 )
+from .weakness_catalog import (
+    UNIVERSAL_FAMILIES,
+    HuntCandidate,
+    SeverityTier,
+    WeaknessFamily,
+    families_for_surface,
+    rank_candidates,
+)
+from .weakness_planner import (
+    ChainableFinding,
+    ChainOpportunity,
+    ChainReasoningAgent,
+    UniversalHuntAgent,
+    chain_opportunities,
+)
 
 __all__ = [
     "DEFAULT_COUNCIL",
+    "UNIVERSAL_FAMILIES",
     "ActionProposal",
     "AgentMemory",
     "AgentResult",
     "AgentRole",
     "BountyOutcome",
+    "CandidateDisposition",
+    "ChainOpportunity",
+    "ChainReasoningAgent",
+    "ChainableFinding",
     "ConfirmedFinding",
     "ContentAssessment",
     "CoverageCell",
@@ -93,6 +122,7 @@ __all__ = [
     "EvidenceStage",
     "FindingState",
     "GateDecision",
+    "HuntCandidate",
     "HuntObjective",
     "HypothesisAgent",
     "InvariantAgent",
@@ -111,9 +141,11 @@ __all__ = [
     "PortfolioScheduler",
     "ProfitabilityAgent",
     "ProgramArm",
+    "ProgramEligibility",
     "ReportAgent",
     "ReproductionAgent",
     "ResearchHypothesis",
+    "ResearchRunMetrics",
     "RiskClass",
     "RuleCandidateRecord",
     "RuleDraft",
@@ -121,22 +153,34 @@ __all__ = [
     "RuleValidationResult",
     "RuntimePlan",
     "SecurityInvariant",
+    "SeverityTier",
     "SkepticAgent",
+    "StopLossAgent",
+    "StopLossDecision",
+    "SurfaceSignal",
     "TaskState",
+    "UniversalHuntAgent",
     "VulnerabilityFamily",
     "VulnerabilityFamilyAgent",
+    "WeaknessFamily",
     "assess_untrusted_content",
     "blind_spot_score",
     "build_advanced_jarvis",
     "build_linear_mission",
     "calibrate_opportunities",
     "calibrate_opportunity",
+    "chain_opportunities",
     "draft_detection_rule",
     "envelope_untrusted_source",
     "estimate_hypothesis",
+    "evaluate_stop_loss",
+    "families_for_surface",
+    "generate_hunt_candidates",
+    "infer_surfaces",
     "prior_weight",
     "prioritize_blind_spots",
     "rank_calibrated_opportunities",
+    "rank_candidates",
     "to_record",
     "validate_rule_fixture_counts",
 ]
