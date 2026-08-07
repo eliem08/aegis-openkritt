@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 import math
 import random
+from dataclasses import dataclass, field
 from typing import Iterable
 
 from .agentic_os import AgentContext, AgentProposal, AgentRole, RiskClass
