@@ -57,19 +57,32 @@ _RUNTIME_REQUIREMENTS: dict[tuple[str, str], tuple[CapabilityRequirement, ...]] 
     ),
 }
 
+_REPLACE_PRIMARY = {
+    ("Kubescape", "kubernetes-posture-and-runtime-scan"),
+    ("skopeo", "container-registry-metadata"),
+}
+
+_SOURCE_LIKE_EXTENDED = {
+    ExtendedAssetKind.BROWSER_EXTENSION,
+    ExtendedAssetKind.ELECTRON_APP,
+    ExtendedAssetKind.CICD_PIPELINE,
+    ExtendedAssetKind.TERRAFORM_REPO,
+}
+
 
 def method_capability_requirements(method: PlannedMethod) -> tuple[CapabilityRequirement, ...]:
-    """Return semantic prerequisites without overloading endpoint access."""
+    """Return semantic prerequisites without overloading runtime concepts."""
+    key = (method.tool, method.method)
     requirements: list[CapabilityRequirement] = []
-    if method.requirement != Requirement.NONE:
+    if method.requirement != Requirement.NONE and key not in _REPLACE_PRIMARY:
         requirements.append(method.requirement)
-    requirements.extend(_RUNTIME_REQUIREMENTS.get((method.tool, method.method), ()))
+    requirements.extend(_RUNTIME_REQUIREMENTS.get(key, ()))
 
-    # The original deep registry used ENDPOINT as a placeholder for a few
-    # isolated-runtime requirements.  Suppress that placeholder here when a
-    # precise runtime requirement exists.
-    if (method.tool, method.method) in _RUNTIME_REQUIREMENTS:
-        runtime = _RUNTIME_REQUIREMENTS[(method.tool, method.method)]
+    # The deep registry deliberately keeps a base-compatible shape. For a few
+    # isolated-runtime methods ENDPOINT is only a placeholder there; replace it
+    # with the precise runtime requirement in this authoritative planner.
+    if key in _RUNTIME_REQUIREMENTS:
+        runtime = _RUNTIME_REQUIREMENTS[key]
         if Requirement.ENDPOINT not in runtime and Requirement.ENDPOINT in requirements:
             requirements = [item for item in requirements if item != Requirement.ENDPOINT]
 
@@ -101,6 +114,25 @@ def _availability(
         RuntimeRequirement.REGISTRY_ACCESS: registry_access_available,
         RuntimeRequirement.AUTH_SESSION: auth_session_available,
     }
+
+
+def _source_like_methods(
+    *,
+    artifact_available: bool,
+    credentials_available: bool,
+    api_spec_available: bool,
+    endpoint_available: bool,
+    firmware_available: bool,
+) -> list[PlannedMethod]:
+    source = plan_asset_scan(
+        AssetKind.SOURCE_CODE,
+        artifact_available=artifact_available,
+        credentials_available=credentials_available,
+        api_spec_available=api_spec_available,
+        endpoint_available=endpoint_available,
+        firmware_available=firmware_available,
+    )
+    return [*source.ready, *source.blocked]
 
 
 def plan_capability_scan(
@@ -155,6 +187,16 @@ def plan_capability_scan(
         )
     else:
         methods = list(_EXTENDED[asset_kind])
+        if asset_kind in _SOURCE_LIKE_EXTENDED:
+            methods.extend(
+                _source_like_methods(
+                    artifact_available=artifact_available,
+                    credentials_available=credentials_available,
+                    api_spec_available=api_spec_available,
+                    endpoint_available=endpoint_available,
+                    firmware_available=firmware_available,
+                )
+            )
 
     deduped: list[PlannedMethod] = []
     seen: set[tuple[str, str]] = set()
@@ -166,7 +208,10 @@ def plan_capability_scan(
         deduped.append(method)
 
     def is_ready(method: PlannedMethod) -> bool:
-        return all(availability.get(requirement, False) for requirement in method_capability_requirements(method))
+        return all(
+            availability.get(requirement, False)
+            for requirement in method_capability_requirements(method)
+        )
 
     return CapabilityScanPlan(
         asset_kind=asset_kind,
