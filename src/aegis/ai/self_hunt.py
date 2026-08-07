@@ -37,7 +37,7 @@ def build_report(target: str, authorization: str, results, rows, reduction) -> d
         "funnel": reduction.funnel,
         "survivor_count": len(reduction.survivors),
         "families": [f.__dict__ for f in reduction.families],
-        "survivors": [c.__dict__ for c in reduction.survivors],
+        "survivors": [c.public() for c in reduction.survivors],
         "suppressed_summary": _reason_counts(reduction.suppressed),
         "note": ("Scanner observations are unverified candidates, not reproduced "
                  "vulnerabilities. Suppressed candidates are retained in aggregate with "

@@ -148,6 +148,14 @@ class Candidate:
     reason: str = ""              # suppression reason when kept is False
     corroborators: int = 1       # distinct tools flagging the same locus (>=1)
     score: float = 0.0
+    raw: dict = field(default_factory=dict, repr=False, compare=False)  # original scanner row
+
+    def public(self) -> dict:
+        """Audit-friendly view (excludes the bulky raw row)."""
+        return {"tool": self.tool, "rule": self.rule, "cwe": self.cwe, "path": self.path,
+                "line": self.line, "severity": self.severity, "confidence": self.confidence,
+                "summary": self.summary, "path_class": self.path_class, "kept": self.kept,
+                "reason": self.reason, "corroborators": self.corroborators, "score": self.score}
 
     @property
     def locus(self) -> tuple[str, int]:
@@ -178,6 +186,11 @@ class Reduction:
     families: list[Family] = field(default_factory=list)
     funnel: dict = field(default_factory=dict)
 
+    @property
+    def survivor_rows(self) -> list[dict]:
+        """Original scanner rows for the survivors — feed these downstream (validator/report)."""
+        return [c.raw for c in self.survivors if c.raw]
+
     def summary(self) -> dict:
         return {"funnel": self.funnel, "survivors": len(self.survivors),
                 "families": len(self.families),
@@ -202,7 +215,7 @@ def _to_candidate(row: dict) -> Candidate:
         line=line, severity=str(row.get("severity") or "medium").lower(),
         confidence=float(row.get("confidence") or 0.0),
         summary=str(ja.get("summary") or ja.get("vulnerability_type") or ""),
-        path_class="", )
+        path_class="", raw=row)
 
 
 def _suppression_reason(c: Candidate) -> str:

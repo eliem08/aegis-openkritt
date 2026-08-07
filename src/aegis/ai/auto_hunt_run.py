@@ -146,6 +146,22 @@ def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = "", on_even
             emit("phase", {"repository": target.repository, "phase": "scanning",
                            "detail": f"dropped {len(_drop_t) + len(_drop_s)} out-of-scope "
                                      "dependency/lockfile finding(s)"})
+        # Reduce raw scanner rows to a small ranked candidate set BEFORE the expensive validator
+        # /LLM pass: hygiene + weak-single-engine hits (e.g. 62 un-tainted bandit B608) collapse
+        # to a handful of corroborated families. Suppressed rows are recorded (audited), not fed
+        # to the validator. Opt-out with AEGIS_REDUCE_CANDIDATES=0. Skill rows (curated, higher
+        # precision) and LLM rows are NOT reduced here.
+        scanner_reduction: dict = {}
+        if os.environ.get("AEGIS_REDUCE_CANDIDATES", "1").strip() != "0" and trows:
+            from .candidate_reduction import reduce_candidates
+            _red = reduce_candidates(trows)
+            scanner_reduction = _red.funnel
+            if len(_red.survivor_rows) != len(trows):
+                emit("phase", {"repository": target.repository, "phase": "scanning",
+                               "detail": f"candidate funnel: {len(trows)} scanner rows -> "
+                                         f"{len(_red.survivor_rows)} survivors across "
+                                         f"{len(_red.families)} family(ies)"})
+            trows = _red.survivor_rows
         scanner_candidates = len(trows)
         skill_candidates = len(srows)
 
@@ -157,6 +173,7 @@ def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = "", on_even
         if scanners_only:
             report = {"scan": {"repository": target.repository, "commit": "",
                                "source_files": 0, "status": "completed"},
+                      "scanner_reduction": scanner_reduction,
                       "vulnerabilities": list(srows) + list(trows)}
             report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
             findings = []
@@ -211,6 +228,8 @@ def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = "", on_even
                                      config=hunt_config, pin_dir=pin_dir,
                                      progress=_file_progress)
         report = result.report()
+        if scanner_reduction:
+            report["scanner_reduction"] = scanner_reduction
         # fold the scanner + skill rows (collected first) into the report
         if srows:
             report.setdefault("vulnerabilities", []).extend(srows)
