@@ -59,7 +59,11 @@ rules:
       auth bypass). Load the secret from a secret store / env, and rotate this one.
     metadata: {cwe: "CWE-798", class: jwt-auth}
     patterns:
-      - pattern-regex: '(?i)(jwt[_-]?secret|signing[_-]?key|hmac[_-]?key)\s*[:=]\s*["''`][^"''`\n]{6,}["''`]'
+      # value must LOOK like a secret: >=12 chars AND contain a digit. This excludes
+      # constants that merely NAME a key field (e.g. K8s `SigningKey = "usage-bootstrap-
+      # signing"` — kebab-case, no digit), which were false positives, while still catching
+      # real keys like `JWT_SECRET = "s3cr3t...".` (gitleaks/detect-secrets cover high-entropy.)
+      - pattern-regex: '(?i)(jwt[_-]?secret|signing[_-]?key|hmac[_-]?key)\s*[:=]\s*["''`](?=[^"''`\n]*[0-9])[^"''`\n]{12,}["''`]'
 
   - id: aegis-jwt-go-parse-unverified
     languages: [go]
