@@ -1,0 +1,239 @@
+# Aegis-owned, offline Semgrep taint rules for high-value web source-to-sink flows.
+# These rules intentionally avoid pattern-only warnings: each finding requires data from a
+# request object to reach a security-sensitive sink in the same function/file. Semgrep OSS
+# is intraprocedural, so every result remains a candidate that requires source review.
+rules:
+  - id: aegis-python-web-command-injection
+    mode: taint
+    languages: [python]
+    severity: ERROR
+    message: Request-controlled data reaches a command-execution sink.
+    metadata:
+      cwe: CWE-78
+      class: command-injection
+      category: security
+      confidence: HIGH
+      precision: high
+      validation: source-to-sink
+      source: aegis-owned
+    pattern-sources:
+      - pattern-either:
+          - pattern: flask.request.args.get(...)
+          - pattern: flask.request.form.get(...)
+          - pattern: flask.request.json.get(...)
+          - pattern: request.args.get(...)
+          - pattern: request.form.get(...)
+          - pattern: request.json.get(...)
+          - pattern: request.query_params.get(...)
+          - pattern: request.path_params.get(...)
+          - pattern: request.query_params[...]
+          - pattern: request.path_params[...]
+    pattern-sanitizers:
+      - pattern-either:
+          - pattern: shlex.quote(...)
+          - pattern: int(...)
+          - pattern: float(...)
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: os.system($CMD)
+              - pattern: os.popen($CMD)
+              - pattern: subprocess.run($CMD, ..., shell=True, ...)
+              - pattern: subprocess.call($CMD, ..., shell=True, ...)
+              - pattern: subprocess.Popen($CMD, ..., shell=True, ...)
+              - pattern: eval($CMD)
+              - pattern: exec($CMD)
+          - focus-metavariable: $CMD
+
+  - id: aegis-python-web-sql-injection
+    mode: taint
+    languages: [python]
+    severity: ERROR
+    message: Request-controlled data reaches a raw SQL execution argument.
+    metadata:
+      cwe: CWE-89
+      class: sql-injection
+      category: security
+      confidence: HIGH
+      precision: high
+      validation: source-to-sink
+      source: aegis-owned
+    pattern-sources:
+      - pattern-either:
+          - pattern: flask.request.args.get(...)
+          - pattern: flask.request.form.get(...)
+          - pattern: flask.request.json.get(...)
+          - pattern: request.args.get(...)
+          - pattern: request.form.get(...)
+          - pattern: request.json.get(...)
+          - pattern: request.query_params.get(...)
+          - pattern: request.path_params.get(...)
+          - pattern: request.query_params[...]
+          - pattern: request.path_params[...]
+    pattern-sanitizers:
+      - pattern-either:
+          - pattern: int(...)
+          - pattern: float(...)
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: $CURSOR.execute($QUERY, ...)
+              - pattern: $CURSOR.executemany($QUERY, ...)
+              - pattern: $DB.execute($QUERY, ...)
+              - pattern: $DB.raw($QUERY, ...)
+              - pattern: $MODEL.objects.raw($QUERY, ...)
+          - focus-metavariable: $QUERY
+
+  - id: aegis-python-web-ssrf
+    mode: taint
+    languages: [python]
+    severity: WARNING
+    message: Request-controlled data selects an outbound HTTP destination.
+    metadata:
+      cwe: CWE-918
+      class: ssrf
+      category: security
+      confidence: MEDIUM
+      precision: medium
+      validation: source-to-sink
+      source: aegis-owned
+    pattern-sources:
+      - pattern-either:
+          - pattern: flask.request.args.get(...)
+          - pattern: flask.request.form.get(...)
+          - pattern: flask.request.json.get(...)
+          - pattern: request.args.get(...)
+          - pattern: request.form.get(...)
+          - pattern: request.json.get(...)
+          - pattern: request.query_params.get(...)
+          - pattern: request.path_params.get(...)
+          - pattern: request.query_params[...]
+          - pattern: request.path_params[...]
+    pattern-sanitizers:
+      - pattern-either:
+          - pattern: $ALLOWLIST[$KEY]
+          - pattern: $URLS.get($KEY)
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: requests.get($URL, ...)
+              - pattern: requests.post($URL, ...)
+              - pattern: requests.request($METHOD, $URL, ...)
+              - pattern: httpx.get($URL, ...)
+              - pattern: httpx.post($URL, ...)
+              - pattern: httpx.request($METHOD, $URL, ...)
+              - pattern: urllib.request.urlopen($URL, ...)
+          - focus-metavariable: $URL
+
+  - id: aegis-express-command-injection
+    mode: taint
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: Express request data reaches a command-execution sink.
+    metadata:
+      cwe: CWE-78
+      class: command-injection
+      category: security
+      confidence: HIGH
+      precision: high
+      validation: source-to-sink
+      source: aegis-owned
+    pattern-sources:
+      - pattern-either:
+          - pattern: req.query.$FIELD
+          - pattern: req.query[$FIELD]
+          - pattern: req.body.$FIELD
+          - pattern: req.body[$FIELD]
+          - pattern: req.params.$FIELD
+          - pattern: req.params[$FIELD]
+          - pattern: request.query.$FIELD
+          - pattern: request.body.$FIELD
+          - pattern: request.params.$FIELD
+    pattern-sanitizers:
+      - pattern-either:
+          - pattern: Number(...)
+          - pattern: parseInt(...)
+          - pattern: parseFloat(...)
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: child_process.exec($CMD, ...)
+              - pattern: child_process.execSync($CMD, ...)
+              - pattern: exec($CMD, ...)
+              - pattern: execSync($CMD, ...)
+              - pattern: 'spawn($CMD, ..., { ..., shell: true, ... })'
+              - pattern: 'spawnSync($CMD, ..., { ..., shell: true, ... })'
+          - focus-metavariable: $CMD
+
+  - id: aegis-express-sql-injection
+    mode: taint
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: Express request data reaches a raw SQL query argument.
+    metadata:
+      cwe: CWE-89
+      class: sql-injection
+      category: security
+      confidence: HIGH
+      precision: high
+      validation: source-to-sink
+      source: aegis-owned
+    pattern-sources:
+      - pattern-either:
+          - pattern: req.query.$FIELD
+          - pattern: req.query[$FIELD]
+          - pattern: req.body.$FIELD
+          - pattern: req.body[$FIELD]
+          - pattern: req.params.$FIELD
+          - pattern: req.params[$FIELD]
+          - pattern: request.query.$FIELD
+          - pattern: request.body.$FIELD
+          - pattern: request.params.$FIELD
+    pattern-sanitizers:
+      - pattern-either:
+          - pattern: Number(...)
+          - pattern: parseInt(...)
+          - pattern: parseFloat(...)
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: $DB.query($QUERY, ...)
+              - pattern: $DB.raw($QUERY, ...)
+              - pattern: $DB.execute($QUERY, ...)
+              - pattern: sequelize.query($QUERY, ...)
+          - focus-metavariable: $QUERY
+
+  - id: aegis-express-ssrf
+    mode: taint
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: Express request data selects an outbound HTTP destination.
+    metadata:
+      cwe: CWE-918
+      class: ssrf
+      category: security
+      confidence: MEDIUM
+      precision: medium
+      validation: source-to-sink
+      source: aegis-owned
+    pattern-sources:
+      - pattern-either:
+          - pattern: req.query.$FIELD
+          - pattern: req.query[$FIELD]
+          - pattern: req.body.$FIELD
+          - pattern: req.body[$FIELD]
+          - pattern: req.params.$FIELD
+          - pattern: req.params[$FIELD]
+          - pattern: request.query.$FIELD
+          - pattern: request.body.$FIELD
+          - pattern: request.params.$FIELD
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: fetch($URL, ...)
+              - pattern: axios.get($URL, ...)
+              - pattern: axios.post($URL, ...)
+              - pattern: 'axios.request({ ..., url: $URL, ... })'
+              - pattern: http.get($URL, ...)
+              - pattern: https.get($URL, ...)
+          - focus-metavariable: $URL
