@@ -13,8 +13,9 @@ from typing import Iterable
 from ..agentic_os import AgentContext, AgentProposal, AgentRole, RiskClass
 from .hunt_generator import generate_hunt_candidates, infer_surfaces
 from .profit_controls import CandidateDisposition, ProgramEligibility
+from .severity_portfolio import SeverityPortfolioPolicy, select_diverse_candidates
 from .state_store import JarvisStateStore
-from .weakness_catalog import HuntCandidate, SeverityTier, rank_candidates
+from .weakness_catalog import HuntCandidate, SeverityTier
 
 
 @dataclass(frozen=True)
@@ -137,12 +138,19 @@ class UniversalHuntAgent:
             if eligibility_item is not None and isinstance(eligibility_item.value, ProgramEligibility)
             else ProgramEligibility()
         )
-        ranked = rank_candidates(candidates, minimum_net_usd=0.0)
+        dispositions = {candidate: eligibility.disposition(candidate) for candidate in candidates}
+        eligible = [
+            candidate
+            for candidate, disposition in dispositions.items()
+            if disposition is not CandidateDisposition.IGNORE
+        ]
+        selected = select_diverse_candidates(
+            eligible,
+            SeverityPortfolioPolicy(max_items=16, minimum_net_usd=0.0),
+        )
         proposals: list[AgentProposal] = []
-        for candidate in ranked:
-            disposition = eligibility.disposition(candidate)
-            if disposition is CandidateDisposition.IGNORE:
-                continue
+        for candidate in selected:
+            disposition = dispositions[candidate]
             action = (
                 "investigate_universal_weakness_candidate"
                 if disposition is CandidateDisposition.DIRECT
@@ -184,8 +192,6 @@ class UniversalHuntAgent:
                     },
                 )
             )
-            if len(proposals) >= 16:
-                break
         return tuple(proposals)
 
 
