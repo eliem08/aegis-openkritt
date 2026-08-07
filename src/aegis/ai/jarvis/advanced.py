@@ -29,6 +29,7 @@ from ..research_agents import (
     JudgeAgent,
     ReproductionAgent,
 )
+from .asset_agent import AssetCapabilityAgent
 from .learning_agents import (
     CoverageOptimizerAgent,
     MissionSchedulerAgent,
@@ -96,6 +97,7 @@ def default_agents(
             True,
             20,
         ),
+        AssetCapabilityAgent(),
         MemoryTriggeredAgent(
             AgentRole.REPOSITORY_INTELLIGENCE,
             "repository:profile",
