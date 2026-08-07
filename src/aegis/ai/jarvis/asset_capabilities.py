@@ -303,7 +303,7 @@ def plan_asset_scan(
     """Return ready and blocked real-tool methods for one asset type."""
     availability = {
         Requirement.NONE: True,
-        Requirement.ARTIFACT: artifact_available,
+        Requirement.ARTIFACT: artifact_available or firmware_available,
         Requirement.CREDENTIALS: credentials_available,
         Requirement.API_SPEC: api_spec_available,
         Requirement.ENDPOINT: endpoint_available,
