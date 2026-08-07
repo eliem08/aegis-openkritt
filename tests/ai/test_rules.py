@@ -26,7 +26,11 @@ def test_all_rulesets_valid():
             assert r.get("id"), f
             assert r.get("languages"), r.get("id")
             assert r.get("message"), r.get("id")
-            assert "patterns" in r or "pattern" in r or "pattern-either" in r, r.get("id")
+            if r.get("mode") == "taint":
+                assert r.get("pattern-sources"), r.get("id")
+                assert r.get("pattern-sinks"), r.get("id")
+            else:
+                assert "patterns" in r or "pattern" in r or "pattern-either" in r, r.get("id")
 
 
 def test_semgrep_cmd_uses_bundled_rules():
