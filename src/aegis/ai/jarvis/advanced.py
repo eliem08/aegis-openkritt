@@ -36,6 +36,7 @@ from .learning_agents import (
     RuleSynthesisAgent,
     VulnerabilityFamilyAgent,
 )
+from .weakness_planner import ChainReasoningAgent, UniversalHuntAgent
 
 
 @dataclass(frozen=True)
@@ -103,6 +104,7 @@ def default_agents(*, human_hour_cost_usd: float = 0.0) -> tuple[SecurityAgent, 
             0.8,
         ),
         CoverageOptimizerAgent(),
+        UniversalHuntAgent(),
         MemoryTriggeredAgent(
             AgentRole.STATIC_ANALYSIS,
             "scanner:candidates",
@@ -156,6 +158,7 @@ def default_agents(*, human_hour_cost_usd: float = 0.0) -> tuple[SecurityAgent, 
         HypothesisAgent(),
         InvariantAgent(),
         BusinessLogicAgent(),
+        ChainReasoningAgent(),
         AuthorizationAgent(),
         HistoryVariantAgent(),
         VulnerabilityFamilyAgent(),
