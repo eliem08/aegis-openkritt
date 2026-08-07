@@ -37,6 +37,20 @@ def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = "", on_even
         slug = target.repository.replace("/", "_").replace("0x", "contract_0x")
         report_path = root / f"deepseek_{slug}.json"
 
+        # AUTHORIZATION GATE (BLOCK by default) — never clone/scan a target that cannot be
+        # authorized from a verifiable source (active program scope / owner allowlist / manual
+        # ledger record). A public repository is NOT an authorized target. Checked here, right
+        # before any network/clone, as defense in depth; scope drift and staleness also block.
+        # Override only in controlled test envs with AEGIS_REQUIRE_AUTHORIZATION=0.
+        from .target_authorization import gate
+        _decision = gate(target.repository)
+        emit("authorization", {"repository": target.repository, "allowed": _decision.allowed,
+                               "status": _decision.status, "reason": _decision.reason})
+        if not _decision.allowed:
+            return HuntOutcome(
+                target=target,
+                error=f"BLOCK TARGET [{_decision.status}]: {_decision.reason}"[:200])
+
         # scan_root is where the deterministic scanners + auto-hint read the WHOLE code
         # (the full clone), vs pin_dir which holds only the LLM's pinned slices. Scanners
         # are cheap and should see every file, not just the ~10 the LLM sampled.
