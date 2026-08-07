@@ -1,0 +1,43 @@
+name: Aegis Self Hunt
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [agent/operator-ui-autohunt]
+    paths:
+      - "src/**"
+      - "pyproject.toml"
+      - ".github/workflows/self-hunt.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  self-hunt:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Aegis + pinned local scanners
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,ai]"
+          pip install "semgrep==1.172.0" "bandit==1.8.6" "detect-secrets==1.5.0" "pip-audit==2.9.0"
+      - name: Run autonomous self-hunt (authorized local checkout only)
+        env:
+          AEGIS_SCANNER_CONCURRENCY: "4"
+        # Runs the installed scanners over THIS checkout (repository-owner self-audit) and
+        # reduces hundreds of raw observations to a small ranked set of candidate families via
+        # the deterministic candidate_reduction funnel — candidates only, nothing reproduced or
+        # submitted. Logic lives in aegis.ai.self_hunt (unit-tested), not an inline heredoc.
+        run: python -m aegis.ai.self_hunt
+      - name: Upload candidate evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: aegis-self-hunt-${{ github.sha }}
+          path: reports/self_hunt/self_hunt.json
+          if-no-files-found: error
+          retention-days: 14
