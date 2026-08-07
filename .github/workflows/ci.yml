@@ -26,7 +26,6 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
-    # now a real gate: ruff is pinned to a satisfiable rule set (F/E9/I — real bugs, not style)
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -36,25 +35,25 @@ jobs:
       - run: ruff check src
 
   bench:
-    # Aegis-Bench: measure the bundled detectors against the labeled corpus on Linux where the
-    # scanners actually run (semgrep-core does not run on Windows). Prints real recall/precision/
-    # FP-rate to the logs AND enforces a detector-signal gate. Measured in the arsenal image
-    # 2026-08-07: recall 1.00, precision 1.00, FP-rate 0.00 across the 10 labeled pairs — clears
-    # the gate thresholds (recall >= 0.6, FP-rate <= 0.2) with wide margin, so the gate is live.
+    # Aegis-Bench is a canonical detector regression/sanity gate, not evidence of
+    # real-world precision or runtime vulnerability reproduction. The CI lane is
+    # intentionally reproducible and exercises the bundled Semgrep rules with a
+    # fixed scanner version. Richer external-tool benchmarks belong in dedicated
+    # integration/nightly environments with their own pinned manifests.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install (deps + semgrep)
+      - name: Install (deps + pinned Semgrep)
         run: |
           python -m pip install --upgrade pip
           pip install -e ".[dev,ai]"
-          pip install semgrep
-      - name: Run Aegis-Bench (prints measured recall/precision/FP-rate)
+          pip install "semgrep==1.172.0"
+      - name: Run Aegis-Bench (detector regression metrics)
         run: python -m aegis.bench
-      - name: Detector-signal gate (recall >= 0.6, FP-rate <= 0.2 on the labeled corpus)
+      - name: Zero-regression gate (all canonical positives, zero clean-twin FPs)
         env:
           AEGIS_BENCH_STRICT: "1"
         run: pytest -q tests/bench/test_aegis_bench.py
