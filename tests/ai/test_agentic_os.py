@@ -13,13 +13,13 @@ from aegis.ai.agentic_os import (
     EvidenceStage,
     FindingLifecycle,
     GraphEdge,
+    MemoryItem,
     ProposalPolicy,
     RiskClass,
     SecurityKnowledgeGraph,
     SharedMemory,
-    MemoryItem,
 )
-from aegis.ai.jarvis import build_jarvis
+from aegis.ai.jarvis.advanced import build_jarvis
 from aegis.ai.portfolio_agents import DuplicateFeatures, Opportunity, estimate_duplicate_probability
 from aegis.ai.research_agents import Hypothesis, SecurityInvariant
 
