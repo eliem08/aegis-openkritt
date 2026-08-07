@@ -10,6 +10,38 @@ from .asset_capabilities import (
     plan_asset_scan,
     supported_asset_kinds,
 )
+from .asset_capability_planner import (
+    CapabilityRequirement,
+    CapabilityScanPlan,
+    RuntimeRequirement,
+    method_capability_requirements,
+    missing_capability_requirements,
+    plan_capability_scan,
+)
+from .asset_deep_capabilities import (
+    DeepAssetScanPlan,
+    DeepScannerMethod,
+    ExtendedAssetKind,
+    PlannedMethod,
+    TargetAssetKind,
+    plan_deep_asset_scan,
+    supported_deep_asset_kinds,
+)
+from .asset_deep_dive_agents import (
+    AIDeepDiveAgent,
+    APIDeepDiveAgent,
+    AndroidDeepDiveAgent,
+    AssetDeepDiveAgent,
+    BinaryDeepDiveAgent,
+    BrowserDesktopDeepDiveAgent,
+    CloudDeepDiveAgent,
+    ContainerK8sDeepDiveAgent,
+    FirmwareDeepDiveAgent,
+    IOSDeepDiveAgent,
+    SmartContractDeepDiveAgent,
+    SupplyChainDeepDiveAgent,
+    default_asset_deep_dive_agents,
+)
 from .council import (
     DEFAULT_COUNCIL,
     EvidenceAgent,
@@ -20,17 +52,8 @@ from .council import (
     SkepticAgent,
 )
 from .coverage import CoverageCell, blind_spot_score, prioritize_blind_spots
-from .economics import (
-    EconomicEstimate,
-    PortfolioScheduler,
-    ProgramArm,
-    estimate_hypothesis,
-)
-from .firewall import (
-    ContentAssessment,
-    assess_untrusted_content,
-    envelope_untrusted_source,
-)
+from .economics import EconomicEstimate, PortfolioScheduler, ProgramArm, estimate_hypothesis
+from .firewall import ContentAssessment, assess_untrusted_content, envelope_untrusted_source
 from .guards import PolicyGate
 from .hunt_generator import SurfaceSignal, generate_hunt_candidates, infer_surfaces
 from .hunt_lanes import HuntLane, lane_for_family
@@ -44,13 +67,7 @@ from .learning_agents import (
     VulnerabilityFamilyAgent,
 )
 from .memory import AgentMemory, MemoryRecord
-from .mission_scheduler import (
-    MissionPlan,
-    MissionScheduler,
-    MissionTask,
-    TaskState,
-    build_linear_mission,
-)
+from .mission_scheduler import MissionPlan, MissionScheduler, MissionTask, TaskState, build_linear_mission
 from .models import (
     ActionProposal,
     AgentResult,
@@ -79,13 +96,7 @@ from .profit_feedback import (
     rank_calibrated_opportunities,
 )
 from .research import HypothesisAgent, InvariantAgent, JsonModelClient
-from .rule_factory import (
-    RuleDraft,
-    RuleValidationResult,
-    draft_detection_rule,
-    to_record,
-    validate_rule_fixture_counts,
-)
+from .rule_factory import RuleDraft, RuleValidationResult, draft_detection_rule, to_record, validate_rule_fixture_counts
 from .severity_portfolio import SeverityPortfolioPolicy, select_diverse_candidates
 from .state_store import (
     CoverageObservation,
@@ -113,34 +124,49 @@ from .weakness_planner import (
 )
 
 __all__ = [
+    "AIDeepDiveAgent",
+    "APIDeepDiveAgent",
     "DEFAULT_COUNCIL",
     "UNIVERSAL_FAMILIES",
     "ActionProposal",
     "AgentMemory",
     "AgentResult",
     "AgentRole",
+    "AndroidDeepDiveAgent",
     "AssetCapabilityAgent",
+    "AssetDeepDiveAgent",
     "AssetKind",
     "AssetScanPlan",
+    "BinaryDeepDiveAgent",
     "BountyOutcome",
+    "BrowserDesktopDeepDiveAgent",
     "CandidateDisposition",
+    "CapabilityRequirement",
+    "CapabilityScanPlan",
     "ChainOpportunity",
     "ChainReasoningAgent",
     "ChainableFinding",
+    "CloudDeepDiveAgent",
     "ConfirmedFinding",
+    "ContainerK8sDeepDiveAgent",
     "ContentAssessment",
     "CoverageCell",
     "CoverageObservation",
     "CoverageOptimizerAgent",
+    "DeepAssetScanPlan",
+    "DeepScannerMethod",
     "EconomicEstimate",
     "EvidenceAgent",
     "EvidenceStage",
+    "ExtendedAssetKind",
     "FindingState",
+    "FirmwareDeepDiveAgent",
     "GateDecision",
     "HuntCandidate",
     "HuntLane",
     "HuntObjective",
     "HypothesisAgent",
+    "IOSDeepDiveAgent",
     "InvariantAgent",
     "JarvisCommander",
     "JarvisStateStore",
@@ -153,6 +179,7 @@ __all__ = [
     "MissionSnapshot",
     "MissionTask",
     "OutcomeLearningAgent",
+    "PlannedMethod",
     "PolicyGate",
     "PortfolioScheduler",
     "ProfitabilityAgent",
@@ -169,14 +196,18 @@ __all__ = [
     "RuleSynthesisAgent",
     "RuleValidationResult",
     "RuntimePlan",
+    "RuntimeRequirement",
     "ScannerMethod",
     "SecurityInvariant",
     "SeverityPortfolioPolicy",
     "SeverityTier",
     "SkepticAgent",
+    "SmartContractDeepDiveAgent",
     "StopLossAgent",
     "StopLossDecision",
+    "SupplyChainDeepDiveAgent",
     "SurfaceSignal",
+    "TargetAssetKind",
     "TaskState",
     "UniversalHuntAgent",
     "VulnerabilityFamily",
@@ -190,6 +221,7 @@ __all__ = [
     "calibrate_opportunity",
     "chain_opportunities",
     "compile_candidate_mission",
+    "default_asset_deep_dive_agents",
     "draft_detection_rule",
     "envelope_untrusted_source",
     "estimate_hypothesis",
@@ -198,7 +230,11 @@ __all__ = [
     "generate_hunt_candidates",
     "infer_surfaces",
     "lane_for_family",
+    "method_capability_requirements",
+    "missing_capability_requirements",
     "plan_asset_scan",
+    "plan_capability_scan",
+    "plan_deep_asset_scan",
     "prior_weight",
     "prioritize_blind_spots",
     "rank_calibrated_opportunities",
@@ -206,6 +242,7 @@ __all__ = [
     "required_prerequisites",
     "select_diverse_candidates",
     "supported_asset_kinds",
+    "supported_deep_asset_kinds",
     "to_record",
     "validate_rule_fixture_counts",
 ]
