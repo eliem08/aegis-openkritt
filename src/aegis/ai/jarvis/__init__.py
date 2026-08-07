@@ -1,6 +1,15 @@
 """Agent-first Aegis/Jarvis security research operating system."""
 
 from .advanced import build_jarvis as build_advanced_jarvis
+from .asset_agent import AssetCapabilityAgent, required_prerequisites
+from .asset_capabilities import (
+    AssetKind,
+    AssetScanPlan,
+    Requirement,
+    ScannerMethod,
+    plan_asset_scan,
+    supported_asset_kinds,
+)
 from .council import (
     DEFAULT_COUNCIL,
     EvidenceAgent,
@@ -110,6 +119,9 @@ __all__ = [
     "AgentMemory",
     "AgentResult",
     "AgentRole",
+    "AssetCapabilityAgent",
+    "AssetKind",
+    "AssetScanPlan",
     "BountyOutcome",
     "CandidateDisposition",
     "ChainOpportunity",
@@ -148,6 +160,7 @@ __all__ = [
     "ProgramEligibility",
     "ReportAgent",
     "ReproductionAgent",
+    "Requirement",
     "ResearchHypothesis",
     "ResearchRunMetrics",
     "RiskClass",
@@ -156,6 +169,7 @@ __all__ = [
     "RuleSynthesisAgent",
     "RuleValidationResult",
     "RuntimePlan",
+    "ScannerMethod",
     "SecurityInvariant",
     "SeverityPortfolioPolicy",
     "SeverityTier",
@@ -184,11 +198,14 @@ __all__ = [
     "generate_hunt_candidates",
     "infer_surfaces",
     "lane_for_family",
+    "plan_asset_scan",
     "prior_weight",
     "prioritize_blind_spots",
     "rank_calibrated_opportunities",
     "rank_candidates",
+    "required_prerequisites",
     "select_diverse_candidates",
+    "supported_asset_kinds",
     "to_record",
     "validate_rule_fixture_counts",
 ]
