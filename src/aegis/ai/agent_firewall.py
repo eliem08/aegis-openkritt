@@ -6,7 +6,6 @@ import re
 from dataclasses import dataclass
 from typing import Iterable
 
-
 _INSTRUCTION_PATTERNS = tuple(
     re.compile(pattern, re.IGNORECASE)
     for pattern in (
