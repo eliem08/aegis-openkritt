@@ -15,7 +15,7 @@ from urllib.parse import urlsplit
 from aegis.model import Candidate
 
 from .auth_posture import AuthPosture, analyze_auth_differential
-from .client_analysis import ClientIssue, analyze_client_script
+from .client_analysis import analyze_client_script
 from .contract_props import ContractProperty, analyze_solidity
 from .http_hardening import HardeningIssue, analyze_response_hardening
 from .js_secrets import analyze_javascript_secrets

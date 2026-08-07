@@ -13,7 +13,7 @@ budget path (single-process, non-atomic) — production must use a database.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from .store import PolicyReservation
 
@@ -53,7 +53,7 @@ class ReservationService:
         auth = engagement.authorization
         spend_cap = auth.spend_budget  # None == unlimited
         session_cap = auth.rate_limits.max_concurrent_sessions
-        expires_at = datetime.now(timezone.utc) + timedelta(seconds=ttl_seconds)
+        expires_at = datetime.now(UTC) + timedelta(seconds=ttl_seconds)
         if consume_approval is not None:
             from .store import _safe_host
 

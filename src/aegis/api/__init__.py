@@ -3,4 +3,4 @@
 from .app import create_app
 from .config import ApiPrincipal, ControlPlaneConfig, Role
 
-__all__ = ["create_app", "ControlPlaneConfig", "ApiPrincipal", "Role"]
+__all__ = ["ApiPrincipal", "ControlPlaneConfig", "Role", "create_app"]

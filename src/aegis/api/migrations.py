@@ -16,9 +16,9 @@ same logical schema version and pass the same runner tests.
 from __future__ import annotations
 
 import hashlib
+from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Callable
+from datetime import UTC, datetime
 
 
 class MigrationError(RuntimeError):
@@ -37,7 +37,7 @@ class Migration:
 
 
 def _now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def run_migrations(

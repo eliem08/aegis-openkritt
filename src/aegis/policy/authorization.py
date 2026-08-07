@@ -12,7 +12,7 @@ the engine, which composes this with the other guards.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -53,8 +53,8 @@ class TestIdentity(BaseModel):
 def _as_utc(value: datetime) -> datetime:
     """Coerce naive datetimes to UTC; normalise aware ones to UTC."""
     if value.tzinfo is None:
-        return value.replace(tzinfo=timezone.utc)
-    return value.astimezone(timezone.utc)
+        return value.replace(tzinfo=UTC)
+    return value.astimezone(UTC)
 
 
 class Authorization(BaseModel):
@@ -89,7 +89,7 @@ class Authorization(BaseModel):
         return _as_utc(v)
 
     @model_validator(mode="after")
-    def _window_ordered(self) -> "Authorization":
+    def _window_ordered(self) -> Authorization:
         if self.valid_until <= self.valid_from:
             raise ValueError("valid_until must be after valid_from")
         return self

@@ -218,7 +218,7 @@ def recover_scan(
     adapters: dict = Depends(get_adapters),
     principal: ApiPrincipal = Depends(require_worker),
 ) -> RecoverOut:
-    scan = _owned_scan(scan_id, principal, repo, config)
+    _owned_scan(scan_id, principal, repo, config)   # authorization check (raises if not owned)
     scan_task_ids = {t.task_id for t in repo.tasks_for_scan(scan_id)}
     reclaimed = [tid for tid, _status in repo.reclaim_expired_leases() if tid in scan_task_ids]
     return RecoverOut(scan_id=scan_id, reclaimed=reclaimed)

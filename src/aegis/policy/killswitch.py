@@ -8,13 +8,13 @@ overrides any in-progress plan. When the switch is fired the engine denies
 from __future__ import annotations
 
 import threading
+from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Callable
+from datetime import UTC, datetime
 
 
 def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 @dataclass

@@ -111,7 +111,7 @@ def _github_repo_meta(repo: str, fetch_json, token: str = ""):
     if created:
         try:
             dt = datetime.datetime.fromisoformat(created.replace("Z", "+00:00"))
-            age = max(0, (datetime.datetime.now(datetime.timezone.utc) - dt).days // 30)
+            age = max(0, (datetime.datetime.now(datetime.UTC) - dt).days // 30)
         except Exception:
             age = None
     return age, stars
@@ -127,7 +127,7 @@ def enrich_age_from_github(programs: list, *, fetch_json=None, cap: int | None =
     if fetch_json is None:
         import httpx
 
-        def fetch_json(url, headers):   # noqa
+        def fetch_json(url, headers):
             r = httpx.get(url, timeout=20, headers=headers)
             r.raise_for_status()
             return r.json()
@@ -147,8 +147,7 @@ def enrich_age_from_github(programs: list, *, fetch_json=None, cap: int | None =
             p.age_months = m
         # saturation = fame (stars) OR crowding (disclosed reports), whichever is higher
         sat = max(_stars_to_saturation(stars), min(0.9, p.paid_reports / 40.0))
-        if sat > p.saturation:
-            p.saturation = sat
+        p.saturation = max(p.saturation, sat)
         done += 1
     return done
 

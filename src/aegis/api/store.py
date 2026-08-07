@@ -13,9 +13,10 @@ from __future__ import annotations
 import threading
 import uuid
 from collections import OrderedDict, deque
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Callable, Protocol, runtime_checkable
+from datetime import UTC, datetime
+from typing import Protocol, runtime_checkable
 
 from aegis.policy import (
     ActionRequest,
@@ -34,7 +35,7 @@ from aegis.policy.killswitch import KillSwitchState
 
 
 def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def _safe_host(target: str) -> str:
@@ -100,8 +101,8 @@ class Repository(Protocol):
     def list_engagement_ids(self) -> list[str]: ...
     def update_engagement_status(self, engagement_id: str, status: str) -> None: ...
 
-    def save_grant(self, engagement_id: str, grant: "ApprovalGrant") -> None: ...
-    def list_grants(self, engagement_id: str) -> list["ApprovalGrant"]: ...
+    def save_grant(self, engagement_id: str, grant: ApprovalGrant) -> None: ...
+    def list_grants(self, engagement_id: str) -> list[ApprovalGrant]: ...
 
     def append_audit(self, engagement_id: str, record: dict) -> None: ...
     def recent_audit(self, engagement_id: str, limit: int) -> list[dict]: ...
@@ -122,9 +123,9 @@ class Repository(Protocol):
         session_cap: int | None,
         idempotency_key: str,
         expires_at: datetime | None = None,
-    ) -> "PolicyReservation | None": ...
-    def finalize(self, reservation_id: str, actual_spend: float) -> "PolicyReservation | None": ...
-    def release(self, reservation_id: str) -> "PolicyReservation | None": ...
+    ) -> PolicyReservation | None: ...
+    def finalize(self, reservation_id: str, actual_spend: float) -> PolicyReservation | None: ...
+    def release(self, reservation_id: str) -> PolicyReservation | None: ...
     def reservation_usage(self, engagement_id: str) -> tuple[float, int]: ...
 
 
@@ -301,7 +302,7 @@ class Engagement:
         self.approvals = approvals if approvals is not None else ApprovalLedger()
         self.created_at = created_at or _utcnow()
         self.status = status
-        self._decisions: "OrderedDict[str, StoredDecision]" = OrderedDict()
+        self._decisions: OrderedDict[str, StoredDecision] = OrderedDict()
         self._max_decisions = max_decisions_cached
         self._lock = threading.Lock()
         self._on_status_change = on_status_change

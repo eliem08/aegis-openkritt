@@ -68,16 +68,15 @@ def restore_and_verify(
         if result.returncode:
             raise BackupError(f"pg_restore failed with exit code {result.returncode}")
 
-        with psycopg.connect(verify_dsn) as connection:
-            with connection.cursor() as cursor:
-                cursor.execute("SELECT COUNT(*) FROM schema_migrations")
-                migrations = int(cursor.fetchone()[0])
-                cursor.execute(
-                    "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public'"
-                )
-                tables = int(cursor.fetchone()[0])
-                if migrations <= 0 or tables <= 0:
-                    raise BackupError("restored database failed schema integrity checks")
+        with psycopg.connect(verify_dsn) as connection, connection.cursor() as cursor:
+            cursor.execute("SELECT COUNT(*) FROM schema_migrations")
+            migrations = int(cursor.fetchone()[0])
+            cursor.execute(
+                "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public'"
+            )
+            tables = int(cursor.fetchone()[0])
+            if migrations <= 0 or tables <= 0:
+                raise BackupError("restored database failed schema integrity checks")
         return {"database": database, "migrations": migrations, "tables": tables, "restored": True}
     finally:
         if temp_name:

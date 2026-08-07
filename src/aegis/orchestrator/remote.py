@@ -39,7 +39,7 @@ class RemoteDecision:
         return dict(self.raw)
 
     @classmethod
-    def from_json(cls, data: dict) -> "RemoteDecision":
+    def from_json(cls, data: dict) -> RemoteDecision:
         return cls(
             verdict=Verdict(data["verdict"]),
             required_approvals=list(data.get("required_approvals", [])),
@@ -97,7 +97,7 @@ class RemoteGate:
         if self._owns_client:
             self._client.close()
 
-    def __enter__(self) -> "RemoteGate":
+    def __enter__(self) -> RemoteGate:
         return self
 
     def __exit__(self, *exc) -> None:

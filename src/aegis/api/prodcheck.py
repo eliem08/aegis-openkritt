@@ -23,7 +23,7 @@ DEV_HOSTS = frozenset({"localhost", "127.0.0.1", "::1", "postgres", "db", "datab
 
 
 class ProductionReadinessError(RuntimeError):
-    def __init__(self, issues: list["Issue"]) -> None:
+    def __init__(self, issues: list[Issue]) -> None:
         self.issues = issues
         blocking = [i for i in issues if i.blocking]
         super().__init__(f"{len(blocking)} blocking production-readiness issue(s): "

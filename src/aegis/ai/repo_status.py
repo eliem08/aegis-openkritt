@@ -29,7 +29,7 @@ _RETIRED = [
     r"\bproof[- ]of[- ]concept only\b",
     r"for (demonstration|educational|teaching) purposes only",
 ]
-_RETIRED_RE = re.compile("|".join(_RETIRED), re.I)
+_RETIRED_RE = re.compile("|".join(_RETIRED), re.IGNORECASE)
 _README_NAMES = ("README.md", "README", "README.rst", "README.txt", "readme.md")
 
 

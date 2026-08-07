@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hmac
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 
 from fastapi import FastAPI, Header, HTTPException
@@ -31,7 +31,7 @@ def create_model_gateway_app(
     budget: AtomicModelBudget | None = None,
     ledger=None,
     price: ModelPrice = DEEPSEEK_V4_FLASH_PRICE,
-    day_provider=lambda: datetime.now(timezone.utc).date().isoformat(),
+    day_provider=lambda: datetime.now(UTC).date().isoformat(),
 ) -> FastAPI:
     model_provider = provider or DeepSeekProvider(config)
 
@@ -122,7 +122,7 @@ def create_model_gateway_app(
                 try:
                     ledger.finalize(
                         reservation_id,
-                        Decimal("0"),
+                        Decimal(0),
                         usage=ModelUsage(),
                         provider_request_id="",
                     )

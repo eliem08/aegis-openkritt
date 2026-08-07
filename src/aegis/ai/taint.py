@@ -27,19 +27,19 @@ _SOURCES = re.compile(
 # Dangerous sinks, tagged with the weakness class they suggest.
 _SINKS: tuple[tuple[re.Pattern, str], ...] = (
     (re.compile(r"(?:\.|->)(?:query|execute|raw|prepare)\s*\(|(?:mysqli_|pg_|sqlite_)?query\s*\("
-                r"|db\.Raw\(|createQueryBuilder\(", re.I),
+                r"|db\.Raw\(|createQueryBuilder\(", re.IGNORECASE),
      "sql/query injection"),
-    (re.compile(r"\b(?:exec|execSync|spawn|system|popen|subprocess|Runtime\.getRuntime|os/exec)\b", re.I),
+    (re.compile(r"\b(?:exec|execSync|spawn|system|popen|subprocess|Runtime\.getRuntime|os/exec)\b", re.IGNORECASE),
      "command injection"),
-    (re.compile(r"\b(?:fetch|axios|http\.get|http\.request|urllib|HttpClient|requests\.(?:get|post))\b", re.I),
+    (re.compile(r"\b(?:fetch|axios|http\.get|http\.request|urllib|HttpClient|requests\.(?:get|post))\b", re.IGNORECASE),
      "SSRF / outbound request"),
-    (re.compile(r"innerHTML|outerHTML|dangerouslySetInnerHTML|document\.write|\beval\b|new Function\(", re.I),
+    (re.compile(r"innerHTML|outerHTML|dangerouslySetInnerHTML|document\.write|\beval\b|new Function\(", re.IGNORECASE),
      "DOM XSS / code exec"),
-    (re.compile(r"readFile|writeFile|open\s*\(|os\.Open|ioutil\.ReadFile|sendFile|include\s*\(|require\s*\(", re.I),
+    (re.compile(r"readFile|writeFile|open\s*\(|os\.Open|ioutil\.ReadFile|sendFile|include\s*\(|require\s*\(", re.IGNORECASE),
      "path traversal / file access"),
-    (re.compile(r"\.call\{|delegatecall|selfdestruct|transfer\(|_mint\(|_burn\(", re.I),
+    (re.compile(r"\.call\{|delegatecall|selfdestruct|transfer\(|_mint\(|_burn\(", re.IGNORECASE),
      "unsafe contract call / value flow"),
-    (re.compile(r"findById|findOne|\.get\s*\(|WHERE\s+id\s*=|\.deleteOne|\.updateOne", re.I),
+    (re.compile(r"findById|findOne|\.get\s*\(|WHERE\s+id\s*=|\.deleteOne|\.updateOne", re.IGNORECASE),
      "object lookup (IDOR if unscoped)"),
 )
 

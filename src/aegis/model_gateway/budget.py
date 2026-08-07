@@ -28,8 +28,8 @@ class AtomicModelBudget:
     def __init__(
         self,
         *,
-        cycle_limit: Decimal = Decimal("2"),
-        daily_limit: Decimal = Decimal("10"),
+        cycle_limit: Decimal = Decimal(2),
+        daily_limit: Decimal = Decimal(10),
     ) -> None:
         if cycle_limit < 0 or daily_limit < 0:
             raise ValueError("model budget limits cannot be negative")

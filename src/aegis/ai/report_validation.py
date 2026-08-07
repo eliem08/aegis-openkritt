@@ -7,10 +7,11 @@ import re
 from collections.abc import Callable
 from pathlib import Path
 
-from .agents.contracts import Hypothesis, SourceSlice, VerificationProposal
-from .code_validation import CodeValidationAgent
 from aegis.integrations import ingest_openkritt_findings
 from aegis.report import build_console
+
+from .agents.contracts import Hypothesis, SourceSlice, VerificationProposal
+from .code_validation import CodeValidationAgent
 
 _IMPORT = re.compile(r'import\s+(?:\{[^}]*\}\s+from\s+)?["\x27]([^"\x27]+)["\x27]\s*;')
 

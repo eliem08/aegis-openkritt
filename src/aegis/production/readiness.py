@@ -15,7 +15,7 @@ from aegis.api.prodcheck import Issue, ProductionReadinessError, production_issu
 from aegis.oast.service import _is_public
 from aegis.supply import UnpinnedImage, verify_image_pin
 
-from .config import ProductionSettings, SECRET_ENV_KEYS
+from .config import SECRET_ENV_KEYS, ProductionSettings
 
 
 def _scanner_lock_issues(path_text: str | None) -> list[Issue]:

@@ -12,8 +12,8 @@ serves, and an original parser mapping its native JSON to Aegis finding rows.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable
 
 
 @dataclass(frozen=True)
@@ -26,44 +26,114 @@ class Tool:
     parse: Callable[[dict | list], list[dict]]   # native output -> Aegis rows
 
 
-def _row(source, vtype, path, line, summary, severity="medium", detail=""):
+def _row(source, vtype, path, line, summary, severity="medium", detail="", *,
+         metadata=None, confidence: float = 0.0):
+    """Normalize a scanner observation without promoting it to a confirmed finding.
+
+    ``metadata`` carries deterministic provenance used by the carpet sweep to rank
+    source-to-sink findings above pattern-only warnings. It must never contain the raw
+    secret value or other sensitive scanner output.
+    """
     sev = str(severity or "medium").lower()
     if sev not in ("critical", "high", "medium", "low", "info"):
         sev = "medium"
+    try:
+        conf = min(1.0, max(0.0, float(confidence)))
+    except (TypeError, ValueError):
+        conf = 0.0
+    safe_metadata = {}
+    if isinstance(metadata, dict):
+        for key in ("rule_id", "cwe", "class", "category", "confidence_label",
+                    "precision", "validation", "secret_type", "verified"):
+            value = metadata.get(key)
+            if isinstance(value, (str, int, float, bool)) or value is None:
+                safe_metadata[key] = value
     return {
         "json_answer": {"vulnerability_type": str(vtype)[:200], "file_path": str(path or ""),
                         "line": int(line or 0) if str(line or "").isdigit() else 0,
                         "summary": str(summary or "")[:300], "explanation": str(detail or "")[:4000]},
         "severity": "medium" if sev == "info" else sev,
         "source": f"aegis:tool:{source}",
-        "validation_status": "unverified", "confidence": 0.0,
+        "validation_status": "unverified", "confidence": conf,
+        "scanner_metadata": safe_metadata,
     }
 
 
 def _parse_semgrep(data) -> list[dict]:
     rows = []
+    confidence_map = {"HIGH": 0.90, "MEDIUM": 0.70, "LOW": 0.40}
     for r in (data or {}).get("results", []) if isinstance(data, dict) else []:
         extra = r.get("extra", {})
         sev = {"ERROR": "high", "WARNING": "medium", "INFO": "low"}.get(
             str(extra.get("severity", "")).upper(), "medium")
-        # prefer the rule's CWE metadata over the raw (path-prefixed) check_id, so a hit reads
-        # "CWE-434" not "src.aegis.ai.rules.aegis-php-upload-...".
+        # Prefer the rule's CWE metadata over the raw (path-prefixed) check_id, so a hit
+        # reads "CWE-434" not "src.aegis.ai.rules.aegis-php-upload-...".
         md = extra.get("metadata", {}) or {}
         cwe = md.get("cwe")
         if isinstance(cwe, list):
             cwe = cwe[0] if cwe else ""
-        vtype = cwe or md.get("class") or str(r.get("check_id", "semgrep-finding")).split(".")[-1]
-        rows.append(_row("semgrep", vtype, r.get("path"),
-                         (r.get("start") or {}).get("line"), extra.get("message", ""), sev,
-                         extra.get("message", "")))
+        rule_id = str(r.get("check_id", "semgrep-finding"))
+        confidence_label = str(md.get("confidence", "")).upper()
+        confidence = confidence_map.get(
+            confidence_label, {"high": 0.80, "medium": 0.62, "low": 0.42}[sev])
+        vtype = cwe or md.get("class") or rule_id.split(".")[-1]
+        rows.append(_row(
+            "semgrep", vtype, r.get("path"), (r.get("start") or {}).get("line"),
+            extra.get("message", ""), sev, extra.get("message", ""),
+            confidence=confidence,
+            metadata={
+                "rule_id": rule_id, "cwe": cwe, "class": md.get("class"),
+                "category": md.get("category"), "confidence_label": confidence_label or None,
+                "precision": md.get("precision"), "validation": md.get("validation"),
+            },
+        ))
     return rows
 
 
 def _parse_gitleaks(data) -> list[dict]:
     items = data if isinstance(data, list) else (data or {}).get("findings", [])
-    return [_row("gitleaks", f"secret: {i.get('RuleID') or i.get('Description','leak')}",
-                 i.get("File"), i.get("StartLine"), i.get("Description", "hardcoded secret"),
-                 "high") for i in (items or [])]
+    rows = []
+    for item in items or []:
+        rule_id = item.get("RuleID") or item.get("Description", "leak")
+        rows.append(_row(
+            "gitleaks", "CWE-798", item.get("File"), item.get("StartLine"),
+            f"Potential hardcoded secret ({rule_id})", "high",
+            "Potential secret detected; the raw value is intentionally not retained.",
+            confidence=0.85,
+            metadata={"rule_id": str(rule_id), "cwe": "CWE-798",
+                      "class": "hardcoded-secret", "precision": "high",
+                      "validation": "secret-review", "secret_type": str(rule_id)},
+        ))
+    return rows
+
+
+def _parse_detect_secrets(data) -> list[dict]:
+    """detect-secrets baseline JSON -> redacted Aegis observations.
+
+    The baseline contains hashes and plugin metadata. Aegis keeps only type/path/line and
+    verification state; it never copies a candidate secret or its hash into reports.
+    """
+    if not isinstance(data, dict) or not isinstance(data.get("results"), dict):
+        return []
+    rows = []
+    for path, findings in data["results"].items():
+        for finding in findings or []:
+            if not isinstance(finding, dict):
+                continue
+            secret_type = str(finding.get("type") or "potential secret")
+            verified = bool(finding.get("is_verified"))
+            rows.append(_row(
+                "detect-secrets", "CWE-798", path, finding.get("line_number"),
+                f"Potential hardcoded secret ({secret_type})",
+                "high" if verified else "medium",
+                "Potential secret detected; the raw value and hash are intentionally omitted.",
+                confidence=0.95 if verified else 0.68,
+                metadata={"rule_id": secret_type, "cwe": "CWE-798",
+                          "class": "hardcoded-secret", "precision": "high" if verified else "medium",
+                          "validation": "secret-review", "secret_type": secret_type,
+                          "verified": verified},
+            ))
+    return rows
 
 
 def _parse_bandit(data) -> list[dict]:
@@ -247,6 +317,11 @@ TOOLS: tuple[Tool, ...] = (
          # far faster on big repos, and we want secrets in the code, not old commits.
          "gitleaks detect --no-git --source {target} --report-format json --report-path -", "MIT",
          _parse_gitleaks),
+    Tool("detect-secrets", "detect-secrets", ("secrets",),
+         # Offline only: --no-verify prevents provider/network verification. --all-files scans
+         # the checkout even when the shallow clone has unusual tracking metadata.
+         "detect-secrets scan {target} --all-files --no-verify",
+         "Apache-2.0", _parse_detect_secrets),
     Tool("bandit", "bandit", ("code",),
          "bandit -r {target} -f json -q", "Apache-2.0", _parse_bandit),
     Tool("slither", "slither", ("contract",),

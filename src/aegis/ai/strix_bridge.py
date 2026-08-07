@@ -110,7 +110,7 @@ class StrixBridge:
         line = int(m.group(1)) if m else 0
         # the Description section body, for the explanation
         desc = ""
-        mm = re.search(r"## Description\s*\n+(.+?)(\n## |\Z)", text, re.S)
+        mm = re.search(r"## Description\s*\n+(.+?)(\n## |\Z)", text, re.DOTALL)
         if mm:
             desc = " ".join(mm.group(1).split())
         return line, desc[:4000]

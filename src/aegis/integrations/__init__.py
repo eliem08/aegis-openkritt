@@ -14,7 +14,6 @@ from .openkritt import (
 from .openkritt_client import OpenKrittClient
 from .repo_pipeline import (
     DEEPSEEK_MODEL,
-    with_deepseek_fallback,
     PipelineError,
     PipelineResult,
     RepoTarget,
@@ -24,22 +23,23 @@ from .repo_pipeline import (
     launch_repo_scans,
     repos_in_scope,
     run_repo_pipeline,
+    with_deepseek_fallback,
 )
 
 __all__ = [
+    "DEEPSEEK_MODEL",
     "OPENKRITT_FINDING_KEYS",
-    "ingest_openkritt_findings",
-    "to_openkritt_output_format",
     "OpenKrittClient",
-    "run_repo_pipeline",
-    "repos_in_scope",
-    "launch_repo_scans",
-    "console_for_scans",
-    "discover_scan_template",
+    "PipelineError",
+    "PipelineResult",
     "RepoTarget",
     "ScanTemplate",
-    "DEEPSEEK_MODEL",
+    "console_for_scans",
+    "discover_scan_template",
+    "ingest_openkritt_findings",
+    "launch_repo_scans",
+    "repos_in_scope",
+    "run_repo_pipeline",
+    "to_openkritt_output_format",
     "with_deepseek_fallback",
-    "PipelineResult",
-    "PipelineError",
 ]

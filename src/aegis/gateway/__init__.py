@@ -15,10 +15,10 @@ from .gateway import (
 )
 
 __all__ = [
-    "ScopedExecutionGateway",
+    "GatewayBlocked",
     "GatewayConfig",
     "GatewayDecision",
-    "GatewayBlocked",
     "NetworkAuditEvent",
     "NetworkProfile",
+    "ScopedExecutionGateway",
 ]

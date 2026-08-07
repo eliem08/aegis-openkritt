@@ -18,7 +18,7 @@ import base64
 import hashlib
 import hmac
 import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 _ALG_HASH = {"HS256": hashlib.sha256, "HS384": hashlib.sha384, "HS512": hashlib.sha512}
 
@@ -203,7 +203,7 @@ def poc_for_finding(*, source: str = "", weaknesses: list[str] | None = None,
     base_payload = dict(_POC_PAYLOAD)
     if sample_token:
         try:
-            base_payload = {**decode(sample_token).payload, **{"role": "admin", "isAdmin": True}}
+            base_payload = {**decode(sample_token).payload, "role": "admin", "isAdmin": True}
         except ValueError:
             pass
     secret = extract_secret(source)

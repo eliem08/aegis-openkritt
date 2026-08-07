@@ -15,15 +15,15 @@ mutations (state-changing) are never sent here. Findings are candidates.
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
-from typing import Callable
 
 INTROSPECTION_QUERY = "{ __schema { queryType { name } } }"
 
 _DB_ERROR = re.compile(
     r"(SQLSTATE|pg_[a-z]+|postgres|duplicate key|violates unique constraint|"
-    r'relation "[^"]+" does not exist|syntax error at|ORA-\d{3,}|"[a-z_]+_pkey")', re.I)
+    r'relation "[^"]+" does not exist|syntax error at|ORA-\d{3,}|"[a-z_]+_pkey")', re.IGNORECASE)
 
 
 @dataclass(frozen=True)

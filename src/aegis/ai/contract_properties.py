@@ -102,7 +102,7 @@ def render_foundry_test(properties: list[ContractProperty], *, contract_name: st
         "",
         "    function setUp() public {",
         f"        // target = new {contract_name}(...);   // FILL IN",
-        f"        // targetContract(address(target));",
+        "        // targetContract(address(target));",
         "    }",
         "",
     ]
@@ -135,7 +135,7 @@ def render_halmos_test(properties: list[ContractProperty], *, contract_name: str
         lines += [
             f"    /// {prop.category}: {prop.statement}",
             f"    function check_{prop.ident}() public {{",
-            f"        // symbolic inputs via svm / vm; then assert the invariant holds",
+            "        // symbolic inputs via svm / vm; then assert the invariant holds",
             f"        assert({expr});",
             "    }",
             "",

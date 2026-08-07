@@ -18,12 +18,19 @@ Dalfox actively injects payloads, so this adapter is deliberately conservative:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from urllib.parse import urlsplit
 
 from .base import JsonLinesAdapter, SchemaMismatch
-from .contract import AdapterEvent, AdapterManifest, CapabilityTier, EventKind, ExecutionEnvelope, event_from
+from .contract import (
+    AdapterEvent,
+    AdapterManifest,
+    CapabilityTier,
+    EventKind,
+    ExecutionEnvelope,
+    event_from,
+)
 from .session import SessionBoundary
 
 # Dalfox PoC record types that represent a candidate.

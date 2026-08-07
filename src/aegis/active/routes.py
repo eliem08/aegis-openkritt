@@ -19,9 +19,9 @@ state-changing request during discovery, whatever method the schema records.
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field
+from collections.abc import Callable, Iterable, Iterator
+from dataclasses import dataclass
 from enum import Enum
-from typing import Callable, Iterable, Iterator
 
 HTTP_METHODS = ("get", "put", "post", "delete", "patch", "head", "options", "trace")
 STATE_CHANGING_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
@@ -89,7 +89,7 @@ class RouteSchema:
     def __len__(self) -> int:
         return len(self._by_key)
 
-    def merge(self, other: "RouteSchema") -> "RouteSchema":
+    def merge(self, other: RouteSchema) -> RouteSchema:
         for route in other:
             self.add(route)
         return self
@@ -97,7 +97,7 @@ class RouteSchema:
     # -- population ---------------------------------------------------------
 
     @classmethod
-    def from_openapi(cls, document: dict) -> "RouteSchema":
+    def from_openapi(cls, document: dict) -> RouteSchema:
         """Build a schema from an OpenAPI 3 document (owned/permissive only)."""
         schema = cls()
         for path, item in (document.get("paths") or {}).items():
@@ -118,7 +118,7 @@ class RouteSchema:
         return schema
 
     @classmethod
-    def from_discovered(cls, routes: Iterable) -> "RouteSchema":
+    def from_discovered(cls, routes: Iterable) -> RouteSchema:
         """Build a schema from discovered route assets (method, path, host)."""
         schema = cls()
         for route in routes:

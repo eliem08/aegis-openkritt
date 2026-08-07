@@ -16,7 +16,7 @@ import sqlite3
 import threading
 import uuid
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from aegis.policy.killswitch import KillSwitchState
 
@@ -32,7 +32,7 @@ def dt_from_iso(value: str | None) -> datetime | None:
 
 
 def now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def engagement_values(record: EngagementRecord) -> tuple:
@@ -349,7 +349,7 @@ class SqliteRepository:
         """Within an open transaction, burn the active single-use grant(s) matching
         ``(action, target)``. Returns False (fail closed) if none is consumable."""
         action, target = consume_approval
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         rows = self._conn.execute(
             "SELECT grant_id, expires_at FROM grants WHERE engagement_id=? AND action=? "
             "AND target=? AND single_use=1 AND used=0 AND revoked=0",
@@ -399,7 +399,7 @@ class SqliteRepository:
                     reservation_id=uuid.uuid4().hex, engagement_id=engagement_id, spend=spend,
                     sessions=sessions, spend_final=None, status="reserved",
                     idempotency_key=idempotency_key, expires_at=expires_at,
-                    created_at=datetime.now(timezone.utc),
+                    created_at=datetime.now(UTC),
                 )
                 self._conn.execute(
                     f"INSERT INTO reservations({_RES_COLS}) VALUES (?,?,?,?,?,?,?,?,?)",
@@ -536,7 +536,7 @@ class SqliteRepository:
         return [scans.task_from_row(r) for r in rows]
 
     def lease_task(self, task_id, owner, ttl_seconds=300):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         with self._lock:
             self._conn.execute("BEGIN IMMEDIATE")
             try:
@@ -569,7 +569,7 @@ class SqliteRepository:
                 raise
 
     def heartbeat(self, lease_id, ttl_seconds=300) -> bool:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         with self._lock:
             self._conn.execute("BEGIN IMMEDIATE")
             try:
@@ -597,7 +597,7 @@ class SqliteRepository:
         return self.heartbeat(row[0], ttl_seconds)
 
     def transition_task(self, task_id, new_state, result_summary=None):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         target = scans.TaskState(new_state) if isinstance(new_state, str) else new_state
         with self._lock:
             self._conn.execute("BEGIN IMMEDIATE")
@@ -629,7 +629,7 @@ class SqliteRepository:
                 raise
 
     def reclaim_expired_leases(self, now=None):
-        now = now or datetime.now(timezone.utc)
+        now = now or datetime.now(UTC)
         now_iso_s = now.isoformat()
         reclaimed = []
         with self._lock:

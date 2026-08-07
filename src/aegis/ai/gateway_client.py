@@ -51,7 +51,7 @@ class ModelGatewayClient:
         token_file: str | Path,
         identity: GatewayIdentity,
         **kwargs,
-    ) -> "ModelGatewayClient":
+    ) -> ModelGatewayClient:
         try:
             token = Path(token_file).read_text(encoding="utf-8").strip()
         except OSError as exc:

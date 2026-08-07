@@ -17,9 +17,9 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Callable
+from datetime import UTC, datetime
 
 from .authorization import Authorization, AuthorizationValidator, Environment
 from .budget import RateBudget, SpendBudget
@@ -131,7 +131,7 @@ class PolicyEngine:
         action would require) so the evaluation is not written to the audit
         sink. The evaluation is non-mutating either way.
         """
-        now = now or datetime.now(timezone.utc)
+        now = now or datetime.now(UTC)
         try:
             decision = self._evaluate(request, now)
         except Exception as exc:  # fail closed on any unexpected error
@@ -165,7 +165,7 @@ class PolicyEngine:
         """
         if not decision.allowed:
             raise ValueError("cannot commit a non-allowed decision")
-        now = now or datetime.now(timezone.utc)
+        now = now or datetime.now(UTC)
         if self.rate_budget is not None:
             self.rate_budget.consume_rate(now.timestamp())
         if request is not None and self.spend_budget is not None and request.estimated_cost:

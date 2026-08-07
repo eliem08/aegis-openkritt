@@ -16,9 +16,9 @@ import re
 from dataclasses import dataclass
 from enum import Enum
 
-_UUID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.I)
+_UUID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.IGNORECASE)
 _INT = re.compile(r"^\d+$")
-_HEX = re.compile(r"^[0-9a-f]+$", re.I)
+_HEX = re.compile(r"^[0-9a-f]+$", re.IGNORECASE)
 
 
 class IdentifierKind(str, Enum):

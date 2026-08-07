@@ -15,8 +15,8 @@ The fetched JS is passed to the analytical secret triage, which never uses a fou
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Callable
+from collections.abc import Callable
+from dataclasses import dataclass
 from urllib.parse import urlsplit
 
 

@@ -14,8 +14,8 @@ from .coordinator import (
 from .identity import (
     QUEUE_CAPABILITIES,
     InvalidWorkerIdentity,
-    WorkerAuthority,
     WorkerAuthError,
+    WorkerAuthority,
     WorkerIdentity,
     WorkerIdentityExpired,
     WorkerIdentityIssuer,
@@ -23,17 +23,17 @@ from .identity import (
 )
 
 __all__ = [
-    "Coordinator",
-    "InMemoryBackend",
+    "PASSIVE_TIERS",
+    "QUEUE_CAPABILITIES",
     "Admission",
     "CoordUnavailable",
-    "PASSIVE_TIERS",
-    "WorkerIdentity",
-    "WorkerIdentityIssuer",
-    "WorkerAuthority",
-    "WorkerAuthError",
+    "Coordinator",
+    "InMemoryBackend",
     "InvalidWorkerIdentity",
+    "WorkerAuthError",
+    "WorkerAuthority",
+    "WorkerIdentity",
     "WorkerIdentityExpired",
+    "WorkerIdentityIssuer",
     "worker_proof",
-    "QUEUE_CAPABILITIES",
 ]

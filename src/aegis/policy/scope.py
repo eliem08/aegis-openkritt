@@ -68,7 +68,7 @@ class ScopeGuard:
             self._exact.add(entry)
 
     @classmethod
-    def from_authorization(cls, targets: list[str]) -> "ScopeGuard":
+    def from_authorization(cls, targets: list[str]) -> ScopeGuard:
         return cls(list(targets))
 
     def evaluate(self, destination: str) -> ScopeResult:

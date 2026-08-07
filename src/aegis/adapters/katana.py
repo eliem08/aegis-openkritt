@@ -16,7 +16,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from urllib.parse import parse_qsl, urlsplit
 
-from .base import QUOTA_EXHAUSTED, TARGET_UNREACHABLE, JsonLinesAdapter, SchemaMismatch, in_parent_scope
+from .base import (
+    QUOTA_EXHAUSTED,
+    TARGET_UNREACHABLE,
+    JsonLinesAdapter,
+    SchemaMismatch,
+    in_parent_scope,
+)
 from .contract import AdapterManifest, CapabilityTier, EventKind, ExecutionEnvelope
 from .session import SessionBoundary
 

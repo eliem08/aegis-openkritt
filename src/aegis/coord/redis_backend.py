@@ -10,7 +10,7 @@ from __future__ import annotations
 import time
 from typing import Any
 
-from .coordinator import CoordUnavailable, Coordinator
+from .coordinator import Coordinator, CoordUnavailable
 
 RATE_SCRIPT = """
 local value = redis.call('INCR', KEYS[1])

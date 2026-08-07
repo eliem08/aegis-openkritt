@@ -93,6 +93,7 @@ def maybe_autostart(app) -> None:
             if not targets:
                 return
             from aegis.api.routers.ui import _run_autohunt
+
             from .auto_hunt import AutoHuntConfig
             config = AutoHuntConfig(
                 max_targets=int(os.environ.get("AEGIS_AUTOSTART_TARGETS", "8") or 8),

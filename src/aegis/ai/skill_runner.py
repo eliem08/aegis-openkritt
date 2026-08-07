@@ -18,7 +18,6 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import sys
 from pathlib import Path
 
 _SKILLS_DIR = Path(os.environ.get("AEGIS_SKILLS_DIR", str(Path.home() / ".aegis" / "skills")))

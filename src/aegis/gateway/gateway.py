@@ -25,10 +25,10 @@ a deployment concern layered beneath this policy.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Callable
 from urllib.parse import urlsplit
 
 from aegis.netgate import is_blocked_ip
@@ -164,7 +164,7 @@ class ScopedExecutionGateway:
         event = NetworkAuditEvent(
             method=method.upper(), url=url, host=decision.host, profile=self._config.profile.value,
             allowed=decision.allowed, reason=decision.reason, pinned_ip=decision.pinned_ip,
-            at=datetime.now(timezone.utc),
+            at=datetime.now(UTC),
         )
         self._audit.append(event)
         if self._on_audit is not None:

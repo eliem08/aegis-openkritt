@@ -27,11 +27,11 @@ import hashlib
 import json
 import time
 import uuid
+from collections.abc import Callable
 from contextlib import nullcontext
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from types import SimpleNamespace
-from typing import Callable
 
 from aegis.adapters import (
     Adapter,
@@ -45,7 +45,6 @@ from aegis.api import graph_serde, scans
 from aegis.graph import Normalizer, merge_into, new_snapshot
 from aegis.policy.scope import ScopeGuard
 from aegis.process import CancelToken, ProcessOutcome, SafeProcessRunner
-
 
 # --- scan plan -------------------------------------------------------------
 
@@ -269,7 +268,7 @@ class ScanCoordinator:
 
     def recover(self, now: datetime | None = None) -> list[tuple[str, str]]:
         """Reclaim leases from crashed workers so their tasks requeue/block."""
-        reclaimed = self._repo.reclaim_expired_leases(now or datetime.now(timezone.utc))
+        reclaimed = self._repo.reclaim_expired_leases(now or datetime.now(UTC))
         if reclaimed:
             self._count("lease_expiry", amount=len(reclaimed))
         return reclaimed
@@ -339,7 +338,7 @@ class ScanCoordinator:
             return t
         return None
 
-    def _execute(self, task) -> "_Execution":
+    def _execute(self, task) -> _Execution:
         """Run the adapter, streaming validated events as they arrive.
 
         Each line is parsed and normalized immediately and its observations are
@@ -442,7 +441,7 @@ class ScanCoordinator:
             return True, "invalid output (no terminal event)"
         return False, ""
 
-    def _promote(self, task, execution: "_Execution") -> dict:
+    def _promote(self, task, execution: _Execution) -> dict:
         """Accept a cleanly-finished task's streamed output into the asset graph.
 
         The observations already exist (written provisionally as they streamed);
@@ -493,7 +492,7 @@ class ScanCoordinator:
             storage_ref=None,
             size=len(events),
             retention_deadline=None,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
         self._repo.create_artifact(artifact)
 

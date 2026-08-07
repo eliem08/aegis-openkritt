@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .store import Outcome, Verdict
+from .store import Verdict
 
 
 @dataclass(frozen=True)
@@ -41,7 +41,7 @@ class Calibration:
         self._base = base
 
     @classmethod
-    def from_outcomes(cls, outcomes, **kw) -> "Calibration":
+    def from_outcomes(cls, outcomes, **kw) -> Calibration:
         by_detector: dict[str, _Tally] = {}
         by_cwe: dict[str, _Tally] = {}
         for o in outcomes:

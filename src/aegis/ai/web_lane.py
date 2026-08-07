@@ -16,8 +16,8 @@ operator wires the real adapters against their authorized scope.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Callable
 
 
 class ScopeError(RuntimeError):

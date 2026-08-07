@@ -28,7 +28,7 @@ _MESSAGE_LISTENER = re.compile(r"addEventListener\s*\(\s*(['\"])message\1|\bonme
 _ORIGIN_CHECK = re.compile(r"\.origin\b")
 # Substring/contains tests on a host/origin — unanchored allowlists.
 _UNANCHORED_HOST = re.compile(
-    r"\b(hostname|host|origin|referrer|domain)\b\s*\.\s*(indexOf|includes|search|match)\s*\(", re.I)
+    r"\b(hostname|host|origin|referrer|domain)\b\s*\.\s*(indexOf|includes|search|match)\s*\(", re.IGNORECASE)
 
 
 class ClientIssue(str, Enum):

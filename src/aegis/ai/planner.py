@@ -76,7 +76,7 @@ class LLMPlanner:
         max_actions: int = 8,
         fallback: _FallbackPlanner | None = None,
         focus_weaknesses: list[str] | None = None,
-        knowledge: "_Knowledge | None" = None,
+        knowledge: _Knowledge | None = None,
     ) -> None:
         self._client = client
         self._scope = scope

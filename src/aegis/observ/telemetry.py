@@ -19,7 +19,7 @@ import hashlib
 import time
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from aegis.sensitive import redact
 
@@ -101,13 +101,13 @@ class Telemetry:
 
     # -- metrics ------------------------------------------------------------
 
-    def counter(self, name: str) -> "_Metric":
+    def counter(self, name: str) -> _Metric:
         return _Metric(self, name, "counter")
 
-    def histogram(self, name: str) -> "_Metric":
+    def histogram(self, name: str) -> _Metric:
         return _Metric(self, name, "histogram")
 
-    def gauge(self, name: str) -> "_Metric":
+    def gauge(self, name: str) -> _Metric:
         return _Metric(self, name, "gauge")
 
     def _emit_metric(self, name, kind, value, labels) -> None:
@@ -121,7 +121,7 @@ class Telemetry:
     # -- privacy ------------------------------------------------------------
 
     def pseudonymize(self, tenant_id: str) -> str:
-        digest = hashlib.sha256(f"{self._salt}:{tenant_id}".encode("utf-8")).hexdigest()[:12]
+        digest = hashlib.sha256(f"{self._salt}:{tenant_id}".encode()).hexdigest()[:12]
         return f"tnt_{digest}"
 
     def _clean(self, mapping: dict) -> dict:
@@ -151,4 +151,4 @@ class _Metric:
 
 
 def _now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)

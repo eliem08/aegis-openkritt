@@ -17,8 +17,8 @@ scan, but it must also never silently become an asset.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass, field
-from typing import Iterable
 
 from aegis.adapters import AdapterEvent, EventKind
 from aegis.policy.scope import ScopeGuard

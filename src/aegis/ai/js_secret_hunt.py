@@ -21,10 +21,11 @@ human step, done safely and within scope.
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field
+
 
 # High-signal secret patterns. is_public=True marks families that are DESIGNED to ship in
 # client code (browser keys, publishable keys) — real findings are the is_public=False set,
@@ -253,6 +254,7 @@ def _read_js_dir(root: Path) -> dict[str, str]:
 def main(argv=None) -> int:
     import argparse
     import json
+
     from dotenv import load_dotenv
 
     load_dotenv()

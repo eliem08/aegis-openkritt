@@ -18,27 +18,27 @@ from .workers import (
 )
 
 __all__ = [
+    "BlockedAction",
+    "EngagementRun",
     "EscalationItem",
     "EscalationQueue",
     "EscalationReason",
     "GateDecision",
     "LocalGate",
-    "PolicyGate",
-    "BlockedAction",
-    "EngagementRun",
     "Orchestrator",
-    "SafetyEvent",
+    "PassiveReconWorker",
     "Planner",
+    "PolicyGate",
     "ReconThenProbePlanner",
+    "SafetyEvent",
+    "ScriptedWorker",
     "StaticPlanner",
     "TriageResult",
-    "triage",
-    "PassiveReconWorker",
-    "ScriptedWorker",
     "Worker",
     "WorkerContext",
     "WorkerRegistry",
     "WorkerResult",
+    "triage",
 ]
 
 # RemoteGate needs httpx (api/dev extras). Keep the core importable without it.

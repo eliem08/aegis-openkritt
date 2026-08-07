@@ -8,9 +8,9 @@ not mutate the process environment or print values.
 from __future__ import annotations
 
 import os
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Mapping
 
 from aegis.api.config import ControlPlaneConfig, _flag
 
@@ -80,7 +80,7 @@ class ProductionSettings:
     secret_sources: dict[str, str] = field(default_factory=dict)
 
     @classmethod
-    def from_env(cls, env: Mapping[str, str] | None = None) -> "ProductionSettings":
+    def from_env(cls, env: Mapping[str, str] | None = None) -> ProductionSettings:
         source = os.environ if env is None else env
         materialized, secret_sources = materialize_secret_environment(source)
         if not _flag(materialized.get("AEGIS_PRODUCTION"), default=False):

@@ -108,7 +108,7 @@ class ModelGatewayConfig:
         object.__setattr__(self, "provider_origin", origin)
 
     @classmethod
-    def from_env(cls, env: dict | None = None) -> "ModelGatewayConfig":
+    def from_env(cls, env: dict | None = None) -> ModelGatewayConfig:
         source = os.environ if env is None else env
         try:
             attempts = int(source.get("AEGIS_MODEL_MAX_ATTEMPTS", "3"))

@@ -15,8 +15,8 @@ capability the caller declared.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Callable
 from urllib.parse import urlencode, urlsplit
 
 from aegis.adapters import EventKind, ExecutionEnvelope, event_from
@@ -56,13 +56,13 @@ class GatewayProbe:
         self._gateway.require(method, url)          # raises GatewayBlocked on deny/budget
         return self._transport(method, url)
 
-    def param_probe(self, params: dict) -> "pmod.ProbeResponse":
+    def param_probe(self, params: dict) -> pmod.ProbeResponse:
         url = self._base + ("?" + urlencode(params) if params else "")
         r = self._send(self._method, url)
         return pmod.ProbeResponse(status=r.status, headers=r.headers, body=r.body,
                                   redirect_location=r.redirect_location)
 
-    def route_probe(self, method: str, path: str) -> "rmod.ProbeResponse":
+    def route_probe(self, method: str, path: str) -> rmod.ProbeResponse:
         url = self._base + (path if path.startswith("/") else "/" + path)
         try:
             r = self._send(method, url)
@@ -76,7 +76,7 @@ class GatewayProbe:
 
 def run_parameter_stage(
     envelope: ExecutionEnvelope, candidates: list[str], *, gateway, transport: Transport,
-    base_url: str, method: str = "GET", config: "pmod.DiscoveryConfig | None" = None,
+    base_url: str, method: str = "GET", config: pmod.DiscoveryConfig | None = None,
 ) -> list:
     """Discover parameters through the gateway; emit PARAMETER events."""
     probe = GatewayProbe(gateway, transport, base_url=base_url, method=method)
@@ -107,8 +107,8 @@ def run_parameter_stage(
 
 
 def run_route_stage(
-    envelope: ExecutionEnvelope, schema: "rmod.RouteSchema", *, gateway, transport: Transport,
-    base_url: str, host: str, config: "rmod.EnumConfig | None" = None,
+    envelope: ExecutionEnvelope, schema: rmod.RouteSchema, *, gateway, transport: Transport,
+    base_url: str, host: str, config: rmod.EnumConfig | None = None,
 ) -> list:
     """Confirm routes through the gateway; emit ROUTE events for present routes."""
     probe = GatewayProbe(gateway, transport, base_url=base_url)

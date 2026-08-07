@@ -55,29 +55,29 @@ _INTERFACE_ONLY = re.compile(r"(^|/)interfaces?/|(^|/)I[A-Z][A-Za-z0-9]*\.sol$")
 #: live. Path scoring alone is blind to these.
 _CONTENT_SIGNALS: tuple[tuple[re.Pattern, int, AgentKind], ...] = (
     (re.compile(r"\becrecover\b|SignatureChecker|isValidSignature|_hashTypedData|EIP712",
-                re.I), 10, AgentKind.SECRETS_CRYPTO),
-    (re.compile(r"\bnonce\b|usedNonces|replay|\bdomain\b.*message|attest", re.I), 9,
+                re.IGNORECASE), 10, AgentKind.SECRETS_CRYPTO),
+    (re.compile(r"\bnonce\b|usedNonces|replay|\bdomain\b.*message|attest", re.IGNORECASE), 9,
      AgentKind.BUSINESS_LOGIC),
-    (re.compile(r"delegatecall|\bcall\{|\.call\(|selfdestruct|assembly\s*\{", re.I), 9,
+    (re.compile(r"delegatecall|\bcall\{|\.call\(|selfdestruct|assembly\s*\{", re.IGNORECASE), 9,
      AgentKind.INJECTION),
-    (re.compile(r"onlyOwner|onlyRole|_checkRole|hasRole|require\(msg\.sender", re.I), 8,
+    (re.compile(r"onlyOwner|onlyRole|_checkRole|hasRole|require\(msg\.sender", re.IGNORECASE), 8,
      AgentKind.AUTHORIZATION),
-    (re.compile(r"transferFrom|safeTransfer|_mint\(|_burn\(|approve\(", re.I), 7,
+    (re.compile(r"transferFrom|safeTransfer|_mint\(|_burn\(|approve\(", re.IGNORECASE), 7,
      AgentKind.BUSINESS_LOGIC),
-    (re.compile(r"password|api[_-]?key|private[_-]?key|jwt|bearer|hmac", re.I), 8,
+    (re.compile(r"password|api[_-]?key|private[_-]?key|jwt|bearer|hmac", re.IGNORECASE), 8,
      AgentKind.SECRETS_CRYPTO),
     (re.compile(r"exec\(|eval\(|subprocess|os\.system|Runtime\.getRuntime|child_process",
-                re.I), 9, AgentKind.INJECTION),
+                re.IGNORECASE), 9, AgentKind.INJECTION),
     (re.compile(r"\.query\(|executeQuery|rawQuery|db\.Raw|fmt\.Sprintf.*(SELECT|INSERT)",
-                re.I), 8, AgentKind.INJECTION),
+                re.IGNORECASE), 8, AgentKind.INJECTION),
     (re.compile(r"http\.Get|requests\.get|\bfetch\b|node-fetch|urllib|HttpClient|"
-                r"\.newClient|axios|got\(|http\.request", re.I), 6,
+                r"\.newClient|axios|got\(|http\.request", re.IGNORECASE), 6,
      AgentKind.SSRF_PARSERS),
     # untrusted value interpolated into a URL/query string without encoding —
     # parameter injection / SSRF path construction. Matches template literals and
     # concatenation that build a URL or query with a variable and no encodeURIComponent.
     (re.compile(r"(https?://[^`\"']*\$\{)|([?&][A-Za-z_]+=\$\{)|"
-                r"(url\s*[+=].*\$\{)", re.I), 7, AgentKind.SSRF_PARSERS),
+                r"(url\s*[+=].*\$\{)", re.IGNORECASE), 7, AgentKind.SSRF_PARSERS),
 )
 
 #: Source extensions we can meaningfully review.
@@ -93,19 +93,19 @@ _EXTENSIONS = {
 _SIGNALS: tuple[tuple[re.Pattern, int, AgentKind], ...] = (
     # authorization first: "authorizer"/"authz" must not be captured by the auth
     # pattern below (which would misclassify RBAC code as authentication).
-    (re.compile(r"rbac|permission|authoriz|authz|access.?control|policy|admission", re.I), 9,
+    (re.compile(r"rbac|permission|authoriz|authz|access.?control|policy|admission", re.IGNORECASE), 9,
      AgentKind.AUTHORIZATION),
     (re.compile(r"authn|\bauth\b|auth[/_.]|login|session|credential|token|jwt|oauth|saml|oidc",
-                re.I), 10, AgentKind.AUTHENTICATION),
-    (re.compile(r"crypto|cipher|hash|signature|signing|secret|keyring|random", re.I), 8,
+                re.IGNORECASE), 10, AgentKind.AUTHENTICATION),
+    (re.compile(r"crypto|cipher|hash|signature|signing|secret|keyring|random", re.IGNORECASE), 8,
      AgentKind.SECRETS_CRYPTO),
-    (re.compile(r"webhook|proxy|fetch|request|client|url|redirect|forward", re.I), 7,
+    (re.compile(r"webhook|proxy|fetch|request|client|url|redirect|forward", re.IGNORECASE), 7,
      AgentKind.SSRF_PARSERS),
-    (re.compile(r"parse|decode|unmarshal|deserial|upload|file|path", re.I), 6,
+    (re.compile(r"parse|decode|unmarshal|deserial|upload|file|path", re.IGNORECASE), 6,
      AgentKind.INJECTION),
-    (re.compile(r"exec|command|shell|query|sql|template|render", re.I), 6,
+    (re.compile(r"exec|command|shell|query|sql|template|render", re.IGNORECASE), 6,
      AgentKind.INJECTION),
-    (re.compile(r"validat|sanitiz|escape|filter", re.I), 5, AgentKind.INJECTION),
+    (re.compile(r"validat|sanitiz|escape|filter", re.IGNORECASE), 5, AgentKind.INJECTION),
 )
 
 
@@ -198,7 +198,7 @@ def score_path(path: str, *, baseline: int = 0) -> tuple[int, AgentKind] | None:
         # overlapping vocabulary (e.g. "authorizer" is authorization, not authn).
         if pattern.search(path) and score > best_score:
             best_score, best_kind = score, kind
-    if best_kind is AgentKind.AUTHENTICATION and re.search(r"authoriz|authz|rbac|permission", path, re.I):
+    if best_kind is AgentKind.AUTHENTICATION and re.search(r"authoriz|authz|rbac|permission", path, re.IGNORECASE):
         best_kind, best_score = AgentKind.AUTHORIZATION, 9
     if best_score == 0:
         if baseline <= 0:
@@ -379,8 +379,9 @@ def hunt_repository(fetcher, client, repository: str, *,
     calibration = None
     try:                                             # closed learning loop, if outcomes exist
         import os as _os
-        from aegis.learn.store import OutcomeStore
+
         from aegis.learn.calibration import Calibration
+        from aegis.learn.store import OutcomeStore
         db = _os.environ.get("AEGIS_LEARN_DB")
         if db:
             store = OutcomeStore(db)

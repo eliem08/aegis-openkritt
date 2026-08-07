@@ -48,7 +48,7 @@ class Asset(BaseModel):
     routes: list[Route] = Field(default_factory=list)
     technologies: list[str] = Field(default_factory=list)
 
-    def _merge_in(self, other: "Asset") -> None:
+    def _merge_in(self, other: Asset) -> None:
         existing = {r.key: r for r in self.routes}
         for route in other.routes:
             if route.key not in existing:
@@ -74,7 +74,7 @@ class AttackSurface(BaseModel):
                 return asset
         return None
 
-    def merge(self, other: "AttackSurface | None") -> "AttackSurface":
+    def merge(self, other: AttackSurface | None) -> AttackSurface:
         """Return a new surface with ``other`` merged in (dedup by host/route)."""
         merged = self.model_copy(deep=True)
         if other is None:

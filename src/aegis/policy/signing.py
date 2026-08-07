@@ -105,7 +105,7 @@ def _require_crypto() -> None:
         raise RuntimeError("Ed25519 signing requires the 'cryptography' package")
 
 
-def _to_public_key(value) -> "Ed25519PublicKey":
+def _to_public_key(value) -> Ed25519PublicKey:
     if isinstance(value, Ed25519PublicKey):
         return value
     raw = bytes.fromhex(value) if isinstance(value, str) else bytes(value)
@@ -119,7 +119,7 @@ class Ed25519SignatureVerifier:
     objects. Holds no private material — it can verify but never forge.
     """
 
-    def __init__(self, public_keys: dict[str, "bytes | str | Ed25519PublicKey"]) -> None:
+    def __init__(self, public_keys: dict[str, bytes | str | Ed25519PublicKey]) -> None:
         _require_crypto()
         if not public_keys:
             raise ValueError("at least one public key is required")
@@ -149,7 +149,7 @@ class Ed25519SignatureVerifier:
 class Ed25519Signer:
     """Signs authorization payloads with an Ed25519 private key (control plane)."""
 
-    def __init__(self, private_key: "bytes | str | Ed25519PrivateKey", key_id: str) -> None:
+    def __init__(self, private_key: bytes | str | Ed25519PrivateKey, key_id: str) -> None:
         _require_crypto()
         if isinstance(private_key, Ed25519PrivateKey):
             self._key = private_key
@@ -159,7 +159,7 @@ class Ed25519Signer:
         self.key_id = key_id
 
     @classmethod
-    def generate(cls, key_id: str) -> "Ed25519Signer":
+    def generate(cls, key_id: str) -> Ed25519Signer:
         _require_crypto()
         return cls(Ed25519PrivateKey.generate(), key_id)
 

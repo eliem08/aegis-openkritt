@@ -15,7 +15,7 @@ from __future__ import annotations
 import json
 import os
 import threading
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
 
@@ -23,7 +23,7 @@ from .pricing import DEEPSEEK_V4_FLASH_PRICE
 
 
 def _today() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    return datetime.now(UTC).strftime("%Y-%m-%d")
 
 
 class CostTracker:
@@ -33,10 +33,10 @@ class CostTracker:
         self._lock = threading.Lock()
         self._path = Path(state_path)
         self._day = _today()
-        self._day_cost = Decimal("0")
+        self._day_cost = Decimal(0)
         self._day_calls = 0
         self._day_tokens = 0
-        self._total_cost = Decimal("0")
+        self._total_cost = Decimal(0)
         self._total_calls = 0
         self._load()
 
@@ -69,7 +69,7 @@ class CostTracker:
         t = _today()
         if t != self._day:
             self._day = t
-            self._day_cost = Decimal("0")
+            self._day_cost = Decimal(0)
             self._day_calls = 0
             self._day_tokens = 0
 
@@ -109,9 +109,9 @@ class CostTracker:
     def daily_cap(self) -> Decimal:
         raw = os.environ.get("AEGIS_DAILY_BUDGET_USD", "").strip()
         try:
-            return Decimal(raw) if raw else Decimal("0")
+            return Decimal(raw) if raw else Decimal(0)
         except Exception:
-            return Decimal("0")
+            return Decimal(0)
 
     def over_budget(self) -> bool:
         cap = self.daily_cap()

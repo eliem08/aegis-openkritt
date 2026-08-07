@@ -15,7 +15,7 @@ the point they were created.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from aegis.model import Candidate
 from aegis.model.finding import priority_score
@@ -60,7 +60,7 @@ def build_console(candidates, *, scan_id: str = "", now=None, calibration=None) 
     ranking priority is scaled by the learned per-detector/CWE precision, so the
     console reorders itself as verdicts accumulate — the learning loop, made visible.
     """
-    now = now or datetime.now(timezone.utc)
+    now = now or datetime.now(UTC)
 
     # De-duplicate by family fingerprint, keeping the highest-priority member and
     # counting how many collapsed into it.

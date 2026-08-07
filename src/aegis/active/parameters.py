@@ -25,8 +25,8 @@ The operating approach, mirrored from the public description:
 from __future__ import annotations
 
 import time
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
-from typing import Callable, Mapping
 
 # Response headers that legitimately change every request; never used for
 # stability comparison (calibration would disable them anyway, but excluding them
@@ -137,7 +137,7 @@ class ParameterDiscovery:
 
     # -- calibration --------------------------------------------------------
 
-    def _calibrate(self) -> "_Calibration":
+    def _calibrate(self) -> _Calibration:
         """Find features stable across control probes with junk parameters."""
         feature_sets = []
         for i in range(self.config.calibration_rounds):
@@ -157,7 +157,7 @@ class ParameterDiscovery:
 
     # -- narrowing ----------------------------------------------------------
 
-    def _narrow(self, batch: list[str], cal: "_Calibration", *, depth: int) -> set[str]:
+    def _narrow(self, batch: list[str], cal: _Calibration, *, depth: int) -> set[str]:
         if not batch or self._budget_hit():
             return set()
         markers = {name: self._next_marker() for name in batch}
@@ -187,7 +187,7 @@ class ParameterDiscovery:
 
     # -- verification -------------------------------------------------------
 
-    def _verify(self, survivors: list[str], cal: "_Calibration") -> list[ParameterFinding]:
+    def _verify(self, survivors: list[str], cal: _Calibration) -> list[ParameterFinding]:
         """Reproduce each survivor individually with a fresh synthetic value."""
         found: list[ParameterFinding] = []
         for name in survivors:
@@ -205,11 +205,11 @@ class ParameterDiscovery:
 
     # -- feature comparison -------------------------------------------------
 
-    def _anomalous(self, resp: ProbeResponse, cal: "_Calibration") -> bool:
+    def _anomalous(self, resp: ProbeResponse, cal: _Calibration) -> bool:
         return self._shifted_feature(resp, cal) is not None
 
     @staticmethod
-    def _shifted_feature(resp: ProbeResponse, cal: "_Calibration") -> str | None:
+    def _shifted_feature(resp: ProbeResponse, cal: _Calibration) -> str | None:
         current = _features(resp)
         for key, expected in cal.enabled.items():
             if current.get(key) != expected:

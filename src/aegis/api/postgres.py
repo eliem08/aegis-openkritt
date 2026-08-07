@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import json
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from psycopg_pool import ConnectionPool
 
@@ -23,10 +23,10 @@ from . import graph_serde, scans
 from .migrations import Migration, run_migrations
 from .persistence import (
     _RES_COLS,
-    _progress_from_row,
-    _state_clause,
     _SESSION_USAGE_SQL,
     _SPEND_USAGE_SQL,
+    _progress_from_row,
+    _state_clause,
     dt_from_iso,
     engagement_from_row,
     engagement_values,
@@ -265,7 +265,7 @@ class PostgresRepository:
         """Burn the active single-use grant(s) for ``(action, target)`` on the same
         cursor/transaction. Returns False (fail closed) if none is consumable."""
         action, target = consume_approval
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         cur.execute(
             "SELECT grant_id, expires_at FROM grants WHERE engagement_id=%s AND action=%s "
             "AND target=%s AND single_use=1 AND used=0 AND revoked=0 FOR UPDATE",
@@ -305,7 +305,7 @@ class PostgresRepository:
                 reservation_id=uuid.uuid4().hex, engagement_id=engagement_id, spend=spend,
                 sessions=sessions, spend_final=None, status="reserved",
                 idempotency_key=idempotency_key, expires_at=expires_at,
-                created_at=datetime.now(timezone.utc),
+                created_at=datetime.now(UTC),
             )
             cur.execute(
                 f"INSERT INTO reservations({_RES_COLS}) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
@@ -395,7 +395,7 @@ class PostgresRepository:
     def lease_task(self, task_id, owner, ttl_seconds=300):
         import uuid as _uuid
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         with self._pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
             cur.execute(f"SELECT {scans.TASK_COLS} FROM task_runs WHERE task_id=%s FOR UPDATE", (task_id,))
             trow = cur.fetchone()
@@ -418,7 +418,7 @@ class PostgresRepository:
             return lease
 
     def heartbeat(self, lease_id, ttl_seconds=300) -> bool:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         with self._pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
             cur.execute(f"SELECT {scans.LEASE_COLS} FROM task_leases WHERE lease_id=%s FOR UPDATE", (lease_id,))
             lrow = cur.fetchone()
@@ -435,7 +435,7 @@ class PostgresRepository:
         return self.heartbeat(rows[0][0], ttl_seconds)
 
     def transition_task(self, task_id, new_state, result_summary=None):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         target = scans.TaskState(new_state) if isinstance(new_state, str) else new_state
         with self._pool.connection() as conn, conn.transaction(), conn.cursor() as cur:
             cur.execute(f"SELECT {scans.TASK_COLS} FROM task_runs WHERE task_id=%s FOR UPDATE", (task_id,))
@@ -457,7 +457,7 @@ class PostgresRepository:
             return task
 
     def reclaim_expired_leases(self, now=None):
-        now = now or datetime.now(timezone.utc)
+        now = now or datetime.now(UTC)
         now_iso_s = now.isoformat()
         reclaimed = []
         with self._pool.connection() as conn, conn.transaction(), conn.cursor() as cur:

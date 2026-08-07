@@ -11,7 +11,7 @@ reimplemented clean-room and must never ship as vendored code.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import IntEnum
 
 COPYLEFT_LICENSES = frozenset({"GPL-2.0", "GPL-3.0", "AGPL-3.0", "LGPL-3.0"})
@@ -24,7 +24,7 @@ class Severity(IntEnum):
     CRITICAL = 4
 
     @classmethod
-    def parse(cls, value) -> "Severity":
+    def parse(cls, value) -> Severity:
         if isinstance(value, Severity):
             return value
         return cls[str(value).strip().upper()]
@@ -108,7 +108,7 @@ class SeverityPolicy:
         self.max_allowed = Severity.parse(max_allowed)
 
     def evaluate(self, vulnerabilities, exceptions=(), *, now: datetime | None = None) -> PolicyResult:
-        now = now or datetime.now(timezone.utc)
+        now = now or datetime.now(UTC)
         exempt = {e.vuln_id for e in exceptions if e.valid(now)}
         blocking, exempted = [], []
         for vuln in vulnerabilities:

@@ -14,7 +14,7 @@ from pathlib import Path
 
 import httpx
 from fastapi import APIRouter, Body, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse
 
 from aegis.report import build_console
 
@@ -516,7 +516,6 @@ def hunt_console() -> HTMLResponse:
 def briefing() -> HTMLResponse:
     """Regenerate and render the overnight briefing (ranked confirmed survivors)."""
     import os
-    from pathlib import Path
 
     from aegis.ai.briefing import collect, render_markdown
 
@@ -552,10 +551,8 @@ def cost_snapshot() -> dict:
 
 
 @router.get("/ui/briefing.md", summary="Morning briefing as raw Markdown")
-def briefing_md() -> "PlainTextResponse":
+def briefing_md() -> PlainTextResponse:
     import os
-
-    from fastapi.responses import PlainTextResponse
 
     from aegis.ai.briefing import collect, render_markdown
 
@@ -675,6 +672,7 @@ def deepseek_validation_result(request: Request, job_id: str) -> HTMLResponse:
 
 def _run_deepseek_validation(app, job_id, report_path, repo_root) -> None:
     import os
+
     from aegis.ai import DeepSeekClient
     from aegis.ai.report_validation import validate_deepseek_report
 
@@ -740,8 +738,8 @@ def hunt_cycle(request: Request, payload=Body(None)) -> dict:
     """One pass of the hunter: authorized programs -> scan in-scope repos -> collect
     findings -> fold in report outcomes. Dry-run by default (plans, launches nothing);
     pass ``{"arm": true, "model": "..."}`` to actually launch. Never submits."""
-    from aegis.ingest.hackerone import HackerOneAuthError, HackerOneClient
     from aegis.hunt import HuntConfig, HuntOrchestrator
+    from aegis.ingest.hackerone import HackerOneAuthError, HackerOneClient
 
     config = request.app.state.config
     ok = config.build_openkritt_client()
@@ -781,7 +779,7 @@ def hunt_cycle(request: Request, payload=Body(None)) -> dict:
             verify_threshold=float(data.get("verify_threshold", 0.35)),
             use_deepseek_fallback=bool(data.get("deepseek_fallback")),
         )
-    except (TypeError, ValueError) as exc:
+    except (TypeError, ValueError):
         ok.close()
     hunter = HuntOrchestrator(h1, ok, request.app.state.outcomes,
                               request.app.state.submissions, config=cfg)
