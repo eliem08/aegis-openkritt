@@ -38,6 +38,11 @@ register/close engagements, grant approvals, and control the kill switch.
 
 
 def create_app(config: ControlPlaneConfig | None = None) -> FastAPI:
+    if config is None:
+        # real boot (no explicit config): load a local .env so credentials/config are picked up
+        # before reading the environment. Tests that pass an explicit config are unaffected.
+        from aegis.env_file import load_dotenv
+        load_dotenv()
     config = config or ControlPlaneConfig.from_env()
     verifier = config.build_verifier()
 

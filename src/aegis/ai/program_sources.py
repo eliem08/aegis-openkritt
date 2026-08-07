@@ -274,6 +274,9 @@ def import_programs(sources: list[str] | None = None, *, store=None,
 
 def main(argv=None) -> int:
     import sys
+
+    from ..env_file import load_dotenv
+    load_dotenv()          # pick up credentials from a local .env (real env still wins)
     args = list(argv if argv is not None else sys.argv[1:])
     if "--status" in args:
         # show source availability WITHOUT touching the network (which connectors are usable)

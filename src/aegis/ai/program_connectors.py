@@ -15,11 +15,22 @@ Boundaries (non-negotiable):
     rest of Aegis (registry, EV ranking, authorization ledger, hunt) has ONE representation and no
     per-platform hunting logic.
 
-The request construction targets each platform's documented researcher API. The response→Program
-**mappers are unit-tested against representative fixtures**, but — lacking live credentials here —
-the connectors are NOT validated end-to-end against the live APIs. Treat them as *implemented +
-mapping-tested*, not *empirically validated*. Response shapes are defensive (multiple key names,
-tolerate missing fields) so minor API drift degrades gracefully rather than crashing an import.
+The request construction targets each platform's documented researcher API, and the
+response→Program **mappers are unit-tested against representative fixtures**.
+
+Validation status (be precise — do not overclaim):
+  * **HackerOne — live-validated.** Confirmed against the live API with real credentials: the
+    `/v1/hackers/programs` shape (``data``/``links``, ``attributes.{handle,name,submission_state,
+    offers_bounties,policy,...}``) matches the mapper and it maps real programs. NOTE: the
+    program-LIST endpoint carries no bounty amount and no scope assets, so ``reward_ceiling`` and
+    ``targets`` stay empty until per-program detail / structured-scopes are fetched
+    (``AEGIS_H1_FETCH_SCOPES=1``).
+  * **Bugcrowd / Intigriti / YesWeHack — implemented + mapping-tested**, NOT yet live-validated
+    (no credentials available here).
+  * **Immunefi — no official API** (always blocked).
+
+Response shapes are defensive (multiple key names, tolerate missing fields) so minor API drift
+degrades gracefully rather than crashing an import.
 """
 
 from __future__ import annotations
