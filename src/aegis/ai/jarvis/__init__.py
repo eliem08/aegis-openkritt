@@ -53,6 +53,12 @@ from .models import (
     RuntimePlan,
     SecurityInvariant,
 )
+from .profit_feedback import (
+    calibrate_opportunities,
+    calibrate_opportunity,
+    prior_weight,
+    rank_calibrated_opportunities,
+)
 from .research import HypothesisAgent, InvariantAgent, JsonModelClient
 from .rule_factory import (
     RuleDraft,
@@ -123,10 +129,14 @@ __all__ = [
     "blind_spot_score",
     "build_advanced_jarvis",
     "build_linear_mission",
+    "calibrate_opportunities",
+    "calibrate_opportunity",
     "draft_detection_rule",
     "envelope_untrusted_source",
     "estimate_hypothesis",
+    "prior_weight",
     "prioritize_blind_spots",
+    "rank_calibrated_opportunities",
     "to_record",
     "validate_rule_fixture_counts",
 ]
