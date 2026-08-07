@@ -31,17 +31,28 @@ _MARKERS: Mapping[str, tuple[str, ...]] = {
     "websocket": ("websocket", "socket.io", "sockjs", "ws/", "channels"),
     "payments": ("stripe", "payment", "billing", "checkout", "invoice", "coupon"),
     "jobs": ("celery", "rq", "bullmq", "sidekiq", "worker", "queue", "cron"),
+    "queues": ("queue", "broker", "rabbitmq", "kafka", "sqs", "pubsub"),
     "archives": ("zipfile", "tarfile", "archive", "unpack", "extract"),
     "imports": ("import", "upload", "csv", "multipart", "attachment"),
-    "webhooks": ("webhook", "callback_url", "callback-url"),
-    "mobile": ("android", "ios", "mobile"),
-    "ci": (".github/workflows", ".gitlab-ci", "jenkinsfile", "circleci"),
+    "uploads": ("upload", "multipart", "attachment", "blob", "object-storage"),
+    "documents": ("xml", "document", "docx", "pdf", "svg", "sax", "domparser"),
+    "webhooks": ("webhook", "callback_url", "callback-url", "callback"),
+    "sso": ("oauth", "oidc", "openid", "saml", "sso", "pkce"),
+    "mobile": ("android", "ios", "mobile", "deeplink", "deep-link"),
+    "ci": (".github/workflows", ".gitlab-ci", "jenkinsfile", "circleci", "buildkite"),
+    "build": ("build.gradle", "pom.xml", "makefile", "package.json", "pyproject.toml"),
     "iac": ("terraform", ".tf", "cloudformation", "pulumi", "kubernetes", "helm"),
-    "cloud-config": ("aws", "gcp", "azure", "s3", "iam", "bucket"),
+    "cloud-config": ("aws", "gcp", "azure", "s3", "iam", "bucket", "serviceaccount"),
     "browser": ("playwright", "selenium", "puppeteer", "browser"),
     "spa": ("react", "vue", "angular", "svelte", "next.js", "nuxt"),
-    "api": ("openapi", "swagger", "fastapi", "express", "api/", "router"),
+    "api": ("openapi", "swagger", "fastapi", "express", "api/", "router", "controller"),
     "web": ("flask", "django", "rails", "spring", "laravel", "http"),
+    "proxy": ("nginx", "haproxy", "envoy", "reverse_proxy", "x-forwarded", "forwarded"),
+    "cdn": ("cloudflare", "fastly", "akamai", "cdn", "cache-control"),
+    "logs": ("logger", "logging", "log4j", "winston", "pino"),
+    "errors": ("debug", "stacktrace", "traceback", "exceptionhandler", "errorhandler"),
+    "search": ("search", "query", "filter", "regex", "lucene", "elasticsearch"),
+    "config": ("config", ".env", "settings", "application.yml", "application.properties"),
     "dependencies": ("requirements.txt", "package-lock", "pnpm-lock", "yarn.lock", "cargo.lock", "go.sum"),
     "containers": ("dockerfile", "docker-compose", "compose.yml", "compose.yaml"),
 }
@@ -57,15 +68,24 @@ _DEFAULT_PAYOUTS = {
 
 
 def infer_surfaces(paths: Iterable[str], text_hints: Iterable[str] = ()) -> tuple[SurfaceSignal, ...]:
-    corpus = "\n".join([*(str(path).lower() for path in paths), *(str(hint).lower() for hint in text_hints)])
+    path_rows = [str(path).lower() for path in paths]
+    hint_rows = [str(hint).lower() for hint in text_hints]
+    corpus = "\n".join([*path_rows, *hint_rows])
     signals: list[SurfaceSignal] = []
+    if path_rows:
+        signals.append(SurfaceSignal(surface="source", confidence=0.75, evidence=("repository-files",)))
     for surface, markers in _MARKERS.items():
         hits = tuple(marker for marker in markers if marker in corpus)
         if not hits:
             continue
         confidence = min(1.0, 0.55 + 0.12 * len(hits))
         signals.append(SurfaceSignal(surface=surface, confidence=confidence, evidence=hits))
-    return tuple(sorted(signals, key=lambda signal: (-signal.confidence, signal.surface)))
+    dedup: dict[str, SurfaceSignal] = {}
+    for signal in signals:
+        existing = dedup.get(signal.surface)
+        if existing is None or signal.confidence > existing.confidence:
+            dedup[signal.surface] = signal
+    return tuple(sorted(dedup.values(), key=lambda signal: (-signal.confidence, signal.surface)))
 
 
 def _family_for_surface(surface: str) -> tuple[WeaknessFamily, ...]:
@@ -99,11 +119,14 @@ def generate_hunt_candidates(
             coverage_gap = 1.0 / (1.0 + attempts)
             novelty = min(1.0, 0.45 + 0.35 * coverage_gap + (0.20 if signal.changed else 0.0))
             chainability = min(1.0, 0.15 + 0.12 * len(family.chain_tags))
-            validation_cost = max(0.25, (prior.mean_cost_usd if prior and samples else 1.0))
-            # Surface confidence is used as a weak validity prior; runtime/source evidence must
-            # still advance through the normal evidence lifecycle.
+            validation_cost = max(0.25, prior.mean_cost_usd if prior and samples else 1.0)
             p_valid = min(0.9, 0.35 + 0.45 * signal.confidence)
-            p_reproducible = 0.72 if family.default_validation_mode.startswith("local") else 0.62
+            validation_mode = family.default_validation_mode
+            p_reproducible = 0.78 if (
+                validation_mode.startswith("local")
+                or validation_mode.startswith("read-only")
+                or validation_mode.startswith("offline")
+            ) else 0.64
             candidates.append(
                 HuntCandidate(
                     family=family,
