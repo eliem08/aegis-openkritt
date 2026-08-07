@@ -24,6 +24,7 @@ from .firewall import (
 )
 from .guards import PolicyGate
 from .hunt_generator import SurfaceSignal, generate_hunt_candidates, infer_surfaces
+from .hunt_lanes import HuntLane, lane_for_family
 from .learning_agents import (
     BountyOutcome,
     ConfirmedFinding,
@@ -76,6 +77,7 @@ from .rule_factory import (
     to_record,
     validate_rule_fixture_counts,
 )
+from .severity_portfolio import SeverityPortfolioPolicy, select_diverse_candidates
 from .state_store import (
     CoverageObservation,
     JarvisStateStore,
@@ -84,6 +86,7 @@ from .state_store import (
     RuleCandidateRecord,
     VulnerabilityFamily,
 )
+from .universal_mission import compile_candidate_mission
 from .weakness_catalog import (
     UNIVERSAL_FAMILIES,
     HuntCandidate,
@@ -123,6 +126,7 @@ __all__ = [
     "FindingState",
     "GateDecision",
     "HuntCandidate",
+    "HuntLane",
     "HuntObjective",
     "HypothesisAgent",
     "InvariantAgent",
@@ -153,6 +157,7 @@ __all__ = [
     "RuleValidationResult",
     "RuntimePlan",
     "SecurityInvariant",
+    "SeverityPortfolioPolicy",
     "SeverityTier",
     "SkepticAgent",
     "StopLossAgent",
@@ -170,6 +175,7 @@ __all__ = [
     "calibrate_opportunities",
     "calibrate_opportunity",
     "chain_opportunities",
+    "compile_candidate_mission",
     "draft_detection_rule",
     "envelope_untrusted_source",
     "estimate_hypothesis",
@@ -177,10 +183,12 @@ __all__ = [
     "families_for_surface",
     "generate_hunt_candidates",
     "infer_surfaces",
+    "lane_for_family",
     "prior_weight",
     "prioritize_blind_spots",
     "rank_calibrated_opportunities",
     "rank_candidates",
+    "select_diverse_candidates",
     "to_record",
     "validate_rule_fixture_counts",
 ]
