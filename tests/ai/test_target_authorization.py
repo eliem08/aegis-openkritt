@@ -135,3 +135,13 @@ def test_list_authorized_only_returns_verifiable(tmp_path):
     assert "me/mine" in got
     assert "acme/api" not in got      # excluded
     assert "dead/repo" not in got     # inactive
+
+
+def test_authorized_targets_queue_only_contains_authorized(tmp_path):
+    reg = _reg(tmp_path, Program(handle="acme", targets=["acme/backend"], reward_ceiling=5000,
+                                 findability=0.6, active=True),
+               Program(handle="dead", targets=["dead/repo"], reward_ceiling=9000, active=False))
+    q = ta.authorized_targets(registry_path=reg, ledger_path=_led(tmp_path), owned=[])
+    repos = {t.repository for t in q}
+    assert "acme/backend" in repos
+    assert "dead/repo" not in repos    # inactive program excluded despite higher ceiling

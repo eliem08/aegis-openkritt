@@ -299,6 +299,21 @@ def list_authorized(registry_path: str | Path | None = None,
                                owned=owned, persist=False).allowed)
 
 
+def authorized_targets(registry_path: str | Path | None = None,
+                       ledger_path: str | Path | None = None,
+                       owned: list[str] | None = None) -> list:
+    """EV-rankable HuntTargets restricted to currently-authorized program targets — the queue
+    the ranker consumes, guaranteed to contain only verifiably-authorized repositories."""
+    from .registry import to_hunt_targets
+    out = []
+    for t in to_hunt_targets(path=registry_path):
+        d = gate(t.repository, registry_path=registry_path, ledger_path=ledger_path,
+                 owned=owned, persist=False)
+        if d.allowed:
+            out.append(t)
+    return out
+
+
 def main(argv=None) -> int:
     import sys
     argv = list(argv if argv is not None else sys.argv[1:])
