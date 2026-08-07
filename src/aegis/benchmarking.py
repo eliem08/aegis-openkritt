@@ -17,9 +17,19 @@ class BenchmarkRun:
     model_cost: Decimal = Decimal(0)
     scanner_cost: Decimal = Decimal(0)
     human_review_minutes: float = 0.0
+    # Static detector benchmarks may know misses without having any runtime reproduction.
+    # This is intentionally last to preserve positional compatibility with older callers.
+    missed: int = 0
 
     def __post_init__(self):
-        for name in ("detected", "reproduced", "false_positives", "accepted", "duplicates"):
+        for name in (
+            "detected",
+            "reproduced",
+            "false_positives",
+            "accepted",
+            "duplicates",
+            "missed",
+        ):
             if getattr(self, name) < 0:
                 raise ValueError(f"{name} cannot be negative")
         if self.reproduced > self.detected:
@@ -33,7 +43,20 @@ class BenchmarkRun:
             raise ValueError("human_review_minutes cannot be negative")
 
     @property
+    def detector_precision(self) -> float:
+        """Precision of the detector stage only; it does not imply reproduction."""
+        denominator = self.detected + self.false_positives
+        return self.detected / denominator if denominator else 0.0
+
+    @property
+    def detector_recall(self) -> float:
+        """Recall of the detector stage when the benchmark supplies labeled misses."""
+        denominator = self.detected + self.missed
+        return self.detected / denominator if denominator else 0.0
+
+    @property
     def precision(self) -> float:
+        """Evidence precision based on findings that reached reproduction."""
         denominator = self.reproduced + self.false_positives
         return self.reproduced / denominator if denominator else 0.0
 
