@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import hashlib
+import json
+
+import pytest
 
 from aegis.ai.tool_bridge import ToolBridge
 from aegis.ai.tool_registry import TOOLS
@@ -8,6 +11,7 @@ from aegis.ai.tool_runtime import (
     ToolPin,
     ToolRuntimeManager,
     ToolRuntimeStatus,
+    load_tool_pins,
     provenance,
 )
 
@@ -64,6 +68,24 @@ def test_missing_binary_is_unavailable():
     manager = ToolRuntimeManager(resolver=lambda _binary: None)
     record = manager.inspect(name="scanner", binary="scanner")
     assert record.status is ToolRuntimeStatus.UNAVAILABLE
+
+
+def test_pin_file_loads_exact_digest_and_version_marker(tmp_path):
+    pins_file = tmp_path / "pins.json"
+    digest = "a" * 64
+    pins_file.write_text(
+        json.dumps({"semgrep": {"sha256": digest, "version_contains": "1.99"}}),
+        encoding="utf-8",
+    )
+    pins = load_tool_pins(pins_file)
+    assert pins["semgrep"] == ToolPin(sha256=digest, version_contains="1.99")
+
+
+def test_malformed_explicit_pin_file_fails_closed(tmp_path):
+    pins_file = tmp_path / "pins.json"
+    pins_file.write_text(json.dumps({"semgrep": {"sha256": "not-a-digest"}}), encoding="utf-8")
+    with pytest.raises(ValueError, match="invalid sha256"):
+        load_tool_pins(pins_file)
 
 
 def test_toolbridge_blocks_unhealthy_runtime_before_scan_target_is_sent(tmp_path):
