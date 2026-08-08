@@ -1,14 +1,8 @@
-"""Bridge dormant ``aegis.active`` detector plans into the canonical Jarvis policy model.
+"""Bridge ``aegis.active`` detector plans into the canonical Jarvis policy model.
 
-This module deliberately does **not** execute live probes.  It converts the existing
-Phase-3 detector planner into :class:`~aegis.ai.agentic_os.AgentProposal` objects so
-network/state-changing work is visible to — and vetoable by — the same deterministic
-``ProposalPolicy`` used by the source-review hunt.
-
-The default source-review authorization envelope has no network/state-change/human
-approval, therefore every live active probe is structurally blocked.  A future explicit
-active engagement may reuse the same proposals with a stronger authorization envelope;
-no detector gets a second/private bypass around policy.
+This module does not execute live probes. It converts detector plans into canonical
+``AgentProposal`` objects so network/state-changing work is visible to — and vetoable by —
+the same deterministic ``ProposalPolicy`` used by the source-review hunt.
 """
 
 from __future__ import annotations
@@ -30,62 +24,89 @@ class ActiveProposalSpec:
 
 _SPECS: dict[str, ActiveProposalSpec] = {
     "bola": ActiveProposalSpec(
-        "bola", AgentRole.AUTHORIZATION,
+        "bola",
+        AgentRole.AUTHORIZATION,
         "Compare owned identities against discovered object routes to test object ownership.",
     ),
     "bfla": ActiveProposalSpec(
-        "bfla", AgentRole.AUTHORIZATION,
+        "bfla",
+        AgentRole.AUTHORIZATION,
         "Test a declared low-privilege identity against a discovered privileged endpoint.",
     ),
     "cross_tenant": ActiveProposalSpec(
-        "cross_tenant", AgentRole.AUTHORIZATION,
+        "cross_tenant",
+        AgentRole.AUTHORIZATION,
         "Run an owned-account tenant differential on an explicitly discovered route.",
     ),
     "missing_auth": ActiveProposalSpec(
-        "missing_auth", AgentRole.AUTHENTICATION,
+        "missing_auth",
+        AgentRole.AUTHENTICATION,
         "Compare authenticated and unauthenticated behavior on a discovered route.",
     ),
     "exposed_files": ActiveProposalSpec(
-        "exposed_files", AgentRole.ATTACK_SURFACE,
+        "exposed_files",
+        AgentRole.ATTACK_SURFACE,
         "Request only explicitly discovered file-like routes; never enumerate default paths.",
     ),
     "error_disclosure": ActiveProposalSpec(
-        "error_disclosure", AgentRole.API,
+        "error_disclosure",
+        AgentRole.API,
         "Apply a bounded benign request mutation to inspect error disclosure.",
     ),
     "cors": ActiveProposalSpec(
-        "cors", AgentRole.API,
+        "cors",
+        AgentRole.API,
         "Perform a bounded CORS differential on an explicitly discovered route.",
     ),
     "open_redirect": ActiveProposalSpec(
-        "open_redirect", AgentRole.API,
+        "open_redirect",
+        AgentRole.API,
         "Perform a bounded redirect-parameter differential on an explicitly discovered route.",
     ),
     "ssrf": ActiveProposalSpec(
-        "ssrf", AgentRole.HYPOTHESIS,
+        "ssrf",
+        AgentRole.HYPOTHESIS,
         "Use the private OAST lane only for discovered URL-accepting parameters.",
     ),
     "graphql": ActiveProposalSpec(
-        "graphql", AgentRole.API,
+        "graphql",
+        AgentRole.API,
         "Inspect an explicitly discovered GraphQL endpoint with bounded requests.",
     ),
     "path_bypass": ActiveProposalSpec(
-        "path_bypass", AgentRole.AUTHORIZATION,
+        "path_bypass",
+        AgentRole.AUTHORIZATION,
         "Compare bounded path-normalization variants on an explicitly discovered route.",
     ),
+    "http_desync": ActiveProposalSpec(
+        "http_desync",
+        AgentRole.API,
+        "Validate evidence-backed HTTP parser disagreement on discovered routes with bounded differentials.",
+    ),
     "contract_review": ActiveProposalSpec(
-        "contract_review", AgentRole.STATIC_ANALYSIS,
+        "contract_review",
+        AgentRole.STATIC_ANALYSIS,
         "Analyze operator-provided contract source offline.",
     ),
 }
 
-# A source finding can indicate which active lane would be useful next, but source code does not
-# prove the live URL/identity prerequisites.  These intents are therefore never executable tasks;
-# they tell Jarvis which detector planner to invoke *after* authorized discovery supplies routes.
 _FOLLOWUP_HINTS: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("ssrf", ("ssrf", "server-side request", "webhook", "url fetch", "callback url")),
     ("graphql", ("graphql", "resolver", "introspection")),
     ("path_bypass", ("path bypass", "path normalization", "traversal", "route bypass")),
+    (
+        "http_desync",
+        (
+            "request smuggling",
+            "http request smuggling",
+            "http desync",
+            "desynchronization",
+            "cl.te",
+            "te.cl",
+            "te.te",
+            "h2 downgrade",
+        ),
+    ),
     ("bola", ("idor", "bola", "object authorization", "ownership check", "tenant")),
     ("bfla", ("bfla", "function authorization", "privilege escalation", "admin endpoint")),
     ("missing_auth", ("missing auth", "unauthenticated", "authentication bypass")),
@@ -109,17 +130,14 @@ def _proposal_for_task(task: DetectorTask) -> AgentProposal:
         and task.action == "passive_discovery"
         and task.detector == "contract_review"
     )
-    # Conservatively model every live request as CONTROLLED_STATE_CHANGE.  Some probes are
-    # semantically read-only, but this forces BOTH state-change authorization and human approval
-    # in ProposalPolicy and prevents a new detector from accidentally becoming an autonomous
-    # internet action just because its HTTP method happens to be GET.
     risk = RiskClass.OFFLINE if offline else RiskClass.CONTROLLED_STATE_CHANGE
+    high_value = {"bola", "bfla", "ssrf", "http_desync"}
     return AgentProposal(
         role=spec.role,
         action=f"active:{task.detector}",
         rationale=spec.rationale,
         risk=risk,
-        expected_information_gain=0.85 if task.detector in {"bola", "bfla", "ssrf"} else 0.65,
+        expected_information_gain=0.90 if task.detector in high_value else 0.65,
         expected_cost_usd=0.0,
         expected_requests=max(0, int(task.est_requests)),
         requires_network=not offline,
@@ -135,19 +153,10 @@ def _proposal_for_task(task: DetectorTask) -> AgentProposal:
 
 
 def proposals_from_plan(plan: DetectorPlan) -> tuple[AgentProposal, ...]:
-    """Convert an ``aegis.active`` plan to canonical policy proposals."""
     return tuple(_proposal_for_task(task) for task in plan.tasks)
 
 
 def followup_intents_for_finding(row: dict) -> tuple[AgentProposal, ...]:
-    """Return conservative active-validation intents suggested by one source finding.
-
-    No endpoint, identity, seed, or OAST target is invented here.  Every returned proposal is a
-    controlled network action and carries ``execution=requires_discovered_route_plan``.  Under the
-    normal source-review envelope ProposalPolicy vetoes it; under an explicitly approved active
-    engagement the caller must still run :func:`plan_active_proposals` to derive concrete tasks
-    from discovered graph assets before any executor can act.
-    """
     answer = row.get("json_answer") or {}
     blob = " ".join(
         str(value or "")
@@ -171,7 +180,7 @@ def followup_intents_for_finding(row: dict) -> tuple[AgentProposal, ...]:
                 action=f"active-plan:{detector}",
                 rationale=spec.rationale,
                 risk=RiskClass.CONTROLLED_STATE_CHANGE,
-                expected_information_gain=0.85,
+                expected_information_gain=0.90 if detector == "http_desync" else 0.85,
                 expected_cost_usd=0.0,
                 expected_requests=1,
                 requires_network=True,
@@ -195,15 +204,11 @@ def plan_active_proposals(
     enabled=None,
     identifier_samples=None,
     contracts=(),
+    desync_candidates=(),
     per_target_requests: int = 2,
     max_targets_per_detector: int = 200,
 ) -> tuple[DetectorPlan, tuple[AgentProposal, ...]]:
-    """Plan active work from discovered assets without executing any live request.
-
-    This is the canonical integration seam for ``active/``.  The detector package remains
-    responsible for deciding *what is applicable* from evidence; ``agentic_os`` remains
-    responsible for deciding *whether it may execute*.
-    """
+    """Plan active work from discovered assets without executing a live request."""
     routes = routes_from_assets(list(assets))
     plan = plan_detectors(
         routes,
@@ -216,5 +221,6 @@ def plan_active_proposals(
         max_targets_per_detector=max_targets_per_detector,
         identifier_samples=identifier_samples,
         contracts=contracts,
+        desync_candidates=desync_candidates,
     )
     return plan, proposals_from_plan(plan)
