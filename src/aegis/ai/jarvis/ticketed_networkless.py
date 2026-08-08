@@ -31,6 +31,30 @@ _UNSUPPORTED_RUNTIME_REQUIREMENTS = {
 }
 
 
+def _execution_kwargs(method: PlannedMethod, kwargs: dict) -> dict:
+    """Bind semantic artifact inputs to scanner argv placeholders without weakening locality.
+
+    Capability tickets intentionally describe local inputs semantically (for example an
+    ``authorized_artifact``), while a number of scanner CLIs call that same local path a
+    ``target`` in their argv contract.  The low-level executor quite correctly treats
+    ``artifact_path`` and ``target_path`` as distinct placeholders, so normalize that naming
+    mismatch here, after ticket verification and before execution.
+
+    This is only an alias of the *same already-authorized local path*; it never invents a target,
+    widens scope, or permits a network destination.
+    """
+    execution = dict(kwargs)
+    template = tuple(getattr(method, "command_template", ()) or ())
+    uses_target = any("{target}" in str(token) for token in template)
+    if (
+        uses_target
+        and execution.get("target_path") is None
+        and execution.get("artifact_path") is not None
+    ):
+        execution["target_path"] = execution["artifact_path"]
+    return execution
+
+
 def execute_ticketed_networkless_method(
     method: PlannedMethod,
     *,
@@ -58,7 +82,7 @@ def execute_ticketed_networkless_method(
             runtime_manager=runtime_manager,
             pins=pins,
             process_runner=process_runner,
-            **kwargs,
+            **_execution_kwargs(method, kwargs),
         )
     except NetworklessCliError as exc:
         raise TicketedNetworklessError(str(exc)) from exc
