@@ -9,9 +9,9 @@ whether additional expensive research is worth scheduling.
 Important boundaries:
 * source validation can advance only ``candidate -> source_supported``;
 * scanner/LLM claims never become reproduced evidence here;
-* active-network proposals are evaluated by the same fail-closed ``ProposalPolicy``;
+* ``active/`` follow-ups are visible to the same fail-closed ``ProposalPolicy``;
 * negative-EV findings are deferred, not relabeled false positives;
-* missions are durable when ``AEGIS_JARVIS_STATE_DB`` is configured/defaulted.
+* missions are durable in the Jarvis SQLite state store.
 """
 
 from __future__ import annotations
@@ -23,6 +23,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
+from .active_bridge import followup_intents_for_finding
 from .agentic_os import (
     AgentProposal,
     AgentRole,
@@ -35,10 +36,10 @@ from .agentic_os import (
     ProposalPolicy,
     RiskClass,
 )
-from .portfolio_agents import Opportunity
 from .jarvis.mission_scheduler import MissionScheduler, build_linear_mission
 from .jarvis.profit_feedback import calibrate_opportunity
 from .jarvis.state_store import JarvisStateStore
+from .portfolio_agents import Opportunity
 
 
 def _bounded(value: Any, default: float, low: float = 0.0, high: float = 1.0) -> float:
@@ -75,7 +76,6 @@ def _location(row: dict) -> str:
 
 
 def source_evidence(repository: str, row: dict) -> EvidenceRef:
-    """Build immutable evidence provenance for a validated source finding."""
     answer = _answer(row)
     material = {
         "repository": repository,
@@ -102,13 +102,7 @@ def source_review_envelope(
     cost_budget_usd: float,
     human_minutes: float = 60.0,
 ) -> AuthorizationEnvelope:
-    """Translate target authorization into the *source-review* action envelope.
-
-    Target authorization answers whether Aegis may research the repository.  This envelope
-    answers which actions are permitted in this phase.  It intentionally grants no live
-    network/state-change authority, even though cloning the authorized repository happened at
-    the lower network boundary.
-    """
+    """Translate target authorization into a source-review-only action envelope."""
     record = getattr(authorization_decision, "record", None)
     scope_digest = str(getattr(record, "scope_snapshot_hash", "") or "")
     if not scope_digest:
@@ -182,7 +176,6 @@ def _likely_payout(row: dict, target) -> float:
 
 
 def opportunity_from_finding(row: dict, target) -> Opportunity:
-    """Create one transparent, duplicate-adjusted research opportunity."""
     validation = row.get("validation") or {}
     enrichment = row.get("enrichment") or {}
     reproduction = row.get("reproduction") or {}
@@ -191,8 +184,6 @@ def opportunity_from_finding(row: dict, target) -> Opportunity:
     agreement_ratio = _bounded(agreement / samples, 0.5)
     confirmed = validation.get("verdict") == "confirmed"
     p_valid = _bounded(validation.get("confidence"), 0.82 if confirmed else 0.35)
-    # Validation and independent-engine agreement should inform confidence without pretending
-    # that agreement is an independent reproduction.
     p_valid = min(0.97, 0.65 * p_valid + 0.35 * agreement_ratio)
     p_accept = 0.60
     if enrichment.get("trust_model_holds") is False:
@@ -207,11 +198,18 @@ def opportunity_from_finding(row: dict, target) -> Opportunity:
         p_reproducible = 0.15
     else:
         reachability = row.get("reachability") or {}
-        p_reproducible = 0.72 if reachability and reachability.get("verdict") != "arity-mismatch" else 0.55
+        p_reproducible = (
+            0.72
+            if reachability and reachability.get("verdict") != "arity-mismatch"
+            else 0.55
+        )
     review_minutes = float(os.environ.get("AEGIS_JARVIS_REVIEW_MINUTES", "12") or 12)
     compute_cost = float(os.environ.get("AEGIS_JARVIS_ESCALATION_COST_USD", "0.75") or 0.75)
     return Opportunity(
-        opportunity_id=str(row.get("finding_id") or f"{getattr(target, 'repository', '')}:{_digest(row)[:16]}"),
+        opportunity_id=str(
+            row.get("finding_id")
+            or f"{getattr(target, 'repository', '')}:{_digest(row)[:16]}"
+        ),
         program_id=str(getattr(target, "handle", "") or getattr(target, "repository", "")),
         bug_class=_weakness(row),
         expected_payout_usd=_likely_payout(row, target),
@@ -227,19 +225,21 @@ def opportunity_from_finding(row: dict, target) -> Opportunity:
     )
 
 
-def quality_proposals(finding_id: str, *, local_lab_available: bool = False) -> tuple[AgentProposal, ...]:
-    """Canonical Skeptic -> Reproduction -> Evidence proposal set.
-
-    These are proposals, not execution.  The existing live triager/reproduction hooks consume
-    the decisions in ``auto_hunt_run``; this keeps action authority centralized.
-    """
+def quality_proposals(
+    finding_id: str,
+    *,
+    local_lab_available: bool = False,
+) -> tuple[AgentProposal, ...]:
     skeptic_cost = float(os.environ.get("AEGIS_JARVIS_SKEPTIC_COST_USD", "0.35") or 0.35)
     repro_cost = float(os.environ.get("AEGIS_JARVIS_REPRO_COST_USD", "0.25") or 0.25)
     return (
         AgentProposal(
             role=AgentRole.JUDGE,
             action="adversarial_source_review",
-            rationale="Attempt to falsify attacker control, reachability, guards, scope, impact, and duplicate assumptions.",
+            rationale=(
+                "Attempt to falsify attacker control, reachability, guards, scope, impact, "
+                "and duplicate assumptions."
+            ),
             risk=RiskClass.OFFLINE,
             expected_information_gain=0.95,
             expected_cost_usd=max(0.0, skeptic_cost),
@@ -249,7 +249,9 @@ def quality_proposals(finding_id: str, *, local_lab_available: bool = False) -> 
         AgentProposal(
             role=AgentRole.REPRODUCTION,
             action="reproduce_in_disposable_local_lab",
-            rationale="Attempt bounded localhost-only reproduction with deterministic positive/negative controls.",
+            rationale=(
+                "Attempt bounded localhost-only reproduction with deterministic positive/negative controls."
+            ),
             risk=RiskClass.OFFLINE,
             expected_information_gain=1.0,
             expected_cost_usd=max(0.0, repro_cost),
@@ -262,7 +264,9 @@ def quality_proposals(finding_id: str, *, local_lab_available: bool = False) -> 
         AgentProposal(
             role=AgentRole.EVIDENCE,
             action="assemble_evidence_bundle",
-            rationale="Assemble immutable report-quality evidence after reproduction and independent review.",
+            rationale=(
+                "Assemble immutable report-quality evidence after reproduction and independent review."
+            ),
             risk=RiskClass.OFFLINE,
             expected_information_gain=0.30,
             expected_cost_usd=0.05,
@@ -297,7 +301,11 @@ def _persist_mission(
                         objective=f"Validate {lifecycle.finding_id} in {repository}",
                         steps=(
                             ("skeptic", AgentRole.JUDGE.value, "adversarial_source_review"),
-                            ("reproduce", AgentRole.REPRODUCTION.value, "reproduce_in_disposable_local_lab"),
+                            (
+                                "reproduce",
+                                AgentRole.REPRODUCTION.value,
+                                "reproduce_in_disposable_local_lab",
+                            ),
                             ("evidence", AgentRole.EVIDENCE.value, "assemble_evidence_bundle"),
                         ),
                     )
@@ -315,6 +323,7 @@ class JarvisFindingDecision:
     net_ev_usd: float
     should_escalate: bool
     quality_decisions: tuple[Decision, ...]
+    active_decisions: tuple[Decision, ...]
     mission_id: str = ""
 
     def as_dict(self) -> dict:
@@ -325,6 +334,7 @@ class JarvisFindingDecision:
             "net_ev_usd": round(self.net_ev_usd, 2),
             "should_escalate": self.should_escalate,
             "quality_policy": [asdict(item) for item in self.quality_decisions],
+            "active_policy": [asdict(item) for item in self.active_decisions],
             "mission_id": self.mission_id,
         }
 
@@ -340,14 +350,15 @@ def evaluate_finding(
     human_hour_cost_usd: float | None = None,
     local_lab_available: bool = False,
 ) -> JarvisFindingDecision:
-    """Evaluate and annotate one live finding through Jarvis's canonical contracts."""
     min_net = (
         float(os.environ.get("AEGIS_JARVIS_MIN_NET_EV", "0") or 0)
-        if min_net_ev_usd is None else float(min_net_ev_usd)
+        if min_net_ev_usd is None
+        else float(min_net_ev_usd)
     )
     human_cost = (
         float(os.environ.get("AEGIS_HUMAN_HOURLY_COST_USD", "20") or 20)
-        if human_hour_cost_usd is None else float(human_hour_cost_usd)
+        if human_hour_cost_usd is None
+        else float(human_hour_cost_usd)
     )
     budget = float(os.environ.get("AEGIS_JARVIS_FINDING_BUDGET_USD", "3") or 3)
     envelope = source_review_envelope(
@@ -375,12 +386,26 @@ def evaluate_finding(
     )
 
     quality: list[Decision] = []
-    for quality_proposal in quality_proposals(lifecycle.finding_id, local_lab_available=local_lab_available):
+    for quality_proposal in quality_proposals(
+        lifecycle.finding_id,
+        local_lab_available=local_lab_available,
+    ):
         decision = policy.evaluate(quality_proposal, envelope)
-        # Economics can defer expensive quality work even when policy would permit it.
         if decision.approved and not should_escalate:
-            decision = Decision(decision.proposal_id, False, "deferred by non-positive/low net expected value")
+            decision = Decision(
+                decision.proposal_id,
+                False,
+                "deferred by non-positive/low net expected value",
+            )
         quality.append(decision)
+
+    # ``active/`` is now on the same seam.  Source findings can suggest the appropriate live
+    # validation lane, but the source-review envelope has no network/state/human authority, so
+    # these decisions are expected to be vetoes until an explicit active engagement is opened.
+    active = tuple(
+        policy.evaluate(active_proposal, envelope)
+        for active_proposal in followup_intents_for_finding(row)
+    )
 
     mission_id = ""
     if should_escalate:
@@ -397,6 +422,7 @@ def evaluate_finding(
         net_ev_usd=net_ev,
         should_escalate=should_escalate,
         quality_decisions=tuple(quality),
+        active_decisions=active,
         mission_id=mission_id,
     )
     row["jarvis"] = result.as_dict()
@@ -422,7 +448,6 @@ def evaluate_report(
     model_egress_allowed: bool = True,
     local_lab_available: bool = False,
 ) -> dict:
-    """Annotate confirmed rows and return a compact live-hunt Jarvis summary."""
     decisions: list[JarvisFindingDecision] = []
     for row in validated.get("vulnerabilities") or []:
         if (row.get("validation") or {}).get("verdict") != "confirmed":
@@ -439,11 +464,18 @@ def evaluate_report(
         )
     summary = {
         "evaluated": len(decisions),
-        "source_supported": sum(d.stage is EvidenceStage.SOURCE_SUPPORTED for d in decisions),
-        "escalated": sum(d.should_escalate for d in decisions),
-        "deferred": sum(not d.should_escalate for d in decisions),
-        "net_ev_usd": round(sum(max(0.0, d.net_ev_usd) for d in decisions), 2),
-        "missions": [d.mission_id for d in decisions if d.mission_id],
+        "source_supported": sum(
+            decision.stage is EvidenceStage.SOURCE_SUPPORTED for decision in decisions
+        ),
+        "escalated": sum(decision.should_escalate for decision in decisions),
+        "deferred": sum(not decision.should_escalate for decision in decisions),
+        "net_ev_usd": round(sum(max(0.0, decision.net_ev_usd) for decision in decisions), 2),
+        "active_followups_vetoed": sum(
+            not active_decision.approved
+            for decision in decisions
+            for active_decision in decision.active_decisions
+        ),
+        "missions": [decision.mission_id for decision in decisions if decision.mission_id],
     }
     validated.setdefault("scan", {})["jarvis"] = summary
     return summary
