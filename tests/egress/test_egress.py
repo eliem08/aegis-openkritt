@@ -9,7 +9,11 @@ from aegis.egress import EgressClaims, EgressServiceConfig, create_egress_app, i
 from aegis.egress.app import UpstreamResponse
 
 SECRET = "s" * 48
-NOW = int(time.time())
+
+
+def _now() -> int:
+    # computed at call time (not import) so tokens don't expire during a long full-suite run
+    return int(time.time())
 
 
 class Budget:
@@ -23,10 +27,11 @@ class Budget:
 
 
 def claims(**overrides):
+    now = _now()
     values = dict(
         tenant_id="tenant-a", engagement_id="eng-1", profile="target-observation",
-        method="GET", destination="https://in.example.test/start", issued_at=NOW,
-        expires_at=NOW + 60, budget_id="budget-1", request_limit=3,
+        method="GET", destination="https://in.example.test/start", issued_at=now,
+        expires_at=now + 60, budget_id="budget-1", request_limit=3,
         scope=["in.example.test"],
     )
     values.update(overrides)
@@ -42,7 +47,7 @@ def client(sender, *, budget=None, resolver=None):
 
 
 def auth(value):
-    return {"Authorization": "Bearer " + issue_token(value, SECRET, now=NOW)}
+    return {"Authorization": "Bearer " + issue_token(value, SECRET, now=value.issued_at)}
 
 
 def test_authorized_fetch_uses_pinned_ip_and_filters_headers():
@@ -131,8 +136,9 @@ def test_bad_or_expired_tokens_are_unauthorized():
         json={"method": "GET", "url": claims().destination},
     )
     assert response.status_code == 401
-    expired = claims(issued_at=NOW - 60, expires_at=NOW - 1)
-    token = issue_token(expired, SECRET, now=NOW - 30)
+    now = _now()
+    expired = claims(issued_at=now - 60, expires_at=now - 1)
+    token = issue_token(expired, SECRET, now=now - 30)
     response = client(lambda *args: None).post(
         "/v1/fetch", headers={"Authorization": "Bearer " + token},
         json={"method": "GET", "url": expired.destination},
