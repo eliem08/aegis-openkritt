@@ -48,12 +48,6 @@ def _env_float(name: str, default: float) -> float:
 
 
 def source_review_authorization(scope_digest: str = "") -> AuthorizationEnvelope:
-    """The only envelope used by the autonomous source-review lane.
-
-    It deliberately forbids network, state changes and implicit external-model egress.
-    Existing model calls are controlled by their own explicit configuration; proposals
-    that declare external-model egress are vetoed unless a different envelope is supplied.
-    """
     return AuthorizationEnvelope(
         scope_digest=scope_digest or "source-review",
         network_allowed=False,
@@ -71,21 +65,15 @@ def source_review_authorization(scope_digest: str = "") -> AuthorizationEnvelope
 def _evidence(kind: str, payload, summary: str) -> EvidenceRef:
     digest = _digest(payload)
     return EvidenceRef(
-        evidence_id=f"ev1:{kind}:{digest[:24]}",
-        kind=kind,
-        digest=digest,
+        evidence_id=f"ev1:{kind}:{digest[:24]}", kind=kind, digest=digest,
         summary=summary[:240],
     )
 
 
 def _finding_id(row: dict) -> str:
     answer = row.get("json_answer") or {}
-    material = {
-        "file": answer.get("file_path"),
-        "line": answer.get("line"),
-        "weakness": answer.get("vulnerability_type"),
-        "summary": answer.get("summary"),
-    }
+    material = {"file": answer.get("file_path"), "line": answer.get("line"),
+                "weakness": answer.get("vulnerability_type"), "summary": answer.get("summary")}
     return f"finding:{_digest(material)[:24]}"
 
 
@@ -94,7 +82,6 @@ def _jarvis(row: dict) -> dict:
 
 
 def annotate_source_validation(row: dict, *, scope_digest: str = "") -> dict:
-    """Map a real citation-validation result into the canonical Jarvis contract."""
     validation = row.get("validation") or {}
     verdict = str(validation.get("verdict") or "unresolved")
     state = _jarvis(row)
@@ -103,29 +90,18 @@ def annotate_source_validation(row: dict, *, scope_digest: str = "") -> dict:
     state["stage"] = EvidenceStage.CANDIDATE.value
     if verdict != "confirmed":
         return state
-
-    evidence = _evidence(
-        "source-validation",
-        validation,
-        str(validation.get("reason") or "source citations validated"),
-    )
+    evidence = _evidence("source-validation", validation,
+                         str(validation.get("reason") or "source citations validated"))
     proposal = AgentProposal(
-        role=AgentRole.EVIDENCE,
-        action="promote_source_supported",
+        role=AgentRole.EVIDENCE, action="promote_source_supported",
         rationale="citation validator matched the claim to pinned source evidence",
         risk=RiskClass.OFFLINE,
         expected_information_gain=_bounded(float(validation.get("confidence") or 0.5)),
-        expected_cost_usd=0.0,
-        evidence=(evidence,),
-        metadata={"finding_id": state["finding_id"]},
+        evidence=(evidence,), metadata={"finding_id": state["finding_id"]},
     )
     decision = ProposalPolicy().evaluate(proposal, source_review_authorization(scope_digest))
-    state["proposal"] = {
-        "id": proposal.proposal_id,
-        "role": proposal.role.value,
-        "action": proposal.action,
-        "risk": proposal.risk.value,
-    }
+    state["proposal"] = {"id": proposal.proposal_id, "role": proposal.role.value,
+                         "action": proposal.action, "risk": proposal.risk.value}
     state["policy"] = asdict(decision)
     if decision.approved:
         lifecycle = FindingLifecycle(state["finding_id"])
@@ -150,22 +126,18 @@ class FindingEconomics:
 
 
 def estimate_finding_economics(row: dict, *, handle: str = "") -> FindingEconomics:
-    """Conservative net-value estimate for deciding whether to spend more on a finding."""
     answer = row.get("json_answer") or {}
     bounty = estimate(
         vuln_type=str(answer.get("vulnerability_type") or ""),
         severity=str(answer.get("severity") or row.get("severity") or "medium"),
-        handle=handle,
-        agreement=int(row.get("agreement", 1) or 1),
+        handle=handle, agreement=int(row.get("agreement", 1) or 1),
         samples=int(row.get("samples", 1) or 1),
     )
     validation = row.get("validation") or {}
     source_conf = _bounded(float(validation.get("confidence") or 0.5))
-    duplicate = _bounded(float(
-        row.get("duplicate_probability")
+    duplicate = _bounded(float(row.get("duplicate_probability")
         or (row.get("enrichment") or {}).get("duplicate_probability")
-        or _env_float("AEGIS_JARVIS_DUPLICATE_PRIOR", 0.25)
-    ))
+        or _env_float("AEGIS_JARVIS_DUPLICATE_PRIOR", 0.25)))
     validation_cost = max(0.0, _env_float("AEGIS_JARVIS_VALIDATION_COST_USD", 0.05))
     review_cost = max(0.0, _env_float("AEGIS_JARVIS_COUNCIL_COST_USD", 0.10))
     expected_gross = float(bounty.expected_gain) * source_conf * (1.0 - duplicate)
@@ -180,33 +152,18 @@ def estimate_finding_economics(row: dict, *, handle: str = "") -> FindingEconomi
         priority = "prune"
     novelty = _bounded(float(row.get("novelty_score") or 0.0))
     score = expected_net + novelty * _env_float("AEGIS_JARVIS_EXPLORATION_BONUS_USD", 5.0)
-    return FindingEconomics(
-        expected_gross_usd=round(expected_gross, 4),
-        expected_net_usd=round(expected_net, 4),
-        duplicate_probability=round(duplicate, 4),
-        review_cost_usd=round(review_cost, 4),
-        validation_cost_usd=round(validation_cost, 4),
-        priority=priority,
-        score=round(score, 4),
-    )
+    return FindingEconomics(round(expected_gross, 4), round(expected_net, 4), round(duplicate, 4),
+                            round(review_cost, 4), round(validation_cost, 4), priority,
+                            round(score, 4))
 
 
 def prioritize_council(rows: Iterable[dict], *, handle: str = "") -> tuple[list[dict], list[dict]]:
-    """Select a bounded portfolio for expensive adversarial review.
-
-    Positive-EV findings are ordered first. Cheap/chainable findings remain in the report
-    but are deferred rather than consuming council budget. Negative-EV findings are retained
-    audibly as pruned source-supported candidates.
-    """
     promoted: list[dict] = []
     deferred: list[dict] = []
     for row in rows:
         econ = estimate_finding_economics(row, handle=handle)
         _jarvis(row)["economics"] = econ.as_dict()
-        if econ.priority == "promote":
-            promoted.append(row)
-        else:
-            deferred.append(row)
+        (promoted if econ.priority == "promote" else deferred).append(row)
     promoted.sort(key=lambda row: -float((_jarvis(row).get("economics") or {}).get("score", 0)))
     cap = max(1, int(_env_float("AEGIS_JARVIS_COUNCIL_MAX_FINDINGS", 12)))
     overflow = promoted[cap:]
@@ -219,10 +176,8 @@ def annotate_skeptic(row: dict) -> dict:
     triage = row.get("triage") or {}
     state = _jarvis(row)
     verdict = str(triage.get("verdict") or "unreviewed")
-    state["council"] = state.get("council") or {}
-    state["council"]["skeptic"] = {
-        "verdict": verdict,
-        "reason": str(triage.get("reason") or "")[:300],
+    state.setdefault("council", {})["skeptic"] = {
+        "verdict": verdict, "reason": str(triage.get("reason") or "")[:300],
         "scope_ok": triage.get("scope_ok"),
         "attacker_realistic": triage.get("attacker_realistic"),
     }
@@ -230,7 +185,6 @@ def annotate_skeptic(row: dict) -> dict:
 
 
 def annotate_reproduction(row: dict) -> dict:
-    """Advance canonical lifecycle only when the local deterministic oracle reproduced it."""
     repro = row.get("reproduction") or {}
     state = _jarvis(row)
     if str(repro.get("verdict") or "") != "reproduced":
@@ -241,42 +195,55 @@ def annotate_reproduction(row: dict) -> dict:
         return state
     if state.get("stage") != EvidenceStage.SOURCE_SUPPORTED.value:
         return state
-
     lifecycle = FindingLifecycle(state.get("finding_id") or _finding_id(row))
-    source_ev = _evidence("source-validation", row.get("validation") or {}, "source supported")
-    lifecycle.advance(EvidenceStage.SOURCE_SUPPORTED, [source_ev])
-    runtime_ev = _evidence("runtime-observation", repro, "local runtime observation")
-    lifecycle.advance(EvidenceStage.RUNTIME_OBSERVED, [runtime_ev])
-    oracle_ev = _evidence("reproduction-oracle", repro, "deterministic local oracle passed")
-    lifecycle.advance(EvidenceStage.ORACLE_PASSED, [oracle_ev])
-    repro_ev = _evidence("local-reproduction", repro, str(repro.get("summary") or "reproduced"))
-    lifecycle.advance(EvidenceStage.LOCALLY_REPRODUCED, [repro_ev])
+    lifecycle.advance(EvidenceStage.SOURCE_SUPPORTED,
+                      [_evidence("source-validation", row.get("validation") or {}, "source supported")])
+    lifecycle.advance(EvidenceStage.RUNTIME_OBSERVED,
+                      [_evidence("runtime-observation", repro, "local runtime observation")])
+    lifecycle.advance(EvidenceStage.ORACLE_PASSED,
+                      [_evidence("reproduction-oracle", repro, "deterministic local oracle passed")])
+    lifecycle.advance(EvidenceStage.LOCALLY_REPRODUCED,
+                      [_evidence("local-reproduction", repro,
+                                 str(repro.get("summary") or "reproduced"))])
     state["stage"] = lifecycle.stage.value
     state["evidence"] = [e.evidence_id for e in lifecycle.evidence]
     state.setdefault("council", {})["reproduction"] = {
-        "verdict": "reproduced",
-        "summary": str(repro.get("summary") or "")[:300],
-    }
+        "verdict": "reproduced", "summary": str(repro.get("summary") or "")[:300]}
     return state
 
 
 def active_tier3_proposal(action: str, *, rationale: str, expected_requests: int = 1,
                           state_change: bool = False) -> AgentProposal:
-    """Represent dormant ``active/`` capability through the same canonical policy seam.
-
-    Source-review authorization will always veto this proposal because it requires network.
-    Callers that later supply a separately verified network authorization envelope may evaluate
-    the proposal, but execution remains outside this helper and state-changing proposals still
-    require human approval.
-    """
     return AgentProposal(
-        role=AgentRole.API,
-        action=action,
-        rationale=rationale,
+        role=AgentRole.API, action=action, rationale=rationale,
         risk=RiskClass.CONTROLLED_STATE_CHANGE if state_change else RiskClass.READ_ONLY,
-        expected_information_gain=0.7,
-        expected_requests=max(1, expected_requests),
-        requires_network=True,
-        evidence=(),
-        metadata={"tier": 3, "active_module": True},
+        expected_information_gain=0.7, expected_requests=max(1, expected_requests),
+        requires_network=True, metadata={"tier": 3, "active_module": True},
     )
+
+
+def tier3_proposals() -> tuple[AgentProposal, ...]:
+    """Register the real ``aegis.active`` capability families without executing them."""
+    import aegis.active as active
+
+    # Attribute checks intentionally fail loudly in development if Phase-3 modules drift away
+    # from the canonical registry. Merely referencing these functions has no network effect.
+    capabilities = (
+        ("active.route_enumeration", active.run_route_stage, "bounded route enumeration", 8),
+        ("active.parameter_discovery", active.run_parameter_stage, "bounded parameter discovery", 8),
+        ("active.ssrf_probe", active.run_ssrf_probes, "controlled SSRF hypothesis validation", 4),
+        ("active.graphql_analysis", active.analyze_graphql, "GraphQL response differential analysis", 2),
+        ("active.path_normalization", active.analyze_path_normalization,
+         "path-normalization differential analysis", 4),
+        ("active.http_hardening", active.analyze_response_hardening,
+         "HTTP security posture observation", 2),
+    )
+    return tuple(active_tier3_proposal(name, rationale=description, expected_requests=requests)
+                 for name, _callable, description, requests in capabilities)
+
+
+def evaluate_tier3_source_review() -> list[tuple[AgentProposal, object]]:
+    """Proof that every registered active capability is vetoed in source-review mode."""
+    policy = ProposalPolicy()
+    auth = source_review_authorization()
+    return [(proposal, policy.evaluate(proposal, auth)) for proposal in tier3_proposals()]
