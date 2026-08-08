@@ -1,20 +1,10 @@
-"""Hostile-triager pass — the adversarial gate that tries to REJECT a finding.
+"""Hostile-triager pass — the adversarial Skeptic gate for Jarvis.
 
-mdp_sec's P10, and the single most important part of his pipeline: *"a hostile triager who
-does not believe the report. It runs the steps again from the stated attacker position,
-checks every prerequisite, corrects the severity... It is not allowed to invent a new angle
-just to save a weak report."* The goal is not more findings — it is findings that survive
-someone actively trying to prove them wrong.
-
-This runs AFTER Aegis's citation validator (and reachability/caller-trace), as a final
-review of each still-confirmed row. It is deliberately biased toward rejection: a finding
-passes only if it defends itself. A row the triager rejects is demoted out of the confirmed
-set (kept in the report, marked, with the reason) so it never reaches the operator dressed
-up as confirmed.
-
-Boundaries: read-only reasoning over the already-pinned source + finding. No live contact,
-no new exploitation. Any failure degrades to "unreviewed" and NEVER silently drops a finding
-— only an explicit REJECT/ DOWNGRADE verdict changes a row.
+The citation validator establishes source support. This module is the independent Skeptic:
+it tries to reject every economically-promoted claim without inventing a new attack angle.
+Before any LLM call, the canonical Jarvis economics gate chooses a bounded positive-net-value
+portfolio. Deferred findings remain auditable source-supported candidates but do not consume
+expensive council/reproduction budget in this run.
 """
 
 from __future__ import annotations
@@ -62,7 +52,7 @@ def _finding_brief(row: dict) -> dict:
 
 
 class HostileTriager:
-    """One adversarial review per finding. `client.complete_json(messages)` does the call."""
+    """One adversarial review per finding. ``client.complete_json(messages)`` does the call."""
 
     def __init__(self, client) -> None:
         self._client = client
@@ -80,7 +70,7 @@ class HostileTriager:
                 {"role": "user", "content": "Triage this finding. Reject unless it defends "
                                             "itself:\n" + json.dumps(payload)},
             ])
-        except Exception as exc:                     # never drops a finding on an infra error
+        except Exception as exc:
             return {"verdict": "unreviewed", "reason": f"triager error: "
                     f"{type(exc).__name__}: {str(exc)[:160]}"}
         verdict = str(raw.get("verdict", "")).strip().lower()
@@ -103,19 +93,43 @@ def _confirmed(row: dict) -> bool:
         row.get("status") == "confirmed" or bool(row.get("confirmed"))
 
 
+def _defer_economically(row: dict) -> None:
+    econ = (row.get("jarvis") or {}).get("economics") or {}
+    priority = str(econ.get("priority") or "retain_cheap")
+    row["triage"] = {
+        "verdict": "deferred_economics",
+        "reason": f"Jarvis economics gate: {priority}; preserved as source-supported candidate",
+    }
+    row["economic_deferred"] = True
+    row.setdefault("validation", {})["verdict"] = "unresolved"
+    row["validation"]["reason"] = (
+        str(row["validation"].get("reason") or "")
+        + f" [Jarvis: {priority}; expensive council deferred]"
+    ).strip()
+    row["status"] = "unresolved"
+
+
 def triage_report(report: dict, client, *, scope_text: str = "",
                   source_for=None, on_event=None) -> dict:
-    """Run the hostile pass over each confirmed row in ``report['vulnerabilities']``.
-
-    Annotates every reviewed row with a ``triage`` dict. A 'reject' verdict demotes the row
-    (marks it rejected_by_triager and sets its validation verdict to 'rejected' so it drops
-    out of the confirmed count); 'downgrade' rewrites the severity. Returns a summary.
-    ``source_for(row) -> str`` optionally supplies the pinned source excerpt for the row."""
+    """Run the economically-scheduled hostile council over confirmed source findings."""
     emit = on_event or (lambda *_: None)
     rows = [r for r in (report.get("vulnerabilities") or []) if _confirmed(r)]
+
+    try:
+        from .jarvis_runtime import prioritize_council
+        selected, deferred = prioritize_council(rows)
+    except Exception:
+        selected, deferred = rows, []
+
+    for row in deferred:
+        _defer_economically(row)
+        emit("triage", {"location": row.get("location", ""),
+                        "verdict": "deferred_economics",
+                        "reason": "below current Jarvis council allocation threshold"})
+
     triager = HostileTriager(client)
     passed = rejected = downgraded = flagged = 0
-    for row in rows:
+    for row in selected:
         src = ""
         if source_for is not None:
             try:
@@ -137,9 +151,15 @@ def triage_report(report: dict, client, *, scope_text: str = "",
             flagged += 1
         elif v == "pass":
             passed += 1
+        try:
+            from .jarvis_runtime import annotate_skeptic
+            annotate_skeptic(row)
+        except Exception:
+            pass
         emit("triage", {"location": t.get("location") or row.get("location", ""),
                         "verdict": v, "reason": t.get("reason", "")[:160]})
-    summary = {"reviewed": len(rows), "passed": passed, "rejected": rejected,
+    summary = {"reviewed": len(selected), "deferred_economics": len(deferred),
+               "passed": passed, "rejected": rejected,
                "downgraded": downgraded, "needs_evidence": flagged}
     report.setdefault("triage_summary", {}).update(summary)
     return summary
