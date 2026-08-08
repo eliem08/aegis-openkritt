@@ -38,7 +38,7 @@ def _store(path: str | Path | None = None) -> JarvisStateStore:
 
 def persist_finding(row: dict, *, repository: str = "", scope_digest: str = "",
                     path: str | Path | None = None) -> None:
-    """Persist the canonical Jarvis portion of one finding without copying raw secrets."""
+    """Persist canonical lifecycle metadata, then upsert its security-graph projection."""
     state = row.get("jarvis") or {}
     finding_id = str(state.get("finding_id") or "")
     if not finding_id:
@@ -62,6 +62,12 @@ def persist_finding(row: dict, *, repository: str = "", scope_digest: str = "",
             payload=payload,
             cursor=0,
         ))
+    if repository:
+        try:
+            from .jarvis_graph import persist_row_graph
+            persist_row_graph(row, repository, path=path)
+        except Exception:
+            pass
 
 
 def load_finding(finding_id: str, *, path: str | Path | None = None) -> dict | None:
@@ -72,7 +78,6 @@ def load_finding(finding_id: str, *, path: str | Path | None = None) -> dict | N
 
 def learned_probabilities(program_id: str, weakness: str, *,
                           path: str | Path | None = None) -> dict[str, float | int]:
-    """Return conservative learned priors. Zero samples remain neutral rather than dominant."""
     if not program_id or not weakness:
         return {"samples": 0, "acceptance": 0.5, "uniqueness": 0.5,
                 "mean_payout_usd": 0.0, "mean_cost_usd": 0.0}
@@ -88,8 +93,6 @@ def learned_probabilities(program_id: str, weakness: str, *,
 
 
 def build_live_mission(*, repository: str, scope_digest: str) -> MissionPlan:
-    """Canonical resumable mission for the current live source-review pipeline."""
-    safe = repository.replace("/", "__").lower()
     tasks = (
         MissionTask("authorize", "program_policy", "verify_target_authorization"),
         MissionTask("scan", "static_analysis", "deterministic_scan", ("authorize",)),
@@ -101,7 +104,7 @@ def build_live_mission(*, repository: str, scope_digest: str) -> MissionPlan:
         MissionTask("report", "report", "human_review_package", ("reproduce",)),
     )
     return MissionPlan(
-        mission_id=_MISSION_PREFIX + safe,
+        mission_id=_MISSION_PREFIX + repository.replace("/", "__").lower(),
         scope_digest=scope_digest or "source-review",
         objective=f"authorized source review of {repository}",
         tasks=tasks,
@@ -110,12 +113,6 @@ def build_live_mission(*, repository: str, scope_digest: str) -> MissionPlan:
 
 def checkpoint_phase(repository: str, phase: str, *, scope_digest: str = "",
                      payload: dict | None = None, path: str | Path | None = None) -> None:
-    """Checkpoint an existing live phase into the reusable MissionScheduler.
-
-    Completed dependencies are filled monotonically up to ``phase``. Unknown phases are ignored
-    rather than inventing state. This lets the current monolithic hunt resume metadata now while
-    the execution body is gradually decomposed later.
-    """
     order = ("authorize", "scan", "analyze", "validate", "economics", "skeptic",
              "reproduce", "report")
     if phase not in order:
@@ -130,11 +127,9 @@ def checkpoint_phase(repository: str, phase: str, *, scope_digest: str = "",
         target_index = order.index(phase)
         for task in plan.tasks:
             idx = order.index(task.task_id)
-            desired = TaskState.COMPLETE if idx <= target_index else task.state
-            if desired is TaskState.COMPLETE and task.state is not TaskState.COMPLETE:
+            if idx <= target_index and task.state is not TaskState.COMPLETE:
                 plan = scheduler.set_task_state(plan, task.task_id, TaskState.COMPLETE)
         if payload:
-            # Store compact phase telemetry in a companion snapshot without altering task schema.
             store.save_mission(MissionSnapshot(
                 mission_id=mission_id + "::telemetry",
                 scope_digest=scope_digest or plan.scope_digest,
