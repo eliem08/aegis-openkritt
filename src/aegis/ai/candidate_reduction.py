@@ -4,6 +4,9 @@ The funnel suppresses scanner noise before expensive reasoning but never promote
 into a vulnerability. Suppression is intentionally conservative around credentials: deployment
 and CI/IaC files are real attack surface, so credible secrets there survive unless the *filename*
 clearly marks the content as an example/template/fixture.
+
+Corroboration is counted by independent *evidence family*, not raw tool count. Two weak tools
+that implement the same heuristic class must not bootstrap each other into a high-value survivor.
 """
 
 from __future__ import annotations
@@ -42,6 +45,7 @@ _LOW_VALUE_PREFIXES: tuple[tuple[str, str], ...] = (
 
 _SECRET_RULES = {"CWE-798"}
 _SECRET_TOOLS = {"detect-secrets", "gitleaks"}
+_BANDIT_SECRET_RULES = {"B105", "B106", "B107"}
 
 _PLACEHOLDER_FILE = re.compile(
     r"(\.example$|\.sample$|\.template$|\.dist$|"
@@ -70,12 +74,7 @@ _PATHCLASS_WEIGHT = {"source": 1.0, "config": 0.8, "deploy": 0.8}
 
 
 def _normalize_path(path: str) -> str:
-    """Normalize separators without destroying meaningful leading dot-directories.
-
-    ``str.lstrip('./')`` removed the dot from paths such as ``.github/workflows`` and
-    ``.env``, causing CI/IaC and configuration files to be misclassified. Only literal
-    relative-path prefixes are removed here.
-    """
+    """Normalize separators without destroying meaningful leading dot-directories."""
     p = str(path or "").replace("\\", "/")
     while p.startswith("./"):
         p = p[2:]
@@ -145,6 +144,24 @@ class Candidate:
     @property
     def family_key(self) -> tuple[str, str]:
         return (self.cwe or self.rule, self.path_class)
+
+
+def _evidence_family(c: Candidate) -> str:
+    """Return the independent-method family used for corroboration counting.
+
+    Bandit's B105/B106/B107 hardcoded-string checks and detect-secrets' keyword/entropy checks
+    are both weak secret heuristics. Treating them as two independent confirmations caused
+    security vocabulary constants such as ``secret_candidate`` to survive the self-hunt.
+    Gitleaks remains a separate signature-driven family.
+    """
+    tool = c.tool.casefold()
+    if tool == "detect-secrets" or (tool == "bandit" and c.rule in _BANDIT_SECRET_RULES):
+        return "secret-heuristic"
+    if tool == "gitleaks":
+        return "secret-signature"
+    if tool == "bandit" and c.rule == "B608":
+        return "sql-string-heuristic"
+    return f"{tool}:{c.rule or c.cwe}"
 
 
 @dataclass
@@ -220,9 +237,9 @@ def _suppression_reason(c: Candidate) -> str:
     if not corroborated and not strong:
         if c.rule in _REQUIRES_CORROBORATION:
             return (f"weak-single-engine:{c.rule} "
-                    f"({_REQUIRES_CORROBORATION[c.rule]}; needs corroboration)")
+                    f"({_REQUIRES_CORROBORATION[c.rule]}; needs independent corroboration)")
         if c.tool == "detect-secrets":
-            return "weak-single-engine:detect-secrets-unverified (needs corroboration)"
+            return "weak-single-engine:detect-secrets-unverified (needs independent corroboration)"
     return ""
 
 
@@ -248,11 +265,11 @@ def reduce_candidates(rows: list[dict]) -> Reduction:
         seen.add(key)
         deduped.append(c)
 
-    locus_tools: dict[tuple, set[str]] = {}
+    locus_families: dict[tuple, set[str]] = {}
     for c in deduped:
-        locus_tools.setdefault(c.locus, set()).add(c.tool)
+        locus_families.setdefault(c.locus, set()).add(_evidence_family(c))
     for c in deduped:
-        c.corroborators = len(locus_tools.get(c.locus, {c.tool}))
+        c.corroborators = len(locus_families.get(c.locus, {_evidence_family(c)}))
 
     survivors: list[Candidate] = []
     suppressed: list[Candidate] = []
