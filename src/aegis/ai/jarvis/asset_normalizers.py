@@ -9,6 +9,7 @@ executor and stays ``unverified`` until the normal evidence lifecycle promotes i
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass
 from typing import Any, Callable
 
@@ -16,6 +17,95 @@ from .. import tool_registry as registry
 from .asset_cli_executor import LocalCliExecution
 
 Parser = Callable[[dict | list], list[dict]]
+_MODEL_SCAN_SEVERITIES = {"critical", "high", "medium", "low"}
+_SENSITIVE_FIELD_PARTS = ("secret", "token", "password", "credential", "private_key")
+
+
+def _safe_text(value: Any, limit: int = 1000) -> str:
+    if value is None or isinstance(value, (dict, list, tuple, set)):
+        return ""
+    return str(value).replace("\x00", " ").replace("\r", " ").replace("\n", " ").strip()[:limit]
+
+
+def _modelscan_issue(node: dict[str, Any]) -> dict | None:
+    lowered = {str(key).lower(): value for key, value in node.items()}
+    severity = _safe_text(lowered.get("severity"), 30).lower()
+    if severity not in _MODEL_SCAN_SEVERITIES:
+        return None
+    description = _safe_text(lowered.get("description"), 1600)
+    operator = _safe_text(lowered.get("operator"), 300)
+    module = _safe_text(lowered.get("module"), 200)
+    source = _safe_text(lowered.get("source"), 500)
+    scanner = _safe_text(lowered.get("scanner"), 160)
+    # ModelScan's IssueDetails JSON contract emits description/operator/module/source/scanner/
+    # severity. Require at least a real issue description/operator plus provenance-like context
+    # so unrelated report summary severity fields cannot become fake vulnerabilities.
+    if not (description or operator) or not (source or scanner or module):
+        return None
+    summary = description or f"Unsafe model operator {operator}"
+    if operator and operator.lower() not in summary.lower():
+        summary = f"{summary} ({operator})"
+    weakness = "Model serialization unsafe operator"
+    if operator:
+        weakness = f"ModelScan unsafe operator: {operator}"[:200]
+    return {
+        "json_answer": {
+            "vulnerability_type": weakness,
+            "file_path": source,
+            "line": 0,
+            "summary": summary[:300],
+            "explanation": description[:1600],
+        },
+        "severity": severity,
+        "source": "aegis:tool:modelscan",
+        "confidence": 0.7 if severity in {"critical", "high"} else 0.6,
+        "scanner_metadata": {
+            "scanner": scanner or None,
+            "module": module or None,
+            "operator": operator or None,
+            "validation": "modelscan-static-candidate",
+            "model_deserialized": False,
+        },
+    }
+
+
+def _parse_modelscan(payload: dict | list) -> list[dict]:
+    """Tolerate ModelScan report wrappers while only accepting its issue-detail contract."""
+    rows: list[dict] = []
+
+    def walk(value: Any) -> None:
+        if isinstance(value, list):
+            for item in value[:10000]:
+                walk(item)
+            return
+        if not isinstance(value, dict):
+            return
+        issue = _modelscan_issue(value)
+        if issue is not None:
+            rows.append(issue)
+            return  # do not recursively duplicate fields nested inside one issue
+        for key, child in value.items():
+            if any(part in str(key).lower() for part in _SENSITIVE_FIELD_PARTS):
+                continue
+            if isinstance(child, (dict, list)):
+                walk(child)
+
+    walk(payload)
+    output: list[dict] = []
+    seen: set[tuple[str, str, str]] = set()
+    for row in rows:
+        answer = row.get("json_answer") or {}
+        key = (
+            str(answer.get("file_path") or ""),
+            str((row.get("scanner_metadata") or {}).get("operator") or ""),
+            str(answer.get("summary") or ""),
+        )
+        if key in seen:
+            continue
+        seen.add(key)
+        output.append(row)
+    return output
+
 
 _PARSERS: dict[str, Parser] = {
     "bandit": registry._parse_bandit,
@@ -23,6 +113,7 @@ _PARSERS: dict[str, Parser] = {
     "checkov": registry._parse_checkov,
     "gosec": registry._parse_gosec,
     "grype": registry._parse_grype,
+    "modelscan": _parse_modelscan,
     "mythril": registry._parse_mythril,
     "osv-scanner": registry._parse_osv,
     "osv-scanner image": registry._parse_osv,
@@ -60,8 +151,6 @@ def _json_payload(execution: LocalCliExecution) -> dict | list | None:
 
 def _safe_runtime(execution: LocalCliExecution) -> dict:
     provenance = dict(execution.provenance)
-    # argv may contain local checkout paths; useful for an internal artifact ledger but noisy in
-    # a finding row. Retain exact argv in executor provenance and keep a compact candidate copy.
     return {
         "tool": provenance.get("tool"),
         "status": provenance.get("status"),
@@ -114,12 +203,22 @@ def _sbom_observation(payload: dict | list | None, execution: LocalCliExecution)
     }
 
 
+def _successful_scan(execution: LocalCliExecution, key: str) -> bool:
+    if execution.timed_out:
+        return False
+    if key == "modelscan":
+        # ModelScan documents 0=no findings and 1=findings as successful scan outcomes.
+        return execution.returncode in {0, 1}
+    return execution.returncode == 0
+
+
 def normalize_local_cli_execution(execution: LocalCliExecution) -> NormalizedAssetExecution:
     """Normalize one local execution into candidates and/or non-finding observations."""
     payload = _json_payload(execution)
     key = execution.tool.strip().lower()
     parser = _PARSERS.get(key)
-    if parser is not None and payload is not None:
+    successful = _successful_scan(execution, key)
+    if parser is not None and payload is not None and successful:
         try:
             rows = parser(payload)
         except Exception:
@@ -133,6 +232,7 @@ def normalize_local_cli_execution(execution: LocalCliExecution) -> NormalizedAss
                     method=execution.method,
                     data={
                         "returncode": execution.returncode,
+                        "successful_scan": successful,
                         "timed_out": execution.timed_out,
                         "candidate_count": len(rows),
                         "runtime": _safe_runtime(execution),
@@ -141,12 +241,13 @@ def normalize_local_cli_execution(execution: LocalCliExecution) -> NormalizedAss
             ),
         )
 
-    if key == "syft":
+    if key == "syft" and successful:
         data = _sbom_observation(payload, execution)
         kind = "sbom_inventory"
     else:
         data = {
             "returncode": execution.returncode,
+            "successful_scan": successful,
             "timed_out": execution.timed_out,
             "stdout_sha256": execution.stdout_sha256,
             "stderr_sha256": execution.stderr_sha256,
@@ -159,7 +260,10 @@ def normalize_local_cli_execution(execution: LocalCliExecution) -> NormalizedAss
                 for item in execution.outputs[:100]
             ],
             "runtime": _safe_runtime(execution),
-            "normalizer": "no-vulnerability-parser-registered",
+            "normalizer": (
+                "no-vulnerability-parser-registered" if successful
+                else "execution-not-successful"
+            ),
         }
         kind = "tool_observation"
 
