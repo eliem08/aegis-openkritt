@@ -50,7 +50,7 @@ def test_mobile_runtime_methods_do_not_look_production_ready_without_backend():
     assert unimplemented["Frida"].executable_offline is False
 
 
-def test_firmware_extension_is_supported_but_emulation_is_not_falsely_enabled():
+def test_firmware_extension_is_supported_but_emulation_requires_dynamic_policy():
     inventory = inventory_backends(
         AssetKind.HARDWARE,
         firmware_available=True,
@@ -63,12 +63,14 @@ def test_firmware_extension_is_supported_but_emulation_is_not_falsely_enabled():
     ) in supported
     assert supported[("aegis-safe-rootfs-extract", "bounded-archive-extraction")].backend is \
         BackendKind.FIRMWARE_EXTRACTION
-    unimplemented = _by_tool(inventory.unimplemented_ready)
-    assert "FirmAE" in unimplemented or "Firmadyne" in unimplemented
+
+    policy_controlled = _by_tool(inventory.unimplemented_ready)
+    assert "FirmAE" in policy_controlled or "Firmadyne" in policy_controlled
     for tool in ("FirmAE", "Firmadyne"):
-        if tool in unimplemented:
-            assert unimplemented[tool].backend is BackendKind.UNIMPLEMENTED
-            assert "isolated_sandbox" in unimplemented[tool].semantic_requirements
+        if tool in policy_controlled:
+            assert policy_controlled[tool].backend is BackendKind.DYNAMIC_POLICY
+            assert policy_controlled[tool].executable_offline is False
+            assert "policy-controlled dynamic backend" in policy_controlled[tool].reason
 
 
 def test_api_network_methods_are_classified_as_dynamic_policy_not_offline_execution():
