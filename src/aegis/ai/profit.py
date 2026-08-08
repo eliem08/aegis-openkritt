@@ -1,7 +1,8 @@
 """Net-profit allocation for authorized source-code bug-bounty research.
 
-The score is an allocation heuristic, not an earning guarantee. It uses a realistic payout,
-duplicate risk, target competition, class fit, model/scanner cost, and analyst-review cost.
+Target ranking and finding escalation now share the same ``portfolio_agents.Opportunity``
+probability/cost contract. ``ProfitEstimate`` remains the stable compatibility/result shape
+used by AutoHunter and the UI; it no longer owns a second net-EV equation.
 """
 
 from __future__ import annotations
@@ -9,6 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .auto_hunt import AutoHuntConfig, HuntTarget, expected_value
+from .portfolio_agents import Opportunity
 
 _EXT_FIT = {
     ".sol": 1.35,
@@ -71,16 +73,52 @@ def expected_profit(
     config: AutoHuntConfig | None = None,
     severity_floor: str = "critical",
 ) -> float:
-    """Legacy gross score retained for compatibility."""
+    """Legacy gross score retained for API/test compatibility."""
     return round(expected_value(target, config or AutoHuntConfig()) * class_fit(target), 2)
 
 
 def projected_cost(target: HuntTarget, config: AutoHuntConfig | None = None) -> float:
     cfg = config or AutoHuntConfig()
+    return round(target_opportunity(target, cfg).total_cost(cfg.human_hourly_cost_usd), 2)
+
+
+def target_opportunity(
+    target: HuntTarget,
+    config: AutoHuntConfig | None = None,
+    *,
+    feedback_factor: float = 1.0,
+    include_duplicate_risk: bool = True,
+) -> Opportunity:
+    """Adapt a target into the common portfolio opportunity model.
+
+    Competition/saturation reduces the chance that a useful unique bug remains. Class fit and
+    historical feedback adjust the payout basis rather than creating a second EV formula.
+    ``p_reproducible`` is left at 1.0 at target-allocation time because no finding exists yet;
+    finding-level Jarvis economics supplies an evidence-based value later.
+    """
+    cfg = config or AutoHuntConfig()
+    crowd = 1.0 - _bounded(target.saturation)
+    fit = class_fit(target)
+    feedback = min(2.0, max(0.25, float(feedback_factor or 1.0)))
+    payout = float(realistic_payout(target, config=cfg)) * fit * feedback
     compute = target.estimated_compute_cost_usd or cfg.default_compute_cost_usd
     review_minutes = target.human_review_minutes or cfg.default_human_review_minutes
-    analyst_cost = max(0, review_minutes) / 60.0 * max(0.0, cfg.human_hourly_cost_usd)
-    return round(max(0.0, compute) + analyst_cost, 2)
+    unique = 1.0 - _bounded(target.duplicate_risk) if include_duplicate_risk else 1.0
+    return Opportunity(
+        opportunity_id=f"target:{target.handle or target.repository}:{target.repository}",
+        program_id=target.handle or target.repository,
+        bug_class="target_allocation",
+        expected_payout_usd=max(0.0, payout),
+        p_valid=_bounded(target.findability) * crowd * crowd * _bounded(cfg.p_valid),
+        p_accepted=_bounded(cfg.p_accept),
+        p_unique=unique,
+        p_reproducible=1.0,
+        compute_cost_usd=max(0.0, float(compute)),
+        api_cost_usd=0.0,
+        review_minutes=max(0.0, float(review_minutes)),
+        opportunity_cost_usd=0.0,
+        information_gain=max(0.0, _bounded(target.findability) * crowd),
+    )
 
 
 @dataclass(frozen=True)
@@ -114,32 +152,28 @@ def estimate_profit(
     feedback_factor: float = 1.0,
 ) -> ProfitEstimate:
     cfg = config or AutoHuntConfig()
-    crowd = 1.0 - _bounded(target.saturation)
-    fit = class_fit(target)
-    payout = float(realistic_payout(target, config=cfg))
-    gross = (
-        _bounded(target.findability)
-        * crowd * crowd
-        * _bounded(cfg.p_valid)
-        * _bounded(cfg.p_accept)
-        * payout
-        * fit
+    opportunity = target_opportunity(target, cfg, feedback_factor=feedback_factor)
+    gross_opportunity = target_opportunity(
+        target,
+        cfg,
+        feedback_factor=feedback_factor,
+        include_duplicate_risk=False,
     )
-    gross *= min(2.0, max(0.25, float(feedback_factor or 1.0)))
-    duplicate_risk = _bounded(target.duplicate_risk)
-    duplicate_adjusted = gross * (1.0 - duplicate_risk)
-    cost = projected_cost(target, cfg)
-    net = duplicate_adjusted - cost
+    gross = gross_opportunity.gross_value()
+    duplicate_adjusted = opportunity.gross_value()
+    cost = opportunity.total_cost(cfg.human_hourly_cost_usd)
+    net = opportunity.expected_value(cfg.human_hourly_cost_usd)
     roi = net / cost if cost > 0 else (100.0 if net > 0 else 0.0)
+    payout = float(realistic_payout(target, config=cfg))
     return ProfitEstimate(
         payout_basis=payout,
         gross_ev=round(gross, 2),
         duplicate_adjusted_ev=round(duplicate_adjusted, 2),
-        projected_cost_usd=cost,
+        projected_cost_usd=round(cost, 2),
         net_ev=round(net, 2),
         roi=round(roi, 2),
-        duplicate_risk=duplicate_risk,
-        class_fit=fit,
+        duplicate_risk=_bounded(target.duplicate_risk),
+        class_fit=class_fit(target),
     )
 
 
