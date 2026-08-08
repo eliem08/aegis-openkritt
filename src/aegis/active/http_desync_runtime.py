@@ -1,6 +1,6 @@
 """Bounded executor adapter for HTTP desync validation.
 
-The adapter deliberately does not know how to craft unrestricted smuggling payloads.  It binds
+The adapter deliberately does not know how to craft unrestricted smuggling payloads. It binds
 Jarvis's approved ``DetectorTask`` to a configured, scope-controlled validator and converts the
 validator's structured differential result into canonical immutable evidence.
 
@@ -45,7 +45,7 @@ class DesyncValidator(Protocol):
 
 
 class HttpDesyncExecutor:
-    """Execute only the evidence-backed candidates embedded in an approved detector task."""
+    """Execute only the evidence-backed hypotheses embedded in an approved detector task."""
 
     def __init__(self, validator: DesyncValidator) -> None:
         self._validator = validator
@@ -57,8 +57,8 @@ class HttpDesyncExecutor:
     ) -> ActiveExecutionResult:
         if task.detector != "http_desync":
             raise ValueError("HttpDesyncExecutor received a non-http_desync task")
-        candidates = list((task.config or {}).get("candidates") or [])
-        if not candidates:
+        hypotheses = list((task.config or {}).get("hypotheses") or [])
+        if not hypotheses:
             return ActiveExecutionResult(status="no_candidates")
 
         allowed_targets = set(task.targets)
@@ -70,9 +70,9 @@ class HttpDesyncExecutor:
         used = 0
         observed = 0
         reproduced = 0
-        for candidate in candidates:
-            route = str(candidate.get("route") or "")
-            family = str(candidate.get("family") or "")
+        for hypothesis in hypotheses:
+            route = str(hypothesis.get("route") or "")
+            family = str(hypothesis.get("family") or "")
             if not route or route not in allowed_targets or not family:
                 continue
             remaining = request_cap - used
@@ -84,7 +84,7 @@ class HttpDesyncExecutor:
                 max_requests=remaining,
             )
             if result.route != route or result.family != family:
-                raise RuntimeError("desync validator returned evidence for a different candidate")
+                raise RuntimeError("desync validator returned evidence for a different hypothesis")
             consumed = max(0, int(result.requests_used))
             if consumed > remaining:
                 raise RuntimeError("desync validator exceeded its per-call request allowance")
@@ -125,6 +125,6 @@ class HttpDesyncExecutor:
             metadata={
                 "observed": observed,
                 "reproduced": reproduced,
-                "candidates_considered": len(candidates),
+                "candidates_considered": len(hypotheses),
             },
         )
