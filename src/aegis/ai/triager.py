@@ -93,6 +93,14 @@ def _confirmed(row: dict) -> bool:
         row.get("status") == "confirmed" or bool(row.get("confirmed"))
 
 
+def _annotate_skeptic(row: dict) -> None:
+    try:
+        from .jarvis_runtime import annotate_skeptic
+        annotate_skeptic(row)
+    except Exception:
+        pass
+
+
 def _defer_economically(row: dict) -> None:
     econ = (row.get("jarvis") or {}).get("economics") or {}
     priority = str(econ.get("priority") or "retain_cheap")
@@ -107,6 +115,20 @@ def _defer_economically(row: dict) -> None:
         + f" [Jarvis: {priority}; expensive council deferred]"
     ).strip()
     row["status"] = "unresolved"
+    _annotate_skeptic(row)
+
+
+def _checkpoint(rows: list[dict], phase: str, payload: dict) -> None:
+    state = next((r.get("jarvis") or {} for r in rows if (r.get("jarvis") or {}).get("repository")), {})
+    repository = str(state.get("repository") or "")
+    if not repository:
+        return
+    try:
+        from .jarvis_persistence import checkpoint_phase
+        checkpoint_phase(repository, phase, scope_digest=str(state.get("scope_digest") or ""),
+                         payload=payload)
+    except Exception:
+        pass
 
 
 def triage_report(report: dict, client, *, scope_text: str = "",
@@ -114,12 +136,15 @@ def triage_report(report: dict, client, *, scope_text: str = "",
     """Run the economically-scheduled hostile council over confirmed source findings."""
     emit = on_event or (lambda *_: None)
     rows = [r for r in (report.get("vulnerabilities") or []) if _confirmed(r)]
+    handle = next((str((r.get("jarvis") or {}).get("program_id") or "") for r in rows
+                   if (r.get("jarvis") or {}).get("program_id")), "")
 
     try:
         from .jarvis_runtime import prioritize_council
-        selected, deferred = prioritize_council(rows)
+        selected, deferred = prioritize_council(rows, handle=handle)
     except Exception:
         selected, deferred = rows, []
+    _checkpoint(rows, "economics", {"selected": len(selected), "deferred": len(deferred)})
 
     for row in deferred:
         _defer_economically(row)
@@ -151,15 +176,12 @@ def triage_report(report: dict, client, *, scope_text: str = "",
             flagged += 1
         elif v == "pass":
             passed += 1
-        try:
-            from .jarvis_runtime import annotate_skeptic
-            annotate_skeptic(row)
-        except Exception:
-            pass
+        _annotate_skeptic(row)
         emit("triage", {"location": t.get("location") or row.get("location", ""),
                         "verdict": v, "reason": t.get("reason", "")[:160]})
     summary = {"reviewed": len(selected), "deferred_economics": len(deferred),
                "passed": passed, "rejected": rejected,
                "downgraded": downgraded, "needs_evidence": flagged}
     report.setdefault("triage_summary", {}).update(summary)
+    _checkpoint(rows, "skeptic", summary)
     return summary
