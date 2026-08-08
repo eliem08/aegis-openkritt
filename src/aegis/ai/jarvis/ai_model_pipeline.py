@@ -24,7 +24,6 @@ from .model_provenance import (
 )
 from .ticketed_networkless import execute_ticketed_networkless_method
 
-
 MODEL_SCAN_CLI = DeepScannerMethod(
     "ModelScan",
     "artifact-scan",
@@ -162,7 +161,6 @@ def run_ai_model_pipeline(
         return report
 
     try:
-        # Rebind immediately before scanner execution. A changed model never reaches ModelScan.
         current_digest = _sha256_file(artifact)
         if current_digest != report.artifact_ticket.sha256:
             raise ModelProvenanceError("model artifact changed after provenance inspection")
