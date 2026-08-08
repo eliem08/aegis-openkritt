@@ -19,7 +19,8 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Iterable
 
-from aegis.scheduler.profit import ProfitFeatures, score as score_profit
+from aegis.scheduler.profit import ProfitFeatures
+from aegis.scheduler.profit import score as score_profit
 
 from .agentic_os import (
     AgentProposal,
@@ -261,8 +262,16 @@ def _finding_inputs(row: dict, *, handle: str = "") -> tuple[ProfitFeatures, dic
 
     payout_basis = float(bounty.likely_bounty)
     learned_payout = float(learned.get("mean_payout_usd") or 0.0)
+    direct_samples = int(learned.get("direct_samples") or 0)
     if learned_payout > 0 and prior_samples:
-        payout_basis = (1.0 - learned_weight) * payout_basis + learned_weight * learned_payout
+        # Direct bounty outcomes are genuine calibration evidence and may move the estimate
+        # either direction. A tiny disclosure-corpus pseudo-prior is only an exploration hint;
+        # it may add upside signal but cannot drag a stronger live/default payout basis lower.
+        if direct_samples > 0 or learned_payout >= payout_basis:
+            payout_basis = (
+                (1.0 - learned_weight) * payout_basis
+                + learned_weight * learned_payout
+            )
 
     features = ProfitFeatures(
         p_valid=source_conf,
