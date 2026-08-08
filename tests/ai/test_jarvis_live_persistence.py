@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 from aegis.ai.jarvis.state_store import JarvisStateStore
 from aegis.ai.jarvis_graph import load_graph
 from aegis.ai.jarvis_persistence import (
@@ -91,3 +93,31 @@ def test_real_outcomes_shift_finding_ev_without_overfitting(tmp_path, monkeypatc
     assert learned.acceptance_probability > neutral.acceptance_probability
     assert learned.uniqueness_probability > neutral.uniqueness_probability
     assert learned.expected_gross_usd > neutral.expected_gross_usd
+
+
+def test_disclosure_corpus_is_only_a_bounded_pseudoprior(tmp_path, monkeypatch):
+    db = tmp_path / "jarvis.db"
+    corpus = tmp_path / "reports.jsonl"
+    monkeypatch.setenv("AEGIS_JARVIS_DB", str(db))
+    with JarvisStateStore(db):
+        pass
+
+    row = _row()
+    baseline = estimate_finding_economics(row, handle="acme")
+
+    records = [
+        {"report_id": f"r{i}", "program": "acme", "cwe": "CWE-862",
+         "severity": "high", "bounty": 1500 + i * 100}
+        for i in range(4)
+    ]
+    records.append({"report_id": "other", "program": "acme", "cwe": "CWE-79",
+                    "severity": "medium", "bounty": 300})
+    corpus.write_text("\n".join(json.dumps(item) for item in records) + "\n", encoding="utf-8")
+    monkeypatch.setenv("AEGIS_KNOWLEDGE_CORPUS", str(corpus))
+
+    historical = estimate_finding_economics(row, handle="acme")
+    assert historical.prior_samples == 2
+    assert historical.acceptance_probability >= baseline.acceptance_probability
+    assert historical.expected_gross_usd >= baseline.expected_gross_usd
+    # Historical frequency can inform exploration, but never masquerades as many real outcomes.
+    assert historical.prior_samples < 5
