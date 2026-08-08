@@ -37,6 +37,15 @@ _LOW_VALUE_RULES: dict[str, str] = {
     "B311": "stdlib random (only matters for crypto/token use)",
     "B322": "input() builtin (py2 legacy; n/a)",
     "B104": "bind all interfaces (deployment posture, not a code vuln candidate)",
+    "B113": "requests without timeout (reliability hygiene, not a vuln)",
+    "B103": "permissive file permissions (hardening nit)",
+    "B413": "deprecated pyCrypto import (import alone is not a sink)",
+    "B405": "xml.etree import (import alone is not a sink)",
+    "B314": "xml.etree parse (hygiene unless untrusted XML is proven)",
+    "B318": "xml.dom.minidom import (import alone is not a sink)",
+    "B320": "lxml import (import alone is not a sink)",
+    "B410": "lxml import (import alone is not a sink)",
+    "B411": "xmlrpc import (import alone is not a sink)",
 }
 
 # --- weak single-engine heuristics: real classes, but a *single* scanner that cannot prove
@@ -54,14 +63,22 @@ _REQUIRES_CORROBORATION: dict[str, str] = {
     "B303": "weak-hash heuristic",
     "B324": "weak-hash heuristic",
     "B602": "subprocess shell=True without taint proof",
+    "B605": "start process with a shell without taint proof",
+    "B102": "exec() used without taint proof",
+    "B307": "eval() used without taint proof",
+    "B301": "pickle load without taint proof",
+    "B506": "yaml.load without taint proof",
+    "B202": "tarfile extract without taint proof (tar-slip needs a reachable attacker archive)",
+    "B701": "jinja2 autoescape=false (XSS needs a reachable untrusted-output template)",
 }
 _CORROBORATION_MIN = 2       # distinct engines at the same locus
 _STRONG_CONF = 0.85          # a single engine this confident survives alone
 
 # tools whose findings are weak on their own (high false-positive rate) — survive only when
-# corroborated by a second engine or highly confident. njsscan's node_insecure_random_generator /
-# node_username fire on Math.random() and the literal word "username" (near-100% FP in practice).
-_WEAK_TOOLS = {"njsscan"}
+# corroborated by a second engine or highly confident. njsscan fires on Math.random() and the
+# literal word "username"; brakeman flags every interpolated where(...) as SQLi on mature Rails
+# apps (discourse alone produced 262 brakeman-only "findings", ~all FPs). Both need corroboration.
+_WEAK_TOOLS = {"njsscan", "brakeman"}
 
 # checkov docker/IaC hygiene checks: real hardening advice, but not a candidate vulnerability
 # hypothesis — suppressed by prefix so the whole CKV_DOCKER_* family collapses.

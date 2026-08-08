@@ -100,6 +100,19 @@ def test_broadened_nonproduct_paths():
     assert path_class("lib/forge-std/Test.sol") == "vendor"
 
 
+def test_brakeman_is_weak_single_engine_but_corroborated_survives():
+    # brakeman-only SQLi on mature Rails is high-FP -> suppressed alone
+    solo = reduce_candidates([row("brakeman", "SQL Injection", "app/models/user.rb",
+                                  cwe="CWE-89", sev="high", conf=0.6)])
+    assert solo.survivors == []
+    assert "brakeman" in solo.suppressed[0].reason
+    # brakeman + semgrep agreeing at the same locus -> survives (real corroboration)
+    duo = reduce_candidates([
+        row("brakeman", "SQL Injection", "app/models/user.rb", line=10, cwe="CWE-89", conf=0.6),
+        row("semgrep", "tainted-sql", "app/models/user.rb", line=11, cwe="CWE-89", conf=0.7)])
+    assert len(duo.survivors) == 2
+
+
 def test_njsscan_and_shell_subprocess_are_weak_single_engine():
     # njsscan node_insecure_random_generator on Math.random in real source -> suppressed
     r1 = reduce_candidates([row("njsscan", "node_insecure_random_generator", "src/web/captcha.js",

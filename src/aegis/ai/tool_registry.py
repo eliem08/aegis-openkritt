@@ -198,11 +198,17 @@ def _parse_brakeman(data) -> list[dict]:
     rows = []
     warns = (data or {}).get("warnings", []) if isinstance(data, dict) else []
     conf = {"High": "high", "Medium": "medium", "Weak": "low"}
+    # numeric confidence kept modest (< strong-alone bar): brakeman's self-rated "High" is not
+    # calibrated to real exploitability on mature apps, so it contributes to corroboration but
+    # never survives alone (candidate_reduction treats brakeman as a weak single-engine tool).
+    conf_num = {"High": 0.6, "Medium": 0.45, "Weak": 0.3}
     for w in warns:
+        level = str(w.get("confidence"))
         rows.append(_row("brakeman", w.get("warning_type", "brakeman"), w.get("file"),
                          w.get("line"), w.get("message", ""),
-                         conf.get(str(w.get("confidence")), "medium"),
-                         f"{w.get('message','')} ({w.get('link','')})"))
+                         conf.get(level, "medium"),
+                         f"{w.get('message','')} ({w.get('link','')})",
+                         confidence=conf_num.get(level, 0.45)))
     return rows
 
 
