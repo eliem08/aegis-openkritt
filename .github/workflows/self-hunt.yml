@@ -3,11 +3,18 @@ name: Aegis Self Hunt
 on:
   workflow_dispatch:
   push:
-    branches: [agent/operator-ui-autohunt]
+    branches: [main]
     paths:
       - "src/**"
       - "pyproject.toml"
       - ".github/workflows/self-hunt.yml"
+  pull_request:
+    paths:
+      - "src/**"
+      - "pyproject.toml"
+      - ".github/workflows/self-hunt.yml"
+  schedule:
+    - cron: "17 3 * * *"
 
 permissions:
   contents: read
@@ -29,10 +36,6 @@ jobs:
       - name: Run autonomous self-hunt (authorized local checkout only)
         env:
           AEGIS_SCANNER_CONCURRENCY: "4"
-        # Runs the installed scanners over THIS checkout (repository-owner self-audit) and
-        # reduces hundreds of raw observations to a small ranked set of candidate families via
-        # the deterministic candidate_reduction funnel — candidates only, nothing reproduced or
-        # submitted. Logic lives in aegis.ai.self_hunt (unit-tested), not an inline heredoc.
         run: python -m aegis.ai.self_hunt
       - name: Upload candidate evidence
         uses: actions/upload-artifact@v4
