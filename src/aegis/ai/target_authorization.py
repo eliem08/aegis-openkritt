@@ -155,13 +155,13 @@ def _owned_from_env(extra: list[str] | None = None) -> set[str]:
     return {x for x in owned if x}
 
 
-def _program_covering(repo: str, registry_path: str | Path | None):
+def _program_covering(repo: str, registry_path: str | Path | None, programs=None):
     """Return the ACTIVE program whose current scope explicitly lists ``repo`` (and does not
     exclude it), or None. A public repo not explicitly in an active program's scope is NOT
-    covered."""
+    covered. Pass ``programs`` (a preloaded registry) to avoid re-parsing it per call."""
     from .registry import load_registry
     r = _norm(repo)
-    for prog in load_registry(registry_path):
+    for prog in (programs if programs is not None else load_registry(registry_path)):
         if not prog.active:
             continue
         targets = {_norm(t) for t in (prog.targets or [])}
@@ -203,9 +203,10 @@ def _owner_record(repo: str, now: datetime) -> AuthorizationRecord:
 def authorize(repository: str, *, registry_path: str | Path | None = None,
               ledger_path: str | Path | None = None, owned: list[str] | None = None,
               max_age_days: int = DEFAULT_MAX_AGE_DAYS, now: datetime | None = None,
-              persist: bool = True) -> AuthorizationDecision:
+              persist: bool = True, programs=None) -> AuthorizationDecision:
     """The BLOCK-by-default target-authorization gate. Re-derives program authorization every
-    call (so scope drift is caught) and reconciles with any stored ledger record."""
+    call (so scope drift is caught) and reconciles with any stored ledger record. Pass
+    ``programs`` (a preloaded registry) to avoid re-parsing the registry on every call."""
     now = now or _now()
     repo = _norm(repository)
     if not repo:
@@ -218,7 +219,7 @@ def authorize(repository: str, *, registry_path: str | Path | None = None,
         return AuthorizationDecision(repo, False, BLOCKED,
                                      rec.authorization_reason or "explicitly blocked", rec)
 
-    prog = _program_covering(repo, registry_path)
+    prog = _program_covering(repo, registry_path, programs)
 
     # scope-drift / revocation detection for a previously program-authorized target
     if rec and rec.status == AUTHORIZED and rec.source_platform not in _EXPLICIT_SOURCES:
@@ -284,8 +285,9 @@ def list_authorized(registry_path: str | Path | None = None,
     """Every repository currently authorized to hunt — active program targets + owned + fresh
     manual ledger records. Used to build the hunt queue from verifiable authorization only."""
     from .registry import load_registry
+    progs = load_registry(registry_path)              # load once, reuse for every gate check
     repos: set[str] = set(_owned_from_env(owned))
-    for prog in load_registry(registry_path):
+    for prog in progs:
         if prog.active:
             for t in (prog.targets or []):
                 if _norm(t) not in {_norm(x) for x in (prog.out_of_scope or [])}:
@@ -296,7 +298,7 @@ def list_authorized(registry_path: str | Path | None = None,
     # only return ones that actually pass the gate right now
     return sorted(r for r in repos
                   if authorize(r, registry_path=registry_path, ledger_path=ledger_path,
-                               owned=owned, persist=False).allowed)
+                               owned=owned, persist=False, programs=progs).allowed)
 
 
 def authorized_targets(registry_path: str | Path | None = None,
@@ -304,11 +306,12 @@ def authorized_targets(registry_path: str | Path | None = None,
                        owned: list[str] | None = None) -> list:
     """EV-rankable HuntTargets restricted to currently-authorized program targets — the queue
     the ranker consumes, guaranteed to contain only verifiably-authorized repositories."""
-    from .registry import to_hunt_targets
+    from .registry import load_registry, to_hunt_targets
+    progs = load_registry(registry_path)              # load once, not per-target (was O(N^2))
     out = []
-    for t in to_hunt_targets(path=registry_path):
+    for t in to_hunt_targets(programs=progs):
         d = gate(t.repository, registry_path=registry_path, ledger_path=ledger_path,
-                 owned=owned, persist=False)
+                 owned=owned, persist=False, programs=progs)
         if d.allowed:
             out.append(t)
     return out
