@@ -101,6 +101,36 @@ def _resolve_bwrap_binary() -> str:
     return os.environ.get("AEGIS_BWRAP_PATH", "").strip() or "bwrap"
 
 
+def _ghidra_version(resolved_launcher: str) -> str:
+    """Read Ghidra's local application metadata; analyzeHeadless itself has no --version API."""
+    launcher = Path(resolved_launcher).resolve()
+    candidates = (
+        launcher.parent.parent / "Ghidra" / "application.properties",
+        launcher.parent.parent / "application.properties",
+    )
+    for properties in candidates:
+        if not properties.is_file():
+            continue
+        version = ""
+        release = ""
+        try:
+            lines = properties.read_text(encoding="utf-8", errors="replace").splitlines()
+        except OSError:
+            continue
+        for raw in lines:
+            line = raw.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = (part.strip() for part in line.split("=", 1))
+            if key == "application.version":
+                version = value[:80]
+            elif key == "application.release.name":
+                release = value[:80]
+        if version:
+            return f"Ghidra {version}" + (f" {release}" if release else "")
+    return ""
+
+
 def _pin(pins: dict[str, ToolPin], name: str, binary: str) -> ToolPin | None:
     return pins.get(name) or pins.get(name.lower()) or pins.get(binary)
 
@@ -268,11 +298,18 @@ def execute_ghidra_sandboxed(
     configured_pins = pins if pins is not None else load_tool_pins()
     ghidra_binary = _resolve_ghidra_binary()
     bwrap_binary = _resolve_bwrap_binary()
+    ghidra_resolved = manager.resolve(ghidra_binary)
+    if not ghidra_resolved:
+        raise GhidraSandboxError("Ghidra runtime is unavailable: binary not found")
+    ghidra_version = _ghidra_version(ghidra_resolved)
+    if not ghidra_version:
+        raise GhidraSandboxError("Ghidra install metadata is unavailable; refusing unversioned runtime")
     ghidra = manager.inspect(
         name="Ghidra",
         binary=ghidra_binary,
         pin=_pin(configured_pins, "Ghidra", ghidra_binary),
         refresh=True,
+        version_override=ghidra_version,
     )
     bwrap = manager.inspect(
         name="bubblewrap",
