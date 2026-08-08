@@ -5,13 +5,12 @@ an installed binary, fingerprints the exact executable, performs a bounded non-t
 probe, checks optional pins, and returns an explicit status before any scan is considered.
 
 The manager never uses ``shell=True`` and never sends a target to a tool during health checks.
-It is intentionally independent of ``ToolBridge`` so CI can inject a fake resolver/runner and
-production can later reuse the same records for containerized workers.
 """
 
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import shutil
 import subprocess
@@ -61,6 +60,44 @@ class ToolRuntimeRecord:
 
 Resolver = Callable[[str], str | None]
 Runner = Callable[[list[str], float], tuple[int, str, str]]
+
+
+def load_tool_pins(path: str | Path | None = None) -> dict[str, ToolPin]:
+    """Load optional worker pins from JSON.
+
+    File shape::
+
+        {"semgrep": {"sha256": "<64 hex>", "version_contains": "1.99"}}
+
+    An explicitly configured but malformed file raises ``ValueError`` instead of silently
+    disabling pin enforcement. No file configured means no pins.
+    """
+    configured = str(path or os.environ.get("AEGIS_TOOL_PINS_FILE", "")).strip()
+    if not configured:
+        return {}
+    pin_path = Path(configured)
+    if not pin_path.is_file():
+        raise ValueError(f"tool pin file does not exist: {pin_path}")
+    try:
+        payload = json.loads(pin_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise ValueError("tool pin file is not valid JSON") from exc
+    if not isinstance(payload, dict):
+        raise ValueError("tool pin file must contain an object keyed by tool name")
+
+    pins: dict[str, ToolPin] = {}
+    for raw_name, raw_pin in payload.items():
+        name = str(raw_name).strip()
+        if not name or not isinstance(raw_pin, dict):
+            raise ValueError("every tool pin must be a named object")
+        sha = str(raw_pin.get("sha256") or "").strip().lower()
+        marker = str(raw_pin.get("version_contains") or "").strip()
+        if sha and (len(sha) != 64 or any(char not in "0123456789abcdef" for char in sha)):
+            raise ValueError(f"invalid sha256 pin for {name}")
+        if len(marker) > 120:
+            raise ValueError(f"version marker too long for {name}")
+        pins[name] = ToolPin(sha256=sha, version_contains=marker)
+    return pins
 
 
 def resolve_binary(binary: str) -> str | None:
