@@ -37,11 +37,14 @@ def test_hygiene_rules_are_suppressed_with_reasons():
 
 
 def test_checkov_docker_prefix_family_collapses():
-    rows = [row("checkov", "CKV_DOCKER_2", "Dockerfile"),
-            row("checkov", "CKV_DOCKER_7", "Dockerfile")]
-    red = reduce_candidates(rows)
+    # on a Dockerfile these are suppressed by the non-product (deploy) path; on a non-deploy
+    # path the CKV_DOCKER_* rule prefix still suppresses them.
+    red = reduce_candidates([row("checkov", "CKV_DOCKER_2", "Dockerfile"),
+                             row("checkov", "CKV_DOCKER_7", "Dockerfile")])
     assert red.survivors == []
-    assert all("low-value-rule:CKV_DOCKER_*" in c.reason for c in red.suppressed)
+    rule_hit = reduce_candidates([row("checkov", "CKV_DOCKER_2", "src/app/thing.py")])
+    assert rule_hit.survivors == []
+    assert "low-value-rule:CKV_DOCKER_*" in rule_hit.suppressed[0].reason
 
 
 def test_placeholder_and_bench_secrets_suppressed_but_real_source_secret_survives():
@@ -85,6 +88,32 @@ def test_cross_engine_corroboration_boosts_score():
     assert duo.survivors[0].corroborators == 2
     assert solo.survivors[0].corroborators == 1
     assert duo.survivors[0].score > solo.survivors[0].score
+
+
+def test_broadened_nonproduct_paths():
+    # patterns the fleet sweep surfaced as noise
+    assert path_class("Example_Submissions/x/certora_build.py") == "example"
+    assert path_class("blend/backstop/certora_build.py") == "build"
+    assert path_class("protocol-deploy/deploy/__init__.py") in ("build", "deploy")
+    assert path_class("scripts/deploy.py") == "build"
+    assert path_class("x/discord-export/foo_Files/lottie.min-99657.js") == "generated"
+    assert path_class("lib/forge-std/Test.sol") == "vendor"
+
+
+def test_njsscan_and_shell_subprocess_are_weak_single_engine():
+    # njsscan node_insecure_random_generator on Math.random in real source -> suppressed
+    r1 = reduce_candidates([row("njsscan", "node_insecure_random_generator", "src/web/captcha.js",
+                                sev="medium", conf=0.0)])
+    assert r1.survivors == []
+    assert "njsscan" in r1.suppressed[0].reason
+    # bandit B602 (subprocess shell=True) alone in real source -> suppressed (needs corroboration)
+    r2 = reduce_candidates([row("bandit", "B602", "src/app/run.py", sev="high", conf=0.0)])
+    assert r2.survivors == []
+    assert "B602" in r2.suppressed[0].reason
+    # B602 in a build/deploy script -> suppressed as non-product path
+    r3 = reduce_candidates([row("bandit", "B602", "certora/certora_build.py", sev="high")])
+    assert r3.survivors == []
+    assert r3.suppressed[0].reason.startswith("non-product-path")
 
 
 def test_weak_single_engine_needs_corroboration():

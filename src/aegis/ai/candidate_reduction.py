@@ -53,9 +53,15 @@ _REQUIRES_CORROBORATION: dict[str, str] = {
     "B310": "urllib open without taint proof",
     "B303": "weak-hash heuristic",
     "B324": "weak-hash heuristic",
+    "B602": "subprocess shell=True without taint proof",
 }
 _CORROBORATION_MIN = 2       # distinct engines at the same locus
 _STRONG_CONF = 0.85          # a single engine this confident survives alone
+
+# tools whose findings are weak on their own (high false-positive rate) — survive only when
+# corroborated by a second engine or highly confident. njsscan's node_insecure_random_generator /
+# node_username fire on Math.random() and the literal word "username" (near-100% FP in practice).
+_WEAK_TOOLS = {"njsscan"}
 
 # checkov docker/IaC hygiene checks: real hardening advice, but not a candidate vulnerability
 # hypothesis — suppressed by prefix so the whole CKV_DOCKER_* family collapses.
@@ -81,18 +87,29 @@ _PLACEHOLDER_FILE = re.compile(
 _PATH_CLASSES: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("test", re.compile(r"(^|/)_*(tests?|specs?)_*(/|$)|(_test|\.test|\.spec)\.", re.I)),
     ("bench", re.compile(r"(^|/)bench(es|mark|marks|marking)?(/|$)", re.I)),
-    ("example", re.compile(r"(^|/)(examples?|demos?|samples?|fixtures?|mocks?)(/|$)", re.I)),
-    ("vendor", re.compile(r"(^|/)(vendor|third_party|node_modules|bower_components)(/|$)", re.I)),
-    ("generated", re.compile(r"[.-]min\.(js|css)$|\.bundle\.js$|(^|/)(dist|build)(/|$)|"
-                             r"_generated|_pb2|\.pb\.", re.I)),
+    # example/sample/fixture/mock/demo/submission as a substring of any path segment, so
+    # `Example_Submissions/`, `example-app`, `sample_config` etc. are all caught.
+    ("example", re.compile(r"(^|/)[^/]*(examples?|demos?|samples?|fixtures?|mocks?|"
+                           r"submissions?)[^/]*(/|$)", re.I)),
+    ("vendor", re.compile(r"(^|/)(vendor|third_party|node_modules|bower_components|"
+                          r"forge-std|openzeppelin|lib/forge-std)(/|$)", re.I)),
+    # minified/bundled/generated + browser-save archives (…_Files/) + solidity build output.
+    ("generated", re.compile(r"[.-]min[.-]|[.-]min\.(js|css)$|\.bundle\.js$|"
+                             r"(^|/)(dist|build|out|artifacts|coverage)(/|$)|"
+                             r"_files?/|discord-export|_generated|_pb2|\.pb\.", re.I)),
     ("docs", re.compile(r"(^|/)docs?(/|$)|\.(md|rst)$|(^|/)readme", re.I)),
+    # CI/deploy/build tooling: not the audited app/contract surface for a code/contract bounty.
+    ("build", re.compile(r"(^|/)(certora|foundry|hardhat|truffle|scripts?|tools?|tooling|"
+                         r"ci|deployments?)(/|$)|certora[_-]?build", re.I)),
     ("deploy", re.compile(r"(^|/)(deploy|\.github|k8s|helm|charts?|terraform)(/|$)|"
                           r"(^|/)docker-compose[^/]*\.ya?ml$|(^|/)dockerfile[^/]*$|\.tf$", re.I)),
     ("config", re.compile(r"\.(ya?ml|toml|ini|cfg|conf|json|env)$|(^|/)\.env", re.I)),
 )
 
 #: path classes that are not the product's runtime attack surface -> suppress by default.
-_NONPRODUCT = {"test", "bench", "example", "vendor", "generated", "docs"}
+#: deploy/build (CI, deploy scripts, certora/foundry/hardhat tooling) are out of scope for a
+#: code/contract bounty — a subprocess/exec finding in a build script is not the audited bug.
+_NONPRODUCT = {"test", "bench", "example", "vendor", "generated", "docs", "deploy", "build"}
 
 _SEVERITY_WEIGHT = {"critical": 1.0, "high": 0.8, "medium": 0.5, "low": 0.25, "info": 0.15}
 _PATHCLASS_WEIGHT = {"source": 1.0, "config": 0.7, "deploy": 0.6}
@@ -245,6 +262,9 @@ def _suppression_reason(c: Candidate) -> str:
         # a verified plugin to be worth AI time.
         if c.tool == "detect-secrets":
             return "weak-single-engine:detect-secrets-unverified (needs corroboration)"
+        # high-FP tools (njsscan) survive only when corroborated or highly confident.
+        if c.tool in _WEAK_TOOLS:
+            return f"weak-single-engine:{c.tool} (high-FP tool; needs corroboration)"
     return ""
 
 
