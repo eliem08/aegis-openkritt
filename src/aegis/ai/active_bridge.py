@@ -10,7 +10,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Iterable
 
-from aegis.active import DetectorPlan, DetectorTask, plan_detectors, routes_from_assets
+from aegis.active import (
+    DetectorPlan,
+    DetectorTask,
+    analyze_desync_observations,
+    observations_from_assets,
+    plan_detectors,
+    routes_from_assets,
+)
 
 from .agentic_os import AgentProposal, AgentRole, RiskClass
 
@@ -204,12 +211,20 @@ def plan_active_proposals(
     enabled=None,
     identifier_samples=None,
     contracts=(),
-    desync_candidates=(),
+    desync_candidates=None,
     per_target_requests: int = 2,
     max_targets_per_detector: int = 200,
 ) -> tuple[DetectorPlan, tuple[AgentProposal, ...]]:
-    """Plan active work from discovered assets without executing a live request."""
-    routes = routes_from_assets(list(assets))
+    """Plan active work from discovered assets without executing a live request.
+
+    HTTP desync is fully connected to the asset graph: unless a caller intentionally supplies a
+    candidate set, Jarvis extracts protocol/intermediary evidence from the same discovered ROUTE
+    assets used by every other detector and analyzes it automatically.
+    """
+    asset_list = list(assets)
+    routes = routes_from_assets(asset_list)
+    if desync_candidates is None:
+        desync_candidates = analyze_desync_observations(observations_from_assets(asset_list))
     plan = plan_detectors(
         routes,
         host=host,
