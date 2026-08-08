@@ -87,8 +87,8 @@ class AuthorizationRecord:
     excluded_paths: list[str] = field(default_factory=list)
     scope_text: str = ""
     scope_snapshot_hash: str = ""
-    scope_retrieved_at: str = ""         # upstream source timestamp, not local verification time
-    last_verified_at: str = ""           # local gate verification timestamp
+    scope_retrieved_at: str = ""
+    last_verified_at: str = ""
     expires_at: str = ""
     authorization_reason: str = ""
     evidence: str = ""
@@ -191,7 +191,8 @@ def _record_from_program(prog, repo: str, now: datetime) -> AuthorizationRecord:
     scope = prog.scope_bundle()
     iso = now.isoformat()
     bounty_targets = {_norm(t) for t in (getattr(prog, "bounty_eligible_targets", []) or [])}
-    bounty_eligible = (_norm(repo) in bounty_targets if bounty_targets
+    bounty_known = bool(getattr(prog, "bounty_eligibility_known", False))
+    bounty_eligible = (_norm(repo) in bounty_targets if bounty_known
                        else (prog.reward_ceiling or 0) > 0)
     source_scope_time = (getattr(prog, "scope_retrieved_at", "") or
                          getattr(prog, "source_retrieved_at", ""))
@@ -238,8 +239,6 @@ def authorize(repository: str, *, registry_path: str | Path | None = None,
 
     prog = _program_covering(repo, registry_path)
 
-    # A local registry is not proof of current authorization unless its upstream scope snapshot
-    # is fresh. This prevents repeatedly re-verifying an arbitrarily old programs.json entry.
     if prog is not None and _program_scope_is_stale(prog, now):
         stale = _record_from_program(prog, repo, now)
         stale = replace(stale, status=STALE,
@@ -342,6 +341,7 @@ def main(argv=None) -> int:
     import sys
 
     from ..env import load_dotenv
+
     load_dotenv()
     argv = list(argv if argv is not None else sys.argv[1:])
     if not argv:
