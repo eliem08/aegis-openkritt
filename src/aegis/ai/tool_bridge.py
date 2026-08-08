@@ -17,8 +17,8 @@ from .tool_runtime import (
     ToolRuntimeStatus,
     load_tool_pins,
     provenance,
-    resolve_binary as _runtime_resolve_binary,
 )
+from .tool_runtime import resolve_binary as _runtime_resolve_binary
 
 
 @dataclass
