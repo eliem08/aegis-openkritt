@@ -21,50 +21,78 @@ def _graph_id(repository: str) -> str:
     return _PREFIX + repository.strip().lower().replace("/", "__")
 
 
+def _add_row(graph: SecurityKnowledgeGraph, row: dict, repository: str) -> None:
+    repo_id = f"repository:{repository.lower()}"
+    graph.upsert_node(repo_id, "repository", repository=repository)
+    state = row.get("jarvis") or {}
+    answer = row.get("json_answer") or {}
+
+    program_id = str(state.get("program_id") or "")
+    if program_id:
+        pnode = f"program:{program_id.lower()}"
+        graph.upsert_node(pnode, "program", program_id=program_id,
+                          platform=state.get("source_platform", ""))
+        graph.connect(GraphEdge(pnode, "authorizes", repo_id, "authorization-ledger", 1.0))
+
+    weakness = str(answer.get("vulnerability_type") or "unspecified")
+    wnode = f"weakness:{weakness.lower()}"
+    graph.upsert_node(wnode, "weakness", weakness=weakness)
+
+    finding_id = str(state.get("finding_id") or "")
+    if not finding_id:
+        return
+    graph.upsert_node(
+        finding_id,
+        "finding",
+        stage=str(state.get("stage") or "candidate"),
+        summary=str(answer.get("summary") or "")[:240],
+        file_path=str(answer.get("file_path") or ""),
+        line=int(answer.get("line") or 0),
+        economics=state.get("economics") or {},
+        skeptic=(state.get("council") or {}).get("skeptic") or {},
+        reproduction=(state.get("council") or {}).get("reproduction") or {},
+    )
+    graph.connect(GraphEdge(repo_id, "contains_finding", finding_id, "live-hunt", 1.0))
+    graph.connect(GraphEdge(finding_id, "instance_of", wnode, "finding-normalization", 1.0))
+    for evidence_id in state.get("evidence") or []:
+        enode = str(evidence_id)
+        graph.upsert_node(enode, "evidence")
+        graph.connect(GraphEdge(finding_id, "supported_by", enode, "jarvis-lifecycle", 1.0))
+
+
 def graph_from_report(report: dict) -> SecurityKnowledgeGraph:
     graph = SecurityKnowledgeGraph()
     scan = report.get("scan") or {}
     repository = str(scan.get("repository") or "unknown")
-    repo_id = f"repository:{repository.lower()}"
-    graph.upsert_node(repo_id, "repository", repository=repository)
-
-    rows = report.get("vulnerabilities") or []
-    for row in rows:
-        state = row.get("jarvis") or {}
-        answer = row.get("json_answer") or {}
-        program_id = str(state.get("program_id") or "")
-        if program_id:
-            pnode = f"program:{program_id.lower()}"
-            graph.upsert_node(pnode, "program", program_id=program_id,
-                              platform=state.get("source_platform", ""))
-            graph.connect(GraphEdge(pnode, "authorizes", repo_id, "authorization-ledger", 1.0))
-
-        weakness = str(answer.get("vulnerability_type") or "unspecified")
-        wnode = f"weakness:{weakness.lower()}"
-        graph.upsert_node(wnode, "weakness", weakness=weakness)
-
-        finding_id = str(state.get("finding_id") or "")
-        if not finding_id:
-            continue
-        fnode = finding_id
-        graph.upsert_node(
-            fnode,
-            "finding",
-            stage=str(state.get("stage") or "candidate"),
-            summary=str(answer.get("summary") or "")[:240],
-            file_path=str(answer.get("file_path") or ""),
-            line=int(answer.get("line") or 0),
-            economics=state.get("economics") or {},
-            skeptic=(state.get("council") or {}).get("skeptic") or {},
-            reproduction=(state.get("council") or {}).get("reproduction") or {},
-        )
-        graph.connect(GraphEdge(repo_id, "contains_finding", fnode, "live-hunt", 1.0))
-        graph.connect(GraphEdge(fnode, "instance_of", wnode, "finding-normalization", 1.0))
-        for evidence_id in state.get("evidence") or []:
-            enode = str(evidence_id)
-            graph.upsert_node(enode, "evidence")
-            graph.connect(GraphEdge(fnode, "supported_by", enode, "jarvis-lifecycle", 1.0))
+    for row in report.get("vulnerabilities") or []:
+        _add_row(graph, row, repository)
+    if not (report.get("vulnerabilities") or []):
+        graph.upsert_node(f"repository:{repository.lower()}", "repository", repository=repository)
     return graph
+
+
+def _save_graph(graph: SecurityKnowledgeGraph, repository: str, scope_digest: str,
+                *, path: str | Path | None = None) -> None:
+    payload = {"nodes": graph.nodes, "edges": [asdict(edge) for edge in graph.edges]}
+    db = str(path or state_db_path())
+    if db != ":memory:":
+        Path(db).parent.mkdir(parents=True, exist_ok=True)
+    with JarvisStateStore(db) as store:
+        store.save_mission(MissionSnapshot(
+            mission_id=_graph_id(repository), scope_digest=scope_digest or "source-review",
+            objective=f"persistent security reasoning graph for {repository}",
+            state="current", payload=payload, cursor=len(graph.edges),
+        ))
+
+
+def persist_row_graph(row: dict, repository: str, *, path: str | Path | None = None) -> None:
+    """Monotonically upsert one canonical finding into its repository security graph."""
+    if not repository:
+        return
+    graph = load_graph(repository, path=path)
+    _add_row(graph, row, repository)
+    scope_digest = str((row.get("jarvis") or {}).get("scope_digest") or "source-review")
+    _save_graph(graph, repository, scope_digest, path=path)
 
 
 def persist_graph(report: dict, *, path: str | Path | None = None) -> None:
@@ -73,26 +101,12 @@ def persist_graph(report: dict, *, path: str | Path | None = None) -> None:
     if not repository:
         return
     graph = graph_from_report(report)
-    payload = {
-        "nodes": graph.nodes,
-        "edges": [asdict(edge) for edge in graph.edges],
-    }
-    db = str(path or state_db_path())
-    if db != ":memory:":
-        Path(db).parent.mkdir(parents=True, exist_ok=True)
-    with JarvisStateStore(db) as store:
-        store.save_mission(MissionSnapshot(
-            mission_id=_graph_id(repository),
-            scope_digest=str(next((
-                (r.get("jarvis") or {}).get("scope_digest")
-                for r in (report.get("vulnerabilities") or [])
-                if (r.get("jarvis") or {}).get("scope_digest")
-            ), "source-review")),
-            objective=f"persistent security reasoning graph for {repository}",
-            state="current",
-            payload=payload,
-            cursor=len(graph.edges),
-        ))
+    scope_digest = str(next((
+        (r.get("jarvis") or {}).get("scope_digest")
+        for r in (report.get("vulnerabilities") or [])
+        if (r.get("jarvis") or {}).get("scope_digest")
+    ), "source-review"))
+    _save_graph(graph, repository, scope_digest, path=path)
 
 
 def load_graph(repository: str, *, path: str | Path | None = None) -> SecurityKnowledgeGraph:
