@@ -43,9 +43,6 @@ _LOW_VALUE_PREFIXES: tuple[tuple[str, str], ...] = (
 _SECRET_RULES = {"CWE-798"}
 _SECRET_TOOLS = {"detect-secrets", "gitleaks"}
 
-# Only files whose names explicitly communicate sample/example/template semantics are discarded
-# as placeholders. Dockerfiles, compose, CI, Helm, Terraform and Kubernetes are intentionally
-# NOT here: real production credentials are often leaked in exactly those paths.
 _PLACEHOLDER_FILE = re.compile(
     r"(\.example$|\.sample$|\.template$|\.dist$|"
     r"(^|/)\.env\.(example|sample|template|dist)$|"
@@ -72,8 +69,21 @@ _SEVERITY_WEIGHT = {"critical": 1.0, "high": 0.8, "medium": 0.5, "low": 0.25, "i
 _PATHCLASS_WEIGHT = {"source": 1.0, "config": 0.8, "deploy": 0.8}
 
 
+def _normalize_path(path: str) -> str:
+    """Normalize separators without destroying meaningful leading dot-directories.
+
+    ``str.lstrip('./')`` removed the dot from paths such as ``.github/workflows`` and
+    ``.env``, causing CI/IaC and configuration files to be misclassified. Only literal
+    relative-path prefixes are removed here.
+    """
+    p = str(path or "").replace("\\", "/")
+    while p.startswith("./"):
+        p = p[2:]
+    return p.lstrip("/")
+
+
 def path_class(path: str) -> str:
-    p = str(path or "").replace("\\", "/").lstrip("./")
+    p = _normalize_path(path)
     if not p:
         return "source"
     for name, rx in _PATH_CLASSES:
@@ -185,7 +195,7 @@ def _to_candidate(row: dict) -> Candidate:
         confidence = 0.0
     return Candidate(
         tool=_tool_of(row), rule=_rule_of(row), cwe=_cwe_of(row),
-        path=str(ja.get("file_path") or "").replace("\\", "/").lstrip("./"),
+        path=_normalize_path(ja.get("file_path") or ""),
         line=line, severity=str(row.get("severity") or "medium").lower(),
         confidence=confidence,
         summary=str(ja.get("summary") or ja.get("vulnerability_type") or ""),
