@@ -320,7 +320,7 @@ def authorized_targets(registry_path: str | Path | None = None,
 def main(argv=None) -> int:
     import sys
 
-    from ..env_file import load_dotenv
+    from ..env import load_dotenv
     load_dotenv()          # pick up AEGIS_OWNED_REPOS etc. from a local .env
     argv = list(argv if argv is not None else sys.argv[1:])
     if not argv:
