@@ -20,28 +20,27 @@ _STORE_LOCK = threading.RLock()
 
 @dataclass
 class Program:
-    handle: str                                  # program slug, e.g. "acme" (unique key)
-    platform: str = ""                           # hackerone | immunefi | bugcrowd | intigriti | ...
+    handle: str
+    platform: str = ""
     url: str = ""
-    targets: list[str] = field(default_factory=list)     # submission-eligible repos/assets
-    bounty_eligible_targets: list[str] = field(default_factory=list)  # explicitly paid assets
-    kind: str = "repo"                            # "repo" | "contract" — default for its targets
-    subpath: str = ""                            # focus subtree for monorepos
-    out_of_scope: list[str] = field(default_factory=list)  # excluded assets/paths/classes
+    targets: list[str] = field(default_factory=list)
+    bounty_eligible_targets: list[str] = field(default_factory=list)
+    bounty_eligibility_known: bool = False
+    kind: str = "repo"
+    subpath: str = ""
+    out_of_scope: list[str] = field(default_factory=list)
     reward_ceiling: float = 0.0
     reward_floor: float = 0.0
-    rules: str = ""                              # program rules / notes (freeform)
-    scope_text: str = ""                         # raw scope page — primes the analysis prompt
-    source_retrieved_at: str = ""                # when the upstream program record was fetched
-    scope_retrieved_at: str = ""                 # when structured scope was fetched/verified
-    # maturity signals for selection scoring
+    rules: str = ""
+    scope_text: str = ""
+    source_retrieved_at: str = ""
+    scope_retrieved_at: str = ""
     audits: int = 0
     age_months: int = 0
     paid_reports: int = 0
-    # EV inputs (fall back to sane priors when unknown):
     findability: float = 0.5
     saturation: float = 0.0
-    active: bool = True                          # skip paused/retired programs in selection
+    active: bool = True
     notes: str = ""
 
     def scope_bundle(self) -> str:
@@ -51,8 +50,10 @@ class Program:
             parts.append(self.scope_text.strip())
         if self.targets:
             parts.append("In scope: " + ", ".join(self.targets))
-        if self.bounty_eligible_targets:
-            parts.append("Bounty eligible: " + ", ".join(self.bounty_eligible_targets))
+        if self.bounty_eligibility_known:
+            parts.append("Bounty eligible: " + (
+                ", ".join(self.bounty_eligible_targets) if self.bounty_eligible_targets else "none"
+            ))
         if self.out_of_scope:
             parts.append("Out of scope: " + ", ".join(self.out_of_scope))
         if self.rules.strip():
@@ -65,7 +66,6 @@ def _store_path(path: str | Path | None) -> Path:
 
 
 def load_registry(path: str | Path | None = None) -> list[Program]:
-    """Load all program records. Missing/empty store -> []. Unknown keys are ignored."""
     p = _store_path(path)
     if not p.is_file():
         return []
@@ -94,7 +94,6 @@ def save_registry(programs: list[Program], path: str | Path | None = None) -> No
 
 
 def upsert(program: Program, path: str | Path | None = None) -> list[Program]:
-    """Add or replace a program by handle, persist, and return the new registry."""
     with _STORE_LOCK:
         progs = [x for x in load_registry(path) if x.handle != program.handle]
         progs.append(program)
@@ -110,19 +109,13 @@ def get_program(handle: str, path: str | Path | None = None) -> Program | None:
 
 
 def scope_text_for(handle: str, path: str | Path | None = None) -> str:
-    """The scope bundle for a program handle — feed to RepoHuntConfig.scope_text."""
     prog = get_program(handle, path)
     return prog.scope_bundle() if prog else ""
 
 
 def to_hunt_targets(programs: list[Program] | None = None,
                     path: str | Path | None = None) -> list:
-    """Expand active programs into EV-rankable targets.
-
-    When a source provides explicit per-asset bounty eligibility, only those assets enter the
-    profit queue. Sources that cannot provide that distinction retain the legacy fallback to
-    all submission-eligible targets.
-    """
+    """Expand active programs into the profit queue using asset-level bounty eligibility."""
     from .auto_hunt import HuntTarget
 
     progs = programs if programs is not None else load_registry(path)
@@ -130,8 +123,8 @@ def to_hunt_targets(programs: list[Program] | None = None,
     for pr in progs:
         if not pr.active:
             continue
-        assets = pr.bounty_eligible_targets or pr.targets
-        for asset in (assets or [""]):
+        assets = pr.bounty_eligible_targets if pr.bounty_eligibility_known else pr.targets
+        for asset in (assets or []):
             if not asset:
                 continue
             out.append(HuntTarget(
