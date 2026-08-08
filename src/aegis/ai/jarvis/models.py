@@ -1,51 +1,16 @@
-"""Core contracts for the agent-first Aegis/Jarvis runtime."""
+"""Legacy Jarvis dataclasses backed by canonical ``agentic_os`` enums.
+
+The data shapes in this module remain for compatibility with older council helpers, but role,
+risk and lifecycle identity now come from one source of truth. New runtime work should prefer
+``aegis.ai.agentic_os.AgentProposal`` and ``FindingLifecycle`` directly.
+"""
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import Enum
 from typing import Any
 
-
-class AgentRole(str, Enum):
-    COMMANDER = "commander"
-    POLICY = "policy"
-    RECON = "recon"
-    REPOSITORY_INTELLIGENCE = "repository_intelligence"
-    ATTACK_SURFACE = "attack_surface"
-    STATIC_ANALYSIS = "static_analysis"
-    AUTHENTICATION = "authentication"
-    AUTHORIZATION = "authorization"
-    BUSINESS_LOGIC = "business_logic"
-    API = "api"
-    CLIENT = "client"
-    SUPPLY_CHAIN = "supply_chain"
-    CLOUD = "cloud"
-    INVARIANT = "invariant"
-    HYPOTHESIS = "hypothesis"
-    PATCH_VARIANT = "patch_variant"
-    COVERAGE = "coverage"
-    REPRODUCTION = "reproduction"
-    EVIDENCE = "evidence"
-    SKEPTIC = "skeptic"
-    PROFITABILITY = "profitability"
-    REPORTING = "reporting"
-
-
-class RiskClass(str, Enum):
-    READ_ONLY = "read_only"
-    CONTROLLED_STATE_CHANGE = "controlled_state_change"
-    HIGH_RISK = "high_risk"
-
-
-class EvidenceStage(str, Enum):
-    CANDIDATE = "candidate"
-    SOURCE_SUPPORTED = "source_supported"
-    RUNTIME_OBSERVED = "runtime_observed"
-    REPRODUCED = "reproduced"
-    INDEPENDENTLY_VERIFIED = "independently_verified"
-    HUMAN_APPROVED = "human_approved"
-    SUBMISSION_READY = "submission_ready"
+from ..agentic_os import AgentRole, EvidenceStage, RiskClass
 
 
 @dataclass(frozen=True)
@@ -62,6 +27,12 @@ class HuntObjective:
 
 @dataclass(frozen=True)
 class ActionProposal:
+    """Compatibility proposal shape for the legacy council.
+
+    It uses canonical enums but is intentionally not a second action authority. Execution gates
+    remain in ``agentic_os.ProposalPolicy`` for the live Jarvis runtime.
+    """
+
     agent: AgentRole
     action: str
     reason: str
