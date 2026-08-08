@@ -79,6 +79,21 @@ _SPECS: dict[str, ActiveProposalSpec] = {
     ),
 }
 
+# A source finding can indicate which active lane would be useful next, but source code does not
+# prove the live URL/identity prerequisites.  These intents are therefore never executable tasks;
+# they tell Jarvis which detector planner to invoke *after* authorized discovery supplies routes.
+_FOLLOWUP_HINTS: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("ssrf", ("ssrf", "server-side request", "webhook", "url fetch", "callback url")),
+    ("graphql", ("graphql", "resolver", "introspection")),
+    ("path_bypass", ("path bypass", "path normalization", "traversal", "route bypass")),
+    ("bola", ("idor", "bola", "object authorization", "ownership check", "tenant")),
+    ("bfla", ("bfla", "function authorization", "privilege escalation", "admin endpoint")),
+    ("missing_auth", ("missing auth", "unauthenticated", "authentication bypass")),
+    ("cors", ("cors", "access-control-allow-origin")),
+    ("open_redirect", ("open redirect", "redirect_uri", "redirect uri")),
+    ("error_disclosure", ("error disclosure", "stack trace", "debug error")),
+)
+
 
 def _proposal_for_task(task: DetectorTask) -> AgentProposal:
     spec = _SPECS.get(
@@ -89,7 +104,11 @@ def _proposal_for_task(task: DetectorTask) -> AgentProposal:
             f"Run the bounded {task.detector} detector against discovered evidence only.",
         ),
     )
-    offline = task.est_requests <= 0 and task.action == "passive_discovery" and task.detector == "contract_review"
+    offline = (
+        task.est_requests <= 0
+        and task.action == "passive_discovery"
+        and task.detector == "contract_review"
+    )
     # Conservatively model every live request as CONTROLLED_STATE_CHANGE.  Some probes are
     # semantically read-only, but this forces BOTH state-change authorization and human approval
     # in ProposalPolicy and prevents a new detector from accidentally becoming an autonomous
@@ -118,6 +137,52 @@ def _proposal_for_task(task: DetectorTask) -> AgentProposal:
 def proposals_from_plan(plan: DetectorPlan) -> tuple[AgentProposal, ...]:
     """Convert an ``aegis.active`` plan to canonical policy proposals."""
     return tuple(_proposal_for_task(task) for task in plan.tasks)
+
+
+def followup_intents_for_finding(row: dict) -> tuple[AgentProposal, ...]:
+    """Return conservative active-validation intents suggested by one source finding.
+
+    No endpoint, identity, seed, or OAST target is invented here.  Every returned proposal is a
+    controlled network action and carries ``execution=requires_discovered_route_plan``.  Under the
+    normal source-review envelope ProposalPolicy vetoes it; under an explicitly approved active
+    engagement the caller must still run :func:`plan_active_proposals` to derive concrete tasks
+    from discovered graph assets before any executor can act.
+    """
+    answer = row.get("json_answer") or {}
+    blob = " ".join(
+        str(value or "")
+        for value in (
+            answer.get("vulnerability_type"),
+            answer.get("summary"),
+            answer.get("explanation"),
+            row.get("cwe"),
+        )
+    ).lower()
+    detectors = []
+    for detector, needles in _FOLLOWUP_HINTS:
+        if any(needle in blob for needle in needles):
+            detectors.append(detector)
+    proposals = []
+    for detector in sorted(set(detectors)):
+        spec = _SPECS[detector]
+        proposals.append(
+            AgentProposal(
+                role=spec.role,
+                action=f"active-plan:{detector}",
+                rationale=spec.rationale,
+                risk=RiskClass.CONTROLLED_STATE_CHANGE,
+                expected_information_gain=0.85,
+                expected_cost_usd=0.0,
+                expected_requests=1,
+                requires_network=True,
+                metadata={
+                    "active_detector": detector,
+                    "execution": "requires_discovered_route_plan",
+                    "source_location": f"{answer.get('file_path', '')}:{answer.get('line', '')}",
+                },
+            )
+        )
+    return tuple(proposals)
 
 
 def plan_active_proposals(
