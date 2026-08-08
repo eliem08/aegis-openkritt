@@ -27,6 +27,7 @@ from .asset_execution_ticket import (
 )
 from .asset_executor import InternalAssetExecution, execute_internal_asset_method
 from .asset_normalizers import AssetExecutionObservation, normalize_local_cli_execution
+from .firmware_static import analyze_firmware_static
 from .ghidra_sandbox import (
     GhidraSandboxExecution,
     SandboxRunner,
@@ -52,6 +53,13 @@ class OfflineAssetExecutionOutcome:
 
 def _internal_supported(method: PlannedMethod) -> bool:
     return (str(method.tool), str(method.method)) == ("MobSF", "rest-static-analysis")
+
+
+def _firmware_metadata_supported(method: PlannedMethod) -> bool:
+    return (str(method.tool), str(method.method)) == (
+        "aegis-firmware-arch",
+        "firmware-architecture-detection",
+    )
 
 
 def _ghidra_supported(method: PlannedMethod) -> bool:
@@ -90,6 +98,42 @@ def execute_offline_asset_method(
     if bool(getattr(method, "state_change_possible", False)):
         raise AssetExecutionRouteError(
             "state-changing asset method requires explicit approval and dynamic executor"
+        )
+
+    if _firmware_metadata_supported(method):
+        if firmware_path is None:
+            raise AssetExecutionRouteError(
+                "firmware metadata analysis requires an authorized firmware artifact"
+            )
+        report = analyze_firmware_static(firmware_path)
+        data = report.as_dict()
+        data.update(
+            {
+                "verification_state": "observation",
+                "ticket_id": ticket.ticket_id,
+            }
+        )
+        provenance = {
+            "adapter": "aegis.ai.jarvis.firmware_static.analyze_firmware_static",
+            "firmware_sha256": report.sha256,
+            "execution_ticket": ticket.ticket_id,
+            "scope_digest": ticket.scope_digest,
+            "verification_state": "observation",
+            "target_executed": False,
+            "network_used": False,
+        }
+        observation = AssetExecutionObservation(
+            kind="firmware_metadata",
+            tool=str(method.tool),
+            method=str(method.method),
+            data=data,
+        )
+        return OfflineAssetExecutionOutcome(
+            tool=str(method.tool),
+            method=str(method.method),
+            candidates=(),
+            observations=(observation,),
+            provenance=provenance,
         )
 
     if _internal_supported(method):
