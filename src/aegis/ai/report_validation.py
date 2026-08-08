@@ -30,7 +30,9 @@ def validate_deepseek_report(
     rows = list(data.get("vulnerabilities") or [])
     total = len(rows)
     validator = CodeValidationAgent(client)
-    scope_digest = str((data.get("scan") or {}).get("scope_digest") or "source-review")
+    scan = data.get("scan") or {}
+    repository = str(scan.get("repository") or "")
+    scope_digest = str(scan.get("scope_digest") or "source-review")
 
     for index, row in enumerate(rows, start=1):
         answer = row.get("json_answer") or {}
@@ -44,7 +46,7 @@ def validate_deepseek_report(
                 "confidence": 0.0, "anchors": [], "verification_test": "",
             }
             row["validation_status"] = "unresolved"
-            _annotate_jarvis(row, scope_digest)
+            _annotate_jarvis(row, scope_digest, repository)
             if progress:
                 progress(index, total, path)
             continue
@@ -57,7 +59,7 @@ def validate_deepseek_report(
                 "confidence": 0.0, "anchors": [], "verification_test": "",
             }
             row["validation_status"] = "unresolved"
-            _annotate_jarvis(row, scope_digest)
+            _annotate_jarvis(row, scope_digest, repository)
             if progress:
                 progress(index, total, path)
             continue
@@ -102,7 +104,7 @@ def validate_deepseek_report(
                 }
         row["validation"] = payload
         row["validation_status"] = payload["verdict"]
-        _annotate_jarvis(row, scope_digest)
+        _annotate_jarvis(row, scope_digest, repository)
         if progress:
             progress(index, total, path)
 
@@ -110,15 +112,22 @@ def validate_deepseek_report(
     scan["validation_status"] = "completed"
     scan["validation_counts"] = _counts(rows)
     report_path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+    if repository:
+        try:
+            from .jarvis_persistence import checkpoint_phase
+            checkpoint_phase(repository, "validate", scope_digest=scope_digest,
+                             payload={"validation_counts": scan["validation_counts"]})
+        except Exception:
+            pass
     model = _review_model(data)
     return data, model
 
 
-def _annotate_jarvis(row: dict, scope_digest: str) -> None:
+def _annotate_jarvis(row: dict, scope_digest: str, repository: str) -> None:
     """Best-effort canonical mapping; validation itself never depends on the adapter."""
     try:
         from .jarvis_runtime import annotate_source_validation
-        annotate_source_validation(row, scope_digest=scope_digest)
+        annotate_source_validation(row, scope_digest=scope_digest, repository=repository)
     except Exception as exc:
         row.setdefault("jarvis", {})["adapter_error"] = type(exc).__name__
 
