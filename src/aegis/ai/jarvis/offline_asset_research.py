@@ -162,7 +162,7 @@ def run_offline_asset_research(
             scope_digest=scope,
             runtime_manager=runtime_manager,
             pins=pins,
-            process_runner=process_runner,
+            runner=process_runner,
             **common,
         )
         details = {
