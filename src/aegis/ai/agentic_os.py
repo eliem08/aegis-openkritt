@@ -16,9 +16,17 @@ from typing import Any, Iterable, Mapping, Protocol
 
 
 class AgentRole(str, Enum):
+    """Canonical agent roles.
+
+    Legacy names are aliases rather than a second enum so old council code and the newer
+    control plane cannot drift on role identity.
+    """
+
     COMMANDER = "commander"
     PROGRAM_POLICY = "program_policy"
+    POLICY = "program_policy"  # legacy alias
     ASSET_DISCOVERY = "asset_discovery"
+    RECON = "asset_discovery"  # legacy alias
     REPOSITORY_INTELLIGENCE = "repository_intelligence"
     ATTACK_SURFACE = "attack_surface"
     STATIC_ANALYSIS = "static_analysis"
@@ -28,16 +36,22 @@ class AgentRole(str, Enum):
     AUTHORIZATION = "authorization"
     API = "api"
     BUSINESS_LOGIC = "business_logic"
+    CLIENT = "client"
     DATAFLOW = "dataflow"
     DEPENDENCY = "dependency"
+    SUPPLY_CHAIN = "dependency"  # legacy alias
     CLOUD = "cloud"
     HISTORY = "history"
     VARIANT = "variant"
+    PATCH_VARIANT = "variant"  # legacy alias
+    COVERAGE = "coverage"
     REPRODUCTION = "reproduction"
     EVIDENCE = "evidence"
     JUDGE = "judge"
+    SKEPTIC = "judge"  # legacy alias
     PROFITABILITY = "profitability"
     REPORT = "report"
+    REPORTING = "report"  # legacy alias
 
 
 class RiskClass(str, Enum):
@@ -45,6 +59,7 @@ class RiskClass(str, Enum):
     READ_ONLY = "read_only"
     CONTROLLED_STATE_CHANGE = "controlled_state_change"
     FORBIDDEN = "forbidden"
+    HIGH_RISK = "forbidden"  # legacy alias; fail closed rather than preserving ambiguity
 
 
 class EvidenceStage(str, Enum):
@@ -53,6 +68,7 @@ class EvidenceStage(str, Enum):
     RUNTIME_OBSERVED = "runtime_observed"
     ORACLE_PASSED = "oracle_passed"
     LOCALLY_REPRODUCED = "locally_reproduced"
+    REPRODUCED = "locally_reproduced"  # legacy alias
     INDEPENDENTLY_VERIFIED = "independently_verified"
     HUMAN_APPROVED = "human_approved"
     SUBMISSION_READY = "submission_ready"

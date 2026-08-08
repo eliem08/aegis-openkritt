@@ -76,6 +76,52 @@ def load_finding(finding_id: str, *, path: str | Path | None = None) -> dict | N
     return dict(snap.payload) if snap is not None else None
 
 
+def _historical_pseudoprior(program_id: str, weakness: str) -> dict[str, float | int]:
+    """Return at most two synthetic observations from the disclosed-report corpus.
+
+    Historical disclosure frequency is useful for exploration, but it is not equivalent to
+    our own acceptance/duplicate outcomes. The pseudo-count cap keeps this signal weak and it
+    disappears naturally once direct Jarvis outcomes accumulate.
+    """
+    corpus_path = os.environ.get("AEGIS_KNOWLEDGE_CORPUS", "").strip()
+    if not corpus_path:
+        return {"samples": 0, "acceptance": 0.60, "uniqueness": 0.75,
+                "mean_payout_usd": 0.0}
+    path = Path(corpus_path)
+    if not path.is_file():
+        return {"samples": 0, "acceptance": 0.60, "uniqueness": 0.75,
+                "mean_payout_usd": 0.0}
+    try:
+        from aegis.knowledge.corpus import ReportCorpus
+        from aegis.knowledge.report import normalize_cwe
+
+        corpus = ReportCorpus.from_jsonl(path) if path.suffix.lower() == ".jsonl" \
+            else ReportCorpus.from_json(path)
+        reports = corpus.reports
+        program_key = program_id.strip().lower()
+        program_reports = [r for r in reports if (r.program or "").strip().lower() == program_key]
+        population = program_reports or reports
+        if not population:
+            raise ValueError("empty corpus")
+        weakness_key = normalize_cwe(weakness) or weakness.strip().lower()
+        members = [r for r in population if r.weakness_key == weakness_key]
+        if not members:
+            return {"samples": 0, "acceptance": 0.60, "uniqueness": 0.75,
+                    "mean_payout_usd": 0.0}
+        rate = len(members) / len(population)
+        # One or two pseudo-observations only. Frequency may boost acceptance modestly,
+        # never lower it; disclosure history says nothing reliable about duplicate risk.
+        pseudo_samples = 2 if len(members) >= 3 else 1
+        acceptance = min(0.70, 0.60 + 0.40 * rate)
+        bounties = [float(r.bounty) for r in members if r.bounty is not None and r.bounty >= 0]
+        mean_payout = sum(bounties) / len(bounties) if bounties else 0.0
+        return {"samples": pseudo_samples, "acceptance": acceptance, "uniqueness": 0.75,
+                "mean_payout_usd": mean_payout}
+    except Exception:
+        return {"samples": 0, "acceptance": 0.60, "uniqueness": 0.75,
+                "mean_payout_usd": 0.0}
+
+
 def learned_probabilities(program_id: str, weakness: str, *,
                           path: str | Path | None = None) -> dict[str, float | int]:
     if not program_id or not weakness:
@@ -83,12 +129,43 @@ def learned_probabilities(program_id: str, weakness: str, *,
                 "mean_payout_usd": 0.0, "mean_cost_usd": 0.0}
     with _store(path) as store:
         prior = store.learned_prior(program_id, weakness)
+
+    historical = _historical_pseudoprior(program_id, weakness)
+    pseudo_samples = int(historical.get("samples") or 0) if prior.samples < 5 else 0
+    direct_weight = max(0, prior.samples)
+    total = direct_weight + pseudo_samples
+    if total:
+        acceptance = (
+            prior.acceptance_probability * direct_weight
+            + float(historical.get("acceptance") or 0.60) * pseudo_samples
+        ) / total
+        uniqueness = (
+            prior.uniqueness_probability * direct_weight
+            + float(historical.get("uniqueness") or 0.75) * pseudo_samples
+        ) / total
+    else:
+        acceptance = prior.acceptance_probability
+        uniqueness = prior.uniqueness_probability
+
+    direct_payout_weight = direct_weight if prior.mean_payout_usd > 0 else 0
+    historical_payout = float(historical.get("mean_payout_usd") or 0.0)
+    payout_weight = pseudo_samples if historical_payout > 0 else 0
+    if direct_payout_weight + payout_weight:
+        mean_payout = (
+            prior.mean_payout_usd * direct_payout_weight
+            + historical_payout * payout_weight
+        ) / (direct_payout_weight + payout_weight)
+    else:
+        mean_payout = prior.mean_payout_usd
+
     return {
-        "samples": prior.samples,
-        "acceptance": prior.acceptance_probability,
-        "uniqueness": prior.uniqueness_probability,
-        "mean_payout_usd": prior.mean_payout_usd,
+        "samples": total,
+        "acceptance": acceptance,
+        "uniqueness": uniqueness,
+        "mean_payout_usd": mean_payout,
         "mean_cost_usd": prior.mean_cost_usd,
+        "direct_samples": prior.samples,
+        "historical_pseudo_samples": pseudo_samples,
     }
 
 
