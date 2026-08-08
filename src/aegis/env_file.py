@@ -9,7 +9,8 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from .env import find_dotenv, load_dotenv as _canonical_load_dotenv, parse_env
+from .env import find_dotenv, parse_env
+from .env import load_dotenv as _canonical_load_dotenv
 
 
 def _parse_line(line: str) -> tuple[str, str] | None:
