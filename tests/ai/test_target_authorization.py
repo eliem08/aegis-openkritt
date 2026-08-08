@@ -1,5 +1,4 @@
-"""Target-authorization gate: BLOCK by default; authorize only from verifiable sources;
-detect scope drift, revocation, and staleness; persist decisions. Safety-critical."""
+"""Target-authorization gate safety regressions."""
 
 from __future__ import annotations
 
@@ -11,6 +10,12 @@ from aegis.ai.registry import Program, save_registry
 
 def _reg(tmp_path, *programs):
     p = tmp_path / "programs.json"
+    now = ta._now().isoformat()
+    for program in programs:
+        if not program.source_retrieved_at:
+            program.source_retrieved_at = now
+        if program.targets and not program.scope_retrieved_at:
+            program.scope_retrieved_at = now
     save_registry(list(programs), p)
     return p
 
@@ -28,7 +33,6 @@ def test_unknown_repo_is_blocked_by_default(tmp_path):
 
 
 def test_public_repo_is_not_authorized_just_because_it_exists(tmp_path):
-    # a program exists but does NOT list this repo -> still blocked
     reg = _reg(tmp_path, Program(handle="acme", platform="hackerone",
                                  targets=["acme/backend"], active=True))
     d = ta.authorize("torvalds/linux", registry_path=reg, ledger_path=_led(tmp_path), owned=[])
@@ -46,10 +50,23 @@ def test_active_program_scope_authorizes_with_evidence(tmp_path):
     assert d.record.source_platform == "hackerone"
     assert d.record.bounty_eligible is True
     assert d.record.scope_snapshot_hash
+    assert d.record.scope_retrieved_at
     assert "acme/backend" in d.record.evidence
     assert "live-exploitation" in d.record.prohibited_methods
-    # persisted
     assert ta.AuthorizationLedger(led).get("acme/backend") is not None
+
+
+def test_stale_upstream_scope_blocks_program_target(tmp_path):
+    now = ta._now()
+    old = (now - timedelta(hours=ta.DEFAULT_PROGRAM_SCOPE_MAX_AGE_HOURS + 2)).isoformat()
+    program = Program(handle="acme", platform="hackerone", targets=["acme/backend"],
+                      active=True, source_retrieved_at=old, scope_retrieved_at=old)
+    reg = tmp_path / "programs.json"
+    save_registry([program], reg)
+    d = ta.authorize("acme/backend", registry_path=reg, ledger_path=_led(tmp_path),
+                     owned=[], now=now)
+    assert d.allowed is False and d.status == ta.STALE
+    assert "scope snapshot" in d.reason
 
 
 def test_inactive_program_is_blocked(tmp_path):
@@ -77,7 +94,6 @@ def test_scope_change_blocks_until_reapproval(tmp_path):
                                  scope_text="scope v1", active=True))
     first = ta.authorize("acme/backend", registry_path=reg, ledger_path=led, owned=[])
     assert first.allowed is True
-    # scope text changes -> hash changes -> next check must block
     _reg(tmp_path, Program(handle="acme", targets=["acme/backend"],
                            scope_text="scope v2 CHANGED", active=True))
     second = ta.authorize("acme/backend", registry_path=reg, ledger_path=led, owned=[])
@@ -88,7 +104,7 @@ def test_revocation_when_program_removed(tmp_path):
     led = _led(tmp_path)
     reg = _reg(tmp_path, Program(handle="acme", targets=["acme/backend"], active=True))
     assert ta.authorize("acme/backend", registry_path=reg, ledger_path=led, owned=[]).allowed
-    save_registry([], reg)     # program gone
+    save_registry([], reg)
     d = ta.authorize("acme/backend", registry_path=reg, ledger_path=led, owned=[])
     assert d.allowed is False and "no longer" in d.reason
 
@@ -96,7 +112,6 @@ def test_revocation_when_program_removed(tmp_path):
 def test_staleness_blocks_owner_record(tmp_path):
     led = _led(tmp_path)
     now = ta._now()
-    # authorize as owner, then re-check far in the future -> stale
     ta.authorize("me/x", registry_path=_reg(tmp_path), ledger_path=led, owned=["me/x"], now=now)
     future = now + timedelta(days=ta.DEFAULT_MAX_AGE_DAYS + 1)
     d = ta.authorize("me/x", registry_path=_reg(tmp_path), ledger_path=led, owned=["me/x"],
@@ -110,7 +125,6 @@ def test_explicit_manual_block_wins(tmp_path):
     ledger.upsert(ta.AuthorizationRecord(repository="me/x", status=ta.BLOCKED,
                                          source_platform="manual",
                                          authorization_reason="operator hold"))
-    # even if owned, an explicit manual block wins
     d = ta.authorize("me/x", registry_path=_reg(tmp_path), ledger_path=led, owned=["me/x"])
     assert d.allowed is False and "operator hold" in d.reason
 
@@ -120,7 +134,6 @@ def test_gate_blocks_unauthorized_but_bypass_env_overrides(tmp_path, monkeypatch
     d = ta.gate("some/public-repo", registry_path=_reg(tmp_path), ledger_path=_led(tmp_path),
                 owned=[])
     assert d.allowed is False and d.status == ta.BLOCKED
-    # controlled test bypass
     monkeypatch.setenv("AEGIS_REQUIRE_AUTHORIZATION", "0")
     d2 = ta.gate("some/public-repo")
     assert d2.allowed is True and d2.status == "override"
@@ -133,8 +146,8 @@ def test_list_authorized_only_returns_verifiable(tmp_path):
     got = ta.list_authorized(registry_path=reg, ledger_path=_led(tmp_path), owned=["me/mine"])
     assert "acme/backend" in got
     assert "me/mine" in got
-    assert "acme/api" not in got      # excluded
-    assert "dead/repo" not in got     # inactive
+    assert "acme/api" not in got
+    assert "dead/repo" not in got
 
 
 def test_authorized_targets_queue_only_contains_authorized(tmp_path):
@@ -144,4 +157,4 @@ def test_authorized_targets_queue_only_contains_authorized(tmp_path):
     q = ta.authorized_targets(registry_path=reg, ledger_path=_led(tmp_path), owned=[])
     repos = {t.repository for t in q}
     assert "acme/backend" in repos
-    assert "dead/repo" not in repos    # inactive program excluded despite higher ceiling
+    assert "dead/repo" not in repos
