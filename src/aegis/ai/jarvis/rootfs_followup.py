@@ -14,7 +14,12 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from ..tool_runtime import ToolPin, ToolRuntimeManager
-from .asset_cli_executor import CliProcessResult, LocalCliExecution, Runner, execute_local_cli_method
+from .asset_cli_executor import (
+    CliProcessResult,
+    LocalCliExecution,
+    Runner,
+    execute_local_cli_method,
+)
 from .asset_deep_capabilities import DeepScannerMethod
 from .asset_execution_ticket import (
     AssetExecutionTicket,
@@ -66,8 +71,12 @@ class RootfsFollowupOutcome:
     execution: LocalCliExecution
 
 
-def _tree_digest(root: Path, *, max_files: int = 20_000,
-                 max_total_bytes: int = 2 * 1024 * 1024 * 1024) -> str:
+def _tree_digest(
+    root: Path,
+    *,
+    max_files: int = 20_000,
+    max_total_bytes: int = 2 * 1024 * 1024 * 1024,
+) -> str:
     if not root.is_dir():
         raise RootfsFollowupError("derived rootfs directory is unavailable")
     rows: list[tuple[str, int, str]] = []
