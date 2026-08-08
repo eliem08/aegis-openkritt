@@ -14,7 +14,7 @@ import hashlib
 import ipaddress
 import os
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
@@ -144,8 +144,6 @@ class MobSFStaticAdapter:
 
     @property
     def _headers(self) -> dict[str, str]:
-        # Current MobSF API docs accept either Authorization or X-Mobsf-Api-Key. The named
-        # header avoids overloading HTTP auth semantics and never gets copied into findings.
         return {"X-Mobsf-Api-Key": self.config.api_key}
 
     def scan(self, artifact: str | Path) -> MobSFScanResult:
@@ -163,9 +161,6 @@ class MobSFStaticAdapter:
             scan_hash = _require_hash(upload.get("hash"))
             scan_type = _safe_scalar(upload.get("scan_type"), 80)
             file_name = _safe_scalar(upload.get("file_name"), 240) or path.name
-
-            # MobSF's current scan endpoint requires hash; re_scan is optional. We explicitly
-            # request a fresh non-rescan workflow and do not pass dynamic-analysis parameters.
             self._post_json("/api/v1/scan", data={"hash": scan_hash, "re_scan": "0"})
             report = self._post_json("/api/v1/report_json", data={"hash": scan_hash})
         finally:
@@ -177,7 +172,7 @@ class MobSFStaticAdapter:
                     }
                     if not cleanup_deleted:
                         cleanup_error = "MobSF cleanup returned an unexpected response"
-                except Exception as exc:  # cleanup failure must not conceal the primary result
+                except Exception as exc:
                     cleanup_error = f"{type(exc).__name__}: cleanup failed"[:160]
 
         if report is None:
@@ -313,13 +308,6 @@ def _report_metadata(report: dict[str, Any], *, file_name: str, scan_type: str) 
 
 
 def normalize_mobsf_report(report: dict[str, Any], *, artifact_name: str = "") -> list[dict]:
-    """Normalize security-shaped MobSF report nodes into unverified Aegis candidates.
-
-    MobSF report schemas vary by artifact type/version, so the parser deliberately uses a
-    conservative recursive contract: it only traverses known risk sections and only emits a
-    candidate when a node contains both a recognizable severity and a title/description/rule.
-    Raw secrets, tokens, credentials and arbitrary report blobs are never copied.
-    """
     rows: list[dict] = []
     for section in _RISK_SECTIONS:
         value = report.get(section)
