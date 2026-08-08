@@ -6,13 +6,11 @@ import subprocess
 
 import pytest
 
-from aegis.ai.repo_clone import (
-    LocalRepoSource, RepoCloneError, clone_repository, head_commit,
-)
+from aegis.ai.repo_clone import LocalRepoSource, RepoCloneError, clone_repository, head_commit
+from aegis.ai.target_authorization import AuthorizationDecision
 
 
 def _git_repo(path):
-    """A tiny real git repo on disk (no network)."""
     path.mkdir(parents=True, exist_ok=True)
     subprocess.run(["git", "init", "-q"], cwd=path, check=True)
     subprocess.run(["git", "config", "user.email", "t@t.t"], cwd=path, check=True)
@@ -30,8 +28,8 @@ def test_local_source_lists_and_reads_files(tmp_path):
     src = LocalRepoSource(repo)
     paths, commit = src.list_paths("acme/repo")
     assert "src/auth.go" in paths and "README.md" in paths
-    assert not any(p.startswith(".git/") for p in paths)   # .git never surfaced
-    assert len(commit) == 40                                # real head sha
+    assert not any(p.startswith(".git/") for p in paths)
+    assert len(commit) == 40
     assert src.read("acme/repo", "src/auth.go") == "package auth\n"
 
 
@@ -50,28 +48,34 @@ def test_local_source_refuses_path_traversal(tmp_path):
 def test_clone_rejects_malformed_repository(tmp_path):
     for bad in ["notaslug", "a/b/c", "/leading", "trailing/"]:
         with pytest.raises(RepoCloneError, match="owner/repo"):
-            clone_repository(bad, cache_dir=tmp_path)
+            clone_repository(bad, cache_dir=tmp_path, enforce_authorization=False)
+
+
+def test_clone_boundary_blocks_before_any_git_network(tmp_path, monkeypatch):
+    monkeypatch.setattr(
+        "aegis.ai.target_authorization.gate",
+        lambda repo: AuthorizationDecision(repo, False, "blocked", "not authorized"),
+    )
+    called = []
+    monkeypatch.setattr("aegis.ai.repo_clone._run", lambda *a, **k: called.append(True))
+    with pytest.raises(RepoCloneError, match="BLOCK TARGET"):
+        clone_repository("acme/repo", cache_dir=tmp_path)
+    assert called == []
 
 
 def test_clone_reuses_an_existing_checkout(tmp_path, monkeypatch):
-    # pre-create the target as a real repo; clone_repository must reuse, not re-clone
     cache = tmp_path / "clones"
     target = _git_repo(cache / "acme__repo")
     calls = []
-
-    def fake_run(args, **kwargs):
-        calls.append(args)
-        raise AssertionError("should not have shelled out to clone")
-
     monkeypatch.setattr("aegis.ai.repo_clone._run",
                         lambda args, cwd=None, timeout=900: (
                             calls.append(args) or subprocess.run(
                                 args, cwd=cwd, capture_output=True, text=True)))
-    result = clone_repository("acme/repo", cache_dir=cache)
+    result = clone_repository("acme/repo", cache_dir=cache, enforce_authorization=False)
     assert result.reused is True
     assert result.path == target
     assert result.commit == head_commit(target)
-    assert not any("clone" in a for a in calls)            # no clone was attempted
+    assert not any("clone" in a for a in calls)
 
 
 def test_clone_error_never_echoes_the_token(tmp_path, monkeypatch):
@@ -82,6 +86,7 @@ def test_clone_error_never_echoes_the_token(tmp_path, monkeypatch):
 
     monkeypatch.setattr("aegis.ai.repo_clone._run", lambda *a, **k: Fail())
     with pytest.raises(RepoCloneError) as excinfo:
-        clone_repository("acme/repo", cache_dir=tmp_path, token="ghp_SECRET123")
-    assert "ghp_SECRET123" not in str(excinfo.value)        # redacted
+        clone_repository("acme/repo", cache_dir=tmp_path, token="ghp_SECRET123",
+                         enforce_authorization=False)
+    assert "ghp_SECRET123" not in str(excinfo.value)
     assert "***" in str(excinfo.value)
