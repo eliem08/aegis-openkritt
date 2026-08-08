@@ -46,7 +46,6 @@ class AssetRuntimeOverlay:
     prerequisite_blocked: tuple[AssetMethodRuntime, ...]
 
 
-# Only stable, well-known CLI entry points belong here. A missing mapping is not guessed.
 _CLI_OVERRIDES = {
     "RustScan": "rustscan",
     "Frida": "frida",
@@ -77,7 +76,6 @@ _CLI_OVERRIDES = {
     "pip-audit": "pip-audit",
 }
 
-# Concrete service/library adapters owned by Aegis rather than an external CLI process.
 _INTERNAL_ADAPTERS = {
     "MobSF": "loopback MobSF REST static adapter",
 }
@@ -93,6 +91,66 @@ def method_binary(method: PlannedMethod) -> str:
 
 def _pin_for(method: PlannedMethod, binary: str, pins: dict[str, ToolPin]) -> ToolPin | None:
     return pins.get(str(method.tool)) or pins.get(str(method.tool).lower()) or pins.get(binary)
+
+
+def _ghidra_runtime(
+    method: PlannedMethod,
+    runtime: ToolRuntimeManager,
+    configured_pins: dict[str, ToolPin],
+) -> AssetMethodRuntime:
+    """Ghidra is READY only when both analyzeHeadless metadata and Bubblewrap are healthy."""
+    from .ghidra_sandbox import (
+        _ghidra_version,
+        _resolve_bwrap_binary,
+        _resolve_ghidra_binary,
+    )
+
+    ghidra_binary = _resolve_ghidra_binary()
+    bwrap_binary = _resolve_bwrap_binary()
+    ghidra_resolved = runtime.resolve(ghidra_binary)
+    if not ghidra_resolved:
+        return AssetMethodRuntime(
+            method,
+            RuntimeDisposition.BLOCKED,
+            binary=ghidra_binary,
+            runtime={"ghidra": {"status": "unavailable"}},
+            reason="Ghidra launcher is unavailable",
+        )
+    version = _ghidra_version(ghidra_resolved)
+    if not version:
+        return AssetMethodRuntime(
+            method,
+            RuntimeDisposition.BLOCKED,
+            binary=ghidra_resolved,
+            runtime={"ghidra": {"status": "stale"}},
+            reason="Ghidra install metadata is unavailable",
+        )
+    ghidra = runtime.inspect(
+        name="Ghidra",
+        binary=ghidra_binary,
+        pin=_pin_for(method, ghidra_binary, configured_pins),
+        version_override=version,
+    )
+    bwrap = runtime.inspect(
+        name="bubblewrap",
+        binary=bwrap_binary,
+        pin=(
+            configured_pins.get("bubblewrap")
+            or configured_pins.get(bwrap_binary)
+        ),
+    )
+    composite = {"ghidra": ghidra.as_dict(), "bubblewrap": bwrap.as_dict()}
+    ready = ghidra.status is ToolRuntimeStatus.READY and bwrap.status is ToolRuntimeStatus.READY
+    reason = "healthy isolated Ghidra runtime" if ready else (
+        f"Ghidra={ghidra.status.value}; Bubblewrap={bwrap.status.value}"
+    )
+    return AssetMethodRuntime(
+        method,
+        RuntimeDisposition.READY if ready else RuntimeDisposition.BLOCKED,
+        binary=ghidra.resolved_path,
+        runtime=composite,
+        reason=reason,
+    )
 
 
 def overlay_runtime(
@@ -121,6 +179,10 @@ def overlay_runtime(
                     ),
                 )
             )
+            continue
+        if tool_name == "Ghidra":
+            item = _ghidra_runtime(method, runtime, configured_pins)
+            (ready if item.disposition is RuntimeDisposition.READY else blocked).append(item)
             continue
         binary = method_binary(method)
         if not binary:
