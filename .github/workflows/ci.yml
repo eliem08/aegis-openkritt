@@ -32,7 +32,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install ruff
-      - run: ruff check src --fix --diff
+      - run: ruff check src
 
   bench:
     # Aegis-Bench is a canonical detector regression/sanity gate, not evidence of
