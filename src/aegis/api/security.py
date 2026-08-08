@@ -45,6 +45,21 @@ def _authenticate(request: Request, credentials: HTTPAuthorizationCredentials | 
     )
 
 
+def authenticate_authorization_header(request: Request, value: str | None) -> ApiPrincipal:
+    """Authenticate a raw HTTP ``Authorization`` header outside dependency injection.
+
+    Middleware uses this to protect state-changing operator UI routes with exactly the
+    same token comparison and dev-mode semantics as the normal FastAPI dependencies.
+    """
+    raw = str(value or "").strip()
+    credentials = None
+    if raw:
+        scheme, sep, token = raw.partition(" ")
+        if sep and scheme.casefold() == "bearer" and token.strip():
+            credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token.strip())
+    return _authenticate(request, credentials)
+
+
 def authenticated(
     request: Request,
     credentials: HTTPAuthorizationCredentials | None = Depends(_bearer),

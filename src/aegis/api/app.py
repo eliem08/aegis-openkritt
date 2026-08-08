@@ -12,11 +12,12 @@ from __future__ import annotations
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse
 
 from aegis import __version__
 
-from .config import ControlPlaneConfig
+from .config import ControlPlaneConfig, Role
 from .observability import CorrelationIdMiddleware
 from .routers import ALL_ROUTERS
 from .store import EngagementStore
@@ -36,6 +37,8 @@ model — this API only transports requests to that gate.
 register/close engagements, grant approvals, and control the kill switch.
 """.strip()
 
+_MUTATING_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
+
 
 def create_app(config: ControlPlaneConfig | None = None) -> FastAPI:
     if config is None:
@@ -54,7 +57,7 @@ def create_app(config: ControlPlaneConfig | None = None) -> FastAPI:
             from aegis.ai.autostart import maybe_autostart
             maybe_autostart(app)
         except Exception:
-            pass
+            logger.exception("autostart setup failed")
         yield
         repo = getattr(app.state, "repository", None)
         if repo is not None and hasattr(repo, "close"):
@@ -84,6 +87,34 @@ def create_app(config: ControlPlaneConfig | None = None) -> FastAPI:
         max_decisions_cached=config.max_decisions_cached,
         repository=app.state.repository,
     )
+
+    @app.middleware("http")
+    async def protect_state_changing_ui(request, call_next):
+        """Require an operator API key for every mutating ``/ui/*`` action.
+
+        The UI is an operator cockpit, not an alternate unauthenticated control plane. Read-only
+        dashboard GETs remain available, while starting/stopping hunts, scans, refreshes and
+        validation jobs use the same bearer-token authentication as the rest of the API.
+        """
+        if request.url.path.startswith("/ui/") and request.method.upper() in _MUTATING_METHODS:
+            from .security import authenticate_authorization_header
+
+            try:
+                principal = authenticate_authorization_header(
+                    request, request.headers.get("authorization")
+                )
+            except HTTPException as exc:
+                return JSONResponse(
+                    status_code=exc.status_code,
+                    content={"detail": exc.detail},
+                    headers=exc.headers or {},
+                )
+            if principal.role != Role.OPERATOR:
+                return JSONResponse(
+                    status_code=403,
+                    content={"detail": "operator role required for state-changing UI actions"},
+                )
+        return await call_next(request)
 
     app.add_middleware(CorrelationIdMiddleware)
     for router in ALL_ROUTERS:
