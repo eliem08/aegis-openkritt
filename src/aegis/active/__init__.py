@@ -36,6 +36,7 @@ from .http_desync import (
     DesyncObservation,
     analyze_desync_observations,
     candidate_routes,
+    observations_from_assets,
 )
 from .http_hardening import HardeningFinding, HardeningIssue, analyze_response_hardening
 from .js_secrets import HIGH_VALUE_CATEGORIES, JsSecretFinding, analyze_javascript_secrets
@@ -132,6 +133,7 @@ __all__ = [
     "classify_posture",
     "is_differential",
     "normalization_variants",
+    "observations_from_assets",
     "passes_report_gate",
     "plan_detectors",
     "reserve_plan",
