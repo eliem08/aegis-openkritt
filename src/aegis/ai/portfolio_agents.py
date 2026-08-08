@@ -12,6 +12,8 @@ from .agentic_os import AgentContext, AgentProposal, AgentRole, RiskClass
 
 @dataclass(frozen=True)
 class Opportunity:
+    """Canonical expected-net-value contract used by target and finding allocation."""
+
     opportunity_id: str
     program_id: str
     bug_class: str
@@ -26,19 +28,28 @@ class Opportunity:
     opportunity_cost_usd: float = 0.0
     information_gain: float = 0.0
 
-    def expected_value(self, human_hour_cost_usd: float = 0.0) -> float:
-        probability = math.prod(
+    def success_probability(self) -> float:
+        """Bounded joint probability of a paid, unique, reproducible valid finding."""
+        return math.prod(
             max(0.0, min(1.0, value))
             for value in (self.p_valid, self.p_accepted, self.p_unique, self.p_reproducible)
         )
-        gross = self.expected_payout_usd * probability
-        costs = (
-            self.compute_cost_usd
-            + self.api_cost_usd
-            + self.opportunity_cost_usd
-            + (self.review_minutes / 60.0) * max(0.0, human_hour_cost_usd)
+
+    def gross_value(self) -> float:
+        """Expected gross bounty value before research/review costs."""
+        return max(0.0, self.expected_payout_usd) * self.success_probability()
+
+    def total_cost(self, human_hour_cost_usd: float = 0.0) -> float:
+        """Compute + API + opportunity + human-review cost under one formula."""
+        return (
+            max(0.0, self.compute_cost_usd)
+            + max(0.0, self.api_cost_usd)
+            + max(0.0, self.opportunity_cost_usd)
+            + (max(0.0, self.review_minutes) / 60.0) * max(0.0, human_hour_cost_usd)
         )
-        return gross - costs
+
+    def expected_value(self, human_hour_cost_usd: float = 0.0) -> float:
+        return self.gross_value() - self.total_cost(human_hour_cost_usd)
 
     def roi_per_review_hour(self, human_hour_cost_usd: float = 0.0) -> float:
         hours = max(self.review_minutes / 60.0, 1.0 / 60.0)

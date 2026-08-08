@@ -1,14 +1,9 @@
-"""Aegis-native per-finding triage enrichment (runs in Aegis's own DeepSeek pipeline).
+"""Aegis-native per-finding triage enrichment.
 
-After validation confirms a finding, a professional submission still needs triage: an
-adversarial trust-model check, a defensible CVSS score, whether it's standalone or a
-chain, whether it's likely a known/duplicate, a program-aware bounty estimate, and a
-remediation sketch (a suggested fix earns a bonus on many programs). This module does
-all of that in ONE DeepSeek call per finding and attaches the result to the report row
-under ``enrichment`` — no open-kritt, no extra services.
-
-All prompt content is original. The call is strict-JSON and validated; a failure leaves
-the finding un-enriched rather than sinking the pipeline.
+After validation confirms a finding, submission-quality triage still needs trust-model,
+severity, exploitability, duplicate, payout and remediation context.  Jarvis now decides
+which findings deserve this additional model spend: when a canonical ``jarvis`` annotation
+exists and ``should_escalate`` is false, enrichment is skipped rather than paid for.
 """
 
 from __future__ import annotations
@@ -18,25 +13,19 @@ from pydantic import BaseModel, ConfigDict, Field
 
 class FindingEnrichment(BaseModel):
     model_config = ConfigDict(extra="ignore")
-    # adversarial trust-model gate — does it survive "what must the attacker hold?"
     trust_model_holds: bool = True
     trust_model: str = Field(default="", max_length=1200)
-    # defensible severity
     cvss_score: float = Field(default=0.0, ge=0, le=10)
     cvss_vector: str = Field(default="", max_length=120)
     severity_band: str = Field(default="medium", max_length=12)
-    # exploitability
     chain_required: bool = False
     preconditions: str = Field(default="", max_length=800)
-    exploit_practicality: str = Field(default="", max_length=40)   # trivial/moderate/hard/theoretical
-    # prior art
+    exploit_practicality: str = Field(default="", max_length=40)
     likely_duplicate: bool = False
     prior_art: str = Field(default="", max_length=400)
-    # money
     bounty_min: float = Field(default=0.0, ge=0)
     bounty_likely: float = Field(default=0.0, ge=0)
     bounty_reasoning: str = Field(default="", max_length=600)
-    # the fix
     remediation: str = Field(default="", max_length=1500)
 
 
@@ -64,8 +53,19 @@ _SYSTEM = (
 )
 
 
+def _jarvis_wants_more_work(row: dict) -> bool:
+    """Compatibility-safe economic gate: old rows without Jarvis remain eligible."""
+    jarvis = row.get("jarvis")
+    if not isinstance(jarvis, dict):
+        return True
+    return bool(jarvis.get("should_escalate", False))
+
+
 def enrich_finding(client, row: dict, *, program_url: str = "") -> dict:
     """Attach a triage ``enrichment`` block to one finding row (in place). Best-effort."""
+    if not _jarvis_wants_more_work(row):
+        row["enrichment_skipped"] = "jarvis_deferred"
+        return row
     answer = row.get("json_answer") or {}
     finding = {
         "vulnerability_type": answer.get("vulnerability_type", ""),
@@ -81,30 +81,45 @@ def enrich_finding(client, row: dict, *, program_url: str = "") -> dict:
     system = _SYSTEM.replace("{{program_url}}", program_url or "the configured program")
     try:
         import json
-        data = client.complete_json([
-            {"role": "system", "content": system},
-            {"role": "user", "content": "Triage this finding:\n" + json.dumps(finding)},
-        ])
+
+        data = client.complete_json(
+            [
+                {"role": "system", "content": system},
+                {"role": "user", "content": "Triage this finding:\n" + json.dumps(finding)},
+            ]
+        )
         enrichment = FindingEnrichment.model_validate(data)
-    except Exception:                                # bad json / validation / network
+    except Exception:
         return row
     row["enrichment"] = enrichment.model_dump(mode="json")
     return row
 
 
-def enrich_report(report_path, client, *, program_url: str = "",
-                  only_confirmed: bool = True, progress=None) -> dict:
-    """Enrich each (confirmed) finding in a persisted report and rewrite it."""
+def enrich_report(
+    report_path,
+    client,
+    *,
+    program_url: str = "",
+    only_confirmed: bool = True,
+    progress=None,
+) -> dict:
+    """Enrich confirmed, Jarvis-escalated findings and rewrite the report."""
     import json
     from pathlib import Path
 
     path = Path(report_path)
     data = json.loads(path.read_text(encoding="utf-8"))
-    rows = [r for r in (data.get("vulnerabilities") or [])
-            if not only_confirmed or (r.get("validation") or {}).get("verdict") == "confirmed"]
+    candidates = [
+        row
+        for row in (data.get("vulnerabilities") or [])
+        if not only_confirmed or (row.get("validation") or {}).get("verdict") == "confirmed"
+    ]
+    rows = [row for row in candidates if _jarvis_wants_more_work(row)]
     for index, row in enumerate(rows, start=1):
         if progress:
             progress(index, len(rows))
         enrich_finding(client, row, program_url=program_url)
+    skipped = len(candidates) - len(rows)
+    data.setdefault("scan", {}).setdefault("jarvis", {})["enrichment_deferred"] = skipped
     path.write_text(json.dumps(data, indent=2), encoding="utf-8")
-    return {"enriched": len(rows)}
+    return {"enriched": len(rows), "jarvis_deferred": skipped}

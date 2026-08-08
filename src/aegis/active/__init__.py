@@ -30,6 +30,14 @@ from .detectors import (
 )
 from .enumeration import IdentifierKind, IdentifierProfile, analyze_identifiers
 from .graphql import GraphqlFinding, GraphqlIssue, GraphqlResponse, analyze_graphql
+from .http_desync import (
+    DesyncCandidate,
+    DesyncFamily,
+    DesyncObservation,
+    analyze_desync_observations,
+    candidate_routes,
+    observations_from_assets,
+)
 from .http_hardening import HardeningFinding, HardeningIssue, analyze_response_hardening
 from .js_secrets import HIGH_VALUE_CATEGORIES, JsSecretFinding, analyze_javascript_secrets
 from .parameters import (
@@ -58,12 +66,7 @@ from .routes import (
 )
 from .ssrf import SSRF_PARAM_HINTS, SsrfFinding, candidate_ssrf_params, run_ssrf_probes
 from .surface import surface_candidates
-from .wiring import (
-    GatewayProbe,
-    TransportResponse,
-    run_parameter_stage,
-    run_route_stage,
-)
+from .wiring import GatewayProbe, TransportResponse, run_parameter_stage, run_route_stage
 
 __all__ = [
     "DETECTOR_ACTIONS",
@@ -79,6 +82,9 @@ __all__ = [
     "ClientIssue",
     "ContractFinding",
     "ContractProperty",
+    "DesyncCandidate",
+    "DesyncFamily",
+    "DesyncObservation",
     "DetectorPlan",
     "DetectorTask",
     "DiscoveryConfig",
@@ -114,17 +120,20 @@ __all__ = [
     "UnsupportedMethod",
     "analyze_auth_differential",
     "analyze_client_script",
+    "analyze_desync_observations",
     "analyze_graphql",
     "analyze_identifiers",
     "analyze_javascript_secrets",
     "analyze_path_normalization",
     "analyze_response_hardening",
     "analyze_solidity",
+    "candidate_routes",
     "candidate_ssrf_params",
     "classify_candidate",
     "classify_posture",
     "is_differential",
     "normalization_variants",
+    "observations_from_assets",
     "passes_report_gate",
     "plan_detectors",
     "reserve_plan",
