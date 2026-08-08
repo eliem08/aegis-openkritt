@@ -8,7 +8,6 @@ networkless backend. ModelScan output remains unverified candidate evidence.
 from __future__ import annotations
 
 import hashlib
-import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -191,9 +190,7 @@ def run_ai_model_pipeline(
             )
         report.candidates.extend(normalized.candidates)
         report.observations.extend(normalized.observations)
-        successful = (
-            not execution.timed_out and execution.returncode in {0, 1}
-        )
+        successful = not execution.timed_out and execution.returncode in {0, 1}
         if not successful:
             raise ModelProvenanceError(
                 f"ModelScan returned unsuccessful exit code {execution.returncode}"
