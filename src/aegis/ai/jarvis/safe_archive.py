@@ -1,9 +1,10 @@
 """Bounded extraction for authorized firmware archives.
 
-Only ZIP and TAR-family containers are supported. Extraction is implemented in Python without
-executing archive helpers, preserving archive permissions, following links, creating devices, or
-writing outside the private output root. Raw filesystem images (SquashFS/JFFS2/UBI/etc.) are
-intentionally unsupported here and require a separately isolated backend.
+Only ZIP and *uncompressed* TAR containers are supported by the autonomous path. Extraction is
+implemented in Python without executing archive helpers, preserving archive permissions,
+following links, creating devices, or writing outside the private output root. Compressed TAR
+streams and raw filesystem images (SquashFS/JFFS2/UBI/etc.) intentionally require a separately
+isolated decompression/filesystem backend.
 """
 
 from __future__ import annotations
@@ -71,6 +72,10 @@ def _safe_relative(name: str) -> PurePosixPath:
     raw = str(name or "").replace("\\", "/")
     if "\x00" in raw:
         raise SafeArchiveError("archive entry contains a NUL byte")
+    # A leading './' is a common benign TAR convention. Normalize it without ever consuming
+    # '../' traversal or an absolute path.
+    while raw.startswith("./"):
+        raw = raw[2:]
     path = PurePosixPath(raw)
     if path.is_absolute() or not path.parts:
         raise SafeArchiveError("archive entry path is absolute or empty")
@@ -113,7 +118,11 @@ def _validate_counts(count: int, total: int, size: int, limits: SafeArchiveLimit
     return count, total
 
 
-def _extract_zip(archive: Path, root: Path, limits: SafeArchiveLimits) -> tuple[int, int, list[ExtractedEntry]]:
+def _extract_zip(
+    archive: Path,
+    root: Path,
+    limits: SafeArchiveLimits,
+) -> tuple[int, int, list[ExtractedEntry]]:
     count = total = 0
     entries: list[ExtractedEntry] = []
     with zipfile.ZipFile(archive) as bundle:
@@ -141,13 +150,18 @@ def _extract_zip(archive: Path, root: Path, limits: SafeArchiveLimits) -> tuple[
     return count, total, entries
 
 
-def _extract_tar(archive: Path, root: Path, limits: SafeArchiveLimits) -> tuple[int, int, list[ExtractedEntry]]:
+def _extract_plain_tar(
+    archive: Path,
+    root: Path,
+    limits: SafeArchiveLimits,
+) -> tuple[int, int, list[ExtractedEntry]]:
     count = total = 0
     entries: list[ExtractedEntry] = []
     try:
-        bundle = tarfile.open(archive, mode="r:*")
+        # r: deliberately rejects gzip/bzip2/xz streams. Those need an isolated decompressor.
+        bundle = tarfile.open(archive, mode="r:")
     except tarfile.TarError as exc:
-        raise SafeArchiveError("unsupported or malformed TAR archive") from exc
+        raise SafeArchiveError("unsupported archive; only ZIP or uncompressed TAR is allowed") from exc
     with bundle:
         members = bundle.getmembers()
         for member in members:
@@ -176,7 +190,7 @@ def extract_safe_archive(
     workspace_root: str | Path | None = None,
     limits: SafeArchiveLimits | None = None,
 ) -> SafeArchiveExtraction:
-    """Extract a bounded ZIP/TAR-family archive into a private retained directory."""
+    """Extract a bounded ZIP or uncompressed TAR into a private retained directory."""
     archive = Path(archive_path).expanduser().resolve()
     if not archive.is_file():
         raise SafeArchiveError("archive must be an existing regular file")
@@ -190,13 +204,9 @@ def extract_safe_archive(
         if zipfile.is_zipfile(archive):
             archive_type = "zip"
             count, total, entries = _extract_zip(archive, root, constraints)
-        elif tarfile.is_tarfile(archive):
-            archive_type = "tar"
-            count, total, entries = _extract_tar(archive, root, constraints)
         else:
-            raise SafeArchiveError(
-                "unsupported archive format; raw filesystem images require an isolated backend"
-            )
+            archive_type = "tar"
+            count, total, entries = _extract_plain_tar(archive, root, constraints)
         return SafeArchiveExtraction(
             archive_type=archive_type,
             archive_sha256=_sha256_file(archive),
