@@ -7,7 +7,7 @@ import pytest
 
 from aegis.ai.jarvis.asset_capabilities import GRYPE, MOBSF, SYFT, AssetKind
 from aegis.ai.jarvis.asset_cli_executor import CliProcessResult
-from aegis.ai.jarvis.asset_deep_capabilities import DeepScannerMethod
+from aegis.ai.jarvis.asset_deep_capabilities import GHIDRA, DeepScannerMethod
 from aegis.ai.jarvis.asset_execution_router import (
     AssetExecutionRouteError,
     execute_offline_asset_method,
@@ -17,6 +17,7 @@ from aegis.ai.jarvis.asset_execution_ticket import (
     CapabilityAvailability,
     issue_offline_execution_ticket,
 )
+from aegis.ai.jarvis.ghidra_sandbox import GhidraSandboxProcessResult
 from aegis.ai.mobsf_adapter import MobSFConfig
 from aegis.ai.tool_runtime import ToolRuntimeManager
 
@@ -77,6 +78,7 @@ def test_router_executes_ready_local_cli_and_normalizes_candidates(tmp_path):
     assert outcome.provenance["execution_ticket"] == ticket.ticket_id
     assert outcome.local_cli is not None
     assert outcome.internal is None
+    assert outcome.ghidra is None
 
 
 def test_router_executes_only_registered_internal_mobsf_method(tmp_path):
@@ -112,8 +114,67 @@ def test_router_executes_only_registered_internal_mobsf_method(tmp_path):
         client.close()
     assert outcome.internal is not None
     assert outcome.local_cli is None
+    assert outcome.ghidra is None
     assert outcome.observations[0].kind == "internal_scanner_run"
     assert outcome.provenance["execution_ticket"] == ticket.ticket_id
+
+
+def test_router_routes_ghidra_only_through_bubblewrap_sandbox(tmp_path):
+    root = tmp_path / "ghidra"
+    launcher = root / "support" / "analyzeHeadless"
+    launcher.parent.mkdir(parents=True)
+    launcher.write_bytes(b"ghidra")
+    properties = root / "Ghidra" / "application.properties"
+    properties.parent.mkdir(parents=True)
+    properties.write_text("application.version=12.0.4\n", encoding="utf-8")
+    bwrap = tmp_path / "bwrap"
+    bwrap.write_bytes(b"bwrap")
+    artifact = tmp_path / "sample.bin"
+    artifact.write_bytes(b"authorized")
+
+    def resolver(name):
+        return {"analyzeHeadless": str(launcher), "bwrap": str(bwrap)}.get(name)
+
+    manager = ToolRuntimeManager(
+        resolver=resolver,
+        runner=lambda argv, timeout: (0, "bubblewrap 0.11", "")
+        if argv[0] == str(bwrap) else (1, "", "unexpected"),
+    )
+    ticket = issue_offline_execution_ticket(
+        asset_kind=AssetKind.EXECUTABLE,
+        method=GHIDRA,
+        scope_digest=_SCOPE,
+        availability=CapabilityAvailability(
+            artifact_available=True,
+            sandbox_available=True,
+        ),
+    )
+    calls = []
+
+    def ghidra_runner(argv, workspace, timeout, env, maximum_output_bytes):
+        calls.append(argv)
+        (workspace / "ghidra.log").write_text("complete", encoding="utf-8")
+        return GhidraSandboxProcessResult(0, b"ok", b"")
+
+    outcome = execute_offline_asset_method(
+        GHIDRA,
+        ticket=ticket,
+        scope_digest=_SCOPE,
+        artifact_path=artifact,
+        runtime_manager=manager,
+        pins={},
+        ghidra_runner=ghidra_runner,
+        timeout=30,
+    )
+    assert outcome.candidates == ()
+    assert outcome.ghidra is not None
+    assert outcome.local_cli is None
+    assert outcome.internal is None
+    assert outcome.observations[0].kind == "binary_analysis"
+    assert outcome.provenance["execution_mode"] == "bubblewrap_ghidra"
+    assert outcome.provenance["sandbox"]["network_shared"] is False
+    assert "--unshare-all" in calls[0]
+    assert "--share-net" not in calls[0]
 
 
 def test_ticket_issuer_refuses_network_state_change_and_unregistered_methods():
