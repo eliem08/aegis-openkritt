@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from .asset_deep_capabilities import DeepScannerMethod
 from .asset_capabilities import Requirement
+from .asset_deep_capabilities import DeepScannerMethod
 
 
 SAFE_ROOTFS_EXTRACT = DeepScannerMethod(
