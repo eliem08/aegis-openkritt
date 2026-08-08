@@ -1,8 +1,8 @@
 """Single fail-closed execution router for offline asset analysis.
 
-The heterogeneous planner may describe network, state-changing, internal-service and local CLI
-methods. This router handles only planner-authorized offline methods and requires an execution
-ticket recomputed from the authoritative capability planner before dispatch.
+The heterogeneous planner may describe network, state-changing, internal-service, local CLI and
+sandbox-required methods. This router handles only planner-authorized offline methods and requires
+an execution ticket recomputed from the authoritative capability planner before dispatch.
 """
 
 from __future__ import annotations
@@ -27,6 +27,11 @@ from .asset_execution_ticket import (
 )
 from .asset_executor import InternalAssetExecution, execute_internal_asset_method
 from .asset_normalizers import AssetExecutionObservation, normalize_local_cli_execution
+from .ghidra_sandbox import (
+    GhidraSandboxExecution,
+    SandboxRunner,
+    execute_ghidra_sandboxed,
+)
 
 
 class AssetExecutionRouteError(RuntimeError):
@@ -42,10 +47,15 @@ class OfflineAssetExecutionOutcome:
     provenance: dict[str, Any]
     local_cli: LocalCliExecution | None = None
     internal: InternalAssetExecution | None = None
+    ghidra: GhidraSandboxExecution | None = None
 
 
 def _internal_supported(method: PlannedMethod) -> bool:
     return (str(method.tool), str(method.method)) == ("MobSF", "rest-static-analysis")
+
+
+def _ghidra_supported(method: PlannedMethod) -> bool:
+    return (str(method.tool), str(method.method)) == ("Ghidra", "headless-binary-analysis")
 
 
 def execute_offline_asset_method(
@@ -63,6 +73,7 @@ def execute_offline_asset_method(
     runtime_manager: ToolRuntimeManager | None = None,
     pins: dict[str, ToolPin] | None = None,
     runner: Runner | None = None,
+    ghidra_runner: SandboxRunner | None = None,
     mobsf_config: MobSFConfig | None = None,
     mobsf_client=None,
 ) -> OfflineAssetExecutionOutcome:
@@ -109,6 +120,45 @@ def execute_offline_asset_method(
             observations=(observation,),
             provenance=provenance,
             internal=internal,
+        )
+
+    if _ghidra_supported(method):
+        if artifact_path is None:
+            raise AssetExecutionRouteError("Ghidra execution requires an authorized artifact")
+        try:
+            ghidra = execute_ghidra_sandboxed(
+                artifact_path=artifact_path,
+                ticket=ticket,
+                workspace_root=workspace_root,
+                retain_workspace=retain_workspace,
+                timeout=max(1.0, timeout),
+                runtime_manager=runtime_manager,
+                pins=pins,
+                runner=ghidra_runner,
+            )
+        except Exception as exc:
+            raise AssetExecutionRouteError(f"Ghidra sandbox: {exc}") from exc
+        observation = AssetExecutionObservation(
+            kind="binary_analysis",
+            tool="Ghidra",
+            method=str(method.method),
+            data={
+                "returncode": ghidra.returncode,
+                "timed_out": ghidra.timed_out,
+                "analysis_log_sha256": ghidra.analysis_log_sha256,
+                "analysis_log_size": ghidra.analysis_log_size,
+                "output_files": len(ghidra.outputs),
+                "sandbox": ghidra.provenance.get("sandbox"),
+                "verification_state": "observation",
+            },
+        )
+        return OfflineAssetExecutionOutcome(
+            tool="Ghidra",
+            method=str(method.method),
+            candidates=(),
+            observations=(observation,),
+            provenance=ghidra.provenance,
+            ghidra=ghidra,
         )
 
     if str(method.tool).startswith("aegis-"):
