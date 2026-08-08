@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from aegis.ai.jarvis.asset_capabilities import AssetKind
+from aegis.ai.jarvis.asset_capabilities import MOBSF, AssetKind
 from aegis.ai.jarvis.asset_capability_planner import CapabilityScanPlan
 from aegis.ai.jarvis.asset_deep_capabilities import DeepScannerMethod
 from aegis.ai.jarvis.asset_runtime import RuntimeDisposition, overlay_runtime
@@ -31,6 +31,15 @@ def test_runtime_overlay_separates_cli_internal_unknown_and_prerequisite_blocked
     assert [item.disposition for item in overlay.prerequisite_blocked] == [
         RuntimeDisposition.PREREQUISITE_BLOCKED
     ]
+
+
+def test_mobsf_is_a_concrete_internal_adapter_not_runtime_unknown():
+    plan = CapabilityScanPlan(AssetKind.ANDROID_APK, ready=(MOBSF,), blocked=())
+    overlay = overlay_runtime(plan, pins={})
+    assert overlay.runtime_unknown == ()
+    assert len(overlay.internal_adapters) == 1
+    assert overlay.internal_adapters[0].method.tool == "MobSF"
+    assert "MobSF REST static adapter" in overlay.internal_adapters[0].reason
 
 
 def test_runtime_overlay_blocks_missing_cli_without_executing_scan_target():
