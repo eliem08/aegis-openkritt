@@ -1,8 +1,8 @@
 """Run installed OSS scanners on a checkout and fold their findings into Aegis.
 
-Production execution is now health-gated: the exact executable is resolved, version-probed,
+Production execution is health-gated: the exact executable is resolved, version-probed,
 SHA-256 fingerprinted and optionally pin-checked before it receives a target. Injected runners
-used by tests remain isolated from the host toolchain. Scanner outputs are still candidates only;
+used by tests remain isolated from the host toolchain. Scanner outputs are candidates only;
 Aegis validation/evidence stages decide whether a finding advances.
 """
 
@@ -15,6 +15,7 @@ from .tool_registry import TOOLS, Tool, tools_for
 from .tool_runtime import (
     ToolRuntimeManager,
     ToolRuntimeStatus,
+    load_tool_pins,
     provenance,
     resolve_binary as _runtime_resolve_binary,
 )
@@ -106,7 +107,7 @@ def _default_run(argv, timeout):
 
 
 class ToolBridge:
-    """Invoke scanners with production runtime health and provenance checks."""
+    """Invoke scanners with production runtime health, pin and provenance checks."""
 
     def __init__(self, *, run=None, timeout: int = 1200,
                  runtime_manager: ToolRuntimeManager | None = None,
@@ -114,9 +115,10 @@ class ToolBridge:
         self._run = run or _default_run
         self._timeout = timeout
         self._runtime = runtime_manager or ToolRuntimeManager()
-        # Real process execution is strict by default. Injected runners are test/simulation
-        # boundaries and do not depend on scanners installed on the CI host.
         self._require_healthy = (run is None) if require_healthy is None else bool(require_healthy)
+        # Explicitly configured malformed/missing pin files fail construction instead of
+        # silently running an unpinned scanner. Injected tests do not read operator config.
+        self._pins = load_tool_pins() if self._require_healthy else {}
 
     def scan(self, checkout_path: str, *, lane: str | None = None,
              tools: list[Tool] | None = None, on_event=None) -> list[ToolResult]:
@@ -133,7 +135,9 @@ class ToolBridge:
         def _run_one(tool: Tool) -> ToolResult:
             runtime_record = None
             if self._require_healthy:
-                runtime_record = self._runtime.inspect_tool(tool)
+                runtime_record = self._runtime.inspect_tool(
+                    tool, pin=self._pins.get(tool.name)
+                )
                 if runtime_record.status is not ToolRuntimeStatus.READY:
                     emit(
                         "scanner",
