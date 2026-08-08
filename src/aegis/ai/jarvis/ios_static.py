@@ -16,7 +16,12 @@ from pathlib import Path
 from typing import Any
 
 from .asset_execution_ticket import AssetExecutionTicket, AssetExecutionTicketError, _ticket_id
-from .safe_archive import SafeArchiveExtraction, SafeArchiveLimits, cleanup_safe_archive, extract_safe_archive
+from .safe_archive import (
+    SafeArchiveExtraction,
+    SafeArchiveLimits,
+    cleanup_safe_archive,
+    extract_safe_archive,
+)
 
 
 class IOSStaticError(RuntimeError):
@@ -140,8 +145,15 @@ def _ref(path: Path, root: Path, *, max_hash_bytes: int = 2 * 1024 * 1024 * 1024
     return IOSFileRef(path.relative_to(root).as_posix(), size, digest)
 
 
-def _candidate(*, weakness: str, summary: str, explanation: str, severity: str,
-               plist_path: str, kind: str) -> dict:
+def _candidate(
+    *,
+    weakness: str,
+    summary: str,
+    explanation: str,
+    severity: str,
+    plist_path: str,
+    kind: str,
+) -> dict:
     return {
         "json_answer": {
             "vulnerability_type": weakness[:200],
