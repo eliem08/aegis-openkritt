@@ -1,4 +1,4 @@
-"""Validated DeepSeek configuration for the guardrailed planner."""
+"""Validated model configuration for the guardrailed planner."""
 
 from __future__ import annotations
 
@@ -16,11 +16,11 @@ _REASONING_EFFORTS = frozenset({"low", "high", "max"})
 
 
 class DeepSeekAuthError(RuntimeError):
-    """Raised when the DeepSeek API key is missing."""
+    """Raised when no usable model credential is configured."""
 
 
 class DeepSeekConfigError(ValueError):
-    """Raised before network access when DeepSeek configuration is unsafe."""
+    """Raised before network access when model configuration is unsafe."""
 
 
 def _number(env: dict, name: str, default: float) -> float:
@@ -51,15 +51,15 @@ class DeepSeekConfig:
     api_key: str
     base_url: str = DEFAULT_BASE_URL
     model: str = DEFAULT_MODEL
-    provider: str = "deepseek"    # "deepseek" (native, sends thinking) | "openrouter" (OpenAI-compat)
+    provider: str = "deepseek"  # deepseek | openrouter | gateway
     connect_timeout: float = 10.0
     read_timeout: float = 60.0
     max_tokens: int = 4096
     temperature: float = 0.2
     thinking: str = "enabled"
     reasoning_effort: str = "high"
-    max_retries: int = 3          # transient-error retries (DNS/connect/timeout/429/5xx)
-    retry_backoff: float = 0.75   # base seconds for exponential backoff between retries
+    max_retries: int = 3
+    retry_backoff: float = 0.75
 
     def __post_init__(self) -> None:
         self.api_key = str(self.api_key or "").strip()
@@ -68,18 +68,20 @@ class DeepSeekConfig:
         self.thinking = str(self.thinking or "").strip().lower()
         self.reasoning_effort = str(self.reasoning_effort or "").strip().lower()
         self.provider = str(self.provider or "deepseek").strip().lower()
-        if self.provider not in {"deepseek", "openrouter"}:
-            raise DeepSeekConfigError("provider must be 'deepseek' or 'openrouter'")
+        if self.provider not in {"deepseek", "openrouter", "gateway"}:
+            raise DeepSeekConfigError("provider must be 'deepseek', 'openrouter', or 'gateway'")
 
         parsed = urlsplit(self.base_url)
         if parsed.scheme not in {"http", "https"} or not parsed.hostname:
-            raise DeepSeekConfigError("DEEPSEEK_BASE_URL must be an HTTP(S) URL")
+            raise DeepSeekConfigError("model base URL must be an HTTP(S) URL")
         if parsed.username is not None or parsed.password is not None:
-            raise DeepSeekConfigError("DEEPSEEK_BASE_URL cannot contain credentials")
+            raise DeepSeekConfigError("model base URL cannot contain credentials")
         if parsed.query or parsed.fragment:
-            raise DeepSeekConfigError("DEEPSEEK_BASE_URL cannot contain a query or fragment")
+            raise DeepSeekConfigError("model base URL cannot contain a query or fragment")
+        if not self.api_key:
+            raise DeepSeekAuthError("model credential cannot be empty")
         if not self.model:
-            raise DeepSeekConfigError("DEEPSEEK_MODEL cannot be empty")
+            raise DeepSeekConfigError("model cannot be empty")
         if not math.isfinite(self.connect_timeout) or not 0 < self.connect_timeout <= 120:
             raise DeepSeekConfigError("DEEPSEEK_CONNECT_TIMEOUT must be in (0, 120]")
         if not math.isfinite(self.read_timeout) or not 0 < self.read_timeout <= 600:
@@ -99,7 +101,6 @@ class DeepSeekConfig:
 
     @property
     def timeout(self) -> httpx.Timeout:
-        """Per-operation HTTP timeouts for the direct development client."""
         return httpx.Timeout(
             connect=self.connect_timeout,
             read=self.read_timeout,
@@ -108,24 +109,49 @@ class DeepSeekConfig:
         )
 
     @classmethod
-    def from_env(cls, env: dict | None = None) -> DeepSeekConfig:
+    def from_env(cls, env: dict | None = None) -> "DeepSeekConfig":
         env = env if env is not None else os.environ
-        # Provider resolution: DeepSeek is primary. Fall back to OpenRouter (OpenAI-compatible)
-        # when DeepSeek has no key, or when AEGIS_LLM_PROVIDER=openrouter forces it — lets the
-        # 24/7 hunt keep running on OpenRouter credits if DeepSeek is unset or rate-limited.
+
+        # Production first: callers authenticate only to Aegis's internal model gateway. The
+        # provider key remains inside that service and all calls inherit its atomic budget/cache/
+        # usage-ledger controls. This preserves the existing DeepSeekClient interface everywhere.
+        gateway_url = str(env.get("AEGIS_MODEL_GATEWAY_URL", "")).strip()
+        if gateway_url:
+            token = str(env.get("AEGIS_MODEL_GATEWAY_TOKEN", "")).strip()
+            if not token:
+                raise DeepSeekAuthError(
+                    "AEGIS_MODEL_GATEWAY_URL is set but AEGIS_MODEL_GATEWAY_TOKEN is unset"
+                )
+            return cls(
+                api_key=token,
+                base_url=gateway_url,
+                model="deepseek-v4-flash",
+                provider="gateway",
+                connect_timeout=_number(env, "DEEPSEEK_CONNECT_TIMEOUT", 10.0),
+                read_timeout=_number(env, "DEEPSEEK_READ_TIMEOUT", 60.0),
+                max_tokens=_integer(env, "DEEPSEEK_MAX_TOKENS", 4096),
+                temperature=_number(env, "DEEPSEEK_TEMPERATURE", 0.2),
+                thinking=env.get("DEEPSEEK_THINKING", "enabled"),
+                reasoning_effort=env.get("DEEPSEEK_REASONING_EFFORT", "high"),
+                max_retries=_integer(env, "DEEPSEEK_MAX_RETRIES", 3),
+                retry_backoff=_number(env, "DEEPSEEK_RETRY_BACKOFF", 0.75),
+            )
+
         forced = str(env.get("AEGIS_LLM_PROVIDER", "")).strip().lower()
         key = str(env.get("DEEPSEEK_API_KEY", "")).strip()
         or_key = str(env.get("OPENROUTER_API_KEY", "")).strip()
         use_openrouter = forced == "openrouter" or (not key and or_key)
         if use_openrouter:
             if not or_key:
-                raise DeepSeekAuthError("AEGIS_LLM_PROVIDER=openrouter but OPENROUTER_API_KEY is unset")
+                raise DeepSeekAuthError(
+                    "AEGIS_LLM_PROVIDER=openrouter but OPENROUTER_API_KEY is unset"
+                )
             return cls(
                 api_key=or_key,
                 base_url=env.get("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1"),
                 model=env.get("OPENROUTER_MODEL", "deepseek/deepseek-chat"),
                 provider="openrouter",
-                thinking="disabled",   # OpenRouter's OpenAI-compat API rejects DeepSeek's thinking field
+                thinking="disabled",
                 connect_timeout=_number(env, "DEEPSEEK_CONNECT_TIMEOUT", 10.0),
                 read_timeout=_number(env, "DEEPSEEK_READ_TIMEOUT", 60.0),
                 max_tokens=_integer(env, "DEEPSEEK_MAX_TOKENS", 4096),
@@ -134,11 +160,14 @@ class DeepSeekConfig:
                 retry_backoff=_number(env, "DEEPSEEK_RETRY_BACKOFF", 0.75),
             )
         if not key:
-            raise DeepSeekAuthError("set DEEPSEEK_API_KEY (or OPENROUTER_API_KEY) in the environment")
+            raise DeepSeekAuthError(
+                "set AEGIS_MODEL_GATEWAY_URL/TOKEN, DEEPSEEK_API_KEY, or OPENROUTER_API_KEY"
+            )
         return cls(
             api_key=key,
             base_url=env.get("DEEPSEEK_BASE_URL", DEFAULT_BASE_URL),
             model=env.get("DEEPSEEK_MODEL", DEFAULT_MODEL),
+            provider="deepseek",
             connect_timeout=_number(env, "DEEPSEEK_CONNECT_TIMEOUT", 10.0),
             read_timeout=_number(env, "DEEPSEEK_READ_TIMEOUT", 60.0),
             max_tokens=_integer(env, "DEEPSEEK_MAX_TOKENS", 4096),
@@ -150,8 +179,7 @@ class DeepSeekConfig:
         )
 
     @classmethod
-    def maybe_from_env(cls, env: dict | None = None) -> DeepSeekConfig | None:
-        """Return a config if a key is set, else None (enables graceful fallback)."""
+    def maybe_from_env(cls, env: dict | None = None) -> "DeepSeekConfig | None":
         try:
             return cls.from_env(env)
         except DeepSeekAuthError:
