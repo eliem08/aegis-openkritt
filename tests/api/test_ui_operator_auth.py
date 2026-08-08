@@ -16,4 +16,7 @@ def test_mutating_ui_rejects_agent_role(client, agent_headers):
 def test_mutating_ui_accepts_operator_then_reaches_route(client, op_headers):
     response = client.post("/ui/autohunt", headers=op_headers, json={})
     assert response.status_code == 200
-    assert "error" in response.json()  # route ran; no ranking fixture was supplied
+    body = response.json()
+    # The repository may contain a default ranking fixture, so either a queued real job or a
+    # normal route-level configuration error proves the auth middleware allowed the operator.
+    assert body.get("job_id") or body.get("error")
