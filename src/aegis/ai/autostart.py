@@ -1,25 +1,19 @@
-"""Auto-start a hunt when the service boots — so launching Aegis *is* the whole pipeline.
+"""Auto-start a profit-ranked hunt when the service boots.
 
-The operator shouldn't have to add target links, POST a ranking, or run curl. With
-AEGIS_AUTOSTART=1, on startup the app:
-
-  1. optionally refreshes the program registry from the public feeds (AEGIS_AUTOSTART_IMPORT=1),
-  2. picks targets — a ranking file if AEGIS_AUTOSTART_RANKING points at one, else the
-     top-yield in-scope repos from selection.score_programs over the registry,
-  3. launches a background (continuous by default) autohunt that feeds the dashboard.
-
-The operator then just watches the dashboard and submits what clears the hostile-triager.
-Everything downstream is unchanged: candidates only, human-gated submission, no live attacks.
-Fully gated and wrapped — if anything is missing (no registry, no targets) it no-ops quietly
-and the service still comes up normally.
+Autostart never builds its queue from the raw registry. It consumes only targets that pass the
+fresh target-authorization gate, then ranks those by projected net value. A supplied ranking file
+is also filtered through the gate before it can reach the hunt loop.
 """
 
 from __future__ import annotations
 
+import logging
 import os
 import threading
 import uuid
 from pathlib import Path
+
+logger = logging.getLogger("aegis.ai.autostart")
 
 
 def _on(name: str) -> bool:
@@ -27,22 +21,28 @@ def _on(name: str) -> bool:
 
 
 def _targets():
-    """Return the HuntTargets to auto-hunt, honoring AEGIS_AUTOSTART_RANKING or falling back
-    to the yield-ranked registry."""
+    """Return the highest-value targets that are authorized *right now*."""
+    from .target_authorization import gate
+
+    n = int(os.environ.get("AEGIS_AUTOSTART_TARGETS", "8") or 8)
     ranking = os.environ.get("AEGIS_AUTOSTART_RANKING", "").strip()
     if ranking and Path(ranking).is_file():
         from .auto_hunt_run import build_targets_from_ranking
-        return build_targets_from_ranking(ranking)
-    from .registry import load_registry
-    from .selection import score_programs
-    n = int(os.environ.get("AEGIS_AUTOSTART_TARGETS", "8") or 8)
-    ranked = score_programs(load_registry())
-    return [s.target for s in ranked if getattr(s.target, "repository", "")][:n]
+
+        candidates = build_targets_from_ranking(ranking)
+        return [t for t in candidates if gate(t.repository, persist=False).allowed][:n]
+
+    from .auto_hunt import AutoHuntConfig
+    from .profit import rank_by_net_profit
+    from .target_authorization import authorized_targets
+
+    candidates = authorized_targets()
+    ranked = rank_by_net_profit(candidates, AutoHuntConfig())
+    return [target for target, estimate in ranked if estimate.net_ev > 0][:n]
 
 
 def maybe_autostart(app) -> None:
-    """Kick off the auto-hunt in a daemon thread if AEGIS_AUTOSTART is on and nothing is
-    already running. Never raises — startup must not be blocked by hunt setup."""
+    """Kick off the auto-hunt if enabled; setup failures never crash API startup."""
     if not _on("AEGIS_AUTOSTART"):
         return
 
@@ -53,53 +53,51 @@ def maybe_autostart(app) -> None:
                     from .program_sources import import_programs
                     import_programs()
                 except Exception:
-                    pass
+                    logger.exception("program import failed during autostart")
             if _on("AEGIS_AUTOSTART_MONITOR"):
-                # diff feeds vs registry so paused programs are marked inactive (skipped by
-                # selection) and new ones get picked up before we rank.
                 try:
                     from .program_monitor import monitor
                     monitor()
                 except Exception:
-                    pass
-                # newly disclosed public reports (Bugcrowd), filtered + estimated.
+                    logger.exception("program monitor failed during autostart")
                 try:
                     from .disclosed_reports import collect
                     collect()
                 except Exception:
-                    pass
-                # enrich the registry so selection can rank by money + maturity: real reward
-                # from disclosed payouts, crowding, labeled priors (+ GitHub age if opted in).
+                    logger.exception("disclosed-report refresh failed during autostart")
                 try:
                     from .program_enrich import enrich
                     enrich(use_github=_on("AEGIS_AUTOSTART_GITHUB_AGE"))
                 except Exception:
-                    pass
-            # 24/7 carpet sweep: fast deterministic detectors (JWT/upload/secrets) over every
-            # in-scope source repo, forever, in its own thread — the always-on cheap hunter.
+                    logger.exception("program enrichment failed during autostart")
             if _on("AEGIS_AUTOSTART_CARPET"):
                 try:
                     from .carpet_sweep import run_forever
                     threading.Thread(target=run_forever, daemon=True,
                                      name="aegis-carpet").start()
                 except Exception:
-                    pass
+                    logger.exception("carpet sweep failed to start")
             jobs = getattr(app.state, "autohunt_jobs", None)
             if jobs is None:
                 jobs = app.state.autohunt_jobs = {}
             if any(j.get("status") == "running" for j in jobs.values()):
-                return                                   # a hunt is already live; don't stack
+                return
             targets = _targets()
             if not targets:
+                logger.warning("autostart found no positive-net-EV authorized targets")
                 return
             from aegis.api.routers.ui import _run_autohunt
-
             from .auto_hunt import AutoHuntConfig
+
             config = AutoHuntConfig(
                 max_targets=int(os.environ.get("AEGIS_AUTOSTART_TARGETS", "8") or 8),
                 samples=int(os.environ.get("AEGIS_AUTOSTART_SAMPLES", "2") or 2),
+                min_net_ev=float(os.environ.get("AEGIS_AUTOSTART_MIN_NET_EV", "0") or 0),
+                max_projected_spend_usd=float(
+                    os.environ.get("AEGIS_AUTOSTART_MAX_SPEND_USD", "0") or 0
+                ),
             )
-            continuous = not _on("AEGIS_AUTOSTART_ONCE")   # continuous by default
+            continuous = not _on("AEGIS_AUTOSTART_ONCE")
             report_root = str(Path(os.environ.get("AEGIS_REPORT_DIR", "reports")).resolve())
             job_id = uuid.uuid4().hex[:12]
             jobs[job_id] = {"id": job_id, "status": "queued", "events": [],
@@ -113,7 +111,6 @@ def maybe_autostart(app) -> None:
                         "interval": float(os.environ.get("AEGIS_AUTOSTART_INTERVAL", "30") or 30)},
                 daemon=True, name=f"aegis-autostart-{job_id}").start()
         except Exception:
-            return                                       # boot must never crash on autostart
+            logger.exception("autostart boot failed")
 
-    # run setup off the startup path (import/ranking can touch the network)
     threading.Thread(target=_boot, daemon=True, name="aegis-autostart-boot").start()
