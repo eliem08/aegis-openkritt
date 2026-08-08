@@ -120,16 +120,22 @@ class HackerOneConnector:
         if not self.available():
             return []
         headers = self._headers()
+        max_pages = int(_first_env("AEGIS_H1_MAX_PAGES") or self.max_pages)
         url = "https://api.hackerone.com/v1/hackers/programs?page[size]=100"
         out: list[Program] = []
         want_scopes = _first_env("AEGIS_H1_FETCH_SCOPES") in ("1", "true", "yes")
-        for _ in range(self.max_pages):
-            data = self.fetch_json(url, headers=headers)
+        for _ in range(max_pages):
+            try:
+                data = self.fetch_json(url, headers=headers)
+            except Exception:
+                break                      # keep partial results rather than losing the import
             for entry in (data.get("data") or []) if isinstance(data, dict) else []:
                 prog = self.map_program(entry)
                 if prog is None:
                     continue
-                if want_scopes:
+                # only spend a per-program structured-scopes call on ACTIVE programs — inactive
+                # ones are blocked by the authorization gate anyway, so their scopes are wasted.
+                if want_scopes and prog.active:
                     try:
                         sd = self.fetch_json(
                             f"https://api.hackerone.com/v1/hackers/programs/"
