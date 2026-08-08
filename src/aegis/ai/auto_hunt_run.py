@@ -273,6 +273,31 @@ def make_hunt_fn(*, report_root: str | Path = "reports", hint: str = "", on_even
         except Exception:
             pass
 
+        # Jarvis canonical layer (agentic_os): turn candidates into canonical proposals + an
+        # evidence lifecycle and run the fail-closed ProposalPolicy JUDGE under a source-review
+        # authorization envelope (no network, no state change, human approval required for any
+        # state change). Source-review findings are READ_ONLY and pass (annotated with their
+        # canonical proposal/stage); anything that would autonomously act on a live target is
+        # VETOED here. Deterministic; degrades to a no-op on any error.
+        try:
+            import hashlib
+
+            from .jarvis_bridge import judge_findings, source_review_authorization
+            _digest = hashlib.sha256((scope_text or target.repository).encode()).hexdigest()[:16]
+            _budget = float(os.environ.get("AEGIS_DAILY_BUDGET_USD", "5") or 5)
+            _jout = judge_findings(report.get("vulnerabilities", []),
+                                   source_review_authorization(_digest, budget_usd=_budget,
+                                                               human_approval=False))
+            report["vulnerabilities"] = _jout.approved
+            report["jarvis_judge"] = _jout.summary()
+            _msg = (f"vetoed {len(_jout.vetoed)} proposal(s): "
+                    + ", ".join(_jout.summary()["veto_reasons"])[:100]) if _jout.vetoed else (
+                f"cleared {len(_jout.approved)} candidate(s) (read-only source review; "
+                "no autonomous action, no submission)")
+            emit("phase", {"repository": target.repository, "phase": "judge", "detail": _msg})
+        except Exception:
+            pass
+
         report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
 
         # nothing at all to validate (no LLM hypotheses AND no scanner/skill rows)

@@ -24,6 +24,15 @@ _LOW_VALUE_RULES: dict[str, str] = {
     "B311": "stdlib random (only matters for crypto/token use)",
     "B322": "input() builtin (py2 legacy; n/a)",
     "B104": "bind all interfaces (deployment posture, not a code vuln candidate)",
+    "B113": "requests without timeout (reliability hygiene, not a vuln)",
+    "B103": "permissive file permissions (hardening nit)",
+    "B413": "deprecated pyCrypto import (import alone is not a sink)",
+    "B405": "xml.etree import (import alone is not a sink)",
+    "B314": "xml.etree parse (hygiene unless untrusted XML is proven)",
+    "B318": "xml.dom.minidom import (import alone is not a sink)",
+    "B320": "lxml import (import alone is not a sink)",
+    "B410": "lxml import (import alone is not a sink)",
+    "B411": "xmlrpc import (import alone is not a sink)",
 }
 
 _REQUIRES_CORROBORATION: dict[str, str] = {
@@ -35,10 +44,26 @@ _REQUIRES_CORROBORATION: dict[str, str] = {
     "B310": "urllib open without taint proof",
     "B303": "weak-hash heuristic",
     "B324": "weak-hash heuristic",
+    "B602": "subprocess shell=True without taint proof",
+    "B605": "start process with a shell without taint proof",
+    "B102": "exec() used without taint proof",
+    "B307": "eval() used without taint proof",
+    "B301": "pickle load without taint proof",
+    "B506": "yaml.load without taint proof",
+    "B202": "tarfile extract without taint proof (tar-slip needs a reachable attacker archive)",
+    "B701": "jinja2 autoescape=false (XSS needs a reachable untrusted-output template)",
 }
 _CORROBORATION_MIN = 2
 _STRONG_CONF = 0.85
 
+# tools whose findings are weak on their own (high false-positive rate) — survive only when
+# corroborated by a second engine or highly confident. njsscan fires on Math.random() and the
+# literal word "username"; brakeman flags every interpolated where(...) as SQLi on mature Rails
+# apps (discourse alone produced 262 brakeman-only "findings", ~all FPs). Both need corroboration.
+_WEAK_TOOLS = {"njsscan", "brakeman"}
+
+# checkov docker/IaC hygiene checks: real hardening advice, but not a candidate vulnerability
+# hypothesis — suppressed by prefix so the whole CKV_DOCKER_* family collapses.
 _LOW_VALUE_PREFIXES: tuple[tuple[str, str], ...] = (
     ("CKV_DOCKER_", "container image hygiene (HEALTHCHECK/USER/tag), not a vuln"),
 )
@@ -58,17 +83,31 @@ _PLACEHOLDER_FILE = re.compile(
 _PATH_CLASSES: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("test", re.compile(r"(^|/)_*(tests?|specs?)_*(/|$)|(_test|\.test|\.spec)\.", re.I)),
     ("bench", re.compile(r"(^|/)bench(es|mark|marks|marking)?(/|$)", re.I)),
-    ("example", re.compile(r"(^|/)(examples?|demos?|samples?|fixtures?|mocks?)(/|$)", re.I)),
-    ("vendor", re.compile(r"(^|/)(vendor|third_party|node_modules|bower_components)(/|$)", re.I)),
-    ("generated", re.compile(r"[.-]min\.(js|css)$|\.bundle\.js$|(^|/)(dist|build)(/|$)|"
-                             r"_generated|_pb2|\.pb\.", re.I)),
+    # example/sample/fixture/mock/demo/submission directory segments (segment must START with the
+    # token, so `Example_Submissions/`, `examples/`, `sample-app/` match but a FILE like
+    # `app.env.example` does not — that is handled as a placeholder secret, not a non-product path).
+    ("example", re.compile(r"(^|/)(examples?|demos?|samples?|fixtures?|mocks?|"
+                           r"submissions?)[^/]*(/|$)", re.I)),
+    ("vendor", re.compile(r"(^|/)(vendor|third_party|node_modules|bower_components|"
+                          r"forge-std|openzeppelin|lib/forge-std)(/|$)", re.I)),
+    # minified/bundled/generated + browser-save archives (…_Files/) + solidity build output.
+    ("generated", re.compile(r"[.-]min[.-]|[.-]min\.(js|css)$|\.bundle\.js$|"
+                             r"(^|/)(dist|build|out|artifacts|coverage)(/|$)|"
+                             r"_files?/|discord-export|_generated|_pb2|\.pb\.", re.I)),
     ("docs", re.compile(r"(^|/)docs?(/|$)|\.(md|rst)$|(^|/)readme", re.I)),
+    # CI/deploy/build tooling: not the audited app/contract surface for a code/contract bounty.
+    ("build", re.compile(r"(^|/)(certora|foundry|hardhat|truffle|scripts?|tools?|tooling|"
+                         r"ci|deployments?)(/|$)|certora[_-]?build", re.I)),
     ("deploy", re.compile(r"(^|/)(deploy|\.github|k8s|helm|charts?|terraform)(/|$)|"
                           r"(^|/)docker-compose[^/]*\.ya?ml$|(^|/)dockerfile[^/]*$|\.tf$", re.I)),
     ("config", re.compile(r"\.(ya?ml|toml|ini|cfg|conf|json|env)$|(^|/)\.env", re.I)),
 )
 
-_NONPRODUCT = {"test", "bench", "example", "vendor", "generated", "docs"}
+#: path classes that are not the product's runtime attack surface -> suppress by default.
+#: deploy/build (CI, deploy scripts, certora/foundry/hardhat tooling) are out of scope for a
+#: code/contract bounty — a subprocess/exec finding in a build script is not the audited bug.
+_NONPRODUCT = {"test", "bench", "example", "vendor", "generated", "docs", "deploy", "build"}
+
 _SEVERITY_WEIGHT = {"critical": 1.0, "high": 0.8, "medium": 0.5, "low": 0.25, "info": 0.15}
 _PATHCLASS_WEIGHT = {"source": 1.0, "config": 0.8, "deploy": 0.8}
 
@@ -220,8 +259,13 @@ def _to_candidate(row: dict) -> Candidate:
 
 
 def _suppression_reason(c: Candidate) -> str:
+    is_secret = c.cwe in _SECRET_RULES or c.tool in _SECRET_TOOLS
     if c.path_class in _NONPRODUCT:
-        return f"non-product-path:{c.path_class}"
+        # deploy/build tooling is non-product for CODE findings (a subprocess/exec in a build
+        # script is not the audited bug) — but a credible SECRET in a deploy/IaC manifest IS real
+        # attack surface, so let secrets there fall through to the placeholder-file check.
+        if not (is_secret and c.path_class in ("deploy", "build")):
+            return f"non-product-path:{c.path_class}"
     if c.rule in _LOW_VALUE_RULES:
         return f"low-value-rule:{c.rule} ({_LOW_VALUE_RULES[c.rule]})"
     for prefix, why in _LOW_VALUE_PREFIXES:
@@ -240,6 +284,9 @@ def _suppression_reason(c: Candidate) -> str:
                     f"({_REQUIRES_CORROBORATION[c.rule]}; needs independent corroboration)")
         if c.tool == "detect-secrets":
             return "weak-single-engine:detect-secrets-unverified (needs independent corroboration)"
+        # high-FP tools (njsscan, brakeman) survive only when corroborated or highly confident.
+        if c.tool in _WEAK_TOOLS:
+            return f"weak-single-engine:{c.tool} (high-FP tool; needs corroboration)"
     return ""
 
 
