@@ -1,13 +1,8 @@
 """Single fail-closed execution router for offline asset analysis.
 
 The heterogeneous planner may describe network, state-changing, internal-service and local CLI
-methods. This router intentionally handles only the two safe autonomous execution classes:
-
-1. concrete Aegis-owned offline/local service adapters (currently loopback MobSF static scan),
-2. READY local CLI methods that declare no network and no state change.
-
-Anything else is refused and must go through a separate policy-controlled dynamic executor with
-an explicit authorization envelope and, where required, human approval.
+methods. This router handles only planner-authorized offline methods and requires an execution
+ticket recomputed from the authoritative capability planner before dispatch.
 """
 
 from __future__ import annotations
@@ -25,6 +20,11 @@ from .asset_cli_executor import (
     execute_local_cli_method,
 )
 from .asset_deep_capabilities import PlannedMethod
+from .asset_execution_ticket import (
+    AssetExecutionTicket,
+    AssetExecutionTicketError,
+    verify_offline_execution_ticket,
+)
 from .asset_executor import InternalAssetExecution, execute_internal_asset_method
 from .asset_normalizers import AssetExecutionObservation, normalize_local_cli_execution
 
@@ -51,6 +51,8 @@ def _internal_supported(method: PlannedMethod) -> bool:
 def execute_offline_asset_method(
     method: PlannedMethod,
     *,
+    ticket: AssetExecutionTicket,
+    scope_digest: str,
     artifact_path: str | Path | None = None,
     target_path: str | Path | None = None,
     firmware_path: str | Path | None = None,
@@ -64,7 +66,12 @@ def execute_offline_asset_method(
     mobsf_config: MobSFConfig | None = None,
     mobsf_client=None,
 ) -> OfflineAssetExecutionOutcome:
-    """Execute one method only if it belongs to the autonomous offline execution class."""
+    """Execute one method only with an intact planner-issued ticket for this scope."""
+    try:
+        verify_offline_execution_ticket(ticket, method, scope_digest=scope_digest)
+    except AssetExecutionTicketError as exc:
+        raise AssetExecutionRouteError(str(exc)) from exc
+
     if bool(getattr(method, "requires_network", False)):
         raise AssetExecutionRouteError(
             "network-capable asset method requires the policy-controlled dynamic executor"
@@ -88,15 +95,19 @@ def execute_offline_asset_method(
             data={
                 "candidate_count": len(internal.candidates),
                 "verification_state": "candidate",
+                "ticket_id": ticket.ticket_id,
                 "provenance": internal.provenance,
             },
         )
+        provenance = dict(internal.provenance)
+        provenance["execution_ticket"] = ticket.ticket_id
+        provenance["scope_digest"] = ticket.scope_digest
         return OfflineAssetExecutionOutcome(
             tool=internal.tool,
             method=internal.method,
             candidates=internal.candidates,
             observations=(observation,),
-            provenance=internal.provenance,
+            provenance=provenance,
             internal=internal,
         )
 
@@ -131,6 +142,8 @@ def execute_offline_asset_method(
             "stderr_sha256": local.stderr_sha256,
             "output_files": len(local.outputs),
             "verification_state": "candidate",
+            "execution_ticket": ticket.ticket_id,
+            "scope_digest": ticket.scope_digest,
         }
     )
     return OfflineAssetExecutionOutcome(
