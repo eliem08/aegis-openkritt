@@ -2,7 +2,8 @@
 
 Aegis never assumes that a registry entry means a scanner is executable. This module resolves
 an installed binary, fingerprints the exact executable, performs a bounded non-target version
-probe, checks optional pins, and returns an explicit status before any scan is considered.
+probe (or accepts caller-supplied trusted local metadata), checks optional pins, and returns an
+explicit status before any scan is considered.
 
 The manager never uses ``shell=True`` and never sends a target to a tool during health checks.
 """
@@ -156,17 +157,23 @@ class ToolRuntimeManager:
         self._resolver = resolver or resolve_binary
         self._runner = runner or _default_runner
         self._timeout = max(0.1, float(version_timeout))
-        self._cache: dict[tuple[str, str, str, str], ToolRuntimeRecord] = {}
+        self._cache: dict[tuple[str, str, str, str, str], ToolRuntimeRecord] = {}
+
+    def resolve(self, binary: str) -> str | None:
+        """Expose the configured resolver for adapters with non-standard version metadata."""
+        resolved = self._resolver(binary)
+        return str(Path(resolved).resolve()) if resolved else None
 
     def inspect(self, *, name: str, binary: str, pin: ToolPin | None = None,
-                refresh: bool = False) -> ToolRuntimeRecord:
+                refresh: bool = False, version_override: str = "") -> ToolRuntimeRecord:
         pin = pin or ToolPin()
-        key = (name, binary, pin.sha256.lower(), pin.version_contains)
+        trusted_version = str(version_override or "").strip().replace("\x00", " ")[:240]
+        key = (name, binary, pin.sha256.lower(), pin.version_contains, trusted_version)
         if not refresh and key in self._cache:
             return self._cache[key]
 
         now = datetime.now(UTC).isoformat()
-        resolved = self._resolver(binary)
+        resolved = self.resolve(binary)
         if not resolved:
             record = ToolRuntimeRecord(
                 name=name,
@@ -214,7 +221,7 @@ class ToolRuntimeManager:
             self._cache[key] = record
             return record
 
-        version = self._probe_version(str(path))
+        version = trusted_version or self._probe_version(str(path))
         if not version:
             status = ToolRuntimeStatus.STALE
             reason = "version probe did not produce a bounded healthy response"
