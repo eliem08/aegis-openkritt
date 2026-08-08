@@ -1,17 +1,13 @@
 """Canonical Jarvis bridge for the live autonomous source-review hunt.
 
-The repository historically grew two parallel worlds: the production ``auto_hunt``
-pipeline and the newer ``agentic_os``/Jarvis contracts.  This module is the single seam
-between them.  It does not replace the proven hunt implementation; it normalizes each
-validated finding into the canonical proposal/lifecycle/economics model and decides
-whether additional expensive research is worth scheduling.
+The production ``auto_hunt`` pipeline and the newer ``agentic_os`` contracts used to be
+parallel worlds.  This module is their single seam: validated source findings become
+canonical proposals/lifecycles, economics decides whether more research is worth buying,
+quality work is policy-gated, active-network intents are visible but vetoed under the
+source-review envelope, and reasoning state is persisted.
 
-Important boundaries:
-* source validation can advance only ``candidate -> source_supported``;
-* scanner/LLM claims never become reproduced evidence here;
-* ``active/`` follow-ups are visible to the same fail-closed ``ProposalPolicy``;
-* negative-EV findings are deferred, not relabeled false positives;
-* missions are durable in the Jarvis SQLite state store.
+No scanner/LLM claim is promoted to reproduced evidence.  Local reproduction is a real
+state change and requires the existing explicit ``AEGIS_ALLOW_REPRO=1`` operator opt-in.
 """
 
 from __future__ import annotations
@@ -33,9 +29,11 @@ from .agentic_os import (
     EvidenceRef,
     EvidenceStage,
     FindingLifecycle,
+    GraphEdge,
     ProposalPolicy,
     RiskClass,
 )
+from .jarvis.graph_store import SqliteSecurityKnowledgeGraph
 from .jarvis.mission_scheduler import MissionScheduler, build_linear_mission
 from .jarvis.profit_feedback import calibrate_opportunity
 from .jarvis.state_store import JarvisStateStore
@@ -75,6 +73,13 @@ def _location(row: dict) -> str:
     return f"{answer.get('file_path', '')}:{answer.get('line', '')}".strip(":")
 
 
+def _state_path(report_root: str | Path = "reports") -> Path:
+    configured = os.environ.get("AEGIS_JARVIS_STATE_DB", "").strip()
+    path = Path(configured) if configured else Path(report_root) / "jarvis_state.sqlite3"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    return path
+
+
 def source_evidence(repository: str, row: dict) -> EvidenceRef:
     answer = _answer(row)
     material = {
@@ -101,8 +106,13 @@ def source_review_envelope(
     model_egress_allowed: bool,
     cost_budget_usd: float,
     human_minutes: float = 60.0,
+    local_state_change_approved: bool = False,
 ) -> AuthorizationEnvelope:
-    """Translate target authorization into a source-review-only action envelope."""
+    """Translate target authorization into the action envelope for source research.
+
+    Live target network remains disabled.  ``local_state_change_approved`` is used only for
+    an explicit disposable-local-lab opt-in; it does not authorize target-network activity.
+    """
     record = getattr(authorization_decision, "record", None)
     scope_digest = str(getattr(record, "scope_snapshot_hash", "") or "")
     if not scope_digest:
@@ -115,9 +125,9 @@ def source_review_envelope(
     return AuthorizationEnvelope(
         scope_digest=scope_digest,
         network_allowed=False,
-        state_change_allowed=False,
+        state_change_allowed=bool(local_state_change_approved),
         external_model_egress_allowed=bool(model_egress_allowed),
-        human_approval=False,
+        human_approval=bool(local_state_change_approved),
         budget=Budget(
             max_cost_usd=max(0.0, float(cost_budget_usd)),
             max_requests=0,
@@ -133,7 +143,10 @@ def proposal_from_validated_row(repository: str, row: dict) -> AgentProposal:
     return AgentProposal(
         role=AgentRole.STATIC_ANALYSIS,
         action="promote_source_supported_candidate",
-        rationale="A source candidate survived citation validation and deterministic reachability checks.",
+        rationale=(
+            "A source candidate survived citation validation and deterministic reachability "
+            "checks."
+        ),
         risk=RiskClass.OFFLINE,
         expected_information_gain=max(0.35, confidence),
         expected_cost_usd=0.0,
@@ -159,12 +172,11 @@ def lifecycle_from_validated_row(repository: str, row: dict) -> FindingLifecycle
 def _likely_payout(row: dict, target) -> float:
     enrichment = row.get("enrichment") or {}
     economics = row.get("economics") or {}
-    values = (
+    for value in (
         enrichment.get("bounty_likely"),
         economics.get("likely_bounty"),
         getattr(target, "likely_payout", 0.0),
-    )
-    for value in values:
+    ):
         try:
             amount = float(value or 0.0)
         except (TypeError, ValueError):
@@ -176,6 +188,7 @@ def _likely_payout(row: dict, target) -> float:
 
 
 def opportunity_from_finding(row: dict, target) -> Opportunity:
+    """Convert one source-supported finding into the common portfolio EV contract."""
     validation = row.get("validation") or {}
     enrichment = row.get("enrichment") or {}
     reproduction = row.get("reproduction") or {}
@@ -230,6 +243,7 @@ def quality_proposals(
     *,
     local_lab_available: bool = False,
 ) -> tuple[AgentProposal, ...]:
+    """Skeptic -> reproduction -> evidence proposals on the canonical contract."""
     skeptic_cost = float(os.environ.get("AEGIS_JARVIS_SKEPTIC_COST_USD", "0.35") or 0.35)
     repro_cost = float(os.environ.get("AEGIS_JARVIS_REPRO_COST_USD", "0.25") or 0.25)
     return (
@@ -250,9 +264,10 @@ def quality_proposals(
             role=AgentRole.REPRODUCTION,
             action="reproduce_in_disposable_local_lab",
             rationale=(
-                "Attempt bounded localhost-only reproduction with deterministic positive/negative controls."
+                "Start only an explicitly opted-in disposable localhost lab and validate with "
+                "deterministic positive/negative controls."
             ),
-            risk=RiskClass.OFFLINE,
+            risk=RiskClass.CONTROLLED_STATE_CHANGE,
             expected_information_gain=1.0,
             expected_cost_usd=max(0.0, repro_cost),
             metadata={
@@ -265,7 +280,8 @@ def quality_proposals(
             role=AgentRole.EVIDENCE,
             action="assemble_evidence_bundle",
             rationale=(
-                "Assemble immutable report-quality evidence after reproduction and independent review."
+                "Assemble immutable report-quality evidence after reproduction and independent "
+                "review."
             ),
             risk=RiskClass.OFFLINE,
             expected_information_gain=0.30,
@@ -273,13 +289,6 @@ def quality_proposals(
             metadata={"finding_id": finding_id, "council_stage": "evidence"},
         ),
     )
-
-
-def _state_path(report_root: str | Path = "reports") -> Path:
-    configured = os.environ.get("AEGIS_JARVIS_STATE_DB", "").strip()
-    path = Path(configured) if configured else Path(report_root) / "jarvis_state.sqlite3"
-    path.parent.mkdir(parents=True, exist_ok=True)
-    return path
 
 
 def _persist_mission(
@@ -313,6 +322,57 @@ def _persist_mission(
     except Exception:
         return ""
     return mission_id
+
+
+def _persist_reasoning_graph(
+    *,
+    repository: str,
+    row: dict,
+    lifecycle: FindingLifecycle,
+    mission_id: str,
+    report_root: str | Path,
+) -> None:
+    """Persist repository/finding/weakness/evidence/mission relationships."""
+    if not repository:
+        return
+    repo_node = f"repository:{repository.lower()}"
+    finding_node = lifecycle.finding_id
+    weakness = _weakness(row).lower()
+    weakness_node = f"weakness:{weakness}"
+    try:
+        with SqliteSecurityKnowledgeGraph(_state_path(report_root)) as graph:
+            graph.upsert_node(repo_node, "repository", repository=repository)
+            graph.upsert_node(
+                finding_node,
+                "finding",
+                stage=lifecycle.stage.value,
+                location=_location(row),
+                summary=str(_answer(row).get("summary") or "")[:500],
+            )
+            graph.upsert_node(weakness_node, "weakness", name=_weakness(row))
+            graph.connect(GraphEdge(repo_node, "HAS_FINDING", finding_node, "jarvis_bridge"))
+            graph.connect(GraphEdge(finding_node, "INSTANCE_OF", weakness_node, "jarvis_bridge"))
+            for evidence in lifecycle.evidence:
+                evidence_node = f"evidence:{evidence.digest}"
+                graph.upsert_node(
+                    evidence_node,
+                    "evidence",
+                    evidence_id=evidence.evidence_id,
+                    evidence_kind=evidence.kind,
+                    summary=evidence.summary,
+                )
+                graph.connect(
+                    GraphEdge(finding_node, "SUPPORTED_BY", evidence_node, "jarvis_bridge")
+                )
+            if mission_id:
+                mission_node = mission_id
+                graph.upsert_node(mission_node, "mission", state="active")
+                graph.connect(
+                    GraphEdge(finding_node, "VALIDATED_BY_MISSION", mission_node, "jarvis_bridge")
+                )
+    except Exception:
+        # Persistence is supporting infrastructure; it must not change a finding verdict.
+        return
 
 
 @dataclass(frozen=True)
@@ -350,6 +410,7 @@ def evaluate_finding(
     human_hour_cost_usd: float | None = None,
     local_lab_available: bool = False,
 ) -> JarvisFindingDecision:
+    """Evaluate one live finding through policy, lifecycle, economics and persistence."""
     min_net = (
         float(os.environ.get("AEGIS_JARVIS_MIN_NET_EV", "0") or 0)
         if min_net_ev_usd is None
@@ -365,11 +426,24 @@ def evaluate_finding(
         authorization_decision,
         model_egress_allowed=model_egress_allowed,
         cost_budget_usd=budget,
+        local_state_change_approved=local_lab_available,
     )
     policy = ProposalPolicy()
-    proposal = proposal_from_validated_row(getattr(target, "repository", ""), row)
+    repository = str(getattr(target, "repository", "") or "")
+    proposal = proposal_from_validated_row(repository, row)
     source_decision = policy.evaluate(proposal, envelope)
-    lifecycle = lifecycle_from_validated_row(getattr(target, "repository", ""), row)
+    lifecycle = lifecycle_from_validated_row(repository, row)
+
+    # Target authorization is a prerequisite to the action envelope itself.  An offline proposal
+    # must never be able to look "authorized" merely because it needs no network.
+    if not bool(getattr(authorization_decision, "allowed", False)):
+        source_decision = Decision(
+            proposal.proposal_id,
+            False,
+            "target authorization denied: "
+            + str(getattr(authorization_decision, "reason", "not authorized"))[:240],
+        )
+        lifecycle = FindingLifecycle(finding_id=lifecycle.finding_id)
 
     opportunity = opportunity_from_finding(row, target)
     try:
@@ -399,9 +473,9 @@ def evaluate_finding(
             )
         quality.append(decision)
 
-    # ``active/`` is now on the same seam.  Source findings can suggest the appropriate live
-    # validation lane, but the source-review envelope has no network/state/human authority, so
-    # these decisions are expected to be vetoes until an explicit active engagement is opened.
+    # Source findings may indicate which active lane is useful, but source review has no target
+    # network authority.  These intents are therefore expected to be vetoed until an explicit
+    # active engagement supplies discovered routes, budgets, state-change approval and a human.
     active = tuple(
         policy.evaluate(active_proposal, envelope)
         for active_proposal in followup_intents_for_finding(row)
@@ -412,9 +486,17 @@ def evaluate_finding(
         mission_id = _persist_mission(
             lifecycle=lifecycle,
             scope_digest=envelope.scope_digest,
-            repository=getattr(target, "repository", ""),
+            repository=repository,
             report_root=report_root,
         )
+    _persist_reasoning_graph(
+        repository=repository,
+        row=row,
+        lifecycle=lifecycle,
+        mission_id=mission_id,
+        report_root=report_root,
+    )
+
     result = JarvisFindingDecision(
         finding_id=lifecycle.finding_id,
         stage=lifecycle.stage,
@@ -439,6 +521,79 @@ def evaluate_finding(
     return result
 
 
+def advance_reproduction(
+    row: dict,
+    repository: str,
+    *,
+    report_root: str | Path = "reports",
+) -> EvidenceStage:
+    """Advance source-supported evidence through real local reproduction stages.
+
+    The stages are advanced sequentially with distinct evidence references.  A failed or missing
+    reproduction leaves the finding at its current stage; setting a string to
+    ``locally_reproduced`` is deliberately insufficient.
+    """
+    jarvis = row.get("jarvis") or {}
+    if str(jarvis.get("stage") or "") != EvidenceStage.SOURCE_SUPPORTED.value:
+        try:
+            return EvidenceStage(str(jarvis.get("stage") or EvidenceStage.CANDIDATE.value))
+        except ValueError:
+            return EvidenceStage.CANDIDATE
+    reproduction = row.get("reproduction") or {}
+    if str(reproduction.get("verdict") or "") != "reproduced":
+        return EvidenceStage.SOURCE_SUPPORTED
+
+    lifecycle = lifecycle_from_validated_row(repository, row)
+    runtime_material = {
+        "repository": repository,
+        "instance": reproduction.get("instance"),
+        "attempts": reproduction.get("attempts"),
+        "summary": reproduction.get("summary"),
+    }
+    runtime_digest = _digest(runtime_material)
+    runtime = EvidenceRef(
+        f"runtime:{runtime_digest[:20]}",
+        "runtime_observation",
+        runtime_digest,
+        str(reproduction.get("summary") or "local runtime response observed")[:300],
+    )
+    lifecycle.advance(EvidenceStage.RUNTIME_OBSERVED, (runtime,))
+
+    oracle_material = {
+        "runtime": runtime_digest,
+        "verdict": reproduction.get("verdict"),
+        "summary": reproduction.get("summary"),
+    }
+    oracle_digest = _digest(oracle_material)
+    oracle = EvidenceRef(
+        f"oracle:{oracle_digest[:20]}",
+        "deterministic_oracle",
+        oracle_digest,
+        "local reproduction oracle passed",
+    )
+    lifecycle.advance(EvidenceStage.ORACLE_PASSED, (oracle,))
+
+    repro_digest = _digest({"oracle": oracle_digest, "instance": reproduction.get("instance")})
+    reproduced = EvidenceRef(
+        f"repro:{repro_digest[:20]}",
+        "local_reproduction",
+        repro_digest,
+        "finding reproduced in an explicitly opted-in disposable local instance",
+    )
+    lifecycle.advance(EvidenceStage.LOCALLY_REPRODUCED, (reproduced,))
+    jarvis["stage"] = lifecycle.stage.value
+    jarvis["reproduction_evidence"] = [asdict(runtime), asdict(oracle), asdict(reproduced)]
+    row["jarvis"] = jarvis
+    _persist_reasoning_graph(
+        repository=repository,
+        row=row,
+        lifecycle=lifecycle,
+        mission_id=str(jarvis.get("mission_id") or ""),
+        report_root=report_root,
+    )
+    return lifecycle.stage
+
+
 def evaluate_report(
     validated: dict,
     target,
@@ -448,6 +603,7 @@ def evaluate_report(
     model_egress_allowed: bool = True,
     local_lab_available: bool = False,
 ) -> dict:
+    """Annotate all confirmed rows and emit a compact live-hunt Jarvis summary."""
     decisions: list[JarvisFindingDecision] = []
     for row in validated.get("vulnerabilities") or []:
         if (row.get("validation") or {}).get("verdict") != "confirmed":
