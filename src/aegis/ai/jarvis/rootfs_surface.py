@@ -86,7 +86,9 @@ _ROUTE_RE = re.compile(
     rb"(?<![A-Za-z0-9_])/(?:api|admin|cgi-bin|rpc|rest|graphql|upload|download|login|auth)"
     rb"(?:/[A-Za-z0-9._~!$&'()*+,;=:@%{}\-]+){0,5}"
 )
-_LISTEN_RE = re.compile(rb"(?i)(?:listen|port)\s*[=: ]\s*([0-9]{1,5})")
+_LISTEN_RE = re.compile(
+    rb"(?i)(?:(?:listen|port)\s*[=: ]\s*|(?:-p|--port)\s+)([0-9]{1,5})"
+)
 _SERVICE_MARKERS = {
     b"dropbear": "dropbear-ssh",
     b"sshd": "ssh",
@@ -189,7 +191,8 @@ def correlate_rootfs_surface(
         if service:
             services.add(service)
             configs.append(SurfaceFile(relative, size, digest, "service_config"))
-        if _is_init(relative):
+        is_init = _is_init(relative)
+        if is_init:
             init.append(SurfaceFile(relative, size, digest, "init"))
         if relative in _PACKAGE_DATABASE_SUFFIXES:
             packages.append(SurfaceFile(relative, size, digest, "package_database"))
@@ -205,7 +208,9 @@ def correlate_rootfs_surface(
                 prefix = b""
         if prefix.startswith(b"\x7fELF"):
             elf.append(SurfaceFile(relative, size, digest, "elf"))
-        if size <= max_text_file_bytes and (path.suffix.lower() in _TEXT_EXTENSIONS or service):
+        if size <= max_text_file_bytes and (
+            path.suffix.lower() in _TEXT_EXTENSIONS or service or is_init
+        ):
             lower = prefix.lower()
             for marker, label in _SERVICE_MARKERS.items():
                 if marker in lower:
