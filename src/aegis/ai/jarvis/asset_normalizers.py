@@ -9,7 +9,6 @@ executor and stays ``unverified`` until the normal evidence lifecycle promotes i
 from __future__ import annotations
 
 import json
-import re
 from dataclasses import dataclass
 from typing import Any, Callable
 
@@ -37,9 +36,6 @@ def _modelscan_issue(node: dict[str, Any]) -> dict | None:
     module = _safe_text(lowered.get("module"), 200)
     source = _safe_text(lowered.get("source"), 500)
     scanner = _safe_text(lowered.get("scanner"), 160)
-    # ModelScan's IssueDetails JSON contract emits description/operator/module/source/scanner/
-    # severity. Require at least a real issue description/operator plus provenance-like context
-    # so unrelated report summary severity fields cannot become fake vulnerabilities.
     if not (description or operator) or not (source or scanner or module):
         return None
     summary = description or f"Unsafe model operator {operator}"
@@ -83,7 +79,7 @@ def _parse_modelscan(payload: dict | list) -> list[dict]:
         issue = _modelscan_issue(value)
         if issue is not None:
             rows.append(issue)
-            return  # do not recursively duplicate fields nested inside one issue
+            return
         for key, child in value.items():
             if any(part in str(key).lower() for part in _SENSITIVE_FIELD_PARTS):
                 continue
@@ -207,7 +203,6 @@ def _successful_scan(execution: LocalCliExecution, key: str) -> bool:
     if execution.timed_out:
         return False
     if key == "modelscan":
-        # ModelScan documents 0=no findings and 1=findings as successful scan outcomes.
         return execution.returncode in {0, 1}
     return execution.returncode == 0
 
