@@ -59,6 +59,39 @@ class AssetExecutionTicket:
     availability_digest: str
     offline_only: bool = True
 
+    def as_dict(self) -> dict:
+        return {
+            "ticket_id": self.ticket_id,
+            "scope_digest": self.scope_digest,
+            "asset_kind": self.asset_kind,
+            "tool": self.tool,
+            "method": self.method,
+            "requirements": list(self.requirements),
+            "availability_digest": self.availability_digest,
+            "offline_only": self.offline_only,
+        }
+
+    @classmethod
+    def from_dict(cls, value: dict) -> "AssetExecutionTicket":
+        if not isinstance(value, dict):
+            raise AssetExecutionTicketError("execution ticket payload must be an object")
+        try:
+            ticket = cls(
+                ticket_id=str(value["ticket_id"]),
+                scope_digest=str(value["scope_digest"]),
+                asset_kind=str(value["asset_kind"]),
+                tool=str(value["tool"]),
+                method=str(value["method"]),
+                requirements=tuple(str(item) for item in value.get("requirements", ())),
+                availability_digest=str(value["availability_digest"]),
+                offline_only=bool(value.get("offline_only", True)),
+            )
+        except KeyError as exc:
+            raise AssetExecutionTicketError(
+                f"execution ticket payload is missing {exc.args[0]}"
+            ) from exc
+        return ticket
+
 
 def _requirement_value(item: CapabilityRequirement) -> str:
     return str(item.value)
