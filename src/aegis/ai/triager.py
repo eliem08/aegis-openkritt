@@ -1,9 +1,9 @@
 """Hostile-triager pass — the adversarial gate that tries to REJECT a finding.
 
-The triager now consumes the canonical Jarvis seam before spending another model call.
+The triager consumes the canonical Jarvis seam before spending another model call.
 Each still-confirmed row is normalized into ``agentic_os`` lifecycle/economics, gets a
-persistent mission when positive-EV, and is triaged only when Jarvis authorizes that
-quality step.  Low/negative-EV rows are deferred rather than mislabeled false positives.
+persistent mission when positive-EV, and is triaged only when Jarvis authorizes the
+Skeptic quality step. Low/negative-EV rows are deferred, never mislabeled false positives.
 """
 
 from __future__ import annotations
@@ -39,15 +39,17 @@ _SYSTEM = (
 
 
 def _finding_brief(row: dict) -> dict:
-    a = row.get("json_answer") or {}
+    answer = row.get("json_answer") or {}
     return {
-        "vulnerability_type": a.get("vulnerability_type") or row.get("vuln_type") or "finding",
-        "summary": a.get("summary") or row.get("summary") or "",
-        "location": row.get("location") or a.get("file_path") or "",
-        "line": a.get("line"),
+        "vulnerability_type": (
+            answer.get("vulnerability_type") or row.get("vuln_type") or "finding"
+        ),
+        "summary": answer.get("summary") or row.get("summary") or "",
+        "location": row.get("location") or answer.get("file_path") or "",
+        "line": answer.get("line"),
         "claimed_severity": row.get("severity") or "medium",
-        "explanation": (a.get("explanation") or a.get("summary") or "")[:2500],
-        "attacker": row.get("attacker") or a.get("attacker") or "",
+        "explanation": (answer.get("explanation") or answer.get("summary") or "")[:2500],
+        "attacker": row.get("attacker") or answer.get("attacker") or "",
     }
 
 
@@ -86,18 +88,18 @@ class HostileTriager:
         verdict = str(raw.get("verdict", "")).strip().lower()
         if verdict not in _VERDICTS:
             return {"verdict": "unreviewed", "reason": "triager returned an invalid verdict"}
-        sev = str(raw.get("corrected_severity", "")).strip().lower()
+        severity = str(raw.get("corrected_severity", "")).strip().lower()
         return {
             "verdict": verdict,
             "scope_ok": bool(raw.get("scope_ok", True)),
             "attacker_realistic": bool(raw.get("attacker_realistic", True)),
             "corrected_severity": (
-                sev
-                if sev in ("critical", "high", "medium", "low", "info")
+                severity
+                if severity in ("critical", "high", "medium", "low", "info")
                 else str(row.get("severity") or "medium")
             ),
             "reason": str(raw.get("reason", ""))[:400],
-            "prerequisites": [str(x)[:160] for x in (raw.get("prerequisites") or [])][:8],
+            "prerequisites": [str(item)[:160] for item in (raw.get("prerequisites") or [])][:8],
         }
 
 
@@ -156,9 +158,15 @@ def _jarvis_quality_gate(report: dict, row: dict):
             local_lab_available=os.environ.get("AEGIS_ALLOW_REPRO", "").strip() == "1",
         )
     except Exception:
-        # Compatibility failures must not silently classify a finding as false.  The legacy
-        # triager continues to run, while the missing Jarvis annotation is visible in tests/logs.
+        # A bridge compatibility failure cannot silently classify a finding as false. The
+        # existing hostile triager remains the fallback until the integration is repaired.
         return None
+
+
+def _skeptic_decision(row: dict) -> dict | None:
+    """The canonical quality sequence is Skeptic -> Reproduction -> Evidence."""
+    quality = (row.get("jarvis") or {}).get("quality_policy") or []
+    return quality[0] if quality else None
 
 
 def triage_report(
@@ -169,13 +177,7 @@ def triage_report(
     source_for=None,
     on_event=None,
 ) -> dict:
-    """Adversarially review economically worthwhile, policy-approved confirmed rows.
-
-    Jarvis is evaluated before each LLM call.  A source-supported candidate with insufficient
-    expected net value remains in the report as ``jarvis_deferred``; it is not demoted to a
-    false positive.  The expensive hostile review is reserved for candidates whose canonical
-    ``adversarial_source_review`` proposal is approved.
-    """
+    """Adversarially review economically worthwhile, policy-approved confirmed rows."""
     emit = on_event or (lambda *_: None)
     rows = [row for row in (report.get("vulnerabilities") or []) if _confirmed(row)]
     triager = HostileTriager(client)
@@ -183,25 +185,12 @@ def triage_report(
     for row in rows:
         jarvis = _jarvis_quality_gate(report, row)
         if jarvis is not None:
-            quality = row.get("jarvis", {}).get("quality_policy", [])
-            skeptic = next(
-                (
-                    item
-                    for item in quality
-                    if item.get("proposal_id")
-                    and item.get("reason") != "authorized"
-                    or item.get("approved") is True
-                ),
-                None,
-            )
-            # quality_proposals are ordered skeptic -> reproduction -> evidence.  Use the first
-            # decision explicitly; no majority vote or agent self-approval.
-            skeptic = quality[0] if quality else skeptic
+            skeptic = _skeptic_decision(row)
             if not jarvis.should_escalate or (skeptic and not skeptic.get("approved", False)):
                 reason = (
                     "Jarvis deferred further model spend: non-positive/low expected net value"
                     if not jarvis.should_escalate
-                    else str(skeptic.get("reason") or "quality proposal vetoed")
+                    else str(skeptic.get("reason") or "skeptic proposal vetoed")
                 )
                 row["jarvis_deferred"] = True
                 row["triage"] = {"verdict": "deferred", "reason": reason[:400]}
@@ -216,13 +205,13 @@ def triage_report(
                 )
                 continue
 
-        src = ""
+        source = ""
         if source_for is not None:
             try:
-                src = source_for(row) or ""
+                source = source_for(row) or ""
             except Exception:
-                src = ""
-        result = triager.triage(row, scope_text=scope_text, source=src)
+                source = ""
+        result = triager.triage(row, scope_text=scope_text, source=source)
         row["triage"] = result
         verdict = result.get("verdict")
         if verdict == "reject":
