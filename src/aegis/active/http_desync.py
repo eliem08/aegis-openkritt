@@ -1,11 +1,11 @@
 """HTTP request desynchronization / smuggling research primitives.
 
-This module is intentionally transport-agnostic and does not emit raw request-smuggling
-payloads or contact a target.  It turns already-collected protocol/intermediary observations
-into bounded hypotheses that the active planner can route through Jarvis policy.
+This module is transport-agnostic and does not emit raw request-smuggling payloads or contact
+a target. It turns already-collected protocol/intermediary observations into bounded hypotheses
+that the active planner routes through Jarvis policy.
 
-The live-validation boundary remains outside this module: any network request must be derived
-from discovered assets and separately authorized by ``ProposalPolicy``.
+The normal integration path is asset graph -> :func:`observations_from_assets` ->
+:func:`analyze_desync_observations` -> active detector plan -> ``ProposalPolicy``.
 """
 
 from __future__ import annotations
@@ -25,11 +25,7 @@ class DesyncFamily(StrEnum):
 
 @dataclass(frozen=True)
 class DesyncObservation:
-    """Benign evidence about one discovered HTTP route/protocol chain.
-
-    The fields describe observations supplied by discovery, passive fingerprinting, a local
-    reproduction lab, or an explicitly authorized bounded probe.  No payload is represented.
-    """
+    """Benign evidence about one discovered HTTP route/protocol chain."""
 
     route: str
     host: str = ""
@@ -57,6 +53,136 @@ class DesyncCandidate:
     provenance: tuple[str, ...] = ()
 
 
+def _truthy(value) -> bool:
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return False
+    return str(value).strip().lower() in {"1", "true", "yes", "y", "on"}
+
+
+def _tuple_strings(value) -> tuple[str, ...]:
+    if not value:
+        return ()
+    if isinstance(value, str):
+        # Recon adapters commonly persist Via/proxy chains as comma-separated text.
+        return tuple(part.strip() for part in value.split(",") if part.strip())
+    try:
+        return tuple(str(part).strip() for part in value if str(part).strip())
+    except TypeError:
+        return (str(value).strip(),) if str(value).strip() else ()
+
+
+def observations_from_assets(assets: Iterable) -> tuple[DesyncObservation, ...]:
+    """Extract desync evidence from discovered ROUTE assets.
+
+    This is deliberately schema-tolerant because adapters may use either the canonical field
+    names below or common aliases. Missing metadata produces no hypothesis; it never invents a
+    protocol chain. The route itself must already exist in the asset graph.
+    """
+
+    try:
+        from aegis.graph import AssetKind
+    except Exception:  # pragma: no cover - import compatibility only
+        AssetKind = None
+
+    observations: list[DesyncObservation] = []
+    for asset in assets:
+        if AssetKind is not None and getattr(asset, "kind", None) is not AssetKind.ROUTE:
+            continue
+        attributes = getattr(asset, "attributes", {}) or {}
+        route = str(attributes.get("path") or attributes.get("route") or "").strip()
+        if not route:
+            continue
+
+        request_headers = attributes.get("request_headers") or {}
+        if not isinstance(request_headers, dict):
+            request_headers = {}
+        response_headers = attributes.get("response_headers") or {}
+        if not isinstance(response_headers, dict):
+            response_headers = {}
+        lower_request = {str(key).lower(): value for key, value in request_headers.items()}
+        lower_response = {str(key).lower(): value for key, value in response_headers.items()}
+
+        client_protocol = str(
+            attributes.get("client_protocol")
+            or attributes.get("http_version")
+            or attributes.get("protocol")
+            or ""
+        )
+        upstream_protocol = str(
+            attributes.get("upstream_protocol")
+            or attributes.get("origin_protocol")
+            or attributes.get("backend_protocol")
+            or ""
+        )
+        chain = _tuple_strings(
+            attributes.get("intermediary_chain")
+            or attributes.get("proxy_chain")
+            or attributes.get("via")
+            or lower_response.get("via")
+        )
+
+        has_content_length = _truthy(attributes.get("has_content_length")) or (
+            "content-length" in lower_request
+        )
+        has_transfer_encoding = _truthy(attributes.get("has_transfer_encoding")) or (
+            "transfer-encoding" in lower_request
+        )
+        duplicate_content_length = _truthy(attributes.get("duplicate_content_length"))
+        transfer_encoding_variant = _truthy(attributes.get("transfer_encoding_variant"))
+        connection_reused = _truthy(
+            attributes.get("connection_reused") or attributes.get("keepalive_reused")
+        )
+        response_desync_signal = _truthy(
+            attributes.get("response_desync_signal")
+            or attributes.get("cross_request_anomaly")
+        )
+        timing_anomaly = _truthy(attributes.get("timing_anomaly"))
+
+        # Do not create empty observations just because a route exists. At least one actual
+        # protocol/parser/intermediary signal must be present.
+        if not any(
+            (
+                client_protocol,
+                upstream_protocol,
+                chain,
+                has_content_length,
+                has_transfer_encoding,
+                duplicate_content_length,
+                transfer_encoding_variant,
+                connection_reused,
+                response_desync_signal,
+                timing_anomaly,
+            )
+        ):
+            continue
+
+        observations.append(
+            DesyncObservation(
+                route=route,
+                host=str(attributes.get("host") or ""),
+                client_protocol=client_protocol,
+                upstream_protocol=upstream_protocol,
+                has_content_length=has_content_length,
+                has_transfer_encoding=has_transfer_encoding,
+                duplicate_content_length=duplicate_content_length,
+                transfer_encoding_variant=transfer_encoding_variant,
+                intermediary_chain=chain,
+                connection_reused=connection_reused,
+                response_desync_signal=response_desync_signal,
+                timing_anomaly=timing_anomaly,
+                provenance=str(
+                    attributes.get("desync_provenance")
+                    or attributes.get("discovery_source")
+                    or getattr(asset, "asset_key", "")
+                    or "asset_graph"
+                ),
+            )
+        )
+    return tuple(observations)
+
+
 def _protocol(value: str) -> str:
     normalized = str(value or "").strip().lower().replace("http/", "h")
     aliases = {
@@ -82,8 +208,6 @@ def _families(observation: DesyncObservation) -> tuple[DesyncFamily, ...]:
         families.append(DesyncFamily.TE_TE)
     if observation.duplicate_content_length or observation.response_desync_signal:
         families.append(DesyncFamily.PARSER_DIFFERENTIAL)
-
-    # Stable de-duplication without relying on set ordering.
     return tuple(dict.fromkeys(families))
 
 
@@ -129,11 +253,7 @@ def analyze_desync_observations(
     *,
     min_confidence: float = 0.45,
 ) -> tuple[DesyncCandidate, ...]:
-    """Convert protocol evidence into ranked request-desync hypotheses.
-
-    A candidate is not a verified vulnerability.  Verification still requires independent,
-    policy-authorized reproduction/differential evidence through the canonical active lane.
-    """
+    """Convert protocol evidence into ranked request-desync hypotheses."""
 
     grouped: dict[tuple[str, str, DesyncFamily], list[DesyncObservation]] = {}
     for observation in observations:
@@ -146,8 +266,6 @@ def analyze_desync_observations(
     for (host, route, family), evidence in grouped.items():
         scored = [_score(item, family) for item in evidence]
         confidence = max(score for score, _ in scored)
-        # Repeated independent observations increase confidence without allowing count alone to
-        # turn weak evidence into certainty.
         if len(evidence) > 1:
             confidence = min(0.98, confidence + min(0.12, 0.04 * (len(evidence) - 1)))
         if confidence < min_confidence:
