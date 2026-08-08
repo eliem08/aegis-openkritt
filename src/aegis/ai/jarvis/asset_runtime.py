@@ -5,8 +5,8 @@ which methods are logically allowed? This module answers the separate operationa
 is the exact external tool actually healthy on this worker?
 
 It never executes a scan. CLI-backed methods are fingerprinted through ``ToolRuntimeManager``;
-internal Aegis adapters and runtimes without a stable CLI contract are surfaced separately so
-the planner cannot mistake a conceptual method for an executable integration.
+concrete Aegis service adapters are identified explicitly, while runtimes without a stable
+execution contract remain ``runtime_unknown`` rather than being falsely marked ready.
 """
 
 from __future__ import annotations
@@ -77,6 +77,11 @@ _CLI_OVERRIDES = {
     "pip-audit": "pip-audit",
 }
 
+# Concrete service/library adapters owned by Aegis rather than an external CLI process.
+_INTERNAL_ADAPTERS = {
+    "MobSF": "loopback MobSF REST static adapter",
+}
+
 
 def method_binary(method: PlannedMethod) -> str:
     """Return a stable CLI entry point, or empty string when no honest mapping exists."""
@@ -105,12 +110,15 @@ def overlay_runtime(
 
     for method in plan.ready:
         tool_name = str(method.tool)
-        if tool_name.startswith("aegis-"):
+        internal_reason = _INTERNAL_ADAPTERS.get(tool_name)
+        if tool_name.startswith("aegis-") or internal_reason:
             internal.append(
                 AssetMethodRuntime(
                     method,
                     RuntimeDisposition.INTERNAL,
-                    reason="Aegis-internal adapter; external binary health is not applicable",
+                    reason=internal_reason or (
+                        "Aegis-internal adapter; external binary health is not applicable"
+                    ),
                 )
             )
             continue
