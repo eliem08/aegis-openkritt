@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from aegis.ai.jarvis.state_store import JarvisStateStore
+from aegis.ai.jarvis_graph import load_graph
 from aegis.ai.jarvis_persistence import (
     checkpoint_phase,
     load_finding,
@@ -24,8 +25,10 @@ def _row():
             "finding_id": "finding:test",
             "stage": "source_supported",
             "program_id": "acme",
+            "source_platform": "hackerone",
             "repository": "acme/app",
             "scope_digest": "scope:1",
+            "evidence": ["ev1:source-validation:test"],
         },
         "agreement": 3,
         "samples": 3,
@@ -41,6 +44,13 @@ def test_finding_state_persists_without_raw_source(tmp_path):
     assert saved["repository"] == "acme/app"
     assert saved["jarvis"]["stage"] == "source_supported"
     assert "source" not in saved
+
+    graph = load_graph("acme/app", path=db)
+    assert "repository:acme/app" in graph.nodes
+    assert "program:acme" in graph.nodes
+    assert "finding:test" in graph.nodes
+    assert graph.neighbors("program:acme", "authorizes") == ("repository:acme/app",)
+    assert "ev1:source-validation:test" in graph.neighbors("finding:test", "supported_by")
 
 
 def test_live_mission_checkpoints_are_monotonic(tmp_path):
