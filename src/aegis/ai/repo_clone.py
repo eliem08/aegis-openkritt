@@ -7,7 +7,10 @@ every file is local, reads are free, so content-aware selection can weigh the wh
 tree, and later stages (proof-of-concept reproduction, patch diffing) have a real
 working tree to operate on.
 
-Read-only by intent: a shallow clone of public source, never executed, never pushed.
+Read-only by intent: a shallow clone of authorized source, never executed, never pushed.
+Every network clone is target-authorized at this boundary so callers cannot accidentally
+bypass the higher-level hunt gate. Controlled tests may use the existing
+``AEGIS_REQUIRE_AUTHORIZATION=0`` override through :mod:`aegis.ai.target_authorization`.
 """
 
 from __future__ import annotations
@@ -23,7 +26,7 @@ _DEFAULT_CACHE = Path("reports") / "clones"
 
 
 class RepoCloneError(RuntimeError):
-    """The repository could not be cloned or refreshed."""
+    """The repository could not be cloned, refreshed, or authorized."""
 
 
 def _run(args: list[str], cwd: Path | None = None, timeout: int = _CLONE_TIMEOUT):
@@ -48,8 +51,14 @@ class CloneResult:
 
 def clone_repository(repository: str, *, cache_dir: str | Path | None = None,
                      refresh: bool = False, depth: int = 1,
-                     token: str = "") -> CloneResult:
+                     token: str = "", enforce_authorization: bool = True) -> CloneResult:
     """Shallow-clone ``owner/repo`` into the cache and return its path + head commit.
+
+    Authorization is enforced *before any git network activity* by default. This is a
+    defense-in-depth boundary beneath every autonomous caller, including carpet sweep.
+    ``enforce_authorization=False`` exists only for narrow local/internal tooling that has
+    already established an equivalent trusted boundary; production hunt paths must leave it
+    enabled.
 
     An existing clone is reused (optionally refreshed) so repeated hunts on the same
     target cost nothing. ``token`` is used for the fetch only and is never written to
@@ -57,6 +66,16 @@ def clone_repository(repository: str, *, cache_dir: str | Path | None = None,
     """
     if repository.count("/") != 1 or not all(repository.split("/")):
         raise RepoCloneError(f"expected owner/repo, got {repository!r}")
+
+    if enforce_authorization:
+        from .target_authorization import gate
+
+        decision = gate(repository)
+        if not decision.allowed:
+            raise RepoCloneError(
+                f"BLOCK TARGET [{decision.status}]: {decision.reason}"[:300]
+            )
+
     root = Path(cache_dir) if cache_dir else _DEFAULT_CACHE
     root.mkdir(parents=True, exist_ok=True)
     target = root / repository.replace("/", "__")

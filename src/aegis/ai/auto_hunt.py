@@ -28,7 +28,13 @@ class HuntTarget:
 
 @dataclass
 class HuntOutcome:
-    """What the injected hunt function returns for one target."""
+    """What the injected hunt function returns for one target.
+
+    ``confirmed`` is reserved for findings that passed the validation lane. A defensive
+    post-init guard recognizes the explicit scanners-only result shape (every finding is tagged
+    ``origin=scanner|skill`` and lacks validator/economics fields) and moves those counts back to
+    ``candidates``. Generic injected/test outcomes are not reinterpreted.
+    """
 
     target: HuntTarget
     candidates: int = 0
@@ -41,6 +47,21 @@ class HuntOutcome:
     scanner_candidates: int = 0
     skill_candidates: int = 0
     tools_run: list[str] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        if not self.confirmed or not self.findings:
+            return
+        scanner_only_shape = all(
+            f.get("origin") in {"scanner", "skill"}
+            and f.get("reproduction") is None
+            and "expected_gain" not in f
+            and "agreement" not in f
+            and "cvss" not in f
+            for f in self.findings
+        )
+        if scanner_only_shape:
+            self.candidates = max(self.candidates, self.confirmed, len(self.findings))
+            self.confirmed = 0
 
 
 @dataclass
