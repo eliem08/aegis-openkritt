@@ -51,28 +51,33 @@ def maybe_autostart(app) -> None:
             if _on("AEGIS_AUTOSTART_IMPORT"):
                 try:
                     from .program_sources import import_programs
+
                     import_programs()
                 except Exception:
                     logger.exception("program import failed during autostart")
             if _on("AEGIS_AUTOSTART_MONITOR"):
                 try:
                     from .program_monitor import monitor
+
                     monitor()
                 except Exception:
                     logger.exception("program monitor failed during autostart")
                 try:
                     from .disclosed_reports import collect
+
                     collect()
                 except Exception:
                     logger.exception("disclosed-report refresh failed during autostart")
                 try:
                     from .program_enrich import enrich
+
                     enrich(use_github=_on("AEGIS_AUTOSTART_GITHUB_AGE"))
                 except Exception:
                     logger.exception("program enrichment failed during autostart")
             if _on("AEGIS_AUTOSTART_CARPET"):
                 try:
                     from .carpet_sweep import run_forever
+
                     threading.Thread(target=run_forever, daemon=True,
                                      name="aegis-carpet").start()
                 except Exception:
@@ -87,6 +92,7 @@ def maybe_autostart(app) -> None:
                 logger.warning("autostart found no positive-net-EV authorized targets")
                 return
             from aegis.api.routers.ui import _run_autohunt
+
             from .auto_hunt import AutoHuntConfig
 
             config = AutoHuntConfig(
