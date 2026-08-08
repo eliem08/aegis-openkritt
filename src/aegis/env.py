@@ -1,14 +1,12 @@
 """Minimal, dependency-free ``.env`` loader.
 
 Reads ``KEY=VALUE`` lines from a ``.env`` file into ``os.environ``. By default it
-does **not** override variables already set in the real environment (the real
-environment wins), so CI/production secrets are never clobbered by a local file.
+does **not** override variables already set in the real environment, so explicit
+CI/production settings always win.
 
-Deliberately small and stdlib-only — this project keeps secrets out of prompts
-and logs, and a tiny auditable loader is easier to trust than a dependency.
-Supported syntax: blank lines, ``# comment`` lines, an optional ``export``
-prefix, and single/double-quoted values. Inline comments are *not* stripped, so
-values may safely contain ``#`` (e.g. JSON). Values are never logged.
+Supported syntax: blank lines, ``# comment`` lines, optional ``export``, quoted
+values, and shell-style trailing comments on *unquoted* values (``A=x # note``).
+A literal ``#`` that is part of a value should be quoted. Values are never logged.
 """
 
 from __future__ import annotations
@@ -32,8 +30,12 @@ def parse_env(text: str) -> dict[str, str]:
         if not key:
             continue
         value = value.strip()
-        if len(value) >= 2 and value[0] == value[-1] and value[0] in ("'", '"'):
-            value = value[1:-1]
+        if value[:1] in ("'", '"'):
+            quote = value[0]
+            end = value.find(quote, 1)
+            value = value[1:end] if end > 0 else value[1:]
+        else:
+            value = value.split(" #", 1)[0].strip()
         result[key] = value
     return result
 
@@ -56,12 +58,7 @@ def load_dotenv(
     override: bool = False,
     search: bool = True,
 ) -> dict[str, str]:
-    """Load a ``.env`` file into ``os.environ``.
-
-    ``path`` may be a file or a directory. If omitted and ``search`` is true, the
-    nearest ``.env`` above the current directory is used. Returns the parsed
-    mapping (whether or not each key was applied). Missing file -> ``{}``.
-    """
+    """Load a ``.env`` file into ``os.environ`` and return its parsed mapping."""
     target: Path | None
     if path is None:
         target = find_dotenv() if search else Path(".env")
