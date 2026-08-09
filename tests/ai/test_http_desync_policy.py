@@ -58,21 +58,25 @@ def test_evidence_backed_desync_task_still_requires_full_active_authorization():
     assert proposal.metadata["active_detector"] == "http_desync"
     assert proposal.requires_network is True
 
-    policy = ProposalPolicy()
-    blocked = policy.evaluate(
-        proposal,
-        AuthorizationEnvelope(scope_digest="scope", budget=Budget(max_requests=10)),
-    )
-    assert blocked.approved is False
+    from aegis.ai.agentic_os import mint_execution_grant
+    from aegis.policy.signing import HmacSignatureVerifier
+    v = HmacSignatureVerifier({"grant": "k"})
+    policy = ProposalPolicy(v)
+    budget = Budget(max_requests=10)
 
-    approved = policy.evaluate(
+    # no grant -> blocked (a self-set boolean cannot authorize a live desync probe)
+    blocked = policy.evaluate(
+        proposal, AuthorizationEnvelope(scope_digest="scope", budget=budget))
+    assert blocked.approved is False
+    assert not policy.evaluate(
         proposal,
-        AuthorizationEnvelope(
-            scope_digest="scope",
-            network_allowed=True,
-            state_change_allowed=True,
-            human_approval=True,
-            budget=Budget(max_requests=10),
-        ),
-    )
+        AuthorizationEnvelope(scope_digest="scope", network_allowed=True, state_change_allowed=True,
+                              human_approval=True, budget=budget)).approved
+
+    # only a signed grant granting network + state-change + human approval authorizes it
+    grant = mint_execution_grant(type("D", (), {"allowed": True})(), scope_digest="scope",
+                                 budget=budget, verifier=v, network=True, state_change=True,
+                                 human_approval=True)
+    approved = policy.evaluate(
+        proposal, AuthorizationEnvelope(scope_digest="scope", budget=budget, grant=grant))
     assert approved.approved is True

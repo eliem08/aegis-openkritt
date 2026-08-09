@@ -6,7 +6,7 @@ import httpx
 import pytest
 
 from aegis.ai.jarvis.asset_capabilities import GRYPE, MOBSF, SYFT, AssetKind
-from aegis.ai.jarvis.asset_cli_executor import CliProcessResult
+from aegis.ai.jarvis.asset_cli_executor import CliProcessResult, execute_local_cli_method
 from aegis.ai.jarvis.asset_deep_capabilities import GHIDRA, DeepScannerMethod
 from aegis.ai.jarvis.asset_execution_router import (
     AssetExecutionRouteError,
@@ -20,6 +20,19 @@ from aegis.ai.jarvis.asset_execution_ticket import (
 from aegis.ai.jarvis.ghidra_sandbox import GhidraSandboxProcessResult
 from aegis.ai.mobsf_adapter import MobSFConfig
 from aegis.ai.tool_runtime import ToolRuntimeManager
+
+
+@pytest.fixture(autouse=True)
+def _bypass_networkless_sandbox(monkeypatch):
+    """Router UNIT tests exercise routing + normalization; the production dispatch goes through
+    the POSIX-only Bubblewrap netns sandbox (enforced by test_execution_kernel). Here we route the
+    sandbox call to direct local execution so these tests run cross-platform without Bubblewrap."""
+    import aegis.ai.jarvis.asset_execution_router as router_mod
+
+    def _direct(method, *, ticket, scope_digest, process_runner=None, **kwargs):
+        return execute_local_cli_method(method, runner=process_runner, **kwargs)
+
+    monkeypatch.setattr(router_mod, "execute_ticketed_networkless_method", _direct)
 
 _SCOPE = "scope:test"
 

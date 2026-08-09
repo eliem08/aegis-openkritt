@@ -51,13 +51,12 @@ def _desync_route():
 
 
 def _approved_envelope(max_requests=10):
-    return AuthorizationEnvelope(
-        scope_digest="scope",
-        network_allowed=True,
-        state_change_allowed=True,
-        human_approval=True,
-        budget=Budget(max_requests=max_requests, max_cost_usd=1.0),
-    )
+    from aegis.ai.agentic_os import mint_execution_grant, process_grant_verifier
+    budget = Budget(max_requests=max_requests, max_cost_usd=1.0)
+    grant = mint_execution_grant(
+        type("_Allowed", (), {"allowed": True})(), scope_digest="scope", budget=budget,
+        verifier=process_grant_verifier(), network=True, state_change=True, human_approval=True)
+    return AuthorizationEnvelope(scope_digest="scope", budget=budget, grant=grant)
 
 
 def test_asset_to_desync_plan_to_policy_to_executor_to_evidence():

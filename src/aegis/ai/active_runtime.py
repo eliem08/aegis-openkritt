@@ -24,6 +24,7 @@ from .agentic_os import (
     Decision,
     EvidenceRef,
     ProposalPolicy,
+    process_grant_verifier,
 )
 
 
@@ -142,7 +143,7 @@ def run_active_plan(
     if len(plan.tasks) != len(proposals):
         raise RuntimeError("active planner/proposal cardinality mismatch")
 
-    proposal_policy = policy or ProposalPolicy()
+    proposal_policy = policy or ProposalPolicy(process_grant_verifier())
     runs: list[ActiveTaskRun] = []
     requests_used = 0
     cost_used = 0.0

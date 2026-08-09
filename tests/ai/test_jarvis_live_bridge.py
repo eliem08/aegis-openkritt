@@ -167,35 +167,40 @@ def test_active_detector_plan_requires_network_state_and_human_approval():
     assert len(proposals) == 1
     proposal = proposals[0]
 
-    policy = ProposalPolicy()
-    blocked = policy.evaluate(
-        proposal,
-        AuthorizationEnvelope(scope_digest="s", budget=Budget(max_requests=10)),
-    )
-    assert blocked.approved is False
+    from aegis.ai.agentic_os import mint_execution_grant
+    from aegis.policy.signing import HmacSignatureVerifier
+    v = HmacSignatureVerifier({"grant": "k"})
+    policy = ProposalPolicy(v)
+    budget = Budget(max_requests=10)
 
-    network_only = policy.evaluate(
-        proposal,
-        AuthorizationEnvelope(
-            scope_digest="s",
-            network_allowed=True,
-            budget=Budget(max_requests=10),
-        ),
-    )
-    assert network_only.approved is False
-    assert "state changes" in network_only.reason
+    # no grant -> denied
+    assert not policy.evaluate(
+        proposal, AuthorizationEnvelope(scope_digest="s", budget=budget)).approved
 
-    approved = policy.evaluate(
+    # a self-set network boolean is IGNORED under single-authority -> still denied
+    assert not policy.evaluate(
         proposal,
-        AuthorizationEnvelope(
-            scope_digest="s",
-            network_allowed=True,
-            state_change_allowed=True,
-            human_approval=True,
-            budget=Budget(max_requests=10),
-        ),
-    )
-    assert approved.approved is True
+        AuthorizationEnvelope(scope_digest="s", network_allowed=True, budget=budget)).approved
+
+    def _grant(**caps):
+        return mint_execution_grant(type("D", (), {"allowed": True})(), scope_digest="s",
+                                    budget=budget, verifier=v, **caps)
+
+    # network granted, but state-change not -> denied for state change
+    net_only = policy.evaluate(
+        proposal, AuthorizationEnvelope(scope_digest="s", budget=budget, grant=_grant(network=True)))
+    assert net_only.approved is False and "state change" in net_only.reason
+
+    # network + state-change, but no human approval -> denied for human approval
+    no_human = policy.evaluate(proposal, AuthorizationEnvelope(
+        scope_digest="s", budget=budget, grant=_grant(network=True, state_change=True)))
+    assert no_human.approved is False and "human approval" in no_human.reason
+
+    # full signed grant (network + state-change + human) -> approved
+    full = policy.evaluate(proposal, AuthorizationEnvelope(
+        scope_digest="s", budget=budget,
+        grant=_grant(network=True, state_change=True, human_approval=True)))
+    assert full.approved is True
 
 
 def test_offline_contract_review_plan_stays_offline():

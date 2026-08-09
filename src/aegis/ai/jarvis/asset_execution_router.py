@@ -17,7 +17,6 @@ from .asset_cli_executor import (
     CliProcessResult,
     LocalCliExecution,
     Runner,
-    execute_local_cli_method,
 )
 from .asset_deep_capabilities import PlannedMethod
 from .asset_execution_ticket import (
@@ -33,6 +32,7 @@ from .ghidra_sandbox import (
     SandboxRunner,
     execute_ghidra_sandboxed,
 )
+from .ticketed_networkless import execute_ticketed_networkless_method
 
 
 class AssetExecutionRouteError(RuntimeError):
@@ -215,8 +215,15 @@ def execute_offline_asset_method(
             "method is neither a registered internal adapter nor a local-only CLI method"
         )
 
-    local = execute_local_cli_method(
+    # P0.2: generic offline CLIs are dispatched ONLY through the ticket-verified, kernel-
+    # networkless (Bubblewrap unshared-network) sandbox — never the raw local primitive. This
+    # blocks a compromised scanner from opening direct sockets (proxy stripping is not enough).
+    # If the networkless backend cannot run (e.g. Bubblewrap unavailable), it fails closed rather
+    # than falling back to unsandboxed execution.
+    local = execute_ticketed_networkless_method(
         method,
+        ticket=ticket,
+        scope_digest=scope_digest,
         artifact_path=artifact_path,
         target_path=target_path,
         firmware_path=firmware_path,
@@ -226,7 +233,7 @@ def execute_offline_asset_method(
         timeout=timeout,
         runtime_manager=runtime_manager,
         pins=pins,
-        runner=runner,
+        process_runner=runner,
     )
     normalized = normalize_local_cli_execution(local)
     provenance = dict(local.provenance)
