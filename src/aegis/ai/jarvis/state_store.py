@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import sqlite3
 from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -66,10 +67,39 @@ class MissionSnapshot:
     cursor: int = 0
 
 
+class BountyResolution(str, Enum):
+    ACCEPTED = "accepted"
+    DUPLICATE = "duplicate"
+    INFORMATIVE = "informative"
+    NOT_APPLICABLE = "not_applicable"
+
+
+@dataclass(frozen=True)
+class RealBountyOutcome:
+    outcome_id: str
+    program_id: str
+    technique: str
+    weakness: str
+    resolution: BountyResolution
+    severity: str | None = None
+    bounty_usd: float | None = None
+    time_to_triage_seconds: int | None = None
+    cost_usd: float = 0.0
+    source: str = ""
+    resolved_at: str = ""
+
+
+@dataclass(frozen=True)
+class RealOutcomeLearning:
+    recorded: bool
+    weakness_prior: LearnedPrior
+    technique_prior: LearnedPrior
+
+
 class JarvisStateStore:
     """SQLite-backed source of truth for learning, memory, and mission resume."""
 
-    SCHEMA_VERSION = 2
+    SCHEMA_VERSION = 3
 
     def __init__(self, path: str | Path = ":memory:") -> None:
         self.path = str(path)
@@ -164,6 +194,23 @@ class JarvisStateStore:
             );
             CREATE INDEX IF NOT EXISTS idx_ct_snapshots_domain
                 ON ct_snapshots(domain, snapshot_id DESC);
+
+            CREATE TABLE IF NOT EXISTS real_bounty_outcomes (
+                outcome_id TEXT PRIMARY KEY,
+                program_id TEXT NOT NULL,
+                technique TEXT NOT NULL,
+                weakness TEXT NOT NULL,
+                resolution TEXT NOT NULL,
+                severity TEXT,
+                bounty_usd REAL,
+                time_to_triage_seconds INTEGER,
+                cost_usd REAL NOT NULL,
+                source TEXT NOT NULL,
+                resolved_at TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE INDEX IF NOT EXISTS idx_real_outcomes_technique
+                ON real_bounty_outcomes(technique, resolution);
             """
         )
         self._conn.execute(
@@ -258,7 +305,7 @@ class JarvisStateStore:
                     0 if accepted else 1,
                     0 if duplicate else 1,
                     1 if duplicate else 0,
-                    payout_usd or 0.0,
+                    payout_usd if payout_usd is not None else 0.0,
                     1 if payout_usd is not None and payout_usd > 0 else 0,
                     cost_usd,
                     program,
@@ -266,6 +313,71 @@ class JarvisStateStore:
                 ),
             )
         return self.learned_prior(program, weakness_key)
+
+    def record_real_outcome(self, outcome: RealBountyOutcome) -> RealOutcomeLearning:
+        """Durably record one provenance-backed result and update priors exactly once."""
+        if not outcome.outcome_id or not outcome.program_id or not outcome.technique:
+            raise ValueError("real outcome requires stable identity, program, and technique")
+        if not outcome.weakness or not outcome.source or not outcome.resolved_at:
+            raise ValueError("real outcome requires weakness, source provenance, and resolution time")
+        if (outcome.bounty_usd is not None and outcome.bounty_usd < 0
+                or outcome.cost_usd < 0
+                or outcome.time_to_triage_seconds is not None
+                and outcome.time_to_triage_seconds < 0):
+            raise ValueError("outcome bounty, cost, and triage duration must be non-negative")
+        resolution = BountyResolution(outcome.resolution)
+        with self._conn:
+            cursor = self._conn.execute(
+                """
+                INSERT OR IGNORE INTO real_bounty_outcomes(
+                    outcome_id, program_id, technique, weakness, resolution, severity,
+                    bounty_usd, time_to_triage_seconds, cost_usd, source, resolved_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    outcome.outcome_id, self._norm(outcome.program_id),
+                    self._norm(outcome.technique), self._norm(outcome.weakness),
+                    resolution.value, outcome.severity, outcome.bounty_usd,
+                    outcome.time_to_triage_seconds, outcome.cost_usd,
+                    outcome.source, outcome.resolved_at,
+                ),
+            )
+        recorded = cursor.rowcount == 1
+        weakness_prior = self.learned_prior(outcome.program_id, outcome.weakness)
+        technique_key = "technique:" + self._norm(outcome.technique)
+        technique_prior = self.learned_prior(outcome.program_id, technique_key)
+        if recorded and resolution is not BountyResolution.INFORMATIVE:
+            accepted = resolution is BountyResolution.ACCEPTED
+            duplicate = resolution is BountyResolution.DUPLICATE
+            weakness_prior = self.record_outcome(
+                program_id=outcome.program_id, weakness=outcome.weakness,
+                accepted=accepted, duplicate=duplicate,
+                payout_usd=outcome.bounty_usd, cost_usd=outcome.cost_usd,
+            )
+            technique_prior = self.record_outcome(
+                program_id=outcome.program_id, weakness=technique_key,
+                accepted=accepted, duplicate=duplicate,
+                payout_usd=outcome.bounty_usd, cost_usd=outcome.cost_usd,
+            )
+        return RealOutcomeLearning(recorded, weakness_prior, technique_prior)
+
+    def real_outcomes(self, *, technique: str | None = None) -> tuple[RealBountyOutcome, ...]:
+        query = "SELECT * FROM real_bounty_outcomes"
+        parameters: tuple[object, ...] = ()
+        if technique:
+            query += " WHERE technique = ?"
+            parameters = (self._norm(technique),)
+        query += " ORDER BY resolved_at, outcome_id"
+        rows = self._conn.execute(query, parameters).fetchall()
+        return tuple(RealBountyOutcome(
+            outcome_id=row["outcome_id"], program_id=row["program_id"],
+            technique=row["technique"], weakness=row["weakness"],
+            resolution=BountyResolution(row["resolution"]), severity=row["severity"],
+            bounty_usd=row["bounty_usd"],
+            time_to_triage_seconds=row["time_to_triage_seconds"],
+            cost_usd=float(row["cost_usd"]), source=row["source"],
+            resolved_at=row["resolved_at"],
+        ) for row in rows)
 
     def learned_prior(self, program_id: str, weakness: str) -> LearnedPrior:
         program = self._norm(program_id)
