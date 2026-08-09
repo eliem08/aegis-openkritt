@@ -13,6 +13,11 @@ from .asset_capability_planner import (
     plan_capability_scan,
 )
 from .asset_deep_capabilities import ExtendedAssetKind, TargetAssetKind
+from .asset_execution_ticket import (
+    AssetExecutionTicketError,
+    CapabilityAvailability,
+    issue_offline_execution_ticket,
+)
 
 
 class AssetCapabilityAgent:
@@ -62,6 +67,9 @@ class AssetCapabilityAgent:
         if kind is None:
             return ()
 
+        language_hints = self._strings(context, "repository:languages")
+        platform_hint = self._text(context, "binary:platform")
+        service_hints = self._strings(context, "asset:service_hints")
         flags = {
             "artifact_available": self._flag(context, "asset:artifact_available"),
             "credentials_available": self._flag(context, "asset:credentials_available"),
@@ -74,12 +82,18 @@ class AssetCapabilityAgent:
             "registry_access_available": self._flag(context, "asset:registry_access_available"),
             "auth_session_available": self._flag(context, "asset:auth_session_available"),
         }
+        availability = CapabilityAvailability(
+            **flags,
+            language_hints=language_hints,
+            platform_hint=platform_hint,
+            service_hints=service_hints,
+        )
         plan = plan_capability_scan(
             kind,
             **flags,
-            language_hints=self._strings(context, "repository:languages"),
-            platform_hint=self._text(context, "binary:platform"),
-            service_hints=self._strings(context, "asset:service_hints"),
+            language_hints=language_hints,
+            platform_hint=platform_hint,
+            service_hints=service_hints,
         )
 
         proposals: list[AgentProposal] = []
@@ -89,6 +103,23 @@ class AssetCapabilityAgent:
                 risk = RiskClass.READ_ONLY
             if method.state_change_possible:
                 risk = RiskClass.CONTROLLED_STATE_CHANGE
+
+            ticket_payload = None
+            ticket_error = ""
+            if not method.requires_network and not method.state_change_possible:
+                try:
+                    ticket = issue_offline_execution_ticket(
+                        asset_kind=kind,
+                        method=method,
+                        scope_digest=context.authorization.scope_digest,
+                        availability=availability,
+                    )
+                    ticket_payload = ticket.as_dict()
+                except AssetExecutionTicketError as exc:
+                    # This should be unreachable for a planner-ready method. Surface drift in
+                    # metadata instead of silently weakening the prerequisite gate.
+                    ticket_error = str(exc)[:240]
+
             proposals.append(
                 AgentProposal(
                     role=self.role,
@@ -109,6 +140,8 @@ class AssetCapabilityAgent:
                         "local_only": method.local_only,
                         "state_change_possible": method.state_change_possible,
                         "output": method.output,
+                        "execution_ticket": ticket_payload,
+                        "execution_ticket_error": ticket_error or None,
                     },
                 )
             )
