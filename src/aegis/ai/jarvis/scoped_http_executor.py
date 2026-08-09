@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import base64
+import time
+from collections import deque
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from threading import Lock
@@ -40,6 +42,7 @@ class ScopedEgressHttpExecutor:
         max_requests: int = 20,
         max_request_bytes: int = 1_048_576,
         max_response_bytes: int = 2_097_152,
+        max_requests_per_second: int = 10,
         client=None,
     ) -> None:
         parts = urlsplit(endpoint)
@@ -52,9 +55,13 @@ class ScopedEgressHttpExecutor:
         self.max_requests = max_requests
         self.max_request_bytes = max_request_bytes
         self.max_response_bytes = max_response_bytes
+        if max_requests_per_second <= 0:
+            raise ValueError("HTTP rate budget must be positive")
+        self.max_requests_per_second = max_requests_per_second
         self.client = client
         self.requests = 0
         self._budget_lock = Lock()
+        self._request_times: deque[float] = deque()
 
     def request(
         self,
@@ -86,6 +93,12 @@ class ScopedEgressHttpExecutor:
         with self._budget_lock:
             if self.requests >= authorized_limit:
                 raise RuntimeError("HTTP execution request budget exhausted")
+            now = time.monotonic()
+            while self._request_times and now - self._request_times[0] >= 1.0:
+                self._request_times.popleft()
+            if len(self._request_times) >= self.max_requests_per_second:
+                raise RuntimeError("HTTP execution rate budget exhausted")
+            self._request_times.append(now)
             self.requests += 1
         token = self.token_issuer(POLICY_ACTION, normalized_method, url, authorization)
         if not token:

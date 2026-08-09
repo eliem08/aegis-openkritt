@@ -6,6 +6,7 @@ from dataclasses import replace
 from datetime import UTC, datetime
 from threading import Lock
 
+import pytest
 from fastapi.testclient import TestClient
 
 from aegis.ai.agentic_os import (
@@ -411,6 +412,27 @@ def test_production_dispatcher_reports_real_and_unavailable_exact_capabilities()
     assert coverage["dynamic:websocket-state-differential"] == "UNAVAILABLE"
 
 
+def test_scoped_http_rate_budget_fails_closed():
+    identity = _executor(expose_to_peer=False)
+    limited = ScopedEgressHttpExecutor(
+        "https://egress.internal",
+        token_issuer=identity.http.token_issuer,
+        grant_verifier=identity.grant_verifier,
+        max_requests_per_second=1,
+        client=identity.http.client,
+    )
+    _, authorization = _authorization()
+    limited.request(
+        "GET", "https://api.example.test/one", authorization=authorization,
+        headers={"authorization": "Bearer owner"},
+    )
+    with pytest.raises(RuntimeError, match="rate budget exhausted"):
+        limited.request(
+            "GET", "https://api.example.test/two", authorization=authorization,
+            headers={"authorization": "Bearer owner"},
+        )
+
+
 def test_runtime_retains_dynamic_evidence_and_missing_fixture_waits(tmp_path):
     executor = _executor(expose_to_peer=False)
     verifier, authorization = _authorization()
@@ -428,6 +450,21 @@ def test_runtime_retains_dynamic_evidence_and_missing_fixture_waits(tmp_path):
         )
         assert result.disposition is CapabilityDisposition.READY
         assert isinstance(result.outcome, HttpIdentityExecutionOutcome)
+
+        over_budget_task = replace(
+            _task(), task_id="task:http-over-budget", expected_requests=5
+        )
+        over_budget_plan = runtime.scheduler.create(MissionPlan(
+            "mission:http-over-budget", SCOPE, "must stop before execution",
+            (over_budget_task,),
+        ))
+        over_budget = runtime.execute_first(
+            over_budget_plan,
+            authorization=authorization,
+            availability=CapabilityAvailability(),
+        )
+        assert over_budget.disposition is CapabilityDisposition.WAITING_FOR_PREREQUISITE
+        assert over_budget.plan.tasks[0].state.value == "blocked"
 
         missing = HttpIdentityDifferentialExecutor(
             executor.http,

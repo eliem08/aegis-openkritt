@@ -315,6 +315,15 @@ class UniversalMissionRuntime:
                     plan, CapabilityDisposition.WAITING_FOR_APPROVAL,
                     "signed grant does not authorize controlled differential execution",
                 )
+            request_budget = min(
+                authorization.budget.max_requests, grant.budget.max_requests
+            )
+            if task.expected_requests > request_budget:
+                plan = self.scheduler.set_task_state(plan, task.task_id, TaskState.BLOCKED)
+                return MissionExecutionResult(
+                    plan, CapabilityDisposition.WAITING_FOR_PREREQUISITE,
+                    "mission request estimate exceeds the signed request budget",
+                )
             executor = self.mission_task_executors.get(task.executor_capability)
             if executor is None:
                 plan = self.scheduler.set_task_state(plan, task.task_id, TaskState.UNAVAILABLE)
