@@ -453,7 +453,8 @@ class AgenticOrchestrator:
 
     def __init__(self, agents: Iterable[SecurityAgent], policy: ProposalPolicy | None = None) -> None:
         self.agents = tuple(agents)
-        self.policy = policy or ProposalPolicy()
+        # default to a verifier-backed policy so signed execution grants are actually checked
+        self.policy = policy or ProposalPolicy(process_grant_verifier())
 
     def planning_round(self, context: AgentContext) -> list[tuple[AgentProposal, Decision]]:
         evaluated: list[tuple[AgentProposal, Decision]] = []

@@ -44,12 +44,13 @@ def test_desync_executor_is_reached_from_asset_graph_and_returns_canonical_evide
     )
     validator = Validator()
     executor = HttpDesyncExecutor(validator)
+    from aegis.ai.agentic_os import mint_execution_grant, process_grant_verifier
+    _budget = Budget(max_requests=6, max_cost_usd=1.0)
     authorization = AuthorizationEnvelope(
-        scope_digest="scope",
-        network_allowed=True,
-        state_change_allowed=True,
-        human_approval=True,
-        budget=Budget(max_requests=6, max_cost_usd=1.0),
+        scope_digest="scope", budget=_budget,
+        grant=mint_execution_grant(
+            type("_Allowed", (), {"allowed": True})(), scope_digest="scope", budget=_budget,
+            verifier=process_grant_verifier(), network=True, state_change=True, human_approval=True),
     )
 
     report = run_active_plan(

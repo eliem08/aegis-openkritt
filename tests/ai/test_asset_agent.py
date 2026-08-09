@@ -18,12 +18,19 @@ def _context(
     state_change: bool = False,
     human: bool = False,
 ) -> AgentContext:
+    from aegis.ai.agentic_os import mint_execution_grant, process_grant_verifier
+    budget = Budget(max_cost_usd=50.0, max_requests=500, max_human_minutes=120.0)
+    grant = None
+    if network or state_change or human:
+        grant = mint_execution_grant(
+            type("_Allowed", (), {"allowed": True})(), scope_digest="scope-assets", budget=budget,
+            verifier=process_grant_verifier(), network=network, state_change=state_change,
+            human_approval=human)
     authorization = AuthorizationEnvelope(
         scope_digest="scope-assets",
-        network_allowed=network,
-        state_change_allowed=state_change,
-        human_approval=human,
-        budget=Budget(max_cost_usd=50.0, max_requests=500, max_human_minutes=120.0),
+        external_model_egress_allowed=True,
+        budget=budget,
+        grant=grant,
     )
     return AgentContext(authorization, SharedMemory(), SecurityKnowledgeGraph())
 

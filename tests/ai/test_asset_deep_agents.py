@@ -7,6 +7,8 @@ from aegis.ai.agentic_os import (
     MemoryItem,
     SecurityKnowledgeGraph,
     SharedMemory,
+    mint_execution_grant,
+    process_grant_verifier,
 )
 from aegis.ai.jarvis.advanced import build_jarvis
 from aegis.ai.jarvis.asset_capabilities import AssetKind
@@ -14,13 +16,21 @@ from aegis.ai.jarvis.asset_deep_capabilities import ExtendedAssetKind
 
 
 def _context(*, network: bool = False, state_change: bool = False, human: bool = False) -> AgentContext:
+    budget = Budget(max_cost_usd=50.0, max_requests=500, max_human_minutes=120.0)
+    # elevated capability comes from a signed grant (verified by build_jarvis's policy), not a
+    # boolean set on the envelope.
+    grant = None
+    if network or state_change or human:
+        grant = mint_execution_grant(
+            type("_Allowed", (), {"allowed": True})(), scope_digest="scope-deep-assets",
+            budget=budget, verifier=process_grant_verifier(), network=network,
+            state_change=state_change, human_approval=human)
     return AgentContext(
         AuthorizationEnvelope(
             scope_digest="scope-deep-assets",
-            network_allowed=network,
-            state_change_allowed=state_change,
-            human_approval=human,
-            budget=Budget(max_cost_usd=50.0, max_requests=500, max_human_minutes=120.0),
+            external_model_egress_allowed=True,
+            budget=budget,
+            grant=grant,
         ),
         SharedMemory(),
         SecurityKnowledgeGraph(),
