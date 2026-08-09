@@ -39,6 +39,8 @@ class HunterTechnique(str, Enum):
     WEBSOCKET_STATE_DIFFERENTIAL = "websocket_state_differential"
     GRPC_AUTHORIZATION_DIFFERENTIAL = "grpc_authorization_differential"
     DEEP_LINK_TRUST_DIFFERENTIAL = "deep_link_trust_differential"
+    EXPLOIT_CAPABILITY_CHAIN = "exploit_capability_chain"
+    COVERAGE_STATE_FUZZING = "coverage_state_fuzzing"
 
 
 @dataclass(frozen=True)
@@ -310,6 +312,21 @@ TECHNIQUES: dict[HunterTechnique, TechniqueDefinition] = {
         ("authorized_test_app", "synthetic_account", "signed_execution_grant"),
         RiskClass.CONTROLLED_STATE_CHANGE, "dynamic:deep-link-trust-differential",
         ("link", "handler", "identity_state", "user_confirmation", "result"),
+    ),
+    HunterTechnique.EXPLOIT_CAPABILITY_CHAIN: TechniqueDefinition(
+        HunterTechnique.EXPLOIT_CAPABILITY_CHAIN,
+        ("evidence_capabilities", "matched_preconditions", "chain_outputs"),
+        ("domain", "api", "source_code", "android_apk", "ios_ipa", "smart_contract"),
+        ("evidence_backed_steps",), RiskClass.OFFLINE,
+        "jarvis:research:exploit-capability-chain",
+        ("ordered_steps", "precondition_matches", "combined_impact", "chain_ev"),
+    ),
+    HunterTechnique.COVERAGE_STATE_FUZZING: TechniqueDefinition(
+        HunterTechnique.COVERAGE_STATE_FUZZING,
+        ("declared_state_cells", "coverage_history"), ("api", "domain", "smart_contract"),
+        ("bounded_candidate_cells", "signed_execution_grant"),
+        RiskClass.CONTROLLED_STATE_CHANGE, "dynamic:coverage-state-fuzzing",
+        ("state_cell", "prior_attempts", "expected_information_gain", "result"),
     ),
 }
 
