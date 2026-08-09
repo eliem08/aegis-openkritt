@@ -51,6 +51,7 @@ class AcquisitionStatus:
 class HunterAcquisitionResult:
     bundles: Mapping[str, str]
     source_maps: Mapping[str, str]
+    artifact_digests: Mapping[str, str]
     certificates: tuple[CertificateRecord, ...]
     previous_certificates: tuple[CertificateRecord, ...]
     statuses: tuple[AcquisitionStatus, ...]
@@ -78,13 +79,18 @@ class HunterArtifactAcquirer:
         certificates: list[CertificateRecord] = []
         previous_certificates: list[CertificateRecord] = []
         statuses = []
+        artifact_digests: dict[str, str] = {}
+        fetch = lambda url: (
+            self.fetcher.get_authorized(url, authorization)
+            if hasattr(self.fetcher, "get_authorized") else self.fetcher.get(url)
+        )
         if self.fetcher is None:
             statuses.append(AcquisitionStatus("html_script_discovery", "UNAVAILABLE",
                                               "no authorized artifact fetcher is registered"))
         else:
             for page_url in page_urls:
                 self._require_scope(page_url, scope)
-                status, _headers, body = self.fetcher.get(page_url)
+                status, _headers, body = fetch(page_url)
                 if status != 200 or len(body) > self.max_artifact_bytes:
                     continue
                 parser = _Scripts()
@@ -92,21 +98,23 @@ class HunterArtifactAcquirer:
                 for source in parser.sources[:self.max_scripts]:
                     script_url = urljoin(page_url, source)
                     self._require_scope(script_url, scope)
-                    code, _script_headers, script_body = self.fetcher.get(script_url)
+                    code, _script_headers, script_body = fetch(script_url)
                     if code != 200 or len(script_body) > self.max_artifact_bytes:
                         continue
                     text = script_body.decode("utf-8", "replace")
                     bundles[script_url] = text
+                    artifact_digests[script_url] = sha256(script_body).hexdigest()
                     for match in _SOURCE_MAP.finditer(text):
                         map_url = urljoin(script_url, match.group("url").strip())
                         self._require_scope(map_url, scope)
-                        map_status, map_headers, map_body = self.fetcher.get(map_url)
+                        map_status, map_headers, map_body = fetch(map_url)
                         content_type = next((value for key, value in map_headers.items()
                                              if key.casefold() == "content-type"), "")
                         if (map_status == 200 and len(map_body) <= self.max_artifact_bytes
                                 and ("json" in content_type.casefold()
                                      or self._valid_json(map_body))):
                             maps[map_url] = map_body.decode("utf-8", "replace")
+                            artifact_digests[map_url] = sha256(map_body).hexdigest()
             statuses.append(AcquisitionStatus("html_script_discovery", "READY",
                                               f"acquired {len(bundles)} scripts"))
             statuses.append(AcquisitionStatus("authorized_source_map_retrieval", "READY",
@@ -162,7 +170,8 @@ class HunterArtifactAcquirer:
                 statuses.append(AcquisitionStatus("certificate_transparency", "READY",
                                                   f"acquired {len(certificates)} records"))
         return HunterAcquisitionResult(
-            bundles, maps, tuple(certificates), tuple(previous_certificates), tuple(statuses)
+            bundles, maps, artifact_digests, tuple(certificates),
+            tuple(previous_certificates), tuple(statuses)
         )
 
     def _authorize(self, authorization: AuthorizationEnvelope) -> None:

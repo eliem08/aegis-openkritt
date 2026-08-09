@@ -97,6 +97,10 @@ def test_automatic_html_script_source_map_and_ct_acquisition_feed_phase_a():
     )
     assert "https://app.example.test/static/app.js" in acquired.bundles
     assert "https://app.example.test/static/app.js.map" in acquired.source_maps
+    assert set(acquired.artifact_digests) == {
+        "https://app.example.test/static/app.js",
+        "https://app.example.test/static/app.js.map",
+    }
     assert acquired.certificates == (_certificate(),)
     assert {row.status for row in acquired.statuses} == {"READY"}
     assert phase.javascript and phase.certificate_signals
