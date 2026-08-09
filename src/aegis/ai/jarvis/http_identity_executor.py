@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass
 from hashlib import sha256
 
@@ -50,11 +50,15 @@ class HttpIdentityDifferentialExecutor:
         fixture_sets: Mapping[str, ControlledIdentityFixtureSet],
         credential_resolver: CredentialResolver,
         grant_verifier,
+        protocol: FixtureProtocol = FixtureProtocol.HTTP,
+        capabilities: Iterable[str] | None = None,
     ) -> None:
         self.http = http
         self.fixture_sets = dict(fixture_sets)
         self.credential_resolver = credential_resolver
         self.grant_verifier = grant_verifier
+        self.protocol = protocol
+        self.capabilities = frozenset(capabilities or self.CAPABILITIES)
         self.oracle = IdentityDifferentialOracle()
 
     def __call__(
@@ -69,7 +73,7 @@ class HttpIdentityDifferentialExecutor:
         if fixtures.scope_digest != plan.scope_digest:
             raise PermissionError("controlled fixture set is bound to a different mission scope")
         try:
-            binding = fixtures.require_protocol(FixtureProtocol.HTTP)
+            binding = fixtures.require_protocol(self.protocol)
             resource_doc = dict(payload["resource"])
             resource = SyntheticResource(
                 resource_id=str(resource_doc["resource_id"]),
@@ -85,18 +89,13 @@ class HttpIdentityDifferentialExecutor:
             ) from exc
         if not resource.synthetic or not resource.canary:
             raise MissionPrerequisiteError("HTTP differential requires a marked synthetic resource")
-        method = str(payload.get("method") or "GET").upper()
-        body_template = str(payload.get("body_template") or "")
-        url = binding.endpoint.replace("{resource_id}", resource.resource_id)
-        body = (
-            body_template.replace("{resource_id}", resource.resource_id)
-            .replace("{canary}", resource.canary)
-            .encode("utf-8")
-        )
+        method, url, request_headers, body = self._request_spec(payload, binding.endpoint, resource)
         owner_fixture = fixtures.fixtures.get(FixtureKind.OWNER)
         if owner_fixture is None:
             raise MissionPrerequisiteError("HTTP differential requires an owner control")
-        control_response = self._send(owner_fixture.credential.reference, method, url, body, authorization)
+        control_response = self._send(
+            owner_fixture.credential.reference, method, url, request_headers, body, authorization
+        )
         control = self._observation(
             owner_fixture.principal(), resource, operation, control_response,
             evidence=(f"binding:{binding.endpoint}", *binding.evidence),
@@ -109,7 +108,7 @@ class HttpIdentityDifferentialExecutor:
             if kind is FixtureKind.OWNER:
                 continue
             probe_response = self._send(
-                fixture.credential.reference, method, url, body, authorization
+                fixture.credential.reference, method, url, request_headers, body, authorization
             )
             probe = self._observation(
                 fixture.principal(), resource, operation, probe_response,
@@ -129,7 +128,7 @@ class HttpIdentityDifferentialExecutor:
     def _authorize(
         self, task: MissionTask, plan: MissionPlan, authorization: AuthorizationEnvelope
     ) -> None:
-        if task.executor_capability not in self.CAPABILITIES:
+        if task.executor_capability not in self.capabilities:
             raise PermissionError("HTTP identity executor received an unsupported capability")
         grant = authorization.grant
         if (
@@ -144,11 +143,11 @@ class HttpIdentityDifferentialExecutor:
             raise PermissionError("HTTP differential requires a verified state-change grant")
 
     def _send(
-        self, reference: str, method: str, url: str, body: bytes,
+        self, reference: str, method: str, url: str, request_headers: Mapping[str, str], body: bytes,
         authorization: AuthorizationEnvelope,
     ) -> ScopedHttpResponse:
         try:
-            headers = dict(self.credential_resolver(reference))
+            headers = {**request_headers, **dict(self.credential_resolver(reference))}
         except Exception as exc:
             raise MissionPrerequisiteError(
                 f"operator credential reference could not be resolved: {reference}"
@@ -160,6 +159,18 @@ class HttpIdentityDifferentialExecutor:
         return self.http.request(
             method, url, authorization=authorization, headers=headers, body=body
         )
+
+    @staticmethod
+    def _request_spec(payload, endpoint: str, resource: SyntheticResource):
+        method = str(payload.get("method") or "GET").upper()
+        body_template = str(payload.get("body_template") or "")
+        url = endpoint.replace("{resource_id}", resource.resource_id)
+        body = (
+            body_template.replace("{resource_id}", resource.resource_id)
+            .replace("{canary}", resource.canary)
+            .encode("utf-8")
+        )
+        return method, url, {}, body
 
     @staticmethod
     def _observation(
@@ -212,7 +223,7 @@ class HttpIdentityDifferentialExecutor:
         )
 
     def runtime_executors(self) -> dict[str, object]:
-        return {capability: self for capability in self.CAPABILITIES}
+        return {capability: self for capability in self.capabilities}
 
 
 __all__ = ["HttpIdentityDifferentialExecutor", "HttpIdentityExecutionOutcome"]

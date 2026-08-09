@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import time
+from dataclasses import replace
 
 from fastapi.testclient import TestClient
 
@@ -11,6 +12,7 @@ from aegis.ai.agentic_os import (
     process_grant_verifier,
 )
 from aegis.ai.jarvis.asset_execution_ticket import CapabilityAvailability
+from aegis.ai.jarvis.graphql_identity_executor import GraphQLAuthorizationDifferentialExecutor
 from aegis.ai.jarvis.http_identity_executor import (
     HttpIdentityDifferentialExecutor,
     HttpIdentityExecutionOutcome,
@@ -70,11 +72,18 @@ def _fixture_set():
             fixture(FixtureKind.OWNER, "owner"),
             fixture(FixtureKind.FOREIGN_SAME_ROLE, "peer"),
         ),
-        bindings=(ProtocolBinding(
-            FixtureProtocol.HTTP,
-            "https://api.example.test/invoices/{resource_id}",
-            ("scope-confirmed:api.example.test",),
-        ),),
+        bindings=(
+            ProtocolBinding(
+                FixtureProtocol.HTTP,
+                "https://api.example.test/invoices/{resource_id}",
+                ("scope-confirmed:api.example.test",),
+            ),
+            ProtocolBinding(
+                FixtureProtocol.GRAPHQL,
+                "https://api.example.test/graphql",
+                ("scope-confirmed:api.example.test",),
+            ),
+        ),
         expectations=(FixtureExpectation(
             "invoice.read",
             FixtureKind.FOREIGN_SAME_ROLE,
@@ -125,8 +134,10 @@ def _plan(task):
     )
 
 
-def _executor(*, expose_to_peer: bool):
+def _executor(*, expose_to_peer: bool, graphql: bool = False, calls=None):
     def sender(_method, _url, _ip, headers, _body):
+        if calls is not None:
+            calls.append((_method, _url, dict(headers), _body))
         identity = headers["authorization"].removeprefix("Bearer ")
         if identity == "owner" or expose_to_peer:
             return UpstreamResponse(200, {"content-type": "application/json"}, b'"AEGIS-CANARY-HTTP-1"')
@@ -145,7 +156,8 @@ def _executor(*, expose_to_peer: bool):
         return issue_token(EgressClaims(
             tenant_id="tenant-a",
             engagement_id="engagement-http",
-            profile=NetworkProfile.TARGET_OBSERVATION.value,
+            profile=(NetworkProfile.TARGET_MUTATION.value if method == "POST"
+                     else NetworkProfile.TARGET_OBSERVATION.value),
             method=method,
             destination=destination,
             issued_at=now,
@@ -153,7 +165,7 @@ def _executor(*, expose_to_peer: bool):
             budget_id="budget-http",
             request_limit=authorization.budget.max_requests,
             scope=["api.example.test"],
-            allowed_methods=["GET"],
+            allowed_methods=[method],
         ), SECRET, now=now)
 
     verifier, _ = _authorization()
@@ -163,7 +175,11 @@ def _executor(*, expose_to_peer: bool):
         grant_verifier=verifier,
         client=client,
     )
-    return HttpIdentityDifferentialExecutor(
+    executor_type = (
+        GraphQLAuthorizationDifferentialExecutor if graphql
+        else HttpIdentityDifferentialExecutor
+    )
+    return executor_type(
         http,
         fixture_sets={"fixtures:http": _fixture_set()},
         credential_resolver=lambda reference: {
@@ -190,6 +206,30 @@ def test_real_scoped_http_canary_exposure_is_a_positive_violation():
     outcome = executor(_task(), _plan(_task()), authorization)
     assert outcome.verdicts[0].outcome is DifferentialOutcome.VIOLATION
     assert outcome.evidence[0].is_reproducible
+
+
+def test_graphql_differential_uses_scoped_post_and_canonical_oracle():
+    calls = []
+    executor = _executor(expose_to_peer=False, graphql=True, calls=calls)
+    _, authorization = _authorization()
+    payload = {
+        **(_task().payload or {}),
+        "query": "query Invoice($id: ID!) { invoice(id: $id) { marker } }",
+        "variables": {"id": "{resource_id}"},
+        "field_path": "invoice.marker",
+        "operation_name": "Invoice",
+    }
+    task = replace(
+        _task(),
+        task_id="task:graphql-auth",
+        executor_capability=GraphQLAuthorizationDifferentialExecutor.CAPABILITY,
+        payload=payload,
+    )
+    outcome = executor(task, _plan(task), authorization)
+    assert outcome.verdicts[0].outcome is DifferentialOutcome.CONSISTENT
+    assert len(calls) == 2 and {call[0] for call in calls} == {"POST"}
+    assert all(call[1].endswith("/graphql") for call in calls)
+    assert b'"id":"invoice-1"' in calls[0][3]
 
 
 def test_runtime_retains_dynamic_evidence_and_missing_fixture_waits(tmp_path):
