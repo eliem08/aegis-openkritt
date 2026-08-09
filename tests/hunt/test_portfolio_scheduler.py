@@ -1,9 +1,11 @@
 from decimal import Decimal
 
+from aegis.ai.agentic_os import AuthorizationEnvelope, Budget, mint_execution_grant
 from aegis.hunt import HuntConfig, HuntOrchestrator
 from aegis.hunt.portfolio import plan_portfolio
 from aegis.integrations.repo_pipeline import PipelineResult, RepoTarget
 from aegis.learn import OutcomeStore, SubmissionLedger
+from aegis.policy.signing import HmacSignatureVerifier
 
 
 def program(handle, repos):
@@ -76,6 +78,16 @@ class Scanner:
 def test_three_pass_scheduler_launches_only_allocated_repo_and_explains_dry_costs():
     h1 = H1()
     scanner = Scanner()
+    verifier = HmacSignatureVerifier({"grant": "portfolio-test"})
+    budget = Budget(max_cost_usd=100, max_requests=100, max_human_minutes=100)
+    grant = mint_execution_grant(
+        type("Allowed", (), {"allowed": True})(),
+        scope_digest="scope:acme",
+        budget=budget,
+        verifier=verifier,
+        network=True,
+        external_model_egress=True,
+    )
     config = HuntConfig(
         model="deepseek-v4-flash",
         only_handles=("acme",),
@@ -83,6 +95,12 @@ def test_three_pass_scheduler_launches_only_allocated_repo_and_explains_dry_cost
         portfolio_capacity=1,
         expected_bounties={"acme": Decimal("1000")},
         exploration_fraction=0,
+        authorizations={
+            "acme": AuthorizationEnvelope(
+                scope_digest="scope:acme", budget=budget, grant=grant,
+            )
+        },
+        grant_verifier=verifier,
     )
     report = HuntOrchestrator(
         h1, scanner, OutcomeStore(), SubmissionLedger(), config=config,

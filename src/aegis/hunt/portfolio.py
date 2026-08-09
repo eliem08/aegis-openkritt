@@ -5,9 +5,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from decimal import Decimal
 
-from aegis.scheduler.profit import Opportunity, ProfitFeatures, ProfitScore, allocate, score
+from aegis.scheduler.profit import HuntOpportunity, ProfitScore, allocate, score
 
-from .reward import accept_probability
+from .repository_runtime import repository_opportunities
 
 
 @dataclass(frozen=True)
@@ -18,6 +18,7 @@ class PortfolioDecision:
     selected: bool
     reason: str
     score: ProfitScore
+    opportunity: HuntOpportunity
 
     def summary(self) -> dict:
         return {
@@ -30,6 +31,14 @@ class PortfolioDecision:
             "estimated_cost_usd": str(self.score.total_cost),
             "net_expected_value_usd": str(self.score.net_expected_value),
             "missing_bounty": self.score.missing_bounty,
+            "asset_kind": self.opportunity.asset_kind,
+            "scope_digest": self.opportunity.scope_digest,
+            "authorization_id": self.opportunity.authorization_id,
+            "prerequisite_state": self.opportunity.prerequisite_state,
+            "p_find": self.opportunity.p_find,
+            "p_valid": self.opportunity.p_valid,
+            "p_unique": self.opportunity.p_unique,
+            "p_accepted": self.opportunity.p_accepted,
         }
 
 
@@ -45,6 +54,8 @@ def plan_portfolio(
     verification_time_cost: Decimal = Decimal("0.50"),
     exploration_fraction: float = 0.2,
     reward_policies: dict | None = None,
+    authorizations: dict | None = None,
+    p_find: float = 0.5,
 ) -> list[PortfolioDecision]:
     """Rank discovered repositories without fabricating missing payout amounts.
 
@@ -53,31 +64,18 @@ def plan_portfolio(
     high/critical (e.g. Coinbase cb-mpc) are deprioritized versus programs that pay
     for the severities our scans realistically produce.
     """
-    payouts = {
-        str(handle): Decimal(str(amount))
-        for handle, amount in (expected_bounties or {}).items()
-    }
-    policies = reward_policies or {}
-    metadata = {}
-    opportunities = []
-    for program in programs:
-        program_p_accepted = accept_probability(p_accepted, policies.get(program.handle))
-        for repo in program.repos:
-            opportunity_id = f"{program.handle}:{repo.repo_full}"
-            expected = payouts.get(program.handle)
-            features = ProfitFeatures(
-                p_valid=p_valid,
-                p_accepted=program_p_accepted,
-                expected_bounty=expected,
-                uniqueness=1.0,
-                model_cost=model_cost,
-                scanner_cost=scanner_cost,
-                verification_time_cost=verification_time_cost,
-                uncertainty=1.0 if expected is None else 0.25,
-            )
-            opportunity = Opportunity(opportunity_id, features)
-            opportunities.append(opportunity)
-            metadata[opportunity_id] = (program.handle, repo.repo_full)
+    opportunities = list(repository_opportunities(
+        programs,
+        expected_bounties=expected_bounties,
+        authorizations=authorizations,
+        p_find=p_find,
+        p_valid=p_valid,
+        p_accepted=p_accepted,
+        model_cost=model_cost,
+        scanner_cost=scanner_cost,
+        verification_cost=verification_time_cost,
+        reward_policies=reward_policies,
+    ))
 
     chosen = {
         item.opportunity_id: (result, reason)
@@ -87,7 +85,7 @@ def plan_portfolio(
     }
     decisions = []
     for opportunity in opportunities:
-        handle, repo_full = metadata[opportunity.opportunity_id]
+        handle, repo_full = opportunity.program_handle, opportunity.asset_locator
         if opportunity.opportunity_id in chosen:
             result, reason = chosen[opportunity.opportunity_id]
             if result.missing_bounty:
@@ -104,5 +102,6 @@ def plan_portfolio(
             selected=selected,
             reason=reason,
             score=result,
+            opportunity=opportunity,
         ))
     return sorted(decisions, key=lambda item: (not item.selected, item.opportunity_id))

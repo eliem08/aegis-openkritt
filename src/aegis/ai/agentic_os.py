@@ -297,6 +297,8 @@ class ProposalPolicy:
         grant = authorization.grant
         if grant is None:
             return None
+        if grant.scope_digest != authorization.scope_digest:
+            return None
         if not grant.verify(self._verifier, key_id=self._grant_key_id):
             return None
         return grant

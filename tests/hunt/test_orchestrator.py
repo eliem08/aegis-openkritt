@@ -6,9 +6,13 @@ nothing, the scope gate is honored, and nothing ever submits.
 
 from __future__ import annotations
 
+from aegis.ai.agentic_os import AuthorizationEnvelope, Budget, mint_execution_grant
 from aegis.hunt import HuntConfig, HuntOrchestrator
 from aegis.learn import OutcomeStore, SubmissionLedger
 from aegis.model import Candidate
+from aegis.policy.signing import HmacSignatureVerifier
+
+GRANT_VERIFIER = HmacSignatureVerifier({"grant": "repository-runtime-test"})
 
 REPO_SCOPE = [{"attributes": {"asset_type": "SOURCE_CODE",
                               "asset_identifier": "https://github.com/acme/api",
@@ -62,6 +66,26 @@ class FakeOK:
 
 
 def _orch(h1, ok, **cfg):
+    handles = tuple(getattr(h1, "_scopes", {}).keys())
+    authorizations = {}
+    for handle in handles:
+        scope_digest = f"scope:{handle}"
+        budget = Budget(max_cost_usd=100, max_requests=100, max_human_minutes=100)
+        grant = mint_execution_grant(
+            type("Allowed", (), {"allowed": True})(),
+            scope_digest=scope_digest,
+            budget=budget,
+            verifier=GRANT_VERIFIER,
+            network=True,
+            external_model_egress=True,
+        )
+        authorizations[handle] = AuthorizationEnvelope(
+            scope_digest=scope_digest,
+            budget=budget,
+            grant=grant,
+        )
+    cfg.setdefault("authorizations", authorizations)
+    cfg.setdefault("grant_verifier", GRANT_VERIFIER)
     return HuntOrchestrator(h1, ok, OutcomeStore(), SubmissionLedger(),
                             config=HuntConfig(model="claude-x", **cfg))
 
@@ -89,6 +113,21 @@ def test_armed_launches_scans_and_collects_findings():
     assert s["scans_launched_this_cycle"] == 1 and len(ok.created) == 1
     assert s["findings"] == 1                                          # collected into the console
     assert report.console["items"][0]["cwe"] == "CWE-841"
+
+
+def test_armed_boolean_without_signed_grant_cannot_launch():
+    h1 = FakeH1([{"attributes": {"handle": "acme"}}], {"acme": REPO_SCOPE})
+    ok = FakeOK()
+    report = _orch(
+        h1,
+        ok,
+        dry_run=False,
+        expected_bounties={"acme": 1000},
+        authorizations={},
+    ).cycle()
+    assert ok.created == []
+    assert report.summary()["missions_blocked"] == 1
+    assert "signed authorization" in report.summary()["mission_blocks"][0]["reason"]
 
 
 # --- scope gate is honored --------------------------------------------------
@@ -166,11 +205,14 @@ class TwoStageOK(FakeOK):
 def test_two_stage_promotes_high_priority_candidate_to_verify(monkeypatch):
     # stage-1 scan (id 901) returns a high-priority finding; verify must launch on Opus
     ok = TwoStageOK()
-    orch = HuntOrchestrator(
+    orch = _orch(
         FakeH1([{"attributes": {"handle": "acme"}}], {"acme": REPO_SCOPE}),
-        ok, OutcomeStore(), SubmissionLedger(),
-        config=HuntConfig(model="claude-sonnet-5", dry_run=False,
-                          verify_model="claude-opus-5", verify_threshold=0.1))
+        ok,
+        dry_run=False,
+        verify_model="claude-opus-5",
+        verify_threshold=0.1,
+        expected_bounties={"acme": 1000},
+    )
     # seed a completed stage-1 scan with a finding
     orch._tracked = {"901": {"repo_full": "acme/api", "handle": "acme", "stage": 1, "model": "claude-sonnet-5"}}
     ok._findings = {"901": [_hi_finding()]}
@@ -185,11 +227,14 @@ def test_two_stage_promotes_high_priority_candidate_to_verify(monkeypatch):
 def test_two_stage_skips_low_priority_and_is_idempotent():
     from aegis.model import Candidate
     ok = TwoStageOK()
-    orch = HuntOrchestrator(
+    orch = _orch(
         FakeH1([{"attributes": {"handle": "acme"}}], {"acme": REPO_SCOPE}),
-        ok, OutcomeStore(), SubmissionLedger(),
-        config=HuntConfig(model="claude-sonnet-5", dry_run=False,
-                          verify_model="claude-opus-5", verify_threshold=0.9))
+        ok,
+        dry_run=False,
+        verify_model="claude-opus-5",
+        verify_threshold=0.9,
+        expected_bounties={"acme": 1000},
+    )
     orch._tracked = {"901": {"repo_full": "acme/api", "handle": "acme", "stage": 1, "model": "s"}}
     low = Candidate(asset="a", worker="integration:openkritt", cwe="CWE-1",
                     confidence=0.1, p_exploit=0.1, business_impact=0.1)
