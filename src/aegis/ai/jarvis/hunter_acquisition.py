@@ -5,12 +5,15 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass
+from datetime import UTC, datetime
+from hashlib import sha256
 from html.parser import HTMLParser
 from typing import Mapping, Protocol
 from urllib.parse import urljoin, urlsplit
 
 from aegis.ai.agentic_os import AuthorizationEnvelope
 
+from .ct_provider import deserialize_record, serialize_record
 from .recon_intelligence import CertificateRecord
 
 _SOURCE_MAP = re.compile(r"[#@]\s*sourceMappingURL\s*=\s*(?P<url>[^\s*]+)")
@@ -49,16 +52,19 @@ class HunterAcquisitionResult:
     bundles: Mapping[str, str]
     source_maps: Mapping[str, str]
     certificates: tuple[CertificateRecord, ...]
+    previous_certificates: tuple[CertificateRecord, ...]
     statuses: tuple[AcquisitionStatus, ...]
 
 
 class HunterArtifactAcquirer:
     def __init__(self, *, fetcher: ArtifactFetcher | None = None,
                  ct_provider: CertificateTransparencyProvider | None = None,
+                 ct_store=None,
                  grant_verifier=None, max_artifact_bytes: int = 5_000_000,
                  max_scripts: int = 100) -> None:
         self.fetcher = fetcher
         self.ct_provider = ct_provider
+        self.ct_store = ct_store
         self.grant_verifier = grant_verifier
         self.max_artifact_bytes = max_artifact_bytes
         self.max_scripts = max_scripts
@@ -70,6 +76,7 @@ class HunterArtifactAcquirer:
         bundles: dict[str, str] = {}
         maps: dict[str, str] = {}
         certificates: list[CertificateRecord] = []
+        previous_certificates: list[CertificateRecord] = []
         statuses = []
         if self.fetcher is None:
             statuses.append(AcquisitionStatus("html_script_discovery", "UNAVAILABLE",
@@ -110,10 +117,53 @@ class HunterArtifactAcquirer:
         else:
             for domain in ct_domains:
                 self._require_domain_scope(domain, scope)
-                certificates.extend(self.ct_provider.query(domain))
-            statuses.append(AcquisitionStatus("certificate_transparency", "READY",
-                                              f"acquired {len(certificates)} records"))
-        return HunterAcquisitionResult(bundles, maps, tuple(certificates), tuple(statuses))
+                previous_for_domain: tuple[CertificateRecord, ...] = ()
+                if self.ct_store is not None:
+                    snapshots = self.ct_store.ct_snapshots(domain, limit=1)
+                    if snapshots and snapshots[0]["status"] == "READY":
+                        previous_for_domain = tuple(
+                            deserialize_record(row) for row in snapshots[0]["records"]
+                        )
+                        previous_certificates.extend(previous_for_domain)
+                try:
+                    current = tuple(self.ct_provider.query(domain))
+                except Exception as exc:
+                    reason = f"{type(exc).__name__}: {exc}"[:240]
+                    statuses.append(AcquisitionStatus(
+                        "certificate_transparency", "UNAVAILABLE", reason,
+                    ))
+                    if self.ct_store is not None:
+                        self.ct_store.save_ct_snapshot(
+                            domain=domain,
+                            content_digest=sha256(reason.encode()).hexdigest(),
+                            status="UNAVAILABLE", reason=reason, records=[],
+                            observed_at=datetime.now(UTC).isoformat(),
+                        )
+                    continue
+                certificates.extend(current)
+                if self.ct_store is not None:
+                    rows = [serialize_record(record) for record in current]
+                    digest = sha256(json.dumps(
+                        [{key: value for key, value in row.items() if key != "observed_at"}
+                         for row in rows],
+                        sort_keys=True, separators=(",", ":")
+                    ).encode()).hexdigest()
+                    inserted = self.ct_store.save_ct_snapshot(
+                        domain=domain, content_digest=digest, status="READY", reason="",
+                        records=rows, observed_at=datetime.now(UTC).isoformat(),
+                    )
+                    change = "changed" if previous_for_domain and inserted else "unchanged"
+                    statuses.append(AcquisitionStatus(
+                        "certificate_transparency_snapshot", "READY",
+                        f"{change}; digest={digest}",
+                    ))
+            if not any(item.capability == "certificate_transparency"
+                       and item.status == "UNAVAILABLE" for item in statuses):
+                statuses.append(AcquisitionStatus("certificate_transparency", "READY",
+                                                  f"acquired {len(certificates)} records"))
+        return HunterAcquisitionResult(
+            bundles, maps, tuple(certificates), tuple(previous_certificates), tuple(statuses)
+        )
 
     def _authorize(self, authorization: AuthorizationEnvelope) -> None:
         grant = authorization.grant

@@ -135,6 +135,57 @@ def test_missing_acquisition_backends_are_explicitly_unavailable():
     assert result.bundles == {} and result.certificates == ()
 
 
+def test_ct_snapshots_are_durable_deduplicated_and_feed_change_detection(tmp_path):
+    verifier, authorization = _authorization()
+    first = _certificate()
+    second = CertificateRecord(
+        "new-fingerprint", ("app.example.test", "new.example.test", "fresh.example.test"),
+        "issuer", "subject", "serial-2", NOW, NOW + timedelta(days=90), NOW,
+    )
+    with JarvisStateStore(tmp_path / "jarvis.db") as store:
+        acquirer = HunterArtifactAcquirer(
+            ct_provider=CT((first,)), ct_store=store, grant_verifier=verifier,
+        )
+        initial = acquirer.acquire(
+            page_urls=(), ct_domains=("example.test",), scope_hosts={"*.example.test"},
+            authorization=authorization,
+        )
+        repeated = acquirer.acquire(
+            page_urls=(), ct_domains=("example.test",), scope_hosts={"*.example.test"},
+            authorization=authorization,
+        )
+        changed = HunterArtifactAcquirer(
+            ct_provider=CT((second,)), ct_store=store, grant_verifier=verifier,
+        ).acquire(
+            page_urls=(), ct_domains=("example.test",), scope_hosts={"*.example.test"},
+            authorization=authorization,
+        )
+        assert len(store.ct_snapshots("example.test", limit=10)) == 2
+    assert initial.previous_certificates == ()
+    assert repeated.previous_certificates == (first,)
+    assert changed.previous_certificates == (first,)
+    assert any("changed" in status.reason for status in changed.statuses)
+
+
+def test_ct_provider_failure_is_persisted_as_unavailable(tmp_path):
+    class BrokenCT:
+        def query(self, _domain):
+            raise TimeoutError("provider timed out")
+
+    verifier, authorization = _authorization()
+    with JarvisStateStore(tmp_path / "jarvis.db") as store:
+        result = HunterArtifactAcquirer(
+            ct_provider=BrokenCT(), ct_store=store, grant_verifier=verifier,
+        ).acquire(
+            page_urls=(), ct_domains=("example.test",), scope_hosts={"*.example.test"},
+            authorization=authorization,
+        )
+        snapshots = store.ct_snapshots("example.test")
+    assert result.certificates == ()
+    assert any(row.status == "UNAVAILABLE" for row in result.statuses)
+    assert snapshots[0]["status"] == "UNAVAILABLE"
+
+
 def test_internal_dispatcher_requires_exact_registered_networkless_capability():
     dispatcher = HunterCapabilityDispatcher()
     with pytest.raises(ValueError):

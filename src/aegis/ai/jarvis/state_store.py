@@ -69,7 +69,7 @@ class MissionSnapshot:
 class JarvisStateStore:
     """SQLite-backed source of truth for learning, memory, and mission resume."""
 
-    SCHEMA_VERSION = 1
+    SCHEMA_VERSION = 2
 
     def __init__(self, path: str | Path = ":memory:") -> None:
         self.path = str(path)
@@ -150,6 +150,20 @@ class JarvisStateStore:
                 cursor INTEGER NOT NULL,
                 updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             );
+
+            CREATE TABLE IF NOT EXISTS ct_snapshots (
+                snapshot_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                domain TEXT NOT NULL,
+                content_digest TEXT NOT NULL,
+                status TEXT NOT NULL,
+                reason TEXT NOT NULL,
+                records_json TEXT NOT NULL,
+                observed_at TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(domain, content_digest, status)
+            );
+            CREATE INDEX IF NOT EXISTS idx_ct_snapshots_domain
+                ON ct_snapshots(domain, snapshot_id DESC);
             """
         )
         self._conn.execute(
@@ -160,6 +174,37 @@ class JarvisStateStore:
 
     def close(self) -> None:
         self._conn.close()
+
+    def save_ct_snapshot(
+        self, *, domain: str, content_digest: str, status: str, reason: str,
+        records: list[dict[str, Any]], observed_at: str,
+    ) -> bool:
+        """Persist one deduplicated CT observation; return whether it was newly inserted."""
+        with self._conn:
+            cursor = self._conn.execute(
+                """
+                INSERT OR IGNORE INTO ct_snapshots(
+                    domain, content_digest, status, reason, records_json, observed_at
+                ) VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (self._norm(domain), content_digest, status, reason,
+                 json.dumps(records, sort_keys=True, separators=(",", ":")), observed_at),
+            )
+        return cursor.rowcount == 1
+
+    def ct_snapshots(self, domain: str, *, limit: int = 2) -> tuple[dict[str, Any], ...]:
+        rows = self._conn.execute(
+            """
+            SELECT domain, content_digest, status, reason, records_json, observed_at
+            FROM ct_snapshots WHERE domain = ? ORDER BY snapshot_id DESC LIMIT ?
+            """,
+            (self._norm(domain), max(1, limit)),
+        ).fetchall()
+        return tuple({
+            "domain": row["domain"], "content_digest": row["content_digest"],
+            "status": row["status"], "reason": row["reason"],
+            "records": json.loads(row["records_json"]), "observed_at": row["observed_at"],
+        } for row in rows)
 
     def __enter__(self) -> JarvisStateStore:
         return self
