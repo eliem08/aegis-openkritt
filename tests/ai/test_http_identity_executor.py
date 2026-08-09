@@ -34,6 +34,10 @@ from aegis.ai.jarvis.identity_fixtures import (
 from aegis.ai.jarvis.identity_intelligence import DifferentialOutcome, ExpectedAccess
 from aegis.ai.jarvis.mission_capabilities import CapabilityDisposition
 from aegis.ai.jarvis.mission_scheduler import MissionPlan, MissionScheduler, MissionTask
+from aegis.ai.jarvis.production_dispatcher import (
+    compose_production_executors,
+    production_execution_coverage,
+)
 from aegis.ai.jarvis.race_executor import ScopedRaceIdempotencyExecutor
 from aegis.ai.jarvis.race_intelligence import RaceOutcome
 from aegis.ai.jarvis.scoped_http_executor import POLICY_ACTION, ScopedEgressHttpExecutor
@@ -387,6 +391,26 @@ def test_url_consumer_executor_requires_exact_private_oast_callback():
     assert f"task:{task.task_id}" in outcome.verdict.evidence
 
 
+def test_production_dispatcher_reports_real_and_unavailable_exact_capabilities():
+    identity = _executor(expose_to_peer=False)
+    graphql = _executor(expose_to_peer=False, graphql=True)
+    cache = CacheDifferentialExecutor(
+        identity.http, fixture_sets={}, credential_resolver=lambda _ref: {},
+        grant_verifier=identity.grant_verifier,
+    )
+    race = ScopedRaceIdempotencyExecutor(
+        identity.http, fixture_sets={}, credential_resolver=lambda _ref: {},
+        grant_verifier=identity.grant_verifier,
+    )
+    executors = compose_production_executors((identity, graphql, cache, race))
+    coverage = {row.capability: row.status for row in production_execution_coverage(executors)}
+    assert coverage["dynamic:identity-object-differential"] == "REAL"
+    assert coverage["dynamic:graphql-auth-differential"] == "REAL"
+    assert coverage["dynamic:cache-key-differential"] == "REAL"
+    assert coverage["dynamic:bounded-race-harness"] == "REAL"
+    assert coverage["dynamic:websocket-state-differential"] == "UNAVAILABLE"
+
+
 def test_runtime_retains_dynamic_evidence_and_missing_fixture_waits(tmp_path):
     executor = _executor(expose_to_peer=False)
     verifier, authorization = _authorization()
@@ -394,7 +418,7 @@ def test_runtime_retains_dynamic_evidence_and_missing_fixture_waits(tmp_path):
         runtime = UniversalMissionRuntime(
             MissionScheduler(store),
             grant_verifier=verifier,
-            mission_task_executors={CAPABILITY: executor},
+            executor_providers=(executor,),
         )
         plan = runtime.scheduler.create(_plan(_task()))
         result = runtime.execute_first(

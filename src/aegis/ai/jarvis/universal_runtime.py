@@ -26,6 +26,7 @@ from .execution_errors import (
 )
 from .mission_capabilities import CapabilityDisposition, MissionWorkerRegistry
 from .mission_scheduler import MissionPlan, MissionScheduler, MissionTask, TaskState
+from .production_dispatcher import ExecutorProvider, compose_production_executors
 from .universal_mission import compile_opportunity_mission
 
 _TYPE_TO_KIND: dict[AssetType, TargetAssetKind] = {
@@ -160,12 +161,15 @@ class UniversalMissionRuntime:
         workers: MissionWorkerRegistry | None = None,
         dynamic_executor: DynamicExecutor | None = None,
         mission_task_executors: dict[str, MissionTaskExecutor] | None = None,
+        executor_providers: tuple[ExecutorProvider, ...] = (),
     ) -> None:
         self.scheduler = scheduler
         self.grant_verifier = grant_verifier
         self.workers = workers or MissionWorkerRegistry()
         self.dynamic_executor = dynamic_executor
-        self.mission_task_executors = dict(mission_task_executors or {})
+        self.mission_task_executors = compose_production_executors(
+            executor_providers, existing=mission_task_executors
+        )
 
     @staticmethod
     def _method(
