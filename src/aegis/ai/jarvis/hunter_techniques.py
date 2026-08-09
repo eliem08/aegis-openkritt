@@ -33,6 +33,12 @@ class HunterTechnique(str, Enum):
     POSTMESSAGE_TRUST_ANALYSIS = "postmessage_trust_analysis"
     RECOVERY_STATE_DIFFERENTIAL = "recovery_state_differential"
     SESSION_INVALIDATION_DIFFERENTIAL = "session_invalidation_differential"
+    UPLOAD_WORKFLOW_DIFFERENTIAL = "upload_workflow_differential"
+    MOBILE_BACKEND_CORRELATION = "mobile_backend_correlation"
+    GRAPHQL_AUTHORIZATION_DIFFERENTIAL = "graphql_authorization_differential"
+    WEBSOCKET_STATE_DIFFERENTIAL = "websocket_state_differential"
+    GRPC_AUTHORIZATION_DIFFERENTIAL = "grpc_authorization_differential"
+    DEEP_LINK_TRUST_DIFFERENTIAL = "deep_link_trust_differential"
 
 
 @dataclass(frozen=True)
@@ -262,6 +268,48 @@ TECHNIQUES: dict[HunterTechnique, TechniqueDefinition] = {
         RiskClass.CONTROLLED_STATE_CHANGE,
         "dynamic:session-invalidation-differential",
         ("session_digest", "event_capture", "post_event_result", "negative_control"),
+    ),
+    HunterTechnique.UPLOAD_WORKFLOW_DIFFERENTIAL: TechniqueDefinition(
+        HunterTechnique.UPLOAD_WORKFLOW_DIFFERENTIAL,
+        ("upload_stage", "processing_stage", "retrieval_stage"), ("domain", "api"),
+        ("synthetic_file", "bounded_workflow", "signed_execution_grant"),
+        RiskClass.CONTROLLED_STATE_CHANGE, "dynamic:upload-workflow-differential",
+        ("upload_capture", "processor_result", "retrieval_capture", "synthetic_marker"),
+    ),
+    HunterTechnique.MOBILE_BACKEND_CORRELATION: TechniqueDefinition(
+        HunterTechnique.MOBILE_BACKEND_CORRELATION,
+        ("mobile_route", "backend_operation"), ("android_apk", "ios_ipa", "api"),
+        ("authorized_artifact", "scope_confirmed_backend"), RiskClass.OFFLINE,
+        "jarvis:research:mobile-backend-correlation",
+        ("artifact_digest", "mobile_callsite", "backend_route", "scope_status"),
+    ),
+    HunterTechnique.GRAPHQL_AUTHORIZATION_DIFFERENTIAL: TechniqueDefinition(
+        HunterTechnique.GRAPHQL_AUTHORIZATION_DIFFERENTIAL,
+        ("controlled_query", "cross_identity_query"), ("api", "domain"),
+        ("two_controlled_identities", "signed_execution_grant"),
+        RiskClass.CONTROLLED_STATE_CHANGE, "dynamic:graphql-auth-differential",
+        ("operation", "field_path", "owner_canary", "negative_control"),
+    ),
+    HunterTechnique.WEBSOCKET_STATE_DIFFERENTIAL: TechniqueDefinition(
+        HunterTechnique.WEBSOCKET_STATE_DIFFERENTIAL,
+        ("authorized_socket", "cross_identity_subscription"), ("api", "domain"),
+        ("two_controlled_identities", "signed_execution_grant"),
+        RiskClass.CONTROLLED_STATE_CHANGE, "dynamic:websocket-state-differential",
+        ("handshake", "subscription", "message_canary", "disconnect_state"),
+    ),
+    HunterTechnique.GRPC_AUTHORIZATION_DIFFERENTIAL: TechniqueDefinition(
+        HunterTechnique.GRPC_AUTHORIZATION_DIFFERENTIAL,
+        ("grpc_method", "cross_identity_call"), ("api", "domain"),
+        ("two_controlled_identities", "signed_execution_grant"),
+        RiskClass.CONTROLLED_STATE_CHANGE, "dynamic:grpc-auth-differential",
+        ("service_method", "metadata_identity", "owner_canary", "status"),
+    ),
+    HunterTechnique.DEEP_LINK_TRUST_DIFFERENTIAL: TechniqueDefinition(
+        HunterTechnique.DEEP_LINK_TRUST_DIFFERENTIAL,
+        ("declared_deep_link", "controlled_sensitive_action"), ("android_apk", "ios_ipa"),
+        ("authorized_test_app", "synthetic_account", "signed_execution_grant"),
+        RiskClass.CONTROLLED_STATE_CHANGE, "dynamic:deep-link-trust-differential",
+        ("link", "handler", "identity_state", "user_confirmation", "result"),
     ),
 }
 
