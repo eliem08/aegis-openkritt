@@ -59,6 +59,18 @@ from .firewall import ContentAssessment, assess_untrusted_content, envelope_untr
 from .guards import PolicyGate
 from .hunt_generator import SurfaceSignal, generate_hunt_candidates, infer_surfaces
 from .hunt_lanes import HuntLane, lane_for_family
+from .hunter_phase_a import HunterIntelligencePhaseA, PhaseAResult
+from .hunter_techniques import (
+    TECHNIQUES,
+    HunterTechnique,
+    TechniqueDefinition,
+    technique_definition,
+)
+from .javascript_intelligence import (
+    JavaScriptIntelligenceAgent,
+    JSDiscovery,
+    JSDiscoveryKind,
+)
 from .learning_agents import (
     BountyOutcome,
     ConfirmedFinding,
@@ -115,6 +127,13 @@ from .profit_feedback import (
     calibrate_opportunity,
     prior_weight,
     rank_calibrated_opportunities,
+)
+from .recon_intelligence import (
+    CertificateIntelligenceAgent,
+    CertificateRecord,
+    CertificateSignal,
+    ReconCorrelation,
+    ReconCorrelationAgent,
 )
 from .research import HypothesisAgent, InvariantAgent, JsonModelClient
 from .rule_factory import (
@@ -175,6 +194,9 @@ __all__ = [
     "BountyOutcome",
     "BrowserDesktopDeepDiveAgent",
     "CandidateDisposition",
+    "CertificateIntelligenceAgent",
+    "CertificateRecord",
+    "CertificateSignal",
     "CapabilityRequirement",
     "CapabilityDisposition",
     "CapabilityMatch",
@@ -204,11 +226,16 @@ __all__ = [
     "HuntOpportunity",
     "HuntLane",
     "HuntObjective",
+    "HunterIntelligencePhaseA",
+    "HunterTechnique",
     "HypothesisAgent",
     "IOSDeepDiveAgent",
     "InvariantAgent",
     "JarvisCommander",
     "JarvisStateStore",
+    "JavaScriptIntelligenceAgent",
+    "JSDiscovery",
+    "JSDiscoveryKind",
     "JsonModelClient",
     "LearnedPrior",
     "MemoryRecord",
@@ -222,12 +249,15 @@ __all__ = [
     "MissionWorkerRegistry",
     "OutcomeLearningAgent",
     "PlannedMethod",
+    "PhaseAResult",
     "PolicyGate",
     "PortfolioScheduler",
     "ProfitabilityAgent",
     "ProgramArm",
     "ProgramEligibility",
     "ReportAgent",
+    "ReconCorrelation",
+    "ReconCorrelationAgent",
     "ReproductionAgent",
     "Requirement",
     "ResearchHypothesis",
@@ -250,6 +280,8 @@ __all__ = [
     "SupplyChainDeepDiveAgent",
     "SurfaceSignal",
     "TargetAssetKind",
+    "TechniqueDefinition",
+    "TECHNIQUES",
     "TaskState",
     "UniversalHuntAgent",
     "UniversalMissionRuntime",
@@ -293,6 +325,7 @@ __all__ = [
     "select_diverse_candidates",
     "supported_asset_kinds",
     "supported_deep_asset_kinds",
+    "technique_definition",
     "to_record",
     "validate_rule_fixture_counts",
 ]

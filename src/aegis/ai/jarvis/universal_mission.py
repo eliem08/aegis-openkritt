@@ -61,6 +61,11 @@ def compile_opportunity_mission(
     total_cost = float(score(opportunity.features).total_cost)
     task_cost = total_cost / max(1, len(actions))
     initial_state = _initial_state(opportunity)
+    intelligence_capability = str(opportunity.metadata.get("worker_capability", ""))
+    intelligence_risk = str(opportunity.metadata.get("risk_class", "offline"))
+    intelligence_evidence = tuple(
+        str(item) for item in opportunity.metadata.get("evidence_requirements", ())
+    )
 
     for index, action in enumerate(actions):
         task_id = f"{key}-{index:02d}-{action}"
@@ -88,13 +93,20 @@ def compile_opportunity_mission(
             asset_id=opportunity.asset_id,
             asset_kind=opportunity.asset_kind,
             asset_locator=opportunity.asset_locator,
-            executor_capability=f"jarvis:{role}:{action}",
-            risk="controlled_state_change" if state_change else "offline",
+            executor_capability=(
+                intelligence_capability if index == 0 and intelligence_capability
+                else f"jarvis:{role}:{action}"
+            ),
+            risk=(
+                intelligence_risk if index == 0 and intelligence_capability
+                else "controlled_state_change" if state_change else "offline"
+            ),
             prerequisites=(opportunity.prerequisite_state,)
             if opportunity.prerequisite_state not in {"", "ready"} else (),
             expected_requests=0,
             expected_cost_usd=task_cost,
-            evidence_required=tuple(lane.evidence_required),
+            evidence_required=tuple(dict.fromkeys((*lane.evidence_required,
+                                                   *intelligence_evidence))),
             success_criteria=("required evidence is persisted with provenance",),
             failure_criteria=("required evidence is absent or contradictory",),
             stop_loss_criteria=(
