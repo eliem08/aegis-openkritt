@@ -75,6 +75,12 @@ def load_tool_pins(path: str | Path | None = None) -> dict[str, ToolPin]:
     """
     configured = str(path or os.environ.get("AEGIS_TOOL_PINS_FILE", "")).strip()
     if not configured:
+        # P0.4: pins are optional in development but MANDATORY in production/bug-bounty mode —
+        # unattended Jarvis must never run an unpinned (unverified) executable. Fail closed.
+        if _pins_required():
+            raise RuntimeError(
+                "scanner pins are mandatory in production/bug-bounty mode: set "
+                "AEGIS_TOOL_PINS_FILE (or unset AEGIS_TOOL_PINS_REQUIRED / AEGIS_MODE for dev)")
         return {}
     pin_path = Path(configured)
     if not pin_path.is_file():
@@ -114,12 +120,40 @@ def resolve_binary(binary: str) -> str | None:
     return None
 
 
+def _pins_required() -> bool:
+    if os.environ.get("AEGIS_TOOL_PINS_REQUIRED", "").strip().lower() in ("1", "true", "yes"):
+        return True
+    return os.environ.get("AEGIS_MODE", "").strip().lower() in ("production", "bug-bounty", "bounty")
+
+
 def _health_env() -> dict[str, str]:
-    env = dict(os.environ)
+    """Environment for the health/version probe.
+
+    P0.4: the probe must NOT inherit credentials — an unpinned malicious binary discovered on
+    PATH could otherwise receive tokens during an innocent ``scanner --version`` call. Reuse the
+    same credential/proxy scrubbing the execution path uses (imported lazily to avoid a cycle),
+    and point proxies at a dead loopback address.
+    """
+    try:
+        from .jarvis.asset_cli_executor import _PROXY_KEYS, _SECRET_ENV_PARTS
+    except Exception:  # pragma: no cover - fall back to a conservative built-in denylist
+        _PROXY_KEYS = {"HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "http_proxy", "https_proxy"}
+        _SECRET_ENV_PARTS = ("TOKEN", "PASSWORD", "SECRET", "API_KEY", "APIKEY", "CREDENTIAL",
+                             "KEY", "AUTH")
+    env: dict[str, str] = {}
+    for key, value in os.environ.items():
+        upper = key.upper()
+        if key in _PROXY_KEYS or any(part in upper for part in _SECRET_ENV_PARTS):
+            continue
+        env[key] = value
     env.update(
         SEMGREP_ENABLE_VERSION_CHECK="0",
         SEMGREP_SEND_METRICS="off",
         DO_NOT_TRACK="1",
+        HTTP_PROXY="http://127.0.0.1:9",
+        HTTPS_PROXY="http://127.0.0.1:9",
+        ALL_PROXY="http://127.0.0.1:9",
+        NO_PROXY="",
     )
     return env
 
