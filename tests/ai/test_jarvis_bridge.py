@@ -60,18 +60,34 @@ def test_judge_vetoes_network_action_without_authorization():
     assert d.approved is False and "network" in d.reason
 
 
-def test_judge_vetoes_state_change_without_human_approval():
-    from aegis.ai.agentic_os import AgentRole, ProposalPolicy
-    authz = source_review_authorization("scope123", human_approval=False)
-    # even if network+state-change were allowed, no human approval -> veto
-    authz2 = authz.__class__(scope_digest="s", network_allowed=True, state_change_allowed=True,
-                             external_model_egress_allowed=True, human_approval=False,
-                             budget=authz.budget)
-    sc = AgentProposal(role=AgentRole.API, action="submit-report", rationale="x",
-                       risk=RiskClass.CONTROLLED_STATE_CHANGE, expected_information_gain=1.0,
-                       requires_network=True)
-    d = ProposalPolicy().evaluate(sc, authz2)
-    assert d.approved is False and "human approval" in d.reason
+def test_state_change_needs_grant_then_human_approval():
+    from aegis.ai.agentic_os import (
+        AgentRole,
+        AuthorizationEnvelope,
+        Budget,
+        ProposalPolicy,
+        mint_execution_grant,
+    )
+    from aegis.policy.signing import HmacSignatureVerifier
+    v = HmacSignatureVerifier({"grant": "k"})
+    policy = ProposalPolicy(v)
+    sc = AgentProposal(role=AgentRole.API, action="local-repro", rationale="x",
+                       risk=RiskClass.CONTROLLED_STATE_CHANGE, expected_information_gain=1.0)
+    budget = Budget(max_cost_usd=5, max_requests=10, max_human_minutes=60)
+    # self-set booleans are ignored — no grant -> vetoed (needs a policy-derived grant)
+    naked = AuthorizationEnvelope(scope_digest="s", state_change_allowed=True, human_approval=True,
+                                  budget=budget)
+    assert "execution grant" in policy.evaluate(sc, naked).reason
+    # grant granting state-change but NOT human approval -> vetoed for human approval
+    g1 = mint_execution_grant(type("D", (), {"allowed": True})(), scope_digest="s", budget=budget,
+                              verifier=v, state_change=True, human_approval=False)
+    d1 = policy.evaluate(sc, AuthorizationEnvelope(scope_digest="s", budget=budget, grant=g1))
+    assert d1.approved is False and "human approval" in d1.reason
+    # grant with state-change + human approval -> allowed
+    g2 = mint_execution_grant(type("D", (), {"allowed": True})(), scope_digest="s", budget=budget,
+                              verifier=v, state_change=True, human_approval=True)
+    assert policy.evaluate(sc, AuthorizationEnvelope(scope_digest="s", budget=budget,
+                                                     grant=g2)).approved is True
 
 
 def test_judge_vetoes_over_budget():

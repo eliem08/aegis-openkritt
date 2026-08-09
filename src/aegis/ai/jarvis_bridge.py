@@ -122,17 +122,30 @@ def source_review_envelope(
                 "status": getattr(authorization_decision, "status", ""),
             }
         )[:16]
+    budget = Budget(
+        max_cost_usd=max(0.0, float(cost_budget_usd)),
+        max_requests=0,
+        max_human_minutes=max(0.0, float(human_minutes)),
+    )
+    grant = None
+    if local_state_change_approved:
+        # Operator opted into disposable LOCAL reproduction (AEGIS_ALLOW_REPRO). Mint a SIGNED
+        # local state-change grant — network stays disabled, so any live-target action still
+        # requires a real PolicyEngine-derived grant. The capability no longer rides on a boolean.
+        from .agentic_os import mint_execution_grant, process_grant_verifier
+
+        grant = mint_execution_grant(
+            type("_LocalOptIn", (), {"allowed": True})(), scope_digest=scope_digest, budget=budget,
+            verifier=process_grant_verifier(), network=False, state_change=True,
+            external_model_egress=bool(model_egress_allowed), human_approval=True)
     return AuthorizationEnvelope(
         scope_digest=scope_digest,
         network_allowed=False,
         state_change_allowed=bool(local_state_change_approved),
         external_model_egress_allowed=bool(model_egress_allowed),
         human_approval=bool(local_state_change_approved),
-        budget=Budget(
-            max_cost_usd=max(0.0, float(cost_budget_usd)),
-            max_requests=0,
-            max_human_minutes=max(0.0, float(human_minutes)),
-        ),
+        budget=budget,
+        grant=grant,
     )
 
 
@@ -428,7 +441,8 @@ def evaluate_finding(
         cost_budget_usd=budget,
         local_state_change_approved=local_lab_available,
     )
-    policy = ProposalPolicy()
+    from .agentic_os import process_grant_verifier
+    policy = ProposalPolicy(process_grant_verifier())   # verifies signed execution grants
     repository = str(getattr(target, "repository", "") or "")
     proposal = proposal_from_validated_row(repository, row)
     source_decision = policy.evaluate(proposal, envelope)
