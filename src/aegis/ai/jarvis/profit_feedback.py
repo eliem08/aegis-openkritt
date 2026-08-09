@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from decimal import Decimal
 from typing import Iterable
 
 from ..portfolio_agents import Opportunity
@@ -22,13 +23,16 @@ def calibrate_opportunity(opportunity: Opportunity, prior: LearnedPrior) -> Oppo
     if weight == 0.0:
         return opportunity
     payout = opportunity.expected_payout_usd
-    if prior.mean_payout_usd > 0:
-        payout = (1.0 - weight) * payout + weight * prior.mean_payout_usd
+    if prior.mean_payout_usd is not None and prior.mean_payout_usd > 0:
+        payout = (
+            prior.mean_payout_usd if payout is None
+            else (1.0 - weight) * payout + weight * prior.mean_payout_usd
+        )
     accepted = (1.0 - weight) * opportunity.p_accepted + weight * prior.acceptance_probability
     unique = (1.0 - weight) * opportunity.p_unique + weight * prior.uniqueness_probability
     return replace(
         opportunity,
-        expected_payout_usd=max(0.0, payout),
+        estimated_payout_usd=None if payout is None else Decimal(str(max(0.0, payout))),
         p_accepted=max(0.0, min(1.0, accepted)),
         p_unique=max(0.0, min(1.0, unique)),
     )

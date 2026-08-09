@@ -110,7 +110,7 @@ def generate_hunt_candidates(
             samples = prior.samples if prior else 0
             p_accepted = prior.acceptance_probability if prior else 0.55
             p_unique = prior.uniqueness_probability if prior else 0.60
-            learned_payout = prior.mean_payout_usd if prior else 0.0
+            learned_payout = prior.mean_payout_usd if prior else None
             baseline = payout_overrides.get(
                 family.family_id,
                 learned_payout or _DEFAULT_PAYOUTS[family.baseline_severity],

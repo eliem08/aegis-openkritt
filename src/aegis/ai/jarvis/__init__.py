@@ -1,5 +1,7 @@
 """Agent-first Aegis/Jarvis security research operating system."""
 
+from aegis.scheduler.profit import HuntOpportunity
+
 from .advanced import build_jarvis as build_advanced_jarvis
 from .asset_agent import AssetCapabilityAgent, required_prerequisites
 from .asset_capabilities import (
@@ -67,19 +69,25 @@ from .learning_agents import (
     VulnerabilityFamilyAgent,
 )
 from .memory import AgentMemory, MemoryRecord
-from .mission_scheduler import (
-    MissionPlan,
-    MissionScheduler,
-    MissionTask,
-    TaskState,
-    build_linear_mission,
-)
 from .mission_capabilities import (
     CapabilityDisposition,
     CapabilityMatch,
     ExecutionClass,
     MissionWorkerRegistry,
     WorkerCapability,
+)
+from .mission_coordinator import (
+    DurableMissionTick,
+    MissionBackendUnavailable,
+    durable_tick,
+    materialize_mission,
+)
+from .mission_scheduler import (
+    MissionPlan,
+    MissionScheduler,
+    MissionTask,
+    TaskState,
+    build_linear_mission,
 )
 from .models import (
     ActionProposal,
@@ -126,6 +134,13 @@ from .state_store import (
     VulnerabilityFamily,
 )
 from .universal_mission import compile_candidate_mission, compile_opportunity_mission
+from .universal_runtime import (
+    MissionExecutionResult,
+    UniversalMissionRuntime,
+    canonical_asset_kind,
+    opportunities_for_program,
+    opportunity_for_asset,
+)
 from .weakness_catalog import (
     UNIVERSAL_FAMILIES,
     HuntCandidate,
@@ -134,7 +149,6 @@ from .weakness_catalog import (
     families_for_surface,
     rank_candidates,
 )
-from aegis.scheduler.profit import HuntOpportunity
 from .weakness_planner import (
     ChainableFinding,
     ChainOpportunity,
@@ -177,6 +191,7 @@ __all__ = [
     "CoverageOptimizerAgent",
     "DeepAssetScanPlan",
     "DeepScannerMethod",
+    "DurableMissionTick",
     "EconomicEstimate",
     "EvidenceAgent",
     "EvidenceStage",
@@ -198,6 +213,8 @@ __all__ = [
     "LearnedPrior",
     "MemoryRecord",
     "MissionPlan",
+    "MissionBackendUnavailable",
+    "MissionExecutionResult",
     "MissionScheduler",
     "MissionSchedulerAgent",
     "MissionSnapshot",
@@ -235,6 +252,7 @@ __all__ = [
     "TargetAssetKind",
     "TaskState",
     "UniversalHuntAgent",
+    "UniversalMissionRuntime",
     "VulnerabilityFamily",
     "VulnerabilityFamilyAgent",
     "WeaknessFamily",
@@ -246,10 +264,12 @@ __all__ = [
     "calibrate_opportunities",
     "calibrate_opportunity",
     "chain_opportunities",
+    "canonical_asset_kind",
     "compile_candidate_mission",
     "compile_opportunity_mission",
     "default_asset_deep_dive_agents",
     "draft_detection_rule",
+    "durable_tick",
     "envelope_untrusted_source",
     "estimate_hypothesis",
     "evaluate_stop_loss",
@@ -259,6 +279,9 @@ __all__ = [
     "lane_for_family",
     "method_capability_requirements",
     "missing_capability_requirements",
+    "materialize_mission",
+    "opportunities_for_program",
+    "opportunity_for_asset",
     "plan_asset_scan",
     "plan_capability_scan",
     "plan_deep_asset_scan",

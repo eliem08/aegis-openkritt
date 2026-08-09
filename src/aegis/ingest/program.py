@@ -30,6 +30,15 @@ class AssetType(str, Enum):
     IOS = "ios"
     SOURCE_CODE = "source_code"
     EXECUTABLE = "executable"
+    API = "api"
+    SMART_CONTRACT = "smart_contract"
+    FIRMWARE = "firmware"
+    CONTAINER_IMAGE = "container_image"
+    KUBERNETES_CLUSTER = "kubernetes_cluster"
+    PACKAGE = "package"
+    CLOUD_ACCOUNT = "cloud_account"
+    AI_MODEL = "ai_model"
+    UNRESOLVED = "unresolved"
     OTHER = "other"
 
 
@@ -101,6 +110,11 @@ class ScopeAsset(BaseModel):
     eligible_for_bounty: bool = False
     max_severity: str | None = None
     instruction: str = ""
+    asset_id: str = ""
+    authorization_id: str = ""
+    scope_digest: str = ""
+    artifact_path: str | None = None
+    provenance: list[str] = Field(default_factory=list)
 
     @property
     def is_web(self) -> bool:
