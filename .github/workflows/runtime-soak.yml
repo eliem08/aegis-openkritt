@@ -1,0 +1,64 @@
+name: Runtime Soak
+
+on:
+  workflow_dispatch:
+    inputs:
+      duration_seconds:
+        description: "Soak duration (minimum 600; use 21600+ with operator_mode)"
+        required: true
+        default: "600"
+      operator_mode:
+        description: "Require the 6-hour operator minimum"
+        type: boolean
+        required: true
+        default: false
+  schedule:
+    - cron: "17 2 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  durable-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 390
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare report directory
+        run: mkdir -p .soak-output
+      - name: Run durability scenarios repeatedly in Docker
+        env:
+          SOAK_SECONDS: ${{ inputs.duration_seconds || '600' }}
+          OPERATOR_MODE: ${{ inputs.operator_mode || 'false' }}
+        run: |
+          operator_flag=""
+          if [ "$OPERATOR_MODE" = "true" ]; then operator_flag="--operator"; fi
+          docker run --rm \
+            -e SOAK_SECONDS="$SOAK_SECONDS" \
+            -e OPERATOR_FLAG="$operator_flag" \
+            -v "${{ github.workspace }}:/input:ro" \
+            -v "${{ github.workspace }}/.soak-output:/output" \
+            python:3.12-slim sh -lc '
+              mkdir -p /tmp/project &&
+              cp -a /input/src /input/tests /input/pyproject.toml /input/README.md /tmp/project/ &&
+              cd /tmp/project &&
+              pip install -q ".[dev,api]" &&
+              python -m aegis.production.soak \
+                --duration-seconds "$SOAK_SECONDS" $OPERATOR_FLAG \
+                --report /output/runtime-soak.json -- \
+                pytest -q -p no:cacheprovider \
+                  tests/scheduler/test_coordinator.py \
+                  tests/coord/test_coord_backend.py \
+                  tests/ai/test_universal_runtime.py \
+                  tests/ai/test_hunter_production_gaps.py \
+                  tests/ai/test_http_identity_executor.py \
+                  tests/model_gateway/test_service_budget.py \
+                  tests/oast/test_private_oast.py \
+                  tests/test_authorization.py \
+                  tests/test_budget.py \
+                  tests/test_killswitch.py'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: runtime-soak-report
+          path: .soak-output/runtime-soak.json
