@@ -62,8 +62,10 @@ class EgressClaims:
         if method not in {"GET", "HEAD", "OPTIONS", "POST", "PUT", "PATCH", "DELETE"}:
             raise EgressTokenError("unsupported HTTP method")
         parts = urlsplit(self.destination)
-        if parts.scheme not in {"http", "https"} or not parts.hostname or parts.username:
-            raise EgressTokenError("destination must be an HTTP(S) URL without userinfo")
+        if parts.scheme not in {"http", "https", "ws", "wss"} or not parts.hostname or parts.username:
+            raise EgressTokenError("destination must be an HTTP(S) or WebSocket URL without userinfo")
+        if parts.scheme in {"ws", "wss"} and method != "GET":
+            raise EgressTokenError("WebSocket destinations require a GET handshake")
         if self.expires_at <= current:
             raise EgressTokenError("token expired")
         if self.issued_at > current + 5:
