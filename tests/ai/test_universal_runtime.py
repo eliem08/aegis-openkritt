@@ -115,6 +115,29 @@ def test_execution_fails_closed_without_signed_scope_bound_grant(tmp_path):
         assert result.plan.tasks[0].state is TaskState.WAITING_FOR_APPROVAL
 
 
+def test_unresolved_prerequisite_cannot_execute_even_with_valid_grant(tmp_path):
+    firmware = tmp_path / "router.bin"
+    firmware.write_bytes(b"firmware")
+    opportunity = opportunities_for_program(
+        _program(str(firmware)), scope_digest="scope:multi", authorization_id="auth:multi"
+    )[-1]
+    from dataclasses import replace
+
+    opportunity = replace(opportunity, prerequisite_state="scope_confirmation_required")
+    envelope, verifier = _envelope("scope:multi")
+    availability = CapabilityAvailability(artifact_available=True, firmware_available=True)
+    with JarvisStateStore(tmp_path / "jarvis.db") as store:
+        runtime = UniversalMissionRuntime(MissionScheduler(store), grant_verifier=verifier)
+        mission = runtime.prepare(opportunity, availability=availability)
+        assert mission.tasks[0].state is TaskState.WAITING_FOR_PREREQUISITE
+        result = runtime.execute_first(
+            mission, authorization=envelope, availability=availability,
+            artifact_path=firmware,
+        )
+        assert result.disposition is CapabilityDisposition.WAITING_FOR_PREREQUISITE
+        assert result.outcome is None
+
+
 def test_network_lane_is_unavailable_without_registered_dynamic_backend(tmp_path):
     program = ProgramRules(
         handle="network",

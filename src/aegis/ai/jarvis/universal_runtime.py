@@ -212,6 +212,8 @@ class UniversalMissionRuntime:
             support = None
             state = TaskState.UNAVAILABLE
         first, *rest = plan.tasks
+        if first.state in {TaskState.WAITING_FOR_PREREQUISITE, TaskState.UNAVAILABLE}:
+            state = first.state
         capability = f"{support.tool}:{support.method}" if support else ""
         resolved = (
             self._method(kind, support.tool, support.method, availability) if support else None
@@ -243,6 +245,16 @@ class UniversalMissionRuntime:
         **executor_kwargs: Any,
     ) -> MissionExecutionResult:
         task = plan.tasks[0]
+        if task.state is TaskState.WAITING_FOR_PREREQUISITE:
+            return MissionExecutionResult(
+                plan, CapabilityDisposition.WAITING_FOR_PREREQUISITE,
+                "mission prerequisite is unresolved; execution is not eligible",
+            )
+        if task.state is TaskState.UNAVAILABLE:
+            return MissionExecutionResult(
+                plan, CapabilityDisposition.UNAVAILABLE,
+                "mission capability is explicitly unavailable",
+            )
         match = self.workers.match(task, availability=availability)
         if match.disposition in {
             CapabilityDisposition.WAITING_FOR_PREREQUISITE,
