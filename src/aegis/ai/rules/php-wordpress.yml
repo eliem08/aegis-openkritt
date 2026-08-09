@@ -57,7 +57,8 @@ rules:
     # Bounded to one statement and 200 bytes before the raw bind argument. This avoids expensive
     # whole-file structural expansion while covering common [value, should_escape] query-builder
     # representations. The third argument must be an explicitly SQL-shaped condition field.
-    pattern-regex: 'str_replace\s*\([^;\n]{0,200},\s*\$[A-Za-z_]\w*\s*\[\s*(?:0|["'']value["''])\s*\]\s*,\s*\$[A-Za-z_]\w*\s*\[\s*["''](?:condition|where|query|sql)["'']\s*\]\s*\)'
+    patterns:
+      - pattern-regex: 'str_replace\s*\([^;\n]{0,200},\s*\$[A-Za-z_]\w*\s*\[\s*(?:0|["'']value["''])\s*\]\s*,\s*\$[A-Za-z_]\w*\s*\[\s*["''](?:condition|where|query|sql)["'']\s*\]\s*\)'
 
   - id: aegis-php-reflected-xss-echo-request
     languages: [php]
