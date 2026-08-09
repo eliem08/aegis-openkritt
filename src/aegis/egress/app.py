@@ -25,9 +25,12 @@ MAX_REDIRECTS = 5
 FORWARDED_HEADERS = frozenset({
     "accept", "accept-language", "authorization", "content-type", "cookie",
     "if-none-match", "if-modified-since", "user-agent", "x-requested-with",
+    "idempotency-key", "x-request-id",
 })
 RETURNED_HEADERS = frozenset({
     "content-type", "content-length", "etag", "last-modified", "location",
+    "age", "via", "vary", "cache-control", "cache-status", "x-cache",
+    "cf-cache-status", "x-served-by", "x-varnish",
 })
 
 

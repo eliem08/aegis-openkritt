@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import replace
+from threading import Lock
 
 from fastapi.testclient import TestClient
 
@@ -12,6 +13,8 @@ from aegis.ai.agentic_os import (
     process_grant_verifier,
 )
 from aegis.ai.jarvis.asset_execution_ticket import CapabilityAvailability
+from aegis.ai.jarvis.cache_executor import CacheDifferentialExecutor
+from aegis.ai.jarvis.cache_intelligence import CacheOutcome
 from aegis.ai.jarvis.graphql_identity_executor import GraphQLAuthorizationDifferentialExecutor
 from aegis.ai.jarvis.http_identity_executor import (
     HttpIdentityDifferentialExecutor,
@@ -29,6 +32,8 @@ from aegis.ai.jarvis.identity_fixtures import (
 from aegis.ai.jarvis.identity_intelligence import DifferentialOutcome, ExpectedAccess
 from aegis.ai.jarvis.mission_capabilities import CapabilityDisposition
 from aegis.ai.jarvis.mission_scheduler import MissionPlan, MissionScheduler, MissionTask
+from aegis.ai.jarvis.race_executor import ScopedRaceIdempotencyExecutor
+from aegis.ai.jarvis.race_intelligence import RaceOutcome
 from aegis.ai.jarvis.scoped_http_executor import POLICY_ACTION, ScopedEgressHttpExecutor
 from aegis.ai.jarvis.state_store import JarvisStateStore
 from aegis.ai.jarvis.universal_runtime import UniversalMissionRuntime
@@ -134,13 +139,21 @@ def _plan(task):
     )
 
 
-def _executor(*, expose_to_peer: bool, graphql: bool = False, calls=None):
+def _executor(*, expose_to_peer: bool, graphql: bool = False, calls=None,
+              sender_override=None):
     def sender(_method, _url, _ip, headers, _body):
         if calls is not None:
             calls.append((_method, _url, dict(headers), _body))
+        if sender_override is not None:
+            return sender_override(_method, _url, _ip, headers, _body)
         identity = headers["authorization"].removeprefix("Bearer ")
+        if _url.endswith("/clean"):
+            return UpstreamResponse(200, {"age": "1"}, b'{"clean":true}')
         if identity == "owner" or expose_to_peer:
-            return UpstreamResponse(200, {"content-type": "application/json"}, b'"AEGIS-CANARY-HTTP-1"')
+            return UpstreamResponse(
+                200, {"content-type": "application/json", "age": "2"},
+                b'"AEGIS-CANARY-HTTP-1"',
+            )
         return UpstreamResponse(403, {"content-type": "application/json"}, b'{"denied":true}')
 
     app = create_egress_app(
@@ -230,6 +243,89 @@ def test_graphql_differential_uses_scoped_post_and_canonical_oracle():
     assert len(calls) == 2 and {call[0] for call in calls} == {"POST"}
     assert all(call[1].endswith("/graphql") for call in calls)
     assert b'"id":"invoice-1"' in calls[0][3]
+
+
+def test_cache_differential_requires_clean_cross_client_control():
+    identity = _executor(expose_to_peer=True)
+    executor = CacheDifferentialExecutor(
+        identity.http,
+        fixture_sets={"fixtures:http": _fixture_set()},
+        credential_resolver=identity.credential_resolver,
+        grant_verifier=identity.grant_verifier,
+    )
+    _, authorization = _authorization()
+    task = replace(
+        _task(),
+        task_id="task:cache",
+        executor_capability="dynamic:cache-key-differential",
+        payload={
+            "fixture_set_id": "fixtures:http",
+            "dimension": "query_parameter",
+            "marker": "AEGIS-CANARY-HTTP-1",
+            "prime": {"path": "/prime", "fixture_kind": "owner"},
+            "victim": {"path": "/victim", "fixture_kind": "foreign_same_role"},
+            "negative_control": {"path": "/clean", "fixture_kind": "foreign_same_role"},
+        },
+    )
+    outcome = executor(task, _plan(task), authorization)
+    assert outcome.verdict.outcome is CacheOutcome.SHARED_INFLUENCE_CONFIRMED
+    assert outcome.evidence.is_reproducible
+
+
+def test_race_executor_uses_barrier_readbacks_and_detects_idempotency_failure():
+    lock = Lock()
+    effects = []
+
+    def sender(method, url, _ip, headers, _body):
+        if url.endswith("/state"):
+            with lock:
+                body = ('{"effects":%d}' % len(effects)).encode()
+            return UpstreamResponse(200, {"content-type": "application/json"}, body)
+        assert method == "POST" and url.endswith("/claim")
+        assert headers["idempotency-key"] == "shared-test-key"
+        with lock:
+            effect = f"effect-{len(effects) + 1}"
+            effects.append(effect)
+        return UpstreamResponse(
+            201, {"content-type": "application/json"},
+            ('{"effect_id":"%s"}' % effect).encode(),
+        )
+
+    identity = _executor(expose_to_peer=False, sender_override=sender)
+    executor = ScopedRaceIdempotencyExecutor(
+        identity.http,
+        fixture_sets={"fixtures:http": _fixture_set()},
+        credential_resolver=identity.credential_resolver,
+        grant_verifier=identity.grant_verifier,
+        max_concurrency=2,
+    )
+    _, authorization = _authorization()
+    task = replace(
+        _task(),
+        task_id="task:race",
+        executor_capability="dynamic:idempotency-key-differential",
+        idempotency_key="race-experiment-1",
+        expected_requests=4,
+        payload={
+            "fixture_set_id": "fixtures:http",
+            "fixture_kind": "owner",
+            "attempts": 2,
+            "method": "POST",
+            "operation_path": "/claim",
+            "state_path": "/state",
+            "idempotency_key": "shared-test-key",
+            "max_allowed_effects": 1,
+            "resource": {
+                "resource_id": "claim-1",
+                "canary": "AEGIS-CANARY-HTTP-1",
+                "synthetic": True,
+            },
+        },
+    )
+    outcome = executor(task, _plan(task), authorization)
+    assert outcome.verdict.outcome is RaceOutcome.IDEMPOTENCY_FAILURE
+    assert len(outcome.experiment.results) == 2
+    assert outcome.experiment.before_state_digest != outcome.experiment.after_state_digest
 
 
 def test_runtime_retains_dynamic_evidence_and_missing_fixture_waits(tmp_path):

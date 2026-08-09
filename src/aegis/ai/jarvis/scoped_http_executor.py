@@ -5,6 +5,7 @@ from __future__ import annotations
 import base64
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
+from threading import Lock
 from urllib.parse import urlsplit
 
 import httpx
@@ -53,6 +54,7 @@ class ScopedEgressHttpExecutor:
         self.max_response_bytes = max_response_bytes
         self.client = client
         self.requests = 0
+        self._budget_lock = Lock()
 
     def request(
         self,
@@ -81,8 +83,10 @@ class ScopedEgressHttpExecutor:
             max(0, grant.budget.max_requests),
             self.max_requests,
         )
-        if self.requests >= authorized_limit:
-            raise RuntimeError("HTTP execution request budget exhausted")
+        with self._budget_lock:
+            if self.requests >= authorized_limit:
+                raise RuntimeError("HTTP execution request budget exhausted")
+            self.requests += 1
         token = self.token_issuer(POLICY_ACTION, normalized_method, url, authorization)
         if not token:
             raise PermissionError("egress token issuer refused the HTTP destination")
@@ -92,7 +96,6 @@ class ScopedEgressHttpExecutor:
             "headers": dict(headers or {}),
             "body_base64": base64.b64encode(body).decode("ascii") if body else None,
         }
-        self.requests += 1
         try:
             if self.client is not None:
                 response = self.client.post(
