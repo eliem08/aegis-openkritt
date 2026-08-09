@@ -20,6 +20,9 @@ class HunterTechnique(str, Enum):
     BUSINESS_STATE_COMBINATION = "business_state_combination"
     POST_ERROR_STATE_CHECK = "post_error_state_check"
     PARTIAL_COMMIT_VERIFICATION = "partial_commit_verification"
+    SSRF_URL_CONSUMER = "ssrf_url_consumer"
+    SSRF_ASYNC_CALLBACK = "ssrf_async_callback"
+    SSRF_REDIRECT_DNS_BEHAVIOR = "ssrf_redirect_dns_behavior"
 
 
 @dataclass(frozen=True)
@@ -132,6 +135,33 @@ TECHNIQUES: dict[HunterTechnique, TechniqueDefinition] = {
         RiskClass.CONTROLLED_STATE_CHANGE,
         "dynamic:partial-commit-verifier",
         ("before_snapshot", "after_snapshot", "effect_set", "negative_control"),
+    ),
+    HunterTechnique.SSRF_URL_CONSUMER: TechniqueDefinition(
+        HunterTechnique.SSRF_URL_CONSUMER,
+        ("discovered_url_input", "exact_private_oast_callback"),
+        ("api", "domain"),
+        ("authorized_route", "private_oast_session", "signed_execution_grant"),
+        RiskClass.CONTROLLED_STATE_CHANGE,
+        "dynamic:server-url-consumer",
+        ("route", "parameter", "probe_address", "matched_interaction", "negative_control"),
+    ),
+    HunterTechnique.SSRF_ASYNC_CALLBACK: TechniqueDefinition(
+        HunterTechnique.SSRF_ASYNC_CALLBACK,
+        ("queued_url_input", "delayed_private_oast_callback"),
+        ("api", "domain"),
+        ("authorized_route", "durable_oast_polling", "signed_execution_grant"),
+        RiskClass.CONTROLLED_STATE_CHANGE,
+        "dynamic:async-url-consumer",
+        ("job_correlation", "probe_address", "callback_delay", "matched_interaction"),
+    ),
+    HunterTechnique.SSRF_REDIRECT_DNS_BEHAVIOR: TechniqueDefinition(
+        HunterTechnique.SSRF_REDIRECT_DNS_BEHAVIOR,
+        ("url_consumer_probe", "redirect_or_dns_observations"),
+        ("api", "domain"),
+        ("private_oast_session", "controlled_redirector", "signed_execution_grant"),
+        RiskClass.CONTROLLED_STATE_CHANGE,
+        "dynamic:url-consumer-behavior-classifier",
+        ("redirect_chain", "dns_resolution_sequence", "exact_probe_correlation"),
     ),
 }
 

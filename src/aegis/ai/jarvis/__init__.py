@@ -61,6 +61,7 @@ from .hunt_generator import SurfaceSignal, generate_hunt_candidates, infer_surfa
 from .hunt_lanes import HuntLane, lane_for_family
 from .hunter_phase_a import HunterIntelligencePhaseA, PhaseAResult
 from .hunter_phase_b import HunterIntelligencePhaseB, PhaseBResult
+from .hunter_phase_c import HunterIntelligencePhaseC, PhaseCResult
 from .hunter_techniques import (
     TECHNIQUES,
     HunterTechnique,
@@ -229,6 +230,7 @@ __all__ = [
     "HuntObjective",
     "HunterIntelligencePhaseA",
     "HunterIntelligencePhaseB",
+    "HunterIntelligencePhaseC",
     "HunterTechnique",
     "HypothesisAgent",
     "IOSDeepDiveAgent",
@@ -253,6 +255,7 @@ __all__ = [
     "PlannedMethod",
     "PhaseAResult",
     "PhaseBResult",
+    "PhaseCResult",
     "PolicyGate",
     "PortfolioScheduler",
     "ProfitabilityAgent",
