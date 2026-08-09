@@ -62,6 +62,7 @@ from .hunt_lanes import HuntLane, lane_for_family
 from .hunter_phase_a import HunterIntelligencePhaseA, PhaseAResult
 from .hunter_phase_b import HunterIntelligencePhaseB, PhaseBResult
 from .hunter_phase_c import HunterIntelligencePhaseC, PhaseCResult
+from .hunter_phase_d import HunterIntelligencePhaseD, PhaseDResult
 from .hunter_techniques import (
     TECHNIQUES,
     HunterTechnique,
@@ -231,6 +232,7 @@ __all__ = [
     "HunterIntelligencePhaseA",
     "HunterIntelligencePhaseB",
     "HunterIntelligencePhaseC",
+    "HunterIntelligencePhaseD",
     "HunterTechnique",
     "HypothesisAgent",
     "IOSDeepDiveAgent",
@@ -256,6 +258,7 @@ __all__ = [
     "PhaseAResult",
     "PhaseBResult",
     "PhaseCResult",
+    "PhaseDResult",
     "PolicyGate",
     "PortfolioScheduler",
     "ProfitabilityAgent",

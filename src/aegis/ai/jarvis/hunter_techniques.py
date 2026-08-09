@@ -23,6 +23,9 @@ class HunterTechnique(str, Enum):
     SSRF_URL_CONSUMER = "ssrf_url_consumer"
     SSRF_ASYNC_CALLBACK = "ssrf_async_callback"
     SSRF_REDIRECT_DNS_BEHAVIOR = "ssrf_redirect_dns_behavior"
+    CACHE_KEY_DIFFERENTIAL = "cache_key_differential"
+    CACHE_PRIVATE_SHARED = "cache_private_shared"
+    WEB_CACHE_DECEPTION = "web_cache_deception"
 
 
 @dataclass(frozen=True)
@@ -162,6 +165,33 @@ TECHNIQUES: dict[HunterTechnique, TechniqueDefinition] = {
         RiskClass.CONTROLLED_STATE_CHANGE,
         "dynamic:url-consumer-behavior-classifier",
         ("redirect_chain", "dns_resolution_sequence", "exact_probe_correlation"),
+    ),
+    HunterTechnique.CACHE_KEY_DIFFERENTIAL: TechniqueDefinition(
+        HunterTechnique.CACHE_KEY_DIFFERENTIAL,
+        ("controlled_prime", "cross-client_fetch", "negative_control"),
+        ("domain", "api"),
+        ("authorized_cache_experiment", "synthetic_marker", "signed_execution_grant"),
+        RiskClass.CONTROLLED_STATE_CHANGE,
+        "dynamic:cache-key-differential",
+        ("prime_capture", "victim_capture", "negative_control", "cache_headers"),
+    ),
+    HunterTechnique.CACHE_PRIVATE_SHARED: TechniqueDefinition(
+        HunterTechnique.CACHE_PRIVATE_SHARED,
+        ("authenticated_canary_response", "distinct_client_fetch"),
+        ("domain", "api"),
+        ("two_controlled_clients", "synthetic_private_marker", "signed_execution_grant"),
+        RiskClass.CONTROLLED_STATE_CHANGE,
+        "dynamic:private-shared-cache-differential",
+        ("identity_a_capture", "identity_b_capture", "private_canary", "age_or_cache_status"),
+    ),
+    HunterTechnique.WEB_CACHE_DECEPTION: TechniqueDefinition(
+        HunterTechnique.WEB_CACHE_DECEPTION,
+        ("authenticated_dynamic_route", "static_suffix_variant"),
+        ("domain", "api"),
+        ("synthetic_account", "bounded_path_variant", "signed_execution_grant"),
+        RiskClass.CONTROLLED_STATE_CHANGE,
+        "dynamic:web-cache-deception",
+        ("canonical_route", "variant_route", "cacheability", "cross-client_negative_control"),
     ),
 }
 
