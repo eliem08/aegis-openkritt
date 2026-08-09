@@ -26,6 +26,9 @@ class HunterTechnique(str, Enum):
     CACHE_KEY_DIFFERENTIAL = "cache_key_differential"
     CACHE_PRIVATE_SHARED = "cache_private_shared"
     WEB_CACHE_DECEPTION = "web_cache_deception"
+    RACE_SYNCHRONIZED_DIFFERENTIAL = "race_synchronized_differential"
+    IDEMPOTENCY_KEY_DIFFERENTIAL = "idempotency_key_differential"
+    RETRY_STATE_VERIFICATION = "retry_state_verification"
 
 
 @dataclass(frozen=True)
@@ -192,6 +195,33 @@ TECHNIQUES: dict[HunterTechnique, TechniqueDefinition] = {
         RiskClass.CONTROLLED_STATE_CHANGE,
         "dynamic:web-cache-deception",
         ("canonical_route", "variant_route", "cacheability", "cross-client_negative_control"),
+    ),
+    HunterTechnique.RACE_SYNCHRONIZED_DIFFERENTIAL: TechniqueDefinition(
+        HunterTechnique.RACE_SYNCHRONIZED_DIFFERENTIAL,
+        ("synthetic_resource", "synchronized_attempts", "post_state_readback"),
+        ("api", "domain", "smart_contract"),
+        ("bounded_concurrency", "signed_execution_grant", "explicit_invariant"),
+        RiskClass.CONTROLLED_STATE_CHANGE,
+        "dynamic:bounded-race-harness",
+        ("barrier_timestamp", "attempt_results", "before_state", "after_state"),
+    ),
+    HunterTechnique.IDEMPOTENCY_KEY_DIFFERENTIAL: TechniqueDefinition(
+        HunterTechnique.IDEMPOTENCY_KEY_DIFFERENTIAL,
+        ("shared_idempotency_key", "multiple_attempts", "effect_readback"),
+        ("api", "domain"),
+        ("synthetic_resource", "signed_execution_grant", "bounded_retries"),
+        RiskClass.CONTROLLED_STATE_CHANGE,
+        "dynamic:idempotency-key-differential",
+        ("idempotency_key_digest", "attempt_results", "unique_effect_ids"),
+    ),
+    HunterTechnique.RETRY_STATE_VERIFICATION: TechniqueDefinition(
+        HunterTechnique.RETRY_STATE_VERIFICATION,
+        ("timeout_or_5xx", "bounded_retry", "state_readback"),
+        ("api", "domain"),
+        ("synthetic_resource", "signed_execution_grant", "retry_budget"),
+        RiskClass.CONTROLLED_STATE_CHANGE,
+        "dynamic:retry-state-verifier",
+        ("first_attempt", "retry_attempt", "post_state", "effect_ids"),
     ),
 }
 
