@@ -11,6 +11,7 @@ from aegis.bench.real_cve import (
     RealBenchResult,
     RealCase,
     RealCaseResult,
+    ScanObservation,
     derive_pair,
 )
 
@@ -67,16 +68,58 @@ def test_derive_pair_returns_none_when_pattern_never_removed(tmp_path):
     assert derive_pair(str(repo), "verify=False") is None
 
 
+@pytest.mark.skipif(not _has_git(), reason="git not available")
+def test_derive_pair_uses_pinned_fix_when_pattern_was_removed_again_later(tmp_path):
+    repo = tmp_path / "history"
+    repo.mkdir()
+    _git(["init", "-q"], repo)
+    _git(["config", "user.email", "t@t"], repo)
+    _git(["config", "user.name", "t"], repo)
+    src = repo / "app.py"
+    src.write_text("dangerous(x)\n", encoding="utf-8")
+    _git(["add", "-A"], repo); _git(["commit", "-qm", "vulnerable"], repo)
+    src.write_text("safe(x)\n", encoding="utf-8")
+    _git(["add", "-A"], repo); _git(["commit", "-qm", "advisory fix"], repo)
+    pinned = subprocess.run(["git", "-C", str(repo), "rev-parse", "HEAD"],
+                            capture_output=True, text=True, check=True).stdout.strip()
+    src.write_text("dangerous(x)\n", encoding="utf-8")
+    _git(["add", "-A"], repo); _git(["commit", "-qm", "regression"], repo)
+    src.write_text("safe(x)\n", encoding="utf-8")
+    _git(["add", "-A"], repo); _git(["commit", "-qm", "later fix"], repo)
+
+    latest_pair = derive_pair(str(repo), "dangerous(x)")
+    pinned_pair = derive_pair(str(repo), "dangerous(x)", expected_fix_commit=pinned)
+    assert latest_pair is not None and latest_pair[1] != pinned
+    assert pinned_pair is not None and pinned_pair[1] == pinned
+
+
 def test_metric_math_only_counts_scored_cases():
     res = RealBenchResult(cases=[
         RealCaseResult("a", "detected"), RealCaseResult("b", "detected"),
         RealCaseResult("c", "missed"), RealCaseResult("d", "regressed"),
-        RealCaseResult("e", "skipped", "clone failed"),  # skipped never counts
+        RealCaseResult("e", "skipped", "clone failed"),
+        RealCaseResult("f", "unavailable", "no scanner"),
+        RealCaseResult("g", "invalid", "provenance mismatch"),
     ])
     assert res.summary()["scored"] == 4          # detected+detected+missed+regressed
     assert res.recall == round(2 / 4, 4)
     assert res.regressions == 1
     assert res.summary()["by_status"]["skipped"] == 1
+    assert res.unavailable == 1 and res.invalid == 1 and res.measured
+
+
+def test_all_unavailable_is_not_measured_recall():
+    res = RealBenchResult(cases=[RealCaseResult("a", "unavailable", "semgrep broken")])
+    assert res.scored == []
+    assert res.recall == 0.0
+    assert res.measured is False
+
+
+def test_required_detector_must_run_even_if_an_unrelated_tool_ran():
+    observation = ScanObservation(attempted=["bandit"], unavailable={"semgrep": "broken"})
+    assert observation.any_ran
+    assert not observation.can_score(("semgrep",))
+    assert observation.can_score(("bandit",))
 
 
 def test_case_expected_defaults_to_cwe():
@@ -99,3 +142,73 @@ def test_load_cases_from_manifest_ignores_bad_rows(tmp_path):
     cases = load_cases(manifest)
     assert [c.id for c in cases] == ["c1", "c2"]
     assert cases[1].path_hint == "src/" and cases[1].expected() == "cwe-502"
+
+
+def test_load_cases_rejects_bad_provenance_and_duplicates(tmp_path):
+    import json
+
+    from aegis.bench.real_cve import load_cases
+    manifest = tmp_path / "bad.json"
+    manifest.write_text(json.dumps([{
+        "id": "c1", "repo": "o/r", "pattern": "x", "cwe": "CWE-1",
+        "expected_fix_commit": "short",
+    }]), encoding="utf-8")
+    with pytest.raises(ValueError, match="full 40-character SHA"):
+        load_cases(manifest)
+
+    row = {"id": "c1", "repo": "o/r", "pattern": "x", "cwe": "CWE-1"}
+    manifest.write_text(json.dumps([row, row]), encoding="utf-8")
+    with pytest.raises(ValueError, match="duplicate"):
+        load_cases(manifest)
+
+
+@pytest.mark.skipif(not _has_git(), reason="git not available")
+def test_unavailable_scanner_is_not_counted_as_detector_miss(tmp_path):
+    from aegis.bench.real_cve import run_real_case
+
+    repo = tmp_path / "source"
+    repo.mkdir()
+    _git(["init", "-q"], repo)
+    _git(["config", "user.email", "t@t"], repo)
+    _git(["config", "user.name", "t"], repo)
+    src = repo / "app.py"
+    src.write_text("dangerous(x)\n", encoding="utf-8")
+    _git(["add", "-A"], repo); _git(["commit", "-qm", "vulnerable"], repo)
+    src.write_text("safe(x)\n", encoding="utf-8")
+    _git(["add", "-A"], repo); _git(["commit", "-qm", "fix"], repo)
+    fix = subprocess.run(["git", "-C", str(repo), "rev-parse", "HEAD"],
+                         capture_output=True, text=True, check=True).stdout.strip()
+
+    def no_scanner(_root, _case):
+        return ScanObservation(unavailable={"semgrep": "runtime unavailable"})
+
+    case = RealCase("real", repo.as_uri(), "dangerous(x)", "CWE-1",
+                    expected_fix_commit=fix)
+    result = run_real_case(case, workdir=str(tmp_path / "run"), scanner=no_scanner)
+    assert result.status == "unavailable"
+    assert "semgrep" in result.reason
+
+
+@pytest.mark.skipif(not _has_git(), reason="git not available")
+def test_pinned_fix_mismatch_invalidates_case_before_scoring(tmp_path):
+    from aegis.bench.real_cve import run_real_case
+
+    repo = tmp_path / "source"
+    repo.mkdir()
+    _git(["init", "-q"], repo)
+    _git(["config", "user.email", "t@t"], repo)
+    _git(["config", "user.name", "t"], repo)
+    src = repo / "app.py"
+    src.write_text("dangerous(x)\n", encoding="utf-8")
+    _git(["add", "-A"], repo); _git(["commit", "-qm", "vulnerable"], repo)
+    src.write_text("safe(x)\n", encoding="utf-8")
+    _git(["add", "-A"], repo); _git(["commit", "-qm", "fix"], repo)
+
+    result = run_real_case(
+        RealCase("real", repo.as_uri(), "dangerous(x)", "CWE-1",
+                 expected_fix_commit="0" * 40),
+        workdir=str(tmp_path / "run"),
+        scanner=lambda *_: pytest.fail("scanner must not run for invalid provenance"),
+    )
+    assert result.status == "invalid"
+    assert "pinned fix commit" in result.reason

@@ -6,7 +6,11 @@
     "cwe": "CWE-347",
     "path_hint": "",
     "match": "cwe-347",
-    "_note": "Example only. Each case names a real repo + the literal code a real fix removed; the harness derives the (vulnerable, fixed) commit pair from history via git pickaxe and measures whether the bundled detectors catch the vulnerable revision and stay clean on the fix. Never put commit SHAs here — they are derived, not asserted. Replace these with confirmed real-CVE entries and run: AEGIS_REAL_CVE_CASES=this.json python -m aegis.bench.real_cve (in a scanner environment / the arsenal image)."
+    "cve": "CVE-YYYY-NNNN",
+    "advisory_url": "https://github.com/advisories/GHSA-xxxx-xxxx-xxxx",
+    "expected_fix_commit": "0000000000000000000000000000000000000000",
+    "required_tools": ["semgrep"],
+    "_note": "Example only. The runner verifies that the full advisory fix SHA removes the literal pattern and derives its vulnerable parent. Unavailable required tools never count as misses. Use benchmarks/real_cve_cases.json for the checked-in measured corpus."
   },
   {
     "id": "example-php-object-injection",
@@ -14,6 +18,9 @@
     "pattern": "unserialize($_POST",
     "cwe": "CWE-502",
     "path_hint": "",
-    "match": "cwe-502"
+    "match": "cwe-502",
+    "advisory_url": "https://github.com/advisories/GHSA-xxxx-xxxx-xxxx",
+    "expected_fix_commit": "0000000000000000000000000000000000000000",
+    "required_tools": ["semgrep"]
   }
 ]

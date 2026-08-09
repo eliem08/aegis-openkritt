@@ -24,6 +24,7 @@ import subprocess
 import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Callable
 
 
 @dataclass(frozen=True)
@@ -34,6 +35,10 @@ class RealCase:
     cwe: str                  # expected weakness class
     path_hint: str = ""       # optional path substring to disambiguate the vulnerable file
     match: str = ""           # lowercase substring expected in a finding (defaults to cwe)
+    cve: str = ""             # public CVE identifier (GHSA-only cases may leave this blank)
+    advisory_url: str = ""    # authoritative advisory used to establish ground truth
+    expected_fix_commit: str = ""  # immutable upstream fix identity; derivation must agree
+    required_tools: tuple[str, ...] = ()  # detector backends capable of scoring this case
 
     def expected(self) -> str:
         return (self.match or self.cwe).lower()
@@ -42,7 +47,7 @@ class RealCase:
 @dataclass
 class RealCaseResult:
     id: str
-    status: str               # "detected" | "missed" | "regressed" | "skipped"
+    status: str               # detected | missed | regressed | unavailable | invalid | skipped
     reason: str = ""
     vulnerable_ref: str = ""
     fixed_ref: str = ""
@@ -68,11 +73,42 @@ class RealBenchResult:
     def regressions(self) -> int:
         return sum(1 for c in self.cases if c.status == "regressed")
 
+    @property
+    def unavailable(self) -> int:
+        return sum(1 for c in self.cases if c.status == "unavailable")
+
+    @property
+    def invalid(self) -> int:
+        return sum(1 for c in self.cases if c.status == "invalid")
+
+    @property
+    def measured(self) -> bool:
+        """True only when at least one case reached a functioning detector."""
+        return bool(self.scored)
+
     def summary(self) -> dict:
         from collections import Counter
         return {"total": len(self.cases), "scored": len(self.scored),
                 "recall": self.recall, "regressions": self.regressions,
+                "unavailable": self.unavailable, "invalid": self.invalid,
+                "measured": self.measured,
                 "by_status": dict(Counter(c.status for c in self.cases))}
+
+
+@dataclass
+class ScanObservation:
+    detectors: list[str] = field(default_factory=list)
+    attempted: list[str] = field(default_factory=list)
+    unavailable: dict[str, str] = field(default_factory=dict)
+
+    @property
+    def any_ran(self) -> bool:
+        return bool(self.attempted)
+
+    def can_score(self, required_tools: tuple[str, ...]) -> bool:
+        return self.any_ran if not required_tools else any(
+            tool in self.attempted for tool in required_tools
+        )
 
 
 def _git(args: list[str], *, cwd: str | None = None, timeout: int = 300) -> str:
@@ -82,20 +118,27 @@ def _git(args: list[str], *, cwd: str | None = None, timeout: int = 300) -> str:
 
 
 def _clone_url(repo: str) -> str:
-    if repo.startswith(("http://", "https://", "git@")):
+    if repo.startswith(("http://", "https://", "file://", "git@")):
         return repo
     return f"https://github.com/{repo}.git"
 
 
 def derive_pair(repo_dir: str, pattern: str, *, path_hint: str = "",
-                git=_git) -> tuple[str, str] | None:
+                expected_fix_commit: str = "", git=_git) -> tuple[str, str] | None:
     """Return ``(vulnerable_sha, fixed_sha)`` for the most recent commit that REMOVED ``pattern``
     (the fix) and its parent (the vulnerable revision), or None if no such commit exists."""
     log_args = ["-C", repo_dir, "log", "--all", "--format=%H", "-S", pattern]
-    if path_hint:
-        log_args += ["--", f"*{path_hint}*"]
     shas = [line.strip() for line in git(log_args).splitlines() if line.strip()]
+    if expected_fix_commit:
+        # Pin selection to the advisory commit, but still require repository history to prove
+        # that this exact commit removed the ground-truth pattern. A supplied SHA cannot make
+        # an unrelated diff scoreable.
+        shas = [expected_fix_commit]
     for sha in shas:                    # newest first
+        if path_hint:
+            changed_paths = git(["-C", repo_dir, "show", sha, "--format=", "--name-only"])
+            if path_hint.lower() not in changed_paths.lower():
+                continue
         diff = git(["-C", repo_dir, "show", sha, "--unified=0", "--format="])
         removed = any(line.startswith("-") and pattern in line for line in diff.splitlines())
         added = any(line.startswith("+") and pattern in line for line in diff.splitlines())
@@ -106,17 +149,26 @@ def derive_pair(repo_dir: str, pattern: str, *, path_hint: str = "",
     return None
 
 
-def _matching_survivors(scan_root: str, case: RealCase) -> list[str]:
+def _matching_survivors(scan_root: str, case: RealCase) -> ScanObservation:
     """Scanners + reduction funnel over scan_root; return the tools whose surviving candidate
     matches this case's expected weakness (and path hint)."""
     from aegis.ai.candidate_reduction import reduce_candidates
     from aegis.ai.scope import filter_out_of_scope
     from aegis.ai.tool_bridge import ToolBridge, available_tools
     tools = list({t.name: t for lane in ("code", "secrets", "contract")
-                  for t in available_tools(lane)}.values())
+                  for t in available_tools(lane)
+                  if not case.required_tools or t.name in case.required_tools}.values())
     if not tools:
-        return []
-    rows = ToolBridge(timeout=300).findings(ToolBridge(timeout=300).scan(scan_root, tools=tools))
+        return ScanObservation(unavailable={"scanner-runtime": "no registered scanner binary installed"})
+    bridge = ToolBridge(timeout=300)
+    results = bridge.scan(scan_root, tools=tools)
+    attempted = sorted(r.tool for r in results if r.ran)
+    unavailable = {r.tool: r.error or "scanner did not run" for r in results if not r.ran}
+    installed = {tool.name for tool in tools}
+    for required in case.required_tools:
+        if required not in installed:
+            unavailable[required] = "required scanner binary is not installed"
+    rows = bridge.findings(results)
     rows, _ = filter_out_of_scope(rows)
     red = reduce_candidates(rows)
     want = case.expected()
@@ -125,51 +177,98 @@ def _matching_survivors(scan_root: str, case: RealCase) -> list[str]:
         text = f"{c.cwe} {c.rule} {c.summary}".lower()
         if want in text and (not case.path_hint or case.path_hint.lower() in c.path.lower()):
             hit.append(c.tool)
-    return sorted(set(hit))
+    return ScanObservation(sorted(set(hit)), attempted, unavailable)
 
 
-def run_real_case(case: RealCase, *, workdir: str | None = None, git=_git) -> RealCaseResult:
+def run_real_case(case: RealCase, *, workdir: str | None = None, git=_git,
+                  scanner: Callable[[str, RealCase], ScanObservation] = _matching_survivors,
+                  ) -> RealCaseResult:
     tmp = Path(workdir or tempfile.mkdtemp(prefix="aegis-realcve-"))
+    tmp.mkdir(parents=True, exist_ok=True)
     repo_dir = tmp / case.id
     try:
         git(["clone", "--quiet", _clone_url(case.repo), str(repo_dir)], timeout=600)
         if not (repo_dir / ".git").exists():
             return RealCaseResult(case.id, "skipped", "clone failed")
-        pair = derive_pair(str(repo_dir), case.pattern, path_hint=case.path_hint, git=git)
+        if case.expected_fix_commit:
+            present = git([
+                "-C", str(repo_dir), "rev-parse", "--verify",
+                f"{case.expected_fix_commit}^{{commit}}",
+            ]).strip()
+            if not present:
+                git([
+                    "-C", str(repo_dir), "fetch", "--quiet", "origin",
+                    case.expected_fix_commit,
+                ], timeout=600)
+        pair = derive_pair(
+            str(repo_dir), case.pattern, path_hint=case.path_hint,
+            expected_fix_commit=case.expected_fix_commit, git=git,
+        )
         if pair is None:
-            return RealCaseResult(case.id, "skipped", "no fix commit removing the pattern found")
+            reason = (
+                "pinned fix commit does not remove the ground-truth pattern"
+                if case.expected_fix_commit else
+                "no fix commit removing the pattern found"
+            )
+            return RealCaseResult(case.id, "invalid", reason)
         vuln_ref, fix_ref = pair
+        if case.expected_fix_commit and fix_ref != case.expected_fix_commit:
+            return RealCaseResult(
+                case.id, "invalid",
+                f"derived fix {fix_ref} does not match pinned {case.expected_fix_commit}",
+                vuln_ref, fix_ref,
+            )
         git(["-C", str(repo_dir), "checkout", "--quiet", vuln_ref])
-        vuln_hit = _matching_survivors(str(repo_dir), case)
+        vuln_scan = scanner(str(repo_dir), case)
         git(["-C", str(repo_dir), "checkout", "--quiet", fix_ref])
-        fix_hit = _matching_survivors(str(repo_dir), case)
-        if fix_hit:
+        fix_scan = scanner(str(repo_dir), case)
+        if (not vuln_scan.can_score(case.required_tools)
+                or not fix_scan.can_score(case.required_tools)):
+            reasons = {**vuln_scan.unavailable, **fix_scan.unavailable}
+            reason = "; ".join(f"{tool}: {error}" for tool, error in sorted(reasons.items()))
+            return RealCaseResult(case.id, "unavailable", reason[:240], vuln_ref, fix_ref)
+        if fix_scan.detectors:
             return RealCaseResult(case.id, "regressed",
                                   "detector still fires on the fixed revision",
-                                  vuln_ref, fix_ref, fix_hit)
-        if vuln_hit:
-            return RealCaseResult(case.id, "detected", "", vuln_ref, fix_ref, vuln_hit)
+                                  vuln_ref, fix_ref, fix_scan.detectors)
+        if vuln_scan.detectors:
+            return RealCaseResult(case.id, "detected", "", vuln_ref, fix_ref,
+                                  vuln_scan.detectors)
         return RealCaseResult(case.id, "missed", "no matching finding at the vulnerable revision",
                               vuln_ref, fix_ref)
     except Exception as exc:
         return RealCaseResult(case.id, "skipped", f"{type(exc).__name__}: {exc}"[:160])
 
 
-#: built-in verified cases are appended here as they are confirmed in a scanner environment.
-#: Operators add their own via a JSON manifest (AEGIS_REAL_CVE_CASES) rather than hardcoding SHAs.
+#: Built-in cases stay empty: production uses a reviewed, versioned JSON manifest selected by
+#: AEGIS_REAL_CVE_CASES. The manifest pins advisory SHAs; the harness verifies their diffs.
 CASES: tuple[RealCase, ...] = ()
 
 
 def load_cases(path: str | Path) -> tuple[RealCase, ...]:
-    """Load real-CVE cases from a JSON manifest: a list of objects with the RealCase fields.
-    SHAs are NEVER specified — the harness derives the (vulnerable, fixed) pair from history."""
+    """Load real-CVE cases and require independently verifiable upstream provenance.
+    Pinned advisory SHAs are accepted only when their upstream diff removes the pattern."""
     import json
     data = json.loads(Path(path).read_text(encoding="utf-8"))
     fields = set(RealCase.__dataclass_fields__)
     out: list[RealCase] = []
+    seen: set[str] = set()
     for row in data if isinstance(data, list) else []:
         if isinstance(row, dict) and row.get("id") and row.get("repo") and row.get("pattern"):
-            out.append(RealCase(**{k: v for k, v in row.items() if k in fields}))
+            case = RealCase(**{k: v for k, v in row.items() if k in fields})
+            if isinstance(case.required_tools, list):
+                case = RealCase(**{**vars(case), "required_tools": tuple(case.required_tools)})
+            if case.id in seen:
+                raise ValueError(f"duplicate real-CVE case id: {case.id}")
+            if case.expected_fix_commit and (
+                len(case.expected_fix_commit) != 40
+                or any(ch not in "0123456789abcdef" for ch in case.expected_fix_commit.lower())
+            ):
+                raise ValueError(f"{case.id}: expected_fix_commit must be a full 40-character SHA")
+            if case.advisory_url and not case.advisory_url.startswith("https://"):
+                raise ValueError(f"{case.id}: advisory_url must use https")
+            seen.add(case.id)
+            out.append(case)
     return tuple(out)
 
 
@@ -186,6 +285,13 @@ def run_real_bench(cases: tuple[RealCase, ...] | None = None) -> RealBenchResult
 
 
 def main(argv=None) -> int:
+    import argparse
+    import json
+    import os
+
+    parser = argparse.ArgumentParser(description="Measure Aegis against versioned real CVE fixes")
+    parser.add_argument("--json", dest="json_path", help="write machine-readable results")
+    args = parser.parse_args(argv)
     res = run_real_bench()
     print("AEGIS REAL-CVE GROUND TRUTH")
     print("-" * 72)
@@ -198,6 +304,14 @@ def main(argv=None) -> int:
     if not res.cases:
         print("  (no cases — set AEGIS_REAL_CVE_CASES=<manifest.json> with real-CVE entries; "
               "the harness derives the vulnerable/fixed commits itself)")
+    if args.json_path:
+        Path(args.json_path).write_text(json.dumps({
+            "summary": s,
+            "cases": [vars(case) for case in res.cases],
+        }, indent=2, sort_keys=True), encoding="utf-8")
+    strict = os.environ.get("AEGIS_REAL_CVE_STRICT", "").strip().lower() in {"1", "true", "yes"}
+    if strict and (not res.measured or res.regressions or res.invalid):
+        return 1
     return 0
 
 
