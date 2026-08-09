@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from types import SimpleNamespace
 
 import pytest
 
@@ -72,6 +73,24 @@ def test_run_bench_returns_full_result():
         assert result.missed == 0
         assert result.unavailable == result.total
         assert {case.status for case in result.cases} == {"unavailable"}
+
+
+def test_discovered_but_failed_backend_is_unavailable_not_a_miss(monkeypatch):
+    from aegis.ai import tool_bridge
+
+    tool = SimpleNamespace(name="broken")
+    monkeypatch.setattr(tool_bridge, "available_tools", lambda _lane: [tool])
+    monkeypatch.setattr(
+        tool_bridge.ToolBridge,
+        "scan",
+        lambda *_args, **_kwargs: [
+            tool_bridge.ToolResult("broken", ran=False, error="runtime blocked")
+        ],
+    )
+    result = run_bench(CASES[:1])
+    assert result.detected == result.missed == 0
+    assert result.unavailable == 1
+    assert result.unavailable_tools == {"broken": "runtime blocked"}
 
 
 @pytest.mark.skipif(
