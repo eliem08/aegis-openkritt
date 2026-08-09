@@ -15,8 +15,13 @@ class MissionBackendUnavailableError(MissionExecutionError):
     """A configured execution backend is absent or cannot be reached."""
 
 
+class MissionObservationPending(MissionExecutionError):
+    """Execution happened, but an asynchronous observation window is still open."""
+
+
 __all__ = [
     "MissionBackendUnavailableError",
     "MissionExecutionError",
+    "MissionObservationPending",
     "MissionPrerequisiteError",
 ]

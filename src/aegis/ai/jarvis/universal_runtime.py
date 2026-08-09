@@ -19,7 +19,11 @@ from .asset_capability_planner import plan_capability_scan
 from .asset_deep_capabilities import ExtendedAssetKind, PlannedMethod, TargetAssetKind
 from .asset_execution import execute_authorized_offline_method
 from .asset_execution_ticket import CapabilityAvailability, issue_offline_execution_ticket
-from .execution_errors import MissionBackendUnavailableError, MissionPrerequisiteError
+from .execution_errors import (
+    MissionBackendUnavailableError,
+    MissionObservationPending,
+    MissionPrerequisiteError,
+)
 from .mission_capabilities import CapabilityDisposition, MissionWorkerRegistry
 from .mission_scheduler import MissionPlan, MissionScheduler, MissionTask, TaskState
 from .universal_mission import compile_opportunity_mission
@@ -317,6 +321,11 @@ class UniversalMissionRuntime:
             plan = self.scheduler.set_task_state(plan, task.task_id, TaskState.RUNNING)
             try:
                 execution_outcome = executor(task, plan, authorization)
+            except MissionObservationPending as exc:
+                plan = self.scheduler.set_task_state(plan, task.task_id, TaskState.BLOCKED)
+                return MissionExecutionResult(
+                    plan, CapabilityDisposition.WAITING_FOR_PREREQUISITE, str(exc),
+                )
             except MissionPrerequisiteError as exc:
                 plan = self.scheduler.set_task_state(
                     plan, task.task_id, TaskState.WAITING_FOR_PREREQUISITE

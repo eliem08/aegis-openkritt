@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import json
 import time
 from dataclasses import replace
+from datetime import UTC, datetime
 from threading import Lock
 
 from fastapi.testclient import TestClient
@@ -37,9 +39,13 @@ from aegis.ai.jarvis.race_intelligence import RaceOutcome
 from aegis.ai.jarvis.scoped_http_executor import POLICY_ACTION, ScopedEgressHttpExecutor
 from aegis.ai.jarvis.state_store import JarvisStateStore
 from aegis.ai.jarvis.universal_runtime import UniversalMissionRuntime
+from aegis.ai.jarvis.url_consumer_executor import ScopedURLConsumerExecutor
+from aegis.ai.jarvis.url_consumer_intelligence import URLConsumerOutcome
 from aegis.egress.app import EgressServiceConfig, UpstreamResponse, create_egress_app
 from aegis.egress.auth import EgressClaims, issue_token
 from aegis.gateway import NetworkProfile
+from aegis.oast.models import Interaction
+from aegis.oast.service import PrivateOastConfig, PrivateOastService
 
 SCOPE = "scope:http-identity"
 SECRET = "test-egress-signing-key-that-is-long-enough"
@@ -326,6 +332,59 @@ def test_race_executor_uses_barrier_readbacks_and_detects_idempotency_failure():
     assert outcome.verdict.outcome is RaceOutcome.IDEMPOTENCY_FAILURE
     assert len(outcome.experiment.results) == 2
     assert outcome.experiment.before_state_digest != outcome.experiment.after_state_digest
+
+
+def test_url_consumer_executor_requires_exact_private_oast_callback():
+    principal = type("Principal", (), {"tenant_id": "tenant-a"})()
+    oast = PrivateOastService(PrivateOastConfig(
+        oast_domain="callbacks.aegis.test", is_production=True,
+    ))
+    registration = oast.register(
+        principal,
+        engagement_id="engagement-http",
+        scan_id="mission-oast",
+        reservation_id="reservation-oast",
+    )
+
+    def sender(_method, _url, _ip, _headers, body):
+        probe_url = json.loads(body)["url"]
+        host = probe_url.removeprefix("https://")
+        oast.ingest(Interaction(
+            protocol="https",
+            host=host,
+            remote_address="93.184.216.34",
+            raw="controlled callback",
+            observed_at=datetime.now(UTC),
+        ))
+        return UpstreamResponse(202, {"content-type": "application/json"}, b'{"queued":true}')
+
+    identity = _executor(expose_to_peer=False, sender_override=sender)
+    executor = ScopedURLConsumerExecutor(
+        identity.http,
+        fixture_sets={"fixtures:http": _fixture_set()},
+        credential_resolver=identity.credential_resolver,
+        grant_verifier=identity.grant_verifier,
+        oast_service=oast,
+        oast_principal=principal,
+    )
+    _, authorization = _authorization()
+    task = replace(
+        _task(),
+        task_id="task:oast",
+        executor_capability="dynamic:server-url-consumer",
+        payload={
+            "fixture_set_id": "fixtures:http",
+            "oast_session_ref": registration.session_ref,
+            "route": "/webhook",
+            "parameter": "url",
+            "method": "POST",
+            "delivery": "synchronous",
+        },
+    )
+    outcome = executor(task, _plan(task), authorization)
+    assert outcome.verdict.outcome is URLConsumerOutcome.CALLBACK_CONFIRMED
+    assert outcome.evidence.is_reproducible
+    assert f"task:{task.task_id}" in outcome.verdict.evidence
 
 
 def test_runtime_retains_dynamic_evidence_and_missing_fixture_waits(tmp_path):
