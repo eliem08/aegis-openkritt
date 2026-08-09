@@ -147,12 +147,12 @@ def learned_probabilities(program_id: str, weakness: str, *,
         acceptance = prior.acceptance_probability
         uniqueness = prior.uniqueness_probability
 
-    direct_payout_weight = direct_weight if prior.mean_payout_usd > 0 else 0
+    direct_payout_weight = direct_weight if (prior.mean_payout_usd or 0) > 0 else 0
     historical_payout = float(historical.get("mean_payout_usd") or 0.0)
     payout_weight = pseudo_samples if historical_payout > 0 else 0
     if direct_payout_weight + payout_weight:
         mean_payout = (
-            prior.mean_payout_usd * direct_payout_weight
+            (prior.mean_payout_usd or 0.0) * direct_payout_weight
             + historical_payout * payout_weight
         ) / (direct_payout_weight + payout_weight)
     else:

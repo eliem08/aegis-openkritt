@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from typing import Iterable
 
 from ..agentic_os import AgentContext, AgentProposal, AgentRole, RiskClass
+from .exploit_chain_intelligence import EvidenceCapability, ExploitChainAgentV2
 from .hunt_generator import generate_hunt_candidates, infer_surfaces
 from .profit_controls import CandidateDisposition, ProgramEligibility
 from .severity_portfolio import SeverityPortfolioPolicy, select_diverse_candidates
@@ -201,6 +202,38 @@ class ChainReasoningAgent:
     role = AgentRole.BUSINESS_LOGIC
 
     def propose(self, context: AgentContext) -> Iterable[AgentProposal]:
+        capability_item = context.memory.get("universal:evidence_capabilities")
+        if capability_item is not None and isinstance(capability_item.value, list):
+            capabilities = tuple(
+                item for item in capability_item.value if isinstance(item, EvidenceCapability)
+            )
+            chains = ExploitChainAgentV2().build(capabilities)
+            if chains:
+                return tuple(
+                    AgentProposal(
+                        role=self.role,
+                        action="analyze_evidence_capability_chain",
+                        rationale=(
+                            "Validate capability chain "
+                            f"{' -> '.join(step.capability_id for step in chain.steps)}; "
+                            f"confidence={chain.confidence:.2f}, expected_net="
+                            f"{chain.expected_net_usd if chain.expected_net_usd is not None else 'unknown'}."
+                        ),
+                        risk=RiskClass.OFFLINE,
+                        expected_information_gain=max(0.1, min(1.0, chain.confidence)),
+                        expected_cost_usd=float(chain.validation_cost_usd),
+                        metadata={
+                            "chain_id": chain.chain_id,
+                            "steps": tuple(step.capability_id for step in chain.steps),
+                            "final_capabilities": chain.final_capabilities,
+                            "expected_net_usd": (
+                                None if chain.expected_net_usd is None
+                                else float(chain.expected_net_usd)
+                            ),
+                        },
+                    )
+                    for chain in chains[:8]
+                )
         item = context.memory.get("universal:chainable_findings")
         if item is None or not isinstance(item.value, list):
             return ()

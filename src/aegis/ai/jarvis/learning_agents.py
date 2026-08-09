@@ -19,7 +19,7 @@ class BountyOutcome:
     weakness: str
     accepted: bool
     duplicate: bool
-    payout_usd: float = 0.0
+    payout_usd: float | None = None
     cost_usd: float = 0.0
 
 

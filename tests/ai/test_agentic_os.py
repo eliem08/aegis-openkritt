@@ -78,6 +78,29 @@ def test_policy_fails_closed_for_network_and_state_change() -> None:
     assert policy.evaluate(mutating, approved_ctx.authorization).approved
 
 
+def test_execution_grant_cannot_cross_scope_digest() -> None:
+    budget = Budget(max_cost_usd=25, max_requests=10, max_human_minutes=10)
+    grant = mint_execution_grant(
+        type("Allowed", (), {"allowed": True})(),
+        scope_digest="scope-a",
+        budget=budget,
+        verifier=TEST_VERIFIER,
+        network=True,
+    )
+    envelope = AuthorizationEnvelope(scope_digest="scope-b", budget=budget, grant=grant)
+    proposal = AgentProposal(
+        role=AgentRole.REPOSITORY_INTELLIGENCE,
+        action="scan",
+        rationale="test",
+        risk=RiskClass.READ_ONLY,
+        expected_information_gain=0.5,
+        requires_network=True,
+    )
+    decision = grant_policy().evaluate(proposal, envelope)
+    assert not decision.approved
+    assert "verified policy-derived execution grant" in decision.reason
+
+
 def test_finding_lifecycle_cannot_skip_evidence_stages() -> None:
     lifecycle = FindingLifecycle("f1")
     evidence = EvidenceRef("ev1", "source_path", "abc")

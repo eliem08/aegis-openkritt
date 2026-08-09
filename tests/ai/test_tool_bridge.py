@@ -82,3 +82,11 @@ def test_empty_output_yields_no_findings():
     semgrep = next(t for t in TOOLS if t.name == "semgrep")
     results = ToolBridge(run=_run_map({"semgrep": ""})).scan("/r", tools=[semgrep])
     assert results[0].findings == []
+
+
+def test_nonzero_exit_without_parseable_findings_is_unavailable_not_a_clean_run():
+    semgrep = next(t for t in TOOLS if t.name == "semgrep")
+    bridge = ToolBridge(run=lambda _argv, _timeout: ("", "fatal scanner error", 2))
+    result = bridge.scan("/r", tools=[semgrep])[0]
+    assert result.ran is False
+    assert "scanner exited 2" in result.error

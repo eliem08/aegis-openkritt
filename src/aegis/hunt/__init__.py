@@ -6,6 +6,7 @@ authorized automation-permitted code-repo scope, and is dry-run until armed. See
 """
 
 from .orchestrator import HuntConfig, HuntOrchestrator, HuntReport
+from .repository_runtime import RepositoryRuntimeAdapter, repository_opportunities
 from .reward import (
     DEFAULT_REWARD_POLICIES,
     RewardPolicy,
@@ -20,7 +21,9 @@ __all__ = [
     "HuntOrchestrator",
     "HuntReport",
     "RewardPolicy",
+    "RepositoryRuntimeAdapter",
     "eligibility",
     "load_reward_policies",
     "meets_floor",
+    "repository_opportunities",
 ]

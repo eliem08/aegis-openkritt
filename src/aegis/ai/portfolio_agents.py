@@ -2,58 +2,16 @@
 
 from __future__ import annotations
 
-import math
 import random
 from dataclasses import dataclass, field
 from typing import Iterable
 
+from aegis.scheduler.profit import HuntOpportunity
+
 from .agentic_os import AgentContext, AgentProposal, AgentRole, RiskClass
 
-
-@dataclass(frozen=True)
-class Opportunity:
-    """Canonical expected-net-value contract used by target and finding allocation."""
-
-    opportunity_id: str
-    program_id: str
-    bug_class: str
-    expected_payout_usd: float
-    p_valid: float
-    p_accepted: float
-    p_unique: float
-    p_reproducible: float
-    compute_cost_usd: float = 0.0
-    api_cost_usd: float = 0.0
-    review_minutes: float = 0.0
-    opportunity_cost_usd: float = 0.0
-    information_gain: float = 0.0
-
-    def success_probability(self) -> float:
-        """Bounded joint probability of a paid, unique, reproducible valid finding."""
-        return math.prod(
-            max(0.0, min(1.0, value))
-            for value in (self.p_valid, self.p_accepted, self.p_unique, self.p_reproducible)
-        )
-
-    def gross_value(self) -> float:
-        """Expected gross bounty value before research/review costs."""
-        return max(0.0, self.expected_payout_usd) * self.success_probability()
-
-    def total_cost(self, human_hour_cost_usd: float = 0.0) -> float:
-        """Compute + API + opportunity + human-review cost under one formula."""
-        return (
-            max(0.0, self.compute_cost_usd)
-            + max(0.0, self.api_cost_usd)
-            + max(0.0, self.opportunity_cost_usd)
-            + (max(0.0, self.review_minutes) / 60.0) * max(0.0, human_hour_cost_usd)
-        )
-
-    def expected_value(self, human_hour_cost_usd: float = 0.0) -> float:
-        return self.gross_value() - self.total_cost(human_hour_cost_usd)
-
-    def roi_per_review_hour(self, human_hour_cost_usd: float = 0.0) -> float:
-        hours = max(self.review_minutes / 60.0, 1.0 / 60.0)
-        return self.expected_value(human_hour_cost_usd) / hours
+# Compatibility import for callers that historically sourced this name here.
+Opportunity = HuntOpportunity
 
 
 @dataclass
@@ -108,7 +66,7 @@ class ProfitabilityAgent:
         item = context.memory.get("portfolio:opportunities")
         if item is None or not isinstance(item.value, list):
             return ()
-        opportunities = [op for op in item.value if isinstance(op, Opportunity)]
+        opportunities = [op for op in item.value if isinstance(op, HuntOpportunity)]
         opportunities.sort(
             key=lambda op: (
                 -op.expected_value(self.human_hour_cost_usd),
@@ -131,8 +89,8 @@ class ProfitabilityAgent:
                     ),
                     risk=RiskClass.OFFLINE,
                     expected_information_gain=max(0.0, min(1.0, op.information_gain)),
-                    expected_cost_usd=op.compute_cost_usd + op.api_cost_usd,
-                    expected_human_minutes=op.review_minutes,
+                    expected_cost_usd=float(op.compute_cost_usd + op.model_cost_usd),
+                    expected_human_minutes=op.expected_human_minutes,
                     metadata={
                         "opportunity_id": op.opportunity_id,
                         "program_id": op.program_id,

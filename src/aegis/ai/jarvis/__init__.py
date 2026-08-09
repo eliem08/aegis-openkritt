@@ -1,5 +1,7 @@
 """Agent-first Aegis/Jarvis security research operating system."""
 
+from aegis.scheduler.profit import HuntOpportunity
+
 from .advanced import build_jarvis as build_advanced_jarvis
 from .asset_agent import AssetCapabilityAgent, required_prerequisites
 from .asset_capabilities import (
@@ -57,6 +59,27 @@ from .firewall import ContentAssessment, assess_untrusted_content, envelope_untr
 from .guards import PolicyGate
 from .hunt_generator import SurfaceSignal, generate_hunt_candidates, infer_surfaces
 from .hunt_lanes import HuntLane, lane_for_family
+from .hunter_acquisition import HunterAcquisitionResult, HunterArtifactAcquirer
+from .hunter_dispatcher import HunterCapabilityDispatcher, HunterDispatchResult
+from .hunter_phase_a import HunterIntelligencePhaseA, PhaseAResult
+from .hunter_phase_b import HunterIntelligencePhaseB, PhaseBResult
+from .hunter_phase_c import HunterIntelligencePhaseC, PhaseCResult
+from .hunter_phase_d import HunterIntelligencePhaseD, PhaseDResult
+from .hunter_phase_e import HunterIntelligencePhaseE, PhaseEResult
+from .hunter_phase_f import HunterIntelligencePhaseF, PhaseFResult
+from .hunter_phase_g import HunterIntelligencePhaseG, PhaseGResult
+from .hunter_phase_h import HunterIntelligencePhaseH, PhaseHResult
+from .hunter_techniques import (
+    TECHNIQUES,
+    HunterTechnique,
+    TechniqueDefinition,
+    technique_definition,
+)
+from .javascript_intelligence import (
+    JavaScriptIntelligenceAgent,
+    JSDiscovery,
+    JSDiscoveryKind,
+)
 from .learning_agents import (
     BountyOutcome,
     ConfirmedFinding,
@@ -67,6 +90,19 @@ from .learning_agents import (
     VulnerabilityFamilyAgent,
 )
 from .memory import AgentMemory, MemoryRecord
+from .mission_capabilities import (
+    CapabilityDisposition,
+    CapabilityMatch,
+    ExecutionClass,
+    MissionWorkerRegistry,
+    WorkerCapability,
+)
+from .mission_coordinator import (
+    DurableMissionTick,
+    MissionBackendUnavailable,
+    durable_tick,
+    materialize_mission,
+)
 from .mission_scheduler import (
     MissionPlan,
     MissionScheduler,
@@ -101,6 +137,13 @@ from .profit_feedback import (
     prior_weight,
     rank_calibrated_opportunities,
 )
+from .recon_intelligence import (
+    CertificateIntelligenceAgent,
+    CertificateRecord,
+    CertificateSignal,
+    ReconCorrelation,
+    ReconCorrelationAgent,
+)
 from .research import HypothesisAgent, InvariantAgent, JsonModelClient
 from .rule_factory import (
     RuleDraft,
@@ -118,7 +161,14 @@ from .state_store import (
     RuleCandidateRecord,
     VulnerabilityFamily,
 )
-from .universal_mission import compile_candidate_mission
+from .universal_mission import compile_candidate_mission, compile_opportunity_mission
+from .universal_runtime import (
+    MissionExecutionResult,
+    UniversalMissionRuntime,
+    canonical_asset_kind,
+    opportunities_for_program,
+    opportunity_for_asset,
+)
 from .weakness_catalog import (
     UNIVERSAL_FAMILIES,
     HuntCandidate,
@@ -153,7 +203,12 @@ __all__ = [
     "BountyOutcome",
     "BrowserDesktopDeepDiveAgent",
     "CandidateDisposition",
+    "CertificateIntelligenceAgent",
+    "CertificateRecord",
+    "CertificateSignal",
     "CapabilityRequirement",
+    "CapabilityDisposition",
+    "CapabilityMatch",
     "CapabilityScanPlan",
     "ChainOpportunity",
     "ChainReasoningAgent",
@@ -167,37 +222,69 @@ __all__ = [
     "CoverageOptimizerAgent",
     "DeepAssetScanPlan",
     "DeepScannerMethod",
+    "DurableMissionTick",
     "EconomicEstimate",
     "EvidenceAgent",
     "EvidenceStage",
+    "ExecutionClass",
     "ExtendedAssetKind",
     "FindingState",
     "FirmwareDeepDiveAgent",
     "GateDecision",
     "HuntCandidate",
+    "HuntOpportunity",
     "HuntLane",
     "HuntObjective",
+    "HunterIntelligencePhaseA",
+    "HunterIntelligencePhaseB",
+    "HunterIntelligencePhaseC",
+    "HunterIntelligencePhaseD",
+    "HunterIntelligencePhaseE",
+    "HunterIntelligencePhaseF",
+    "HunterIntelligencePhaseG",
+    "HunterIntelligencePhaseH",
+    "HunterArtifactAcquirer",
+    "HunterAcquisitionResult",
+    "HunterCapabilityDispatcher",
+    "HunterDispatchResult",
+    "HunterTechnique",
     "HypothesisAgent",
     "IOSDeepDiveAgent",
     "InvariantAgent",
     "JarvisCommander",
     "JarvisStateStore",
+    "JavaScriptIntelligenceAgent",
+    "JSDiscovery",
+    "JSDiscoveryKind",
     "JsonModelClient",
     "LearnedPrior",
     "MemoryRecord",
     "MissionPlan",
+    "MissionBackendUnavailable",
+    "MissionExecutionResult",
     "MissionScheduler",
     "MissionSchedulerAgent",
     "MissionSnapshot",
     "MissionTask",
+    "MissionWorkerRegistry",
     "OutcomeLearningAgent",
     "PlannedMethod",
+    "PhaseAResult",
+    "PhaseBResult",
+    "PhaseCResult",
+    "PhaseDResult",
+    "PhaseEResult",
+    "PhaseFResult",
+    "PhaseGResult",
+    "PhaseHResult",
     "PolicyGate",
     "PortfolioScheduler",
     "ProfitabilityAgent",
     "ProgramArm",
     "ProgramEligibility",
     "ReportAgent",
+    "ReconCorrelation",
+    "ReconCorrelationAgent",
     "ReproductionAgent",
     "Requirement",
     "ResearchHypothesis",
@@ -220,11 +307,15 @@ __all__ = [
     "SupplyChainDeepDiveAgent",
     "SurfaceSignal",
     "TargetAssetKind",
+    "TechniqueDefinition",
+    "TECHNIQUES",
     "TaskState",
     "UniversalHuntAgent",
+    "UniversalMissionRuntime",
     "VulnerabilityFamily",
     "VulnerabilityFamilyAgent",
     "WeaknessFamily",
+    "WorkerCapability",
     "assess_untrusted_content",
     "blind_spot_score",
     "build_advanced_jarvis",
@@ -232,9 +323,12 @@ __all__ = [
     "calibrate_opportunities",
     "calibrate_opportunity",
     "chain_opportunities",
+    "canonical_asset_kind",
     "compile_candidate_mission",
+    "compile_opportunity_mission",
     "default_asset_deep_dive_agents",
     "draft_detection_rule",
+    "durable_tick",
     "envelope_untrusted_source",
     "estimate_hypothesis",
     "evaluate_stop_loss",
@@ -244,6 +338,9 @@ __all__ = [
     "lane_for_family",
     "method_capability_requirements",
     "missing_capability_requirements",
+    "materialize_mission",
+    "opportunities_for_program",
+    "opportunity_for_asset",
     "plan_asset_scan",
     "plan_capability_scan",
     "plan_deep_asset_scan",
@@ -255,6 +352,7 @@ __all__ = [
     "select_diverse_candidates",
     "supported_asset_kinds",
     "supported_deep_asset_kinds",
+    "technique_definition",
     "to_record",
     "validate_rule_fixture_counts",
 ]

@@ -33,6 +33,8 @@ class CaseResult:
     detected: bool          # vulnerable snippet flagged (true positive)
     false_positive: bool    # clean snippet flagged (negative control failed)
     detectors: list[str] = field(default_factory=list)
+    status: str = "scored"
+    reason: str = ""
 
 
 @dataclass
@@ -42,11 +44,14 @@ class BenchResult:
     detected: int
     missed: int
     false_positives: int
+    unavailable: int = 0
     cases: list[CaseResult] = field(default_factory=list)
+    unavailable_tools: dict[str, str] = field(default_factory=dict)
 
     @property
     def recall(self) -> float:
-        return round(self.detected / self.total, 4) if self.total else 0.0
+        scored = self.detected + self.missed
+        return round(self.detected / scored, 4) if scored else 0.0
 
     @property
     def precision(self) -> float:
@@ -55,7 +60,8 @@ class BenchResult:
 
     @property
     def fp_rate(self) -> float:
-        return round(self.false_positives / self.total, 4) if self.total else 0.0
+        scored = self.detected + self.missed
+        return round(self.false_positives / scored, 4) if scored else 0.0
 
     def as_benchmark_run(self):
         """Map detector metrics without falsely promoting detections to reproductions."""
@@ -76,6 +82,8 @@ class BenchResult:
             "detected": self.detected,
             "missed": self.missed,
             "false_positives": self.false_positives,
+            "unavailable": self.unavailable,
+            "unavailable_tools": self.unavailable_tools,
             "recall": self.recall,
             "precision": self.precision,
             "fp_rate": self.fp_rate,
@@ -94,13 +102,21 @@ def _write_tree(cases, attr: str) -> Path:
     return d
 
 
-def _findings_by_file(scan_root: Path, tools) -> dict[str, list[dict]]:
+def _findings_by_file(
+    scan_root: Path, tools
+) -> tuple[dict[str, list[dict]], set[str], dict[str, str]]:
     """basename -> normalized scanner findings for every result in ``scan_root``."""
     from aegis.ai.tool_bridge import ToolBridge
 
     results = ToolBridge(timeout=300).scan(str(scan_root), tools=tools)
     by_file: dict[str, list[dict]] = {}
+    ran: set[str] = set()
+    unavailable: dict[str, str] = {}
     for result in results:
+        if result.ran:
+            ran.add(result.tool)
+        else:
+            unavailable[result.tool] = result.error or "scanner did not execute"
         for row in result.findings:
             answer = row.get("json_answer") or {}
             base = Path(str(answer.get("file_path") or "").replace("\\", "/")).name
@@ -112,7 +128,7 @@ def _findings_by_file(scan_root: Path, tools) -> dict[str, list[dict]]:
                 + str(answer.get("explanation") or "")
             ).lower()
             by_file.setdefault(base, []).append({"tool": result.tool, "text": text})
-    return by_file
+    return by_file, ran, unavailable
 
 
 def run_bench(cases=CASES) -> BenchResult:
@@ -127,15 +143,37 @@ def run_bench(cases=CASES) -> BenchResult:
             tools=[],
             total=len(cases),
             detected=0,
-            missed=len(cases),
+            missed=0,
             false_positives=0,
-            cases=[CaseResult(case.id, case.cwe, False, False) for case in cases],
+            unavailable=len(cases),
+            cases=[CaseResult(
+                case.id, case.cwe, False, False, status="unavailable",
+                reason="no compatible scanner backend is installed",
+            ) for case in cases],
         )
 
     vuln_dir = _write_tree(cases, "vulnerable")
     clean_dir = _write_tree(cases, "clean")
-    vuln_hits = _findings_by_file(vuln_dir, tools)
-    clean_hits = _findings_by_file(clean_dir, tools)
+    vuln_hits, vuln_ran, vuln_unavailable = _findings_by_file(vuln_dir, tools)
+    clean_hits, clean_ran, clean_unavailable = _findings_by_file(clean_dir, tools)
+    scored_tools = vuln_ran.intersection(clean_ran)
+    unavailable_tools = {**vuln_unavailable, **clean_unavailable}
+    # Every bundled pair is authored against the bundled Semgrep rules. Other scanners are
+    # useful auxiliary observers, but they cannot turn a missing canonical detector into a
+    # language-specific miss (for example, Bandit cannot score a PHP case).
+    missing_required = {"semgrep"} - scored_tools
+    if not scored_tools or missing_required:
+        missing = ", ".join(sorted(missing_required)) or "all compatible scanners"
+        return BenchResult(
+            tools=sorted(scored_tools), total=len(cases), detected=0, missed=0,
+            false_positives=0,
+            unavailable=len(cases),
+            unavailable_tools=unavailable_tools,
+            cases=[CaseResult(
+                case.id, case.cwe, False, False, status="unavailable",
+                reason=f"required canonical detector unavailable: {missing}",
+            ) for case in cases],
+        )
 
     results: list[CaseResult] = []
     for case in cases:
@@ -154,12 +192,14 @@ def run_bench(cases=CASES) -> BenchResult:
     detected = sum(1 for result in results if result.detected)
     false_positives = sum(1 for result in results if result.false_positive)
     return BenchResult(
-        tools=[tool.name for tool in tools],
+        tools=sorted(scored_tools),
         total=len(cases),
         detected=detected,
         missed=len(cases) - detected,
         false_positives=false_positives,
+        unavailable=0,
         cases=results,
+        unavailable_tools=unavailable_tools,
     )
 
 
@@ -168,13 +208,16 @@ def main(argv=None) -> int:
     print(f"\nAEGIS-BENCH — detectors: {', '.join(res.tools) or '(none installed)'}")
     print("-" * 72)
     for case in res.cases:
+        if case.status == "unavailable":
+            print(f"  - UNAVAIL  {case.cwe:9} {case.id:28} {case.reason}")
+            continue
         mark = "✓ DETECT" if case.detected else "✗ MISS  "
         fp = "  ⚠ FP-on-clean" if case.false_positive else ""
         print(f"  {mark}  {case.cwe:9} {case.id:28} {','.join(case.detectors)}{fp}")
     print("-" * 72)
     print(
         f"  cases {res.total} | detected {res.detected} | missed {res.missed} | "
-        f"false-positives {res.false_positives}"
+        f"unavailable {res.unavailable} | false-positives {res.false_positives}"
     )
     print(
         f"  recall {res.recall:.2f} | precision {res.precision:.2f} | "

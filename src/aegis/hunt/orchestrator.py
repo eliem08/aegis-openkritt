@@ -12,12 +12,15 @@ import time
 from dataclasses import dataclass, field
 from decimal import Decimal
 
-from aegis.integrations.repo_pipeline import run_repo_pipeline, scan_one_repo
+from aegis.ai.agentic_os import AuthorizationEnvelope
+from aegis.integrations.repo_pipeline import run_repo_pipeline
 from aegis.learn import Calibration, sync_hackerone_outcomes
 from aegis.model.finding import priority_score
 from aegis.report import build_console
+from aegis.scheduler.profit import HuntOpportunity
 
 from .portfolio import PortfolioDecision, plan_portfolio
+from .repository_runtime import RepositoryAuthorizationResult, RepositoryRuntimeAdapter
 
 
 @dataclass
@@ -37,6 +40,7 @@ class HuntConfig:
     exploration_fraction: float = 0.2
     expected_bounties: dict[str, Decimal] = field(default_factory=dict)
     base_valid_probability: float = 0.5
+    base_find_probability: float = 0.5
     base_acceptance_probability: float = 0.5
     estimated_model_cost: Decimal = Decimal("0.02")
     estimated_scanner_cost: Decimal = Decimal("0.05")
@@ -49,6 +53,8 @@ class HuntConfig:
     verify_threshold: float = 0.35             # min candidate priority to promote
     verify_thinking_effort: str = "high"       # deeper reasoning for the narrow pass
     max_verify_per_cycle: int = 3              # cap Opus verify launches per cycle
+    authorizations: dict[str, AuthorizationEnvelope] = field(default_factory=dict)
+    grant_verifier: object | None = None
 
     def __post_init__(self) -> None:
         if self.max_programs < 0 or self.max_repos_per_program < 0 or self.portfolio_capacity < 0:
@@ -57,6 +63,8 @@ class HuntConfig:
             raise ValueError("exploration_fraction must be in [0, 1]")
         if not 0 <= self.base_valid_probability <= 1:
             raise ValueError("base_valid_probability must be in [0, 1]")
+        if not 0 <= self.base_find_probability <= 1:
+            raise ValueError("base_find_probability must be in [0, 1]")
         if not 0 <= self.base_acceptance_probability <= 1:
             raise ValueError("base_acceptance_probability must be in [0, 1]")
         for value in (
@@ -89,6 +97,7 @@ class HuntReport:
     selected: list = field(default_factory=list)
     portfolio: list[PortfolioDecision] = field(default_factory=list)
     tracked: dict = field(default_factory=dict)   # scan_id -> {stage, model, ...}
+    authorization_results: list[RepositoryAuthorizationResult] = field(default_factory=list)
 
     def summary(self) -> dict:
         launched = sum(len([launch for launch in p.launches if launch.ok]) for p in self.programs)
@@ -119,6 +128,12 @@ class HuntReport:
             "estimated_selected_cost_usd": str(estimated_cost),
             "expected_selected_net_value_usd": str(expected_net),
             "selected_missing_bounty": sum(d.score.missing_bounty for d in chosen),
+            "missions_authorized": sum(item.approved for item in self.authorization_results),
+            "missions_blocked": sum(not item.approved for item in self.authorization_results),
+            "mission_blocks": [
+                {"opportunity_id": item.opportunity.opportunity_id, "reason": item.reason}
+                for item in self.authorization_results if not item.approved
+            ][:10],
             "portfolio": [decision.summary() for decision in self.portfolio],
             "scans_launched_this_cycle": launched,
             "launch_errors": launch_errors,
@@ -142,6 +157,8 @@ class HuntOrchestrator:
         self._tracked: dict[str, dict] = {}
         self._promoted: set[str] = set()   # candidate fingerprints already sent to verify
         self._selected: list = []
+        self._opportunities: dict[tuple[str, str], object] = {}
+        self._promotion_authorizations: list[RepositoryAuthorizationResult] = []
 
     def _handles(self) -> list[str]:
         if self._cfg.only_handles:
@@ -197,31 +214,35 @@ class HuntOrchestrator:
             verification_time_cost=cfg.estimated_verification_time_cost,
             exploration_fraction=cfg.exploration_fraction,
             reward_policies=(cfg.reward_policies or None),
+            authorizations=cfg.authorizations,
+            p_find=cfg.base_find_probability,
         )
-        selected_by_handle: dict[str, set[str]] = {}
+        selected_by_handle: dict[str, list] = {}
         for decision in portfolio:
+            self._opportunities[(decision.handle, decision.repo_full)] = decision.opportunity
             if decision.selected:
-                selected_by_handle.setdefault(decision.handle, set()).add(decision.repo_full)
+                selected_by_handle.setdefault(decision.handle, []).append(decision.opportunity)
 
         # Pass 3: launch only selected repositories, and only when explicitly armed.
+        authorization_results: list[RepositoryAuthorizationResult] = []
+        runtime = RepositoryRuntimeAdapter(self._h1, self._ok, verifier=cfg.grant_verifier)
         if not cfg.dry_run:
             for program in programs:
-                allowlist = selected_by_handle.get(program.handle, set())
-                if program.gated or not allowlist:
+                opportunities = tuple(selected_by_handle.get(program.handle, ()))
+                if program.gated or not opportunities:
                     continue
-                launched = run_repo_pipeline(
-                    self._h1,
-                    self._ok,
-                    program.handle,
+                launched, decisions = runtime.launch_program(
+                    program,
+                    opportunities,
+                    cfg.authorizations.get(program.handle),
                     model=cfg.model,
                     fallbacks=(cfg.fallback_models or None),
                     bounty_only=cfg.require_bounty,
                     workflow_id=(cfg.workflow_id or None),
                     post_script_id=(cfg.post_script_id or None),
                     use_deepseek_fallback=cfg.use_deepseek_fallback,
-                    launch=True,
-                    repo_allowlist=allowlist,
                 )
+                authorization_results.extend(decisions)
                 program.launches = launched.launches
                 for launch in program.launches:
                     if launch.scan_id:
@@ -235,7 +256,10 @@ class HuntOrchestrator:
 
         # Stage 2 (narrow): promote high-priority stage-1 candidates to an Opus verify
         # pass, scoped to the finding's file. Cheap wide net, expensive deep dive.
-        verified = self._promote(per_scan, cfg) if (cfg.verify_model and not cfg.dry_run) else 0
+        verified = 0
+        if cfg.verify_model and not cfg.dry_run:
+            verified = self._promote(per_scan, cfg, runtime)
+            authorization_results.extend(self._promotion_authorizations)
 
         console = build_console(all_candidates, calibration=calibration)
         sync = sync_hackerone_outcomes(self._h1, self._ledger, self._outcomes)
@@ -250,18 +274,25 @@ class HuntOrchestrator:
             selected=list(self._selected),
             portfolio=portfolio,
             tracked=dict(self._tracked),
+            authorization_results=authorization_results,
         )
 
-    def _promote(self, per_scan: dict, cfg: HuntConfig) -> int:
+    def _promote(self, per_scan: dict, cfg: HuntConfig,
+                 runtime: RepositoryRuntimeAdapter | None = None) -> int:
         """Launch an Opus verify scan for each fresh, high-priority stage-1 candidate,
         scoped to the finding's file. Capped per cycle; idempotent by fingerprint."""
         launched = 0
+        authorization_results: list[RepositoryAuthorizationResult] = []
+        runtime = runtime or RepositoryRuntimeAdapter(
+            self._h1, self._ok, verifier=cfg.grant_verifier,
+        )
         for scan_id, candidates in per_scan.items():
             meta = self._tracked.get(scan_id, {})
             if meta.get("stage") != 1:
                 continue
             for candidate in candidates:
                 if launched >= cfg.max_verify_per_cycle:
+                    self._promotion_authorizations = authorization_results
                     return launched
                 fingerprint = candidate.fingerprint()
                 if fingerprint in self._promoted:
@@ -270,21 +301,56 @@ class HuntOrchestrator:
                     continue
                 file_scope = (candidate.code_location.split(":")[0]
                               if candidate.code_location else "full repository")
-                self._promoted.add(fingerprint)   # mark even if launch fails, to avoid retry storms
+                opportunity = self._opportunities.get(
+                    (meta.get("handle", ""), meta.get("repo_full", ""))
+                )
+                if opportunity is None:
+                    envelope = cfg.authorizations.get(meta.get("handle", ""))
+                    opportunity = HuntOpportunity(
+                        opportunity_id=(
+                            f"repo-verify:{meta.get('handle', '')}:{meta.get('repo_full', '')}"
+                        ),
+                        program_id=f"program:{meta.get('handle', '')}",
+                        program_handle=meta.get("handle", ""),
+                        asset_id=f"repository:{meta.get('repo_full', '')}",
+                        asset_kind="source_code",
+                        asset_locator=meta.get("repo_full", ""),
+                        scope_digest=envelope.scope_digest if envelope else "",
+                        authorization_id=(envelope.grant.decision_fingerprint
+                                          if envelope and envelope.grant else ""),
+                        attack_surface="source",
+                        weakness_family="target_allocation",
+                        prerequisite_state="ready" if envelope and envelope.grant
+                        else "waiting_for_authorization",
+                        estimated_payout_usd=None,
+                        p_find=cfg.base_find_probability,
+                        p_valid=cfg.base_valid_probability,
+                        p_unique=1.0,
+                        p_accepted=cfg.base_acceptance_probability,
+                        model_cost_usd=cfg.estimated_model_cost,
+                        scanner_cost_usd=cfg.estimated_scanner_cost,
+                        validation_cost_usd=cfg.estimated_verification_time_cost,
+                        provenance=("aegis.hunt.verify-adapter",),
+                    )
                 try:
-                    verify = scan_one_repo(
-                        self._ok, meta["repo_full"], model=cfg.verify_model,
-                        workflow_id=(cfg.workflow_id or None), handle=meta.get("handle", ""),
+                    verify, authorization = runtime.launch_verification(
+                        opportunity,
+                        cfg.authorizations.get(meta.get("handle", "")),
+                        model=cfg.verify_model,
+                        workflow_id=(cfg.workflow_id or None),
                         repo_scope=file_scope or "full repository",
                         thinking_effort=cfg.verify_thinking_effort,
                         fallbacks=(cfg.fallback_models or None))
+                    authorization_results.append(authorization)
                 except Exception:
                     continue
-                if verify.scan_id:
+                if verify and verify.scan_id:
+                    self._promoted.add(fingerprint)
                     self._tracked[verify.scan_id] = {
                         "repo_full": meta["repo_full"], "handle": meta.get("handle", ""),
                         "stage": 2, "model": cfg.verify_model}
                     launched += 1
+        self._promotion_authorizations = authorization_results
         return launched
 
     def run(self, *, cycles: int | None = None, sleep=time.sleep):

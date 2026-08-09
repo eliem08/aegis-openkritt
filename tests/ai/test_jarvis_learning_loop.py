@@ -1,6 +1,12 @@
 from __future__ import annotations
 
-from aegis.ai.agentic_os import AgentContext, AuthorizationEnvelope, Budget, SecurityKnowledgeGraph, SharedMemory
+from aegis.ai.agentic_os import (
+    AgentContext,
+    AuthorizationEnvelope,
+    Budget,
+    SecurityKnowledgeGraph,
+    SharedMemory,
+)
 from aegis.ai.jarvis.advanced import build_jarvis
 from aegis.ai.jarvis.coverage import CoverageCell
 from aegis.ai.jarvis.learning_agents import (
@@ -53,6 +59,16 @@ def test_outcome_learning_persists_bayesian_priors(tmp_path) -> None:
         assert prior.samples == 3
         assert prior.mean_payout_usd == 1000.0
         assert prior.mean_cost_usd > 0
+
+
+def test_unknown_payout_is_preserved_in_learning_state(tmp_path) -> None:
+    with JarvisStateStore(tmp_path / "jarvis.db") as store:
+        prior = OutcomeLearningAgent().learn(
+            store,
+            [BountyOutcome("Program-A", "Authorization", True, False, None, 3.0)],
+        )[0]
+        assert prior.samples == 1
+        assert prior.mean_payout_usd is None
 
 
 def test_vulnerability_family_is_cross_program_and_rule_is_fixture_gated(tmp_path) -> None:

@@ -16,7 +16,7 @@ class LearnedPrior:
     samples: int
     acceptance_probability: float
     uniqueness_probability: float
-    mean_payout_usd: float
+    mean_payout_usd: float | None
     mean_cost_usd: float
 
 
@@ -178,10 +178,10 @@ class JarvisStateStore:
         weakness: str,
         accepted: bool,
         duplicate: bool,
-        payout_usd: float,
+        payout_usd: float | None,
         cost_usd: float,
     ) -> LearnedPrior:
-        if payout_usd < 0 or cost_usd < 0:
+        if (payout_usd is not None and payout_usd < 0) or cost_usd < 0:
             raise ValueError("payout and cost must be non-negative")
         program = self._norm(program_id)
         weakness_key = self._norm(weakness)
@@ -213,8 +213,8 @@ class JarvisStateStore:
                     0 if accepted else 1,
                     0 if duplicate else 1,
                     1 if duplicate else 0,
-                    payout_usd,
-                    1 if payout_usd > 0 else 0,
+                    payout_usd or 0.0,
+                    1 if payout_usd is not None and payout_usd > 0 else 0,
                     cost_usd,
                     program,
                     weakness_key,
@@ -230,7 +230,7 @@ class JarvisStateStore:
             (program, weakness_key),
         ).fetchone()
         if row is None:
-            return LearnedPrior(program, weakness_key, 0, 0.5, 0.5, 0.0, 0.0)
+            return LearnedPrior(program, weakness_key, 0, 0.5, 0.5, None, 0.0)
         return LearnedPrior(
             program_id=program,
             weakness=weakness_key,
@@ -242,7 +242,7 @@ class JarvisStateStore:
             mean_payout_usd=(
                 float(row["payout_sum"]) / int(row["payout_count"])
                 if int(row["payout_count"]) > 0
-                else 0.0
+                else None
             ),
             mean_cost_usd=float(row["cost_sum"]) / max(1, int(row["samples"])),
         )

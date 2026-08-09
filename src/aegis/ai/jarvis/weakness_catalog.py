@@ -8,8 +8,11 @@ chainable, or otherwise have positive expected net value.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from decimal import Decimal
 from enum import Enum
 from typing import Iterable
+
+from aegis.scheduler.profit import HuntOpportunity
 
 
 class SeverityTier(str, Enum):
@@ -38,7 +41,7 @@ class HuntCandidate:
     family: WeaknessFamily
     surface: str
     severity: SeverityTier
-    expected_payout_usd: float
+    expected_payout_usd: float | None
     p_valid: float
     p_accepted: float
     p_unique: float
@@ -48,14 +51,50 @@ class HuntCandidate:
     novelty_score: float = 0.0
     chainability: float = 0.0
     coverage_gap: float = 0.0
+    p_find: float = 1.0
+    compute_cost_usd: float = 0.0
+    model_cost_usd: float = 0.0
+    scanner_cost_usd: float = 0.0
 
     @property
     def expected_net_usd(self) -> float:
-        probability = 1.0
-        for value in (self.p_valid, self.p_accepted, self.p_unique, self.p_reproducible):
-            probability *= max(0.0, min(1.0, value))
-        return self.expected_payout_usd * probability - (
-            max(0.0, self.validation_cost_usd) + max(0.0, self.human_review_cost_usd)
+        return self.to_opportunity(opportunity_id="candidate:economics").expected_value()
+
+    def to_opportunity(self, *, opportunity_id: str, program_id: str = "",
+                       program_handle: str = "", asset_id: str = "",
+                       asset_kind: str = "unresolved", asset_locator: str = "",
+                       scope_digest: str = "", authorization_id: str = "",
+                       prerequisite_state: str = "ready",
+                       provenance: tuple[str, ...] = ()) -> HuntOpportunity:
+        """Adapt the legacy candidate shape into the canonical opportunity."""
+        payout = None if self.expected_payout_usd is None else Decimal(str(self.expected_payout_usd))
+        return HuntOpportunity(
+            opportunity_id=opportunity_id,
+            program_id=program_id,
+            program_handle=program_handle,
+            asset_id=asset_id,
+            asset_kind=asset_kind,
+            asset_locator=asset_locator,
+            scope_digest=scope_digest,
+            authorization_id=authorization_id,
+            attack_surface=self.surface,
+            weakness_family=self.family.family_id,
+            prerequisite_state=prerequisite_state,
+            coverage_score=max(0.0, min(1.0, self.coverage_gap)),
+            estimated_payout_usd=payout,
+            p_find=max(0.0, min(1.0, self.p_find)),
+            p_valid=max(0.0, min(1.0, self.p_valid)),
+            p_unique=max(0.0, min(1.0, self.p_unique)),
+            p_accepted=max(0.0, min(1.0, self.p_accepted)),
+            p_reproducible=max(0.0, min(1.0, self.p_reproducible)),
+            compute_cost_usd=max(0.0, self.compute_cost_usd),
+            model_cost_usd=max(0.0, self.model_cost_usd),
+            scanner_cost_usd=max(0.0, self.scanner_cost_usd),
+            validation_cost_usd=max(0.0, self.validation_cost_usd),
+            human_cost_usd=max(0.0, self.human_review_cost_usd),
+            information_gain=max(0.0, min(1.0, self.novelty_score)),
+            uncertainty=max(0.0, min(1.0, 1.0 - self.p_valid)),
+            provenance=provenance or ("aegis.ai.jarvis.HuntCandidate",),
         )
 
     @property
