@@ -67,7 +67,11 @@ def test_run_bench_returns_full_result():
     result = run_bench()
     assert result.total == len(CASES)
     assert len(result.cases) == len(CASES)
-    assert result.detected + result.missed == result.total
+    assert result.detected + result.missed + result.unavailable == result.total
+    if not result.tools:
+        assert result.missed == 0
+        assert result.unavailable == result.total
+        assert {case.status for case in result.cases} == {"unavailable"}
 
 
 @pytest.mark.skipif(

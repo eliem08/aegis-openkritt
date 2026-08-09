@@ -33,6 +33,8 @@ class CaseResult:
     detected: bool          # vulnerable snippet flagged (true positive)
     false_positive: bool    # clean snippet flagged (negative control failed)
     detectors: list[str] = field(default_factory=list)
+    status: str = "scored"
+    reason: str = ""
 
 
 @dataclass
@@ -42,11 +44,13 @@ class BenchResult:
     detected: int
     missed: int
     false_positives: int
+    unavailable: int = 0
     cases: list[CaseResult] = field(default_factory=list)
 
     @property
     def recall(self) -> float:
-        return round(self.detected / self.total, 4) if self.total else 0.0
+        scored = self.detected + self.missed
+        return round(self.detected / scored, 4) if scored else 0.0
 
     @property
     def precision(self) -> float:
@@ -55,7 +59,8 @@ class BenchResult:
 
     @property
     def fp_rate(self) -> float:
-        return round(self.false_positives / self.total, 4) if self.total else 0.0
+        scored = self.detected + self.missed
+        return round(self.false_positives / scored, 4) if scored else 0.0
 
     def as_benchmark_run(self):
         """Map detector metrics without falsely promoting detections to reproductions."""
@@ -76,6 +81,7 @@ class BenchResult:
             "detected": self.detected,
             "missed": self.missed,
             "false_positives": self.false_positives,
+            "unavailable": self.unavailable,
             "recall": self.recall,
             "precision": self.precision,
             "fp_rate": self.fp_rate,
@@ -127,9 +133,13 @@ def run_bench(cases=CASES) -> BenchResult:
             tools=[],
             total=len(cases),
             detected=0,
-            missed=len(cases),
+            missed=0,
             false_positives=0,
-            cases=[CaseResult(case.id, case.cwe, False, False) for case in cases],
+            unavailable=len(cases),
+            cases=[CaseResult(
+                case.id, case.cwe, False, False, status="unavailable",
+                reason="no compatible scanner backend is installed",
+            ) for case in cases],
         )
 
     vuln_dir = _write_tree(cases, "vulnerable")
@@ -159,6 +169,7 @@ def run_bench(cases=CASES) -> BenchResult:
         detected=detected,
         missed=len(cases) - detected,
         false_positives=false_positives,
+        unavailable=0,
         cases=results,
     )
 
@@ -168,13 +179,16 @@ def main(argv=None) -> int:
     print(f"\nAEGIS-BENCH — detectors: {', '.join(res.tools) or '(none installed)'}")
     print("-" * 72)
     for case in res.cases:
+        if case.status == "unavailable":
+            print(f"  - UNAVAIL  {case.cwe:9} {case.id:28} {case.reason}")
+            continue
         mark = "✓ DETECT" if case.detected else "✗ MISS  "
         fp = "  ⚠ FP-on-clean" if case.false_positive else ""
         print(f"  {mark}  {case.cwe:9} {case.id:28} {','.join(case.detectors)}{fp}")
     print("-" * 72)
     print(
         f"  cases {res.total} | detected {res.detected} | missed {res.missed} | "
-        f"false-positives {res.false_positives}"
+        f"unavailable {res.unavailable} | false-positives {res.false_positives}"
     )
     print(
         f"  recall {res.recall:.2f} | precision {res.precision:.2f} | "
