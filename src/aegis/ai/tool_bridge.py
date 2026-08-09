@@ -103,7 +103,7 @@ def _default_run(argv, timeout):
         check=False,
         env=_scanner_env(),
     )
-    return process.stdout or "", process.stderr or ""
+    return process.stdout or "", process.stderr or "", process.returncode
 
 
 class ToolBridge:
@@ -175,7 +175,12 @@ class ToolBridge:
                     argv[0] = resolved
 
             try:
-                stdout, stderr = self._run(argv, self._timeout)
+                execution = self._run(argv, self._timeout)
+                if len(execution) == 3:
+                    stdout, stderr, exit_code = execution
+                else:
+                    stdout, stderr = execution
+                    exit_code = 0
             except Exception as exc:
                 emit(
                     "scanner",
@@ -195,6 +200,23 @@ class ToolBridge:
                 )
 
             findings = _drop_noise_paths(_parse(tool, stdout))
+            if exit_code != 0 and not findings:
+                emit(
+                    "scanner",
+                    {
+                        "tool": tool.name,
+                        "state": "done",
+                        "count": 0,
+                        "ms": round((time.monotonic() - started) * 1000),
+                        "error": True,
+                    },
+                )
+                return ToolResult(
+                    tool=tool.name,
+                    ran=False,
+                    error=(f"scanner exited {exit_code}: {stderr or stdout}")[:200],
+                    runtime=runtime_record.as_dict() if runtime_record else {},
+                )
             runtime_payload = provenance(runtime_record, argv) if runtime_record else {}
             if runtime_payload:
                 for row in findings:
