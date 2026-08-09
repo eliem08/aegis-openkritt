@@ -23,6 +23,13 @@ from aegis.gateway import GatewayConfig, NetworkProfile, ScopedExecutionGateway
 from aegis.policy import ScopeGuard
 
 from .auth import EgressClaims, EgressTokenError, verify_token
+from .grpc_transport import (
+    GRPC_FORWARDED_METADATA,
+    GrpcUnaryRequest,
+    GrpcUnaryResponse,
+    GrpcUnarySender,
+    default_grpc_unary_sender,
+)
 
 MAX_REQUEST_BODY = 1_048_576
 MAX_RESPONSE_BODY = 2_097_152
@@ -272,10 +279,12 @@ def create_egress_app(
     resolver=None,
     sender: Sender | None = None,
     websocket_sender: WebSocketSender | None = None,
+    grpc_unary_sender: GrpcUnarySender | None = None,
 ) -> FastAPI:
     config = config or EgressServiceConfig.from_env()
     sender = sender or _default_sender
     websocket_sender = websocket_sender or _default_websocket_sender
+    grpc_unary_sender = grpc_unary_sender or default_grpc_unary_sender
     app = FastAPI(title="aegis scoped egress", docs_url=None, redoc_url=None, openapi_url=None)
 
     @app.get("/healthz")
@@ -373,5 +382,42 @@ def create_egress_app(
             )
         except (ConnectionError, OSError, ssl.SSLError, ValueError) as exc:
             raise HTTPException(status_code=502, detail=f"WebSocket backend failed: {exc}") from exc
+
+    @app.post("/v1/grpc/unary", response_model=GrpcUnaryResponse)
+    def grpc_unary(
+        request: GrpcUnaryRequest, authorization: str | None = Header(default=None),
+    ):
+        if not authorization or not authorization.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="missing egress authorization")
+        try:
+            claims = verify_token(authorization[7:], config.signing_key)
+        except EgressTokenError as exc:
+            raise HTTPException(status_code=401, detail=str(exc)) from exc
+        if claims.method.upper() != "POST" or request.url != claims.destination:
+            raise HTTPException(status_code=403, detail="request does not match signed destination")
+        parts = urlsplit(request.url)
+        if parts.scheme not in {"http", "https"}:
+            raise HTTPException(status_code=422, detail="gRPC execution requires HTTP(S) authority")
+        if not request.service_method.startswith("/") or request.service_method != parts.path:
+            raise HTTPException(status_code=422, detail="gRPC method must match the signed URL path")
+        gateway = _gateway(claims, resolver=resolver)
+        decision = gateway.authorize("POST", request.url)
+        if not decision.allowed or not decision.pinned_ip:
+            raise HTTPException(status_code=403, detail=decision.reason)
+        if budget_backend is not None:
+            remaining = max(1, claims.expires_at - claims.issued_at)
+            key = f"egress-budget:{claims.tenant_id}:{claims.engagement_id}:{claims.budget_id}"
+            if budget_backend.incr_window(key, remaining) > claims.request_limit:
+                raise HTTPException(status_code=429, detail="signed request budget exhausted")
+        metadata = {
+            key.lower(): value for key, value in request.metadata.items()
+            if key.lower() in GRPC_FORWARDED_METADATA
+        }
+        if any("\r" in value or "\n" in value for value in metadata.values()):
+            raise HTTPException(status_code=422, detail="gRPC metadata contains a line break")
+        try:
+            return grpc_unary_sender(request.url, decision.pinned_ip, request, metadata)
+        except (RuntimeError, TypeError, ValueError) as exc:
+            raise HTTPException(status_code=502, detail=f"gRPC backend failed: {exc}") from exc
 
     return app
