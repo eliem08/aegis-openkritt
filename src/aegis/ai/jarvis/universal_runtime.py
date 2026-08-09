@@ -20,7 +20,7 @@ from .asset_deep_capabilities import ExtendedAssetKind, PlannedMethod, TargetAss
 from .asset_execution import OfflineAssetExecutionOutcome, execute_authorized_offline_method
 from .asset_execution_ticket import CapabilityAvailability, issue_offline_execution_ticket
 from .mission_capabilities import CapabilityDisposition, MissionWorkerRegistry
-from .mission_scheduler import MissionPlan, MissionScheduler, TaskState
+from .mission_scheduler import MissionPlan, MissionScheduler, MissionTask, TaskState
 from .universal_mission import compile_opportunity_mission
 
 _TYPE_TO_KIND: dict[AssetType, TargetAssetKind] = {
@@ -141,6 +141,7 @@ class MissionExecutionResult:
 
 
 DynamicExecutor = Callable[[PlannedMethod, MissionPlan, AuthorizationEnvelope], Any]
+MissionTaskExecutor = Callable[[MissionTask, MissionPlan, AuthorizationEnvelope], Any]
 
 
 class UniversalMissionRuntime:
@@ -153,11 +154,13 @@ class UniversalMissionRuntime:
         grant_verifier,
         workers: MissionWorkerRegistry | None = None,
         dynamic_executor: DynamicExecutor | None = None,
+        mission_task_executors: dict[str, MissionTaskExecutor] | None = None,
     ) -> None:
         self.scheduler = scheduler
         self.grant_verifier = grant_verifier
         self.workers = workers or MissionWorkerRegistry()
         self.dynamic_executor = dynamic_executor
+        self.mission_task_executors = dict(mission_task_executors or {})
 
     @staticmethod
     def _method(
@@ -187,6 +190,10 @@ class UniversalMissionRuntime:
         availability: CapabilityAvailability,
     ) -> MissionPlan:
         plan = compile_opportunity_mission(opportunity)
+        if plan.tasks[0].executor_capability.startswith("dynamic:"):
+            # Higher-order hunter capabilities are already canonical MissionTasks.  Do not
+            # replace them with a generic asset scanner selected solely from asset kind.
+            return self.scheduler.create(plan)
         kind = canonical_kind_value(opportunity.asset_kind)
         inventory = inventory_backends(kind, **availability.planner_kwargs())
         if inventory.supported_ready:
@@ -281,6 +288,40 @@ class UniversalMissionRuntime:
             return MissionExecutionResult(
                 plan, CapabilityDisposition.WAITING_FOR_APPROVAL,
                 "execution requires a verified PolicyEngine-derived grant bound to mission scope",
+            )
+
+        if task.executor_capability.startswith("dynamic:"):
+            if not grant.network_allowed or not (
+                grant.state_change_allowed and grant.human_approval
+            ):
+                plan = self.scheduler.set_task_state(
+                    plan, task.task_id, TaskState.WAITING_FOR_APPROVAL
+                )
+                return MissionExecutionResult(
+                    plan, CapabilityDisposition.WAITING_FOR_APPROVAL,
+                    "signed grant does not authorize controlled differential execution",
+                )
+            executor = self.mission_task_executors.get(task.executor_capability)
+            if executor is None:
+                plan = self.scheduler.set_task_state(plan, task.task_id, TaskState.UNAVAILABLE)
+                return MissionExecutionResult(
+                    plan, CapabilityDisposition.UNAVAILABLE,
+                    "no concrete executor is registered for the hunter capability",
+                )
+            plan = self.scheduler.set_task_state(plan, task.task_id, TaskState.RUNNING)
+            try:
+                executor(task, plan, authorization)
+            except Exception as exc:
+                plan = self.scheduler.set_task_state(
+                    plan, task.task_id, TaskState.FAILED_RETRYABLE
+                )
+                return MissionExecutionResult(
+                    plan, CapabilityDisposition.UNAVAILABLE,
+                    f"concrete hunter executor failed closed: {type(exc).__name__}: {exc}",
+                )
+            plan = self.scheduler.set_task_state(plan, task.task_id, TaskState.COMPLETED)
+            return MissionExecutionResult(
+                plan, CapabilityDisposition.READY, "hunter capability completed"
             )
 
         kind = canonical_kind_value(task.asset_kind)

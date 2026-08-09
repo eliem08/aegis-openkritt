@@ -66,6 +66,7 @@ def compile_opportunity_mission(
     intelligence_evidence = tuple(
         str(item) for item in opportunity.metadata.get("evidence_requirements", ())
     )
+    intelligence_requests = max(0, int(opportunity.metadata.get("expected_requests", 0)))
 
     for index, action in enumerate(actions):
         task_id = f"{key}-{index:02d}-{action}"
@@ -103,7 +104,7 @@ def compile_opportunity_mission(
             ),
             prerequisites=(opportunity.prerequisite_state,)
             if opportunity.prerequisite_state not in {"", "ready"} else (),
-            expected_requests=0,
+            expected_requests=intelligence_requests if index == 0 else 0,
             expected_cost_usd=task_cost,
             evidence_required=tuple(dict.fromkeys((*lane.evidence_required,
                                                    *intelligence_evidence))),

@@ -60,6 +60,7 @@ from .guards import PolicyGate
 from .hunt_generator import SurfaceSignal, generate_hunt_candidates, infer_surfaces
 from .hunt_lanes import HuntLane, lane_for_family
 from .hunter_phase_a import HunterIntelligencePhaseA, PhaseAResult
+from .hunter_phase_b import HunterIntelligencePhaseB, PhaseBResult
 from .hunter_techniques import (
     TECHNIQUES,
     HunterTechnique,
@@ -227,6 +228,7 @@ __all__ = [
     "HuntLane",
     "HuntObjective",
     "HunterIntelligencePhaseA",
+    "HunterIntelligencePhaseB",
     "HunterTechnique",
     "HypothesisAgent",
     "IOSDeepDiveAgent",
@@ -250,6 +252,7 @@ __all__ = [
     "OutcomeLearningAgent",
     "PlannedMethod",
     "PhaseAResult",
+    "PhaseBResult",
     "PolicyGate",
     "PortfolioScheduler",
     "ProfitabilityAgent",

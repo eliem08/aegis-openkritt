@@ -14,6 +14,12 @@ class HunterTechnique(str, Enum):
     RECON_VHOST_INFERENCE = "recon_vhost_inference"
     JS_ROUTE_RECOVERY = "js_route_recovery"
     JS_SOURCE_MAP_RECOVERY = "js_source_map_recovery"
+    AUTH_OBJECT_DIFFERENTIAL = "auth_object_differential"
+    AUTH_ROLE_DIFFERENTIAL = "auth_role_differential"
+    AUTH_TENANT_DIFFERENTIAL = "auth_tenant_differential"
+    BUSINESS_STATE_COMBINATION = "business_state_combination"
+    POST_ERROR_STATE_CHECK = "post_error_state_check"
+    PARTIAL_COMMIT_VERIFICATION = "partial_commit_verification"
 
 
 @dataclass(frozen=True)
@@ -72,6 +78,60 @@ TECHNIQUES: dict[HunterTechnique, TechniqueDefinition] = {
         RiskClass.OFFLINE,
         "jarvis:research:source_map_recovery",
         ("bundle_digest", "source_map_digest", "original_filename"),
+    ),
+    HunterTechnique.AUTH_OBJECT_DIFFERENTIAL: TechniqueDefinition(
+        HunterTechnique.AUTH_OBJECT_DIFFERENTIAL,
+        ("controlled_owner", "controlled_non_owner", "synthetic_object"),
+        ("api", "domain", "source_code"),
+        ("two_controlled_identities", "explicit_expected_policy", "signed_execution_grant"),
+        RiskClass.CONTROLLED_STATE_CHANGE,
+        "dynamic:identity-object-differential",
+        ("owner_control", "non_owner_probe", "unique_canary", "response_digest"),
+    ),
+    HunterTechnique.AUTH_ROLE_DIFFERENTIAL: TechniqueDefinition(
+        HunterTechnique.AUTH_ROLE_DIFFERENTIAL,
+        ("controlled_low_role", "controlled_high_role", "privileged_operation"),
+        ("api", "domain"),
+        ("two_controlled_roles", "explicit_expected_policy", "signed_execution_grant"),
+        RiskClass.CONTROLLED_STATE_CHANGE,
+        "dynamic:identity-role-differential",
+        ("allowed_role_control", "lower_role_probe", "response_digest", "state_digest"),
+    ),
+    HunterTechnique.AUTH_TENANT_DIFFERENTIAL: TechniqueDefinition(
+        HunterTechnique.AUTH_TENANT_DIFFERENTIAL,
+        ("controlled_tenant_a", "controlled_tenant_b", "synthetic_object"),
+        ("api", "domain"),
+        ("two_controlled_tenants", "explicit_expected_policy", "signed_execution_grant"),
+        RiskClass.CONTROLLED_STATE_CHANGE,
+        "dynamic:identity-tenant-differential",
+        ("same_tenant_control", "cross_tenant_probe", "unique_canary", "state_digest"),
+    ),
+    HunterTechnique.BUSINESS_STATE_COMBINATION: TechniqueDefinition(
+        HunterTechnique.BUSINESS_STATE_COMBINATION,
+        ("observed_lifecycle_states", "explicit_transition_expectation"),
+        ("api", "domain", "smart_contract"),
+        ("synthetic_resource", "bounded_transition_set", "signed_execution_grant"),
+        RiskClass.CONTROLLED_STATE_CHANGE,
+        "dynamic:lifecycle-state-differential",
+        ("pre_state", "attempted_transition", "post_state", "negative_control"),
+    ),
+    HunterTechnique.POST_ERROR_STATE_CHECK: TechniqueDefinition(
+        HunterTechnique.POST_ERROR_STATE_CHECK,
+        ("error_or_timeout", "pre_state", "post_state"),
+        ("api", "domain", "smart_contract"),
+        ("synthetic_resource", "state_readback", "signed_execution_grant"),
+        RiskClass.CONTROLLED_STATE_CHANGE,
+        "dynamic:post-error-state-verifier",
+        ("operation_response", "pre_state_digest", "post_state_digest", "correlation_id"),
+    ),
+    HunterTechnique.PARTIAL_COMMIT_VERIFICATION: TechniqueDefinition(
+        HunterTechnique.PARTIAL_COMMIT_VERIFICATION,
+        ("expected_atomic_effects", "observed_effects", "state_readback"),
+        ("api", "domain", "smart_contract"),
+        ("synthetic_resource", "explicit_expected_effects", "signed_execution_grant"),
+        RiskClass.CONTROLLED_STATE_CHANGE,
+        "dynamic:partial-commit-verifier",
+        ("before_snapshot", "after_snapshot", "effect_set", "negative_control"),
     ),
 }
 
