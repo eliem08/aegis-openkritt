@@ -139,6 +139,34 @@ class HunterIntelligencePhaseA:
             javascript, certificate_signals, correlations, opportunities, selected, missions
         )
 
+    def run_with_acquisition(
+        self,
+        *,
+        acquirer,
+        authorization,
+        page_urls: tuple[str, ...],
+        ct_domains: tuple[str, ...],
+        program: ProgramRules,
+        scope_digest: str,
+        authorization_id: str,
+        graph,
+        previous_certificates: Iterable[CertificateRecord] = (),
+        capacity: int = 5,
+        exploration_fraction: float = 0.4,
+    ):
+        """Acquire authorized artifacts, then feed the same canonical Phase-A pipeline."""
+        acquired = acquirer.acquire(
+            page_urls=page_urls, ct_domains=ct_domains,
+            scope_hosts=set(program.scope_guard_entries()), authorization=authorization,
+        )
+        result = self.run(
+            program=program, scope_digest=scope_digest, authorization_id=authorization_id,
+            graph=graph, bundles=acquired.bundles, source_maps=acquired.source_maps,
+            certificates=acquired.certificates, previous_certificates=previous_certificates,
+            capacity=capacity, exploration_fraction=exploration_fraction,
+        )
+        return acquired, result
+
     @staticmethod
     def _persist_certificate_signals(
         signals: Iterable[CertificateSignal], graph, scope: set[str],

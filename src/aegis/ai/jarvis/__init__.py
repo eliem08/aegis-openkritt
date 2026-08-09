@@ -59,6 +59,8 @@ from .firewall import ContentAssessment, assess_untrusted_content, envelope_untr
 from .guards import PolicyGate
 from .hunt_generator import SurfaceSignal, generate_hunt_candidates, infer_surfaces
 from .hunt_lanes import HuntLane, lane_for_family
+from .hunter_acquisition import HunterAcquisitionResult, HunterArtifactAcquirer
+from .hunter_dispatcher import HunterCapabilityDispatcher, HunterDispatchResult
 from .hunter_phase_a import HunterIntelligencePhaseA, PhaseAResult
 from .hunter_phase_b import HunterIntelligencePhaseB, PhaseBResult
 from .hunter_phase_c import HunterIntelligencePhaseC, PhaseCResult
@@ -241,6 +243,10 @@ __all__ = [
     "HunterIntelligencePhaseF",
     "HunterIntelligencePhaseG",
     "HunterIntelligencePhaseH",
+    "HunterArtifactAcquirer",
+    "HunterAcquisitionResult",
+    "HunterCapabilityDispatcher",
+    "HunterDispatchResult",
     "HunterTechnique",
     "HypothesisAgent",
     "IOSDeepDiveAgent",

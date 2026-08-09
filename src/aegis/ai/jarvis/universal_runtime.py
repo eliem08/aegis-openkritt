@@ -190,7 +190,12 @@ class UniversalMissionRuntime:
         availability: CapabilityAvailability,
     ) -> MissionPlan:
         plan = compile_opportunity_mission(opportunity)
-        if plan.tasks[0].executor_capability.startswith("dynamic:"):
+        declared_hunter_capability = str(opportunity.metadata.get("worker_capability", ""))
+        if plan.tasks[0].executor_capability.startswith("dynamic:") or (
+            declared_hunter_capability
+            and plan.tasks[0].executor_capability == declared_hunter_capability
+            and declared_hunter_capability.startswith("jarvis:")
+        ):
             # Higher-order hunter capabilities are already canonical MissionTasks.  Do not
             # replace them with a generic asset scanner selected solely from asset kind.
             return self.scheduler.create(plan)
@@ -322,6 +327,36 @@ class UniversalMissionRuntime:
             plan = self.scheduler.set_task_state(plan, task.task_id, TaskState.COMPLETED)
             return MissionExecutionResult(
                 plan, CapabilityDisposition.READY, "hunter capability completed"
+            )
+
+        if task.executor_capability.startswith("jarvis:"):
+            if task.risk not in {"offline", "read_only"}:
+                plan = self.scheduler.set_task_state(plan, task.task_id, TaskState.UNAVAILABLE)
+                return MissionExecutionResult(
+                    plan, CapabilityDisposition.UNAVAILABLE,
+                    "internal hunter capability declared an unsupported risk class",
+                )
+            executor = self.mission_task_executors.get(task.executor_capability)
+            if executor is None:
+                plan = self.scheduler.set_task_state(plan, task.task_id, TaskState.UNAVAILABLE)
+                return MissionExecutionResult(
+                    plan, CapabilityDisposition.UNAVAILABLE,
+                    "no concrete internal hunter executor is registered",
+                )
+            plan = self.scheduler.set_task_state(plan, task.task_id, TaskState.RUNNING)
+            try:
+                executor(task, plan, authorization)
+            except Exception as exc:
+                plan = self.scheduler.set_task_state(
+                    plan, task.task_id, TaskState.FAILED_RETRYABLE
+                )
+                return MissionExecutionResult(
+                    plan, CapabilityDisposition.UNAVAILABLE,
+                    f"internal hunter executor failed closed: {type(exc).__name__}: {exc}",
+                )
+            plan = self.scheduler.set_task_state(plan, task.task_id, TaskState.COMPLETED)
+            return MissionExecutionResult(
+                plan, CapabilityDisposition.READY, "internal hunter capability completed"
             )
 
         kind = canonical_kind_value(task.asset_kind)
