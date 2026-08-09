@@ -74,6 +74,13 @@ from .mission_scheduler import (
     TaskState,
     build_linear_mission,
 )
+from .mission_capabilities import (
+    CapabilityDisposition,
+    CapabilityMatch,
+    ExecutionClass,
+    MissionWorkerRegistry,
+    WorkerCapability,
+)
 from .models import (
     ActionProposal,
     AgentResult,
@@ -118,7 +125,7 @@ from .state_store import (
     RuleCandidateRecord,
     VulnerabilityFamily,
 )
-from .universal_mission import compile_candidate_mission
+from .universal_mission import compile_candidate_mission, compile_opportunity_mission
 from .weakness_catalog import (
     UNIVERSAL_FAMILIES,
     HuntCandidate,
@@ -155,6 +162,8 @@ __all__ = [
     "BrowserDesktopDeepDiveAgent",
     "CandidateDisposition",
     "CapabilityRequirement",
+    "CapabilityDisposition",
+    "CapabilityMatch",
     "CapabilityScanPlan",
     "ChainOpportunity",
     "ChainReasoningAgent",
@@ -171,6 +180,7 @@ __all__ = [
     "EconomicEstimate",
     "EvidenceAgent",
     "EvidenceStage",
+    "ExecutionClass",
     "ExtendedAssetKind",
     "FindingState",
     "FirmwareDeepDiveAgent",
@@ -192,6 +202,7 @@ __all__ = [
     "MissionSchedulerAgent",
     "MissionSnapshot",
     "MissionTask",
+    "MissionWorkerRegistry",
     "OutcomeLearningAgent",
     "PlannedMethod",
     "PolicyGate",
@@ -227,6 +238,7 @@ __all__ = [
     "VulnerabilityFamily",
     "VulnerabilityFamilyAgent",
     "WeaknessFamily",
+    "WorkerCapability",
     "assess_untrusted_content",
     "blind_spot_score",
     "build_advanced_jarvis",
@@ -235,6 +247,7 @@ __all__ = [
     "calibrate_opportunity",
     "chain_opportunities",
     "compile_candidate_mission",
+    "compile_opportunity_mission",
     "default_asset_deep_dive_agents",
     "draft_detection_rule",
     "envelope_untrusted_source",
