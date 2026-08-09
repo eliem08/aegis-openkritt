@@ -9,8 +9,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from aegis.scheduler.profit import HuntOpportunity
+
 from .auto_hunt import AutoHuntConfig, HuntTarget, expected_value
-from .portfolio_agents import Opportunity
 
 _EXT_FIT = {
     ".sol": 1.35,
@@ -88,7 +89,7 @@ def target_opportunity(
     *,
     feedback_factor: float = 1.0,
     include_duplicate_risk: bool = True,
-) -> Opportunity:
+) -> HuntOpportunity:
     """Adapt a target into the common portfolio opportunity model.
 
     Competition/saturation reduces the chance that a useful unique bug remains. Class fit and
@@ -100,24 +101,34 @@ def target_opportunity(
     crowd = 1.0 - _bounded(target.saturation)
     fit = class_fit(target)
     feedback = min(2.0, max(0.25, float(feedback_factor or 1.0)))
-    payout = float(realistic_payout(target, config=cfg)) * fit * feedback
+    raw_payout = realistic_payout(target, config=cfg)
+    payout = float(raw_payout) * fit * feedback if raw_payout > 0 else None
     compute = target.estimated_compute_cost_usd or cfg.default_compute_cost_usd
     review_minutes = target.human_review_minutes or cfg.default_human_review_minutes
     unique = 1.0 - _bounded(target.duplicate_risk) if include_duplicate_risk else 1.0
-    return Opportunity(
+    p_find = _bounded(target.findability) * crowd * crowd
+    return HuntOpportunity(
         opportunity_id=f"target:{target.handle or target.repository}:{target.repository}",
         program_id=target.handle or target.repository,
-        bug_class="target_allocation",
-        expected_payout_usd=max(0.0, payout),
-        p_valid=_bounded(target.findability) * crowd * crowd * _bounded(cfg.p_valid),
+        program_handle=target.handle,
+        asset_id=f"repository:{target.repository}",
+        asset_kind="source_code",
+        asset_locator=target.repository,
+        attack_surface="source",
+        weakness_family="target_allocation",
+        estimated_payout_usd=payout,
+        p_find=p_find,
+        p_valid=_bounded(cfg.p_valid),
         p_accepted=_bounded(cfg.p_accept),
         p_unique=unique,
         p_reproducible=1.0,
         compute_cost_usd=max(0.0, float(compute)),
-        api_cost_usd=0.0,
-        review_minutes=max(0.0, float(review_minutes)),
+        model_cost_usd=0.0,
+        expected_human_minutes=max(0.0, float(review_minutes)),
         opportunity_cost_usd=0.0,
         information_gain=max(0.0, _bounded(target.findability) * crowd),
+        uncertainty=max(0.0, 1.0 - p_find),
+        provenance=("aegis.ai.profit.target_opportunity",),
     )
 
 

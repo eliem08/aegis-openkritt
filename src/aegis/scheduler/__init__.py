@@ -12,6 +12,7 @@ from .coordinator import (
     StepResult,
     TaskSpec,
 )
+from .profit import HuntOpportunity, ProfitFeatures, ProfitScore, allocate, rank, score
 
 __all__ = [
     "ScanConfig",
@@ -19,4 +20,10 @@ __all__ = [
     "StageSpec",
     "StepResult",
     "TaskSpec",
+    "HuntOpportunity",
+    "ProfitFeatures",
+    "ProfitScore",
+    "allocate",
+    "rank",
+    "score",
 ]

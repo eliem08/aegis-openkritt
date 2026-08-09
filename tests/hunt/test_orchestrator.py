@@ -83,7 +83,7 @@ def test_armed_launches_scans_and_collects_findings():
     h1 = FakeH1([{"attributes": {"handle": "acme"}}], {"acme": REPO_SCOPE})
     ok = FakeOK(findings={"900": [Candidate(asset="acme/api", worker="integration:openkritt",
                                             cwe="CWE-841")]})
-    orch = _orch(h1, ok, dry_run=False)
+    orch = _orch(h1, ok, dry_run=False, expected_bounties={"acme": 1000})
     report = orch.cycle()
     s = report.summary()
     assert s["scans_launched_this_cycle"] == 1 and len(ok.created) == 1
@@ -114,7 +114,14 @@ def test_caps_limit_programs_and_repos():
                         for j in range(10)] for i in range(10)}
     h1 = FakeH1(programs, scopes)
     ok = FakeOK()
-    report = _orch(h1, ok, dry_run=False, max_programs=2, max_repos_per_program=2).cycle()
+    report = _orch(
+        h1,
+        ok,
+        dry_run=False,
+        max_programs=2,
+        max_repos_per_program=2,
+        expected_bounties={"p0": 1000, "p1": 1000},
+    ).cycle()
     assert report.summary()["programs_considered"] == 2               # program cap
     assert len(ok.created) == 4                                        # 2 programs x 2 repos
 

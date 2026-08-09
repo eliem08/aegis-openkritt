@@ -127,6 +127,7 @@ from .weakness_catalog import (
     families_for_surface,
     rank_candidates,
 )
+from aegis.scheduler.profit import HuntOpportunity
 from .weakness_planner import (
     ChainableFinding,
     ChainOpportunity,
@@ -175,6 +176,7 @@ __all__ = [
     "FirmwareDeepDiveAgent",
     "GateDecision",
     "HuntCandidate",
+    "HuntOpportunity",
     "HuntLane",
     "HuntObjective",
     "HypothesisAgent",

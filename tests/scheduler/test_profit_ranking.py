@@ -1,6 +1,13 @@
 from decimal import Decimal
 
-from aegis.scheduler.profit import Opportunity, ProfitFeatures, allocate, rank, score
+from aegis.scheduler.profit import (
+    HuntOpportunity,
+    Opportunity,
+    ProfitFeatures,
+    allocate,
+    rank,
+    score,
+)
 
 
 def _features(**changes):
@@ -53,3 +60,46 @@ def test_allocation_reserves_capacity_for_deterministic_exploration():
     assert len(selected) == 5
     assert selected[-1][0].opportunity_id == "new-class"
     assert selected[-1][2] == "exploration"
+
+
+def test_canonical_opportunity_exposes_cross_asset_identity_and_decomposed_economics():
+    item = HuntOpportunity(
+        opportunity_id="opp:api:authz",
+        program_id="program:acme",
+        program_handle="acme",
+        asset_id="asset:api",
+        asset_kind="api",
+        asset_locator="https://api.acme.test",
+        scope_digest="scope123",
+        authorization_id="auth123",
+        attack_surface="object-ownership",
+        weakness_family="authz",
+        estimated_payout_usd=Decimal("3000"),
+        p_find=0.15,
+        p_valid=0.74,
+        p_unique=0.62,
+        p_accepted=0.71,
+        compute_cost_usd=Decimal("2"),
+        model_cost_usd=Decimal("1"),
+        scanner_cost_usd=Decimal("0.40"),
+        validation_cost_usd=Decimal("4"),
+        human_cost_usd=Decimal("5"),
+        provenance=("synthetic-program",),
+    )
+    result = score(item.features)
+    assert result.gross_expected_value == Decimal("146.586600000")
+    assert result.total_cost == Decimal("12.40")
+    assert result.net_expected_value == Decimal("134.186600000")
+    assert item.asset_kind == "api" and item.scope_digest == "scope123"
+
+
+def test_negative_value_is_not_exploited_but_can_use_bounded_exploration():
+    negative = HuntOpportunity("negative", _features(expected_bounty=Decimal("1"),
+                                                      model_cost=Decimal("50")),
+                               uncertainty=1.0)
+    positive = HuntOpportunity("positive", _features(expected_bounty=Decimal("1000")))
+    exploited = allocate([negative, positive], capacity=1, exploration_fraction=0)
+    assert [row[0].opportunity_id for row in exploited] == ["positive"]
+    explored = allocate([negative], capacity=1, exploration_fraction=1)
+    assert explored[0][0].opportunity_id == "negative"
+    assert explored[0][2] == "exploration"
