@@ -29,6 +29,10 @@ class HunterTechnique(str, Enum):
     RACE_SYNCHRONIZED_DIFFERENTIAL = "race_synchronized_differential"
     IDEMPOTENCY_KEY_DIFFERENTIAL = "idempotency_key_differential"
     RETRY_STATE_VERIFICATION = "retry_state_verification"
+    OAUTH_TRUST_DIFFERENTIAL = "oauth_trust_differential"
+    POSTMESSAGE_TRUST_ANALYSIS = "postmessage_trust_analysis"
+    RECOVERY_STATE_DIFFERENTIAL = "recovery_state_differential"
+    SESSION_INVALIDATION_DIFFERENTIAL = "session_invalidation_differential"
 
 
 @dataclass(frozen=True)
@@ -222,6 +226,42 @@ TECHNIQUES: dict[HunterTechnique, TechniqueDefinition] = {
         RiskClass.CONTROLLED_STATE_CHANGE,
         "dynamic:retry-state-verifier",
         ("first_attempt", "retry_attempt", "post_state", "effect_ids"),
+    ),
+    HunterTechnique.OAUTH_TRUST_DIFFERENTIAL: TechniqueDefinition(
+        HunterTechnique.OAUTH_TRUST_DIFFERENTIAL,
+        ("registered_client_config", "controlled_authorization_flow"),
+        ("domain", "api", "android_apk", "ios_ipa"),
+        ("controlled_client", "synthetic_account", "signed_execution_grant"),
+        RiskClass.CONTROLLED_STATE_CHANGE,
+        "dynamic:oauth-trust-differential",
+        ("redirect_uri", "state", "nonce", "pkce", "authorization_result"),
+    ),
+    HunterTechnique.POSTMESSAGE_TRUST_ANALYSIS: TechniqueDefinition(
+        HunterTechnique.POSTMESSAGE_TRUST_ANALYSIS,
+        ("oauth_message_handler", "sender_origin", "target_origin"),
+        ("domain", "source_code", "android_apk", "ios_ipa"),
+        ("authorized_artifact_or_browser_flow",),
+        RiskClass.READ_ONLY,
+        "dynamic:postmessage-trust-differential",
+        ("handler_source", "origin_check", "message_shape", "negative_control"),
+    ),
+    HunterTechnique.RECOVERY_STATE_DIFFERENTIAL: TechniqueDefinition(
+        HunterTechnique.RECOVERY_STATE_DIFFERENTIAL,
+        ("synthetic_recovery_token", "first_use", "reuse_attempt"),
+        ("domain", "api"),
+        ("synthetic_account", "signed_execution_grant"),
+        RiskClass.CONTROLLED_STATE_CHANGE,
+        "dynamic:recovery-state-differential",
+        ("token_digest", "first_use", "reuse_result", "session_state"),
+    ),
+    HunterTechnique.SESSION_INVALIDATION_DIFFERENTIAL: TechniqueDefinition(
+        HunterTechnique.SESSION_INVALIDATION_DIFFERENTIAL,
+        ("synthetic_session", "invalidation_event", "post_event_probe"),
+        ("domain", "api", "android_apk", "ios_ipa"),
+        ("synthetic_account", "signed_execution_grant"),
+        RiskClass.CONTROLLED_STATE_CHANGE,
+        "dynamic:session-invalidation-differential",
+        ("session_digest", "event_capture", "post_event_result", "negative_control"),
     ),
 }
 
