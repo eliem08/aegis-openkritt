@@ -112,6 +112,21 @@ Use the GitHub `Runtime Soak` workflow for hosted Docker execution. Archive the
 report artifact and failure timeline. A short CI soak does not satisfy either
 promotion gate.
 
+GitHub-hosted jobs have a six-hour hard ceiling, including setup time. The
+hosted six-hour mode therefore runs two real 10,800-second worker segments and
+hands the atomic checkpoint artifact from the first job to the second. The
+second job must verify cumulative `elapsed_seconds >= 21600`, `status == pass`,
+no failed cycle, and an empty failure timeline:
+
+```powershell
+gh workflow run runtime-soak.yml --ref codex/production-24x7 `
+  -f duration_seconds=21600 -f operator_mode=true -f soak_mode=six-hour
+```
+
+The segment boundary is an intentional worker restart/recovery exercise. It is
+not a shortened or simulated soak. Twenty-four-hour mode remains an operator-run
+command because a single hosted workflow cannot exceed GitHub's job ceiling.
+
 ## 7. CVE measurements
 
 Run and report the two metrics independently:

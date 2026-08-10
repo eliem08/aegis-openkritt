@@ -25,6 +25,7 @@ permissions:
 
 jobs:
   durable-runtime:
+    if: ${{ inputs.soak_mode != 'six-hour' }}
     runs-on: ubuntu-latest
     timeout-minutes: 390
     steps:
@@ -72,3 +73,107 @@ jobs:
         with:
           name: runtime-soak-report
           path: .soak-output/runtime-soak.json
+
+  six-hour-segment-one:
+    if: ${{ inputs.soak_mode == 'six-hour' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 195
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare report directory
+        run: mkdir -p .soak-output
+      - name: Run first three-hour operator segment
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/input:ro" \
+            -v "${{ github.workspace }}/.soak-output:/output" \
+            python:3.12-slim sh -lc '
+              mkdir -p /tmp/project &&
+              cp -a /input/src /input/tests /input/pyproject.toml /input/README.md /tmp/project/ &&
+              cd /tmp/project &&
+              pip install -q ".[dev,api]" &&
+              python -m aegis.production.soak \
+                --duration-seconds 10800 --target-seconds 21600 \
+                --mode six-hour --operator --allow-short-segment \
+                --report /output/runtime-soak.json -- \
+                pytest -q -p no:cacheprovider \
+                  tests/scheduler/test_coordinator.py \
+                  tests/coord/test_coord_backend.py \
+                  tests/ai/test_universal_runtime.py \
+                  tests/ai/test_hunter_production_gaps.py \
+                  tests/ai/test_http_identity_executor.py \
+                  tests/model_gateway/test_service_budget.py \
+                  tests/oast/test_private_oast.py \
+                  tests/test_authorization.py \
+                  tests/test_budget.py \
+                  tests/test_killswitch.py \
+                  tests/production/test_operator_manifest.py \
+                  tests/production/test_operator_workflow.py \
+                  tests/production/test_health_command.py'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: runtime-soak-segment-one
+          path: .soak-output/runtime-soak.json
+          if-no-files-found: error
+
+  six-hour-segment-two:
+    if: ${{ inputs.soak_mode == 'six-hour' }}
+    needs: six-hour-segment-one
+    runs-on: ubuntu-latest
+    timeout-minutes: 195
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: runtime-soak-segment-one
+          path: .soak-resume
+      - name: Prepare report directory
+        run: mkdir -p .soak-output
+      - name: Resume final three-hour operator segment
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/input:ro" \
+            -v "${{ github.workspace }}/.soak-resume:/resume:ro" \
+            -v "${{ github.workspace }}/.soak-output:/output" \
+            python:3.12-slim sh -lc '
+              mkdir -p /tmp/project &&
+              cp -a /input/src /input/tests /input/pyproject.toml /input/README.md /tmp/project/ &&
+              cd /tmp/project &&
+              pip install -q ".[dev,api]" &&
+              python -m aegis.production.soak \
+                --duration-seconds 10800 --target-seconds 21600 \
+                --mode six-hour --operator --allow-short-segment \
+                --resume-report /resume/runtime-soak.json \
+                --report /output/runtime-soak.json -- \
+                pytest -q -p no:cacheprovider \
+                  tests/scheduler/test_coordinator.py \
+                  tests/coord/test_coord_backend.py \
+                  tests/ai/test_universal_runtime.py \
+                  tests/ai/test_hunter_production_gaps.py \
+                  tests/ai/test_http_identity_executor.py \
+                  tests/model_gateway/test_service_budget.py \
+                  tests/oast/test_private_oast.py \
+                  tests/test_authorization.py \
+                  tests/test_budget.py \
+                  tests/test_killswitch.py \
+                  tests/production/test_operator_manifest.py \
+                  tests/production/test_operator_workflow.py \
+                  tests/production/test_health_command.py'
+      - name: Verify cumulative six-hour report
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path('.soak-output/runtime-soak.json').read_text())
+          assert report['status'] == 'pass', report
+          assert report['elapsed_seconds'] >= 21600, report
+          assert report['failed_cycle'] is None, report
+          assert not report['failure_timeline'], report
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: runtime-soak-report
+          path: .soak-output/runtime-soak.json
+          if-no-files-found: error
