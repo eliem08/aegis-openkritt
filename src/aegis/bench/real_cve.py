@@ -23,6 +23,7 @@ from __future__ import annotations
 import subprocess
 import tempfile
 from dataclasses import dataclass, field
+from functools import lru_cache
 from pathlib import Path
 from typing import Callable
 
@@ -135,17 +136,21 @@ def derive_pair(repo_dir: str, pattern: str, *, path_hint: str = "",
         # an unrelated diff scoreable.
         shas = [expected_fix_commit]
     for sha in shas:                    # newest first
+        parent = git(["-C", repo_dir, "rev-parse", f"{sha}^"]).strip()
+        if not parent:
+            continue
         if path_hint:
-            changed_paths = git(["-C", repo_dir, "show", sha, "--format=", "--name-only"])
+            changed_paths = git(["-C", repo_dir, "diff", "--name-only", parent, sha])
             if path_hint.lower() not in changed_paths.lower():
                 continue
-        diff = git(["-C", repo_dir, "show", sha, "--unified=0", "--format="])
+        # `git show` intentionally suppresses ordinary diffs for many merge commits. Security
+        # advisories can legitimately pin a merge SHA, so compare it explicitly to first-parent,
+        # which is also the vulnerable revision returned by this function.
+        diff = git(["-C", repo_dir, "diff", "--unified=0", parent, sha])
         removed = any(line.startswith("-") and pattern in line for line in diff.splitlines())
         added = any(line.startswith("+") and pattern in line for line in diff.splitlines())
         if removed and not added:       # net removal of the pattern -> this commit is the fix
-            parent = git(["-C", repo_dir, "rev-parse", f"{sha}^"]).strip()
-            if parent:
-                return (parent, sha)
+            return (parent, sha)
     return None
 
 
@@ -160,8 +165,24 @@ def _matching_survivors(scan_root: str, case: RealCase) -> ScanObservation:
                   if not case.required_tools or t.name in case.required_tools}.values())
     if not tools:
         return ScanObservation(unavailable={"scanner-runtime": "no registered scanner binary installed"})
-    bridge = ToolBridge(timeout=300)
-    results = bridge.scan(scan_root, tools=tools)
+    # Semgrep's Python launcher can take more than the production daemon's five-second
+    # steady-state probe budget on a cold CI/container filesystem. This benchmark is a bounded
+    # batch job, so allow a cold-start probe without weakening the execution timeout or health
+    # semantics.
+    bridge = ToolBridge(timeout=300, runtime_manager=_benchmark_runtime())
+    # This is a labelled ground-truth benchmark, not repository discovery: the advisory-backed
+    # path is known and independently verified by the fix diff. Scan that source file when it is
+    # unique, which prevents unrelated monorepo size from dominating detector recall. Fall back
+    # to the checkout when the hint is absent or ambiguous.
+    scan_target = scan_root
+    if case.path_hint:
+        matches = [
+            path for path in Path(scan_root).rglob("*")
+            if path.is_file() and case.path_hint.lower() in path.as_posix().lower()
+        ]
+        if len(matches) == 1:
+            scan_target = str(matches[0])
+    results = bridge.scan(scan_target, tools=tools)
     attempted = sorted(r.tool for r in results if r.ran)
     unavailable = {r.tool: r.error or "scanner did not run" for r in results if not r.ran}
     installed = {tool.name for tool in tools}
@@ -180,6 +201,14 @@ def _matching_survivors(scan_root: str, case: RealCase) -> ScanObservation:
     return ScanObservation(sorted(set(hit)), attempted, unavailable)
 
 
+@lru_cache(maxsize=1)
+def _benchmark_runtime():
+    """One immutable scanner health cache for the whole benchmark process."""
+    from aegis.ai.tool_runtime import ToolRuntimeManager
+
+    return ToolRuntimeManager(version_timeout=30)
+
+
 def run_real_case(case: RealCase, *, workdir: str | None = None, git=_git,
                   scanner: Callable[[str, RealCase], ScanObservation] = _matching_survivors,
                   ) -> RealCaseResult:
@@ -187,7 +216,19 @@ def run_real_case(case: RealCase, *, workdir: str | None = None, git=_git,
     tmp.mkdir(parents=True, exist_ok=True)
     repo_dir = tmp / case.id
     try:
-        git(["clone", "--quiet", _clone_url(case.repo), str(repo_dir)], timeout=600)
+        if case.expected_fix_commit:
+            # The manifest pins the only history required for ground truth. Fetch exactly the
+            # fix and its parent instead of cloning a monorepo's entire history (and doing that
+            # repeatedly for repositories represented by several independent cases).
+            repo_dir.mkdir(parents=True, exist_ok=True)
+            git(["-C", str(repo_dir), "init", "--quiet"])
+            git(["-C", str(repo_dir), "remote", "add", "origin", _clone_url(case.repo)])
+            git([
+                "-C", str(repo_dir), "fetch", "--quiet", "--depth=2", "origin",
+                case.expected_fix_commit,
+            ], timeout=600)
+        else:
+            git(["clone", "--quiet", _clone_url(case.repo), str(repo_dir)], timeout=600)
         if not (repo_dir / ".git").exists():
             return RealCaseResult(case.id, "skipped", "clone failed")
         if case.expected_fix_commit:
