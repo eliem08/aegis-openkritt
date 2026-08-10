@@ -171,6 +171,19 @@ def test_forbidden_lifecycle_transition_is_observed_from_real_readbacks():
     assert outcome.evidence.observed == "forbidden lifecycle transition completed"
 
 
+def test_coverage_selected_state_cell_executes_through_same_bounded_readbacks():
+    task = _task(
+        "dynamic:coverage-state-fuzzing",
+        state_cell_id="cell:pending-approve-owner",
+        coverage_evidence=["coverage-history:sha256"],
+    )
+    executor = _executor("complete")
+    _, authorization = _authorization()
+    outcome = executor(task, _plan(task), authorization)
+    assert outcome.observation.before_state_digest != outcome.observation.after_state_digest
+    assert outcome.verification.outcome is StateVerificationOutcome.COMPLETE_COMMIT
+
+
 def test_lifecycle_prerequisites_budget_and_grant_fail_closed():
     task = _task("dynamic:partial-commit-verifier")
     executor = _executor("partial")

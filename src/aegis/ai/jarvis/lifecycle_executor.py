@@ -48,6 +48,7 @@ class ScopedLifecycleStateExecutor:
         "dynamic:lifecycle-state-differential",
         "dynamic:post-error-state-verifier",
         "dynamic:partial-commit-verifier",
+        "dynamic:coverage-state-fuzzing",
     })
 
     def __init__(
@@ -94,6 +95,13 @@ class ScopedLifecycleStateExecutor:
             raise MissionPrerequisiteError("lifecycle execution requires a synthetic canary resource")
         if task.executor_capability == "dynamic:partial-commit-verifier" and not expected_effects:
             raise MissionPrerequisiteError("partial-commit verification requires expected effects")
+        coverage_evidence = ()
+        if task.executor_capability == "dynamic:coverage-state-fuzzing":
+            coverage_evidence = tuple(str(item) for item in payload.get("coverage_evidence") or ())
+            if not str(payload.get("state_cell_id") or "") or not coverage_evidence:
+                raise MissionPrerequisiteError(
+                    "coverage-state execution requires an evidence-backed selected state cell"
+                )
         headers = self._credentials(fixture.credential.reference)
         before = self._send(binding.endpoint, pre_spec, resource, headers, authorization)
         action = self._send(binding.endpoint, action_spec, resource, headers, authorization)
@@ -113,6 +121,7 @@ class ScopedLifecycleStateExecutor:
             correlation_id=f"lifecycle:{sha256((task.task_id + before_digest + after_digest).encode()).hexdigest()[:20]}",
             evidence=tuple(dict.fromkeys((
                 f"binding:{binding.endpoint}", *binding.evidence,
+                *coverage_evidence,
                 f"before-sha256:{before_digest}", f"action-status:{action.status_code}",
                 f"after-sha256:{after_digest}",
             ))),
