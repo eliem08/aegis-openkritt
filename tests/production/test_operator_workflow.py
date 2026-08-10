@@ -5,6 +5,7 @@ import pytest
 
 from aegis.ai.jarvis.mission_capabilities import CapabilityDisposition
 from aegis.ai.jarvis.universal_runtime import MissionExecutionResult
+from aegis.cli import main as cli_main
 from aegis.ingest.program import AssetType, ProgramRules, ScopeAsset
 from aegis.ingest.source import ProgramSnapshot
 from aegis.policy.signing import Ed25519Signer, HmacSignatureVerifier
@@ -145,3 +146,18 @@ def test_resume_verifies_chain_authorization_and_refreshed_scope(tmp_path):
             store, prepared.manifest.run_id, refreshed_snapshot=changed,
             authorization_verifier=signer.verifier(),
         )
+
+
+def test_operator_cli_displays_selection_before_authorizing(tmp_path, capsys):
+    path = tmp_path / "snapshot.json"
+    path.write_text(snapshot().model_dump_json(), encoding="utf-8")
+    result = cli_main([
+        "production", "operator", "dry-run", "--snapshot", str(path),
+        "--program", "demo", "--asset", "api.example.test", "--operator-id", "operator",
+        "--max-requests", "10", "--requests-per-second", "1", "--max-cost-usd", "1",
+        "--runs-dir", str(tmp_path / "runs"),
+    ])
+    assert result == 2
+    output = capsys.readouterr().out
+    assert '"selected_assets"' in output and "selection not confirmed" in output
+    assert not (tmp_path / "runs").exists()
