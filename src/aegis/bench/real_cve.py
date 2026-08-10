@@ -101,6 +101,7 @@ class ScanObservation:
     detectors: list[str] = field(default_factory=list)
     attempted: list[str] = field(default_factory=list)
     unavailable: dict[str, str] = field(default_factory=dict)
+    raw_detectors: list[str] = field(default_factory=list)
 
     @property
     def any_ran(self) -> bool:
@@ -154,7 +155,9 @@ def derive_pair(repo_dir: str, pattern: str, *, path_hint: str = "",
     return None
 
 
-def _matching_survivors(scan_root: str, case: RealCase) -> ScanObservation:
+def _matching_survivors(
+    scan_root: str, case: RealCase, *, narrow_to_advisory_path: bool = True,
+) -> ScanObservation:
     """Scanners + reduction funnel over scan_root; return the tools whose surviving candidate
     matches this case's expected weakness (and path hint)."""
     from aegis.ai.candidate_reduction import reduce_candidates
@@ -175,7 +178,7 @@ def _matching_survivors(scan_root: str, case: RealCase) -> ScanObservation:
     # unique, which prevents unrelated monorepo size from dominating detector recall. Fall back
     # to the checkout when the hint is absent or ambiguous.
     scan_target = scan_root
-    if case.path_hint:
+    if case.path_hint and narrow_to_advisory_path:
         matches = [
             path for path in Path(scan_root).rglob("*")
             if path.is_file() and case.path_hint.lower() in path.as_posix().lower()
@@ -191,14 +194,24 @@ def _matching_survivors(scan_root: str, case: RealCase) -> ScanObservation:
             unavailable[required] = "required scanner binary is not installed"
     rows = bridge.findings(results)
     rows, _ = filter_out_of_scope(rows)
-    red = reduce_candidates(rows)
     want = case.expected()
+    raw_hit = sorted({
+        row.tool for row in rows
+        if want in f"{row.cwe} {row.rule} {row.summary}".lower()
+        and (not case.path_hint or case.path_hint.lower() in row.path.lower())
+    })
+    red = reduce_candidates(rows)
     hit: list[str] = []
     for c in red.survivors:
         text = f"{c.cwe} {c.rule} {c.summary}".lower()
         if want in text and (not case.path_hint or case.path_hint.lower() in c.path.lower()):
             hit.append(c.tool)
-    return ScanObservation(sorted(set(hit)), attempted, unavailable)
+    return ScanObservation(sorted(set(hit)), attempted, unavailable, raw_hit)
+
+
+def _whole_repository_survivors(scan_root: str, case: RealCase) -> ScanObservation:
+    """Normal repository discovery: never narrow scanner input with advisory path metadata."""
+    return _matching_survivors(scan_root, case, narrow_to_advisory_path=False)
 
 
 @lru_cache(maxsize=1)
@@ -211,6 +224,7 @@ def _benchmark_runtime():
 
 def run_real_case(case: RealCase, *, workdir: str | None = None, git=_git,
                   scanner: Callable[[str, RealCase], ScanObservation] = _matching_survivors,
+                  whole_repository: bool = False,
                   ) -> RealCaseResult:
     tmp = Path(workdir or tempfile.mkdtemp(prefix="aegis-realcve-"))
     tmp.mkdir(parents=True, exist_ok=True)
@@ -275,7 +289,18 @@ def run_real_case(case: RealCase, *, workdir: str | None = None, git=_git,
         if vuln_scan.detectors:
             return RealCaseResult(case.id, "detected", "", vuln_ref, fix_ref,
                                   vuln_scan.detectors)
-        return RealCaseResult(case.id, "missed", "no matching finding at the vulnerable revision",
+        miss_status = (
+            "discovery_missed" if whole_repository and vuln_scan.raw_detectors
+            else "detector_missed" if whole_repository else "missed"
+        )
+        reason = (
+            "matching raw detector output was removed by normal discovery reduction"
+            if miss_status == "discovery_missed"
+            else "no matching detector finding in the full vulnerable repository"
+            if miss_status == "detector_missed"
+            else "no matching finding at the vulnerable revision"
+        )
+        return RealCaseResult(case.id, miss_status, reason,
                               vuln_ref, fix_ref)
     except Exception as exc:
         return RealCaseResult(case.id, "skipped", f"{type(exc).__name__}: {exc}"[:160])
