@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import tempfile
 from dataclasses import asdict, dataclass, field
+from functools import lru_cache
 from pathlib import Path
 
 from .corpus import CASES, Case
@@ -108,7 +109,9 @@ def _findings_by_file(
     """basename -> normalized scanner findings for every result in ``scan_root``."""
     from aegis.ai.tool_bridge import ToolBridge
 
-    results = ToolBridge(timeout=300).scan(str(scan_root), tools=tools)
+    results = ToolBridge(timeout=300, runtime_manager=_benchmark_runtime()).scan(
+        str(scan_root), tools=tools
+    )
     by_file: dict[str, list[dict]] = {}
     ran: set[str] = set()
     unavailable: dict[str, str] = {}
@@ -129,6 +132,14 @@ def _findings_by_file(
             ).lower()
             by_file.setdefault(base, []).append({"tool": result.tool, "text": text})
     return by_file, ran, unavailable
+
+
+@lru_cache(maxsize=1)
+def _benchmark_runtime():
+    """Reuse one bounded cold-start health record across vulnerable and clean controls."""
+    from aegis.ai.tool_runtime import ToolRuntimeManager
+
+    return ToolRuntimeManager(version_timeout=30)
 
 
 def run_bench(cases=CASES) -> BenchResult:
