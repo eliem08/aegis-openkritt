@@ -268,9 +268,14 @@ def run_real_case(case: RealCase, *, workdir: str | None = None, git=_git,
                     f"{case.expected_fix_commit}^",
                 ]).strip()
             if not present or not parent_present:
+                local_provenance = case.repo.startswith("file://")
                 return RealCaseResult(
-                    case.id, "unavailable",
-                    "upstream fix revision and first parent could not be fetched",
+                    case.id, "invalid" if local_provenance else "unavailable",
+                    (
+                        "pinned fix commit is absent from the supplied local repository"
+                        if local_provenance else
+                        "upstream fix revision and first parent could not be fetched"
+                    ),
                 )
         pair = derive_pair(
             str(repo_dir), case.pattern, path_hint=case.path_hint,
