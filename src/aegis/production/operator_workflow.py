@@ -2,15 +2,26 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import UTC, datetime, timedelta
+from hashlib import sha256
 from typing import Protocol
 
+from aegis.ai.agentic_os import (
+    AuthorizationEnvelope,
+    Budget,
+    RiskClass,
+    mint_execution_grant,
+)
 from aegis.ai.jarvis.universal_mission import compile_opportunity_mission
-from aegis.ai.jarvis.universal_runtime import opportunities_for_program
+from aegis.ai.jarvis.universal_runtime import UniversalMissionRuntime, opportunities_for_program
 from aegis.ingest.program import ProgramRules
 from aegis.ingest.source import ProgramSnapshot
 from aegis.policy.authorization import Authorization, AuthorizationValidator, TestIdentity
+from aegis.policy.consequence import ConsequenceTier
+from aegis.policy.decisions import ActionRequest
+from aegis.policy.engine import PolicyEngine
+from aegis.policy.killswitch import KillSwitch
 
 from .operator_manifest import (
     ImmutableRunStore,
@@ -177,3 +188,155 @@ def compile_dry_run(prepared: PreparedOperatorRun, store: ImmutableRunStore):
         "execution_performed": False,
     })
     return missions
+
+
+def compile_live_canary(prepared: PreparedOperatorRun, store: ImmutableRunStore):
+    if prepared.manifest.mode is not RunMode.LIVE_CANARY:
+        raise OperatorWorkflowError("live-canary compiler requires a live-canary manifest")
+    opportunities = opportunities_for_program(
+        prepared.program, scope_digest=prepared.manifest.scope_digest,
+        authorization_id=str(prepared.manifest.authorization["authorization_id"]),
+    )
+    missions = tuple(compile_opportunity_mission(item) for item in opportunities)
+    store.append_event(prepared.manifest.run_id, "canary_missions_compiled", RunStatus.PLANNED, {
+        "mission_ids": [mission.mission_id for mission in missions], "execution_performed": False,
+    })
+    return missions
+
+
+def execute_live_canary(
+    prepared: PreparedOperatorRun,
+    plan,
+    *,
+    store: ImmutableRunStore,
+    runtime: UniversalMissionRuntime,
+    availability,
+    authorization_verifier,
+    grant_verifier,
+    kill_switch: KillSwitch | None = None,
+    now: datetime | None = None,
+    executor_kwargs: dict | None = None,
+):
+    """Revalidate immediately, mint one policy-derived grant, and execute one safe task."""
+    observed = (now or datetime.now(UTC)).astimezone(UTC)
+    store.verify(prepared.manifest.run_id)
+    if prepared.manifest.mode is not RunMode.LIVE_CANARY:
+        raise OperatorWorkflowError("execution requires a live-canary manifest")
+    authorization = Authorization.model_validate(prepared.manifest.authorization)
+    reasons = AuthorizationValidator(authorization_verifier, require_signature=True).validate(
+        authorization, observed,
+    )
+    if reasons:
+        raise OperatorWorkflowError("authorization became stale or invalid before execution")
+    if (
+        plan.scope_digest != prepared.manifest.scope_digest
+        or plan.authorization_id != authorization.authorization_id
+        or not plan.tasks
+        or plan.tasks[0].asset_locator != prepared.manifest.canary_asset
+    ):
+        raise OperatorWorkflowError("mission scope, authorization, or selected canary changed")
+    task = plan.tasks[0]
+    prior = store.events(prepared.manifest.run_id)
+    if any(event.detail.get("task_id") == task.task_id and event.event_type == "task_completed"
+           for event in prior):
+        raise OperatorWorkflowError("completed task will not be executed twice")
+    if task.risk not in {RiskClass.OFFLINE.value, RiskClass.READ_ONLY.value}:
+        raise OperatorWorkflowError("state-changing canary requires a separate signed approval")
+    if task.expected_requests > prepared.manifest.budgets.max_requests:
+        raise OperatorWorkflowError("task request estimate exceeds the immutable run budget")
+    if task.expected_cost_usd > prepared.manifest.budgets.max_cost_usd:
+        raise OperatorWorkflowError("task cost estimate exceeds the immutable run budget")
+
+    network = task.risk == RiskClass.READ_ONLY.value
+    action = "authenticated_testing" if network else "passive_discovery"
+    request = ActionRequest(
+        target=task.asset_locator, action=action,
+        tier_hint=ConsequenceTier.NON_INVASIVE_ACTIVE if network else ConsequenceTier.PASSIVE,
+        description=f"{task.executor_capability}:{task.action}",
+        estimated_cost=task.expected_cost_usd, touches_production=network,
+        request_id="canary:" + sha256(
+            f"{prepared.manifest.run_id}:{plan.mission_id}:{task.task_id}".encode()
+        ).hexdigest()[:24],
+    )
+    decision = PolicyEngine(
+        authorization=authorization, verifier=authorization_verifier,
+        kill_switch=kill_switch or KillSwitch(),
+    ).authorize(request, now=observed)
+    if not decision.allowed:
+        store.append_event(prepared.manifest.run_id, "policy_blocked", RunStatus.FAILED, {
+            "task_id": task.task_id, "decision": decision.as_dict(),
+        })
+        raise OperatorWorkflowError("canonical PolicyEngine denied the canary task")
+    budget = Budget(
+        max_cost_usd=prepared.manifest.budgets.max_cost_usd,
+        max_requests=prepared.manifest.budgets.max_requests,
+    )
+    grant = mint_execution_grant(
+        decision, scope_digest=prepared.manifest.scope_digest, budget=budget,
+        verifier=grant_verifier, network=network, state_change=False, human_approval=False,
+    )
+    store.append_event(prepared.manifest.run_id, "execution_grant_minted", RunStatus.RUNNING, {
+        "task_id": task.task_id, "method": task.executor_capability,
+        "grant": grant._payload() | {"signature": grant.signature},
+    })
+    envelope = AuthorizationEnvelope(
+        scope_digest=prepared.manifest.scope_digest, budget=budget, grant=grant,
+    )
+    result = runtime.execute_first(
+        plan, authorization=envelope, availability=availability, **(executor_kwargs or {}),
+    )
+    outcome = result.outcome
+    if hasattr(outcome, "__dataclass_fields__"):
+        outcome = asdict(outcome)
+    evidence_digest = sha256(repr(outcome).encode()).hexdigest()
+    event_type = "task_completed" if result.outcome is not None else "task_not_completed"
+    status = RunStatus.COMPLETED if result.outcome is not None else RunStatus.FAILED
+    store.append_event(prepared.manifest.run_id, event_type, status, {
+        "task_id": task.task_id, "mission_id": plan.mission_id,
+        "disposition": result.disposition.value, "reason": result.reason,
+        "evidence_digest": evidence_digest,
+    })
+    return result
+
+
+def resume_operator_run(
+    store: ImmutableRunStore,
+    run_id: str,
+    *,
+    refreshed_snapshot: ProgramSnapshot,
+    authorization_verifier,
+    now: datetime | None = None,
+) -> PreparedOperatorRun:
+    """Resume only when the chain, signed authorization, and current scope still agree."""
+    observed = (now or datetime.now(UTC)).astimezone(UTC)
+    manifest = store.load_manifest(run_id)
+    authorization = Authorization.model_validate(manifest.authorization)
+    if AuthorizationValidator(authorization_verifier, require_signature=True).validate(
+        authorization, observed,
+    ):
+        raise OperatorWorkflowError("authorization is stale or invalid; resume denied")
+    if refreshed_snapshot.expired or observed - refreshed_snapshot.retrieved_at > timedelta(hours=1):
+        raise OperatorWorkflowError("current program scope must be refreshed before resume")
+    if (
+        refreshed_snapshot.rules.handle != manifest.program_handle
+        or refreshed_snapshot.source_hash != manifest.policy_snapshot.get("source_hash")
+    ):
+        raise OperatorWorkflowError("program policy changed; create a fresh authorized run")
+    current = {
+        asset.identifier: asset for asset in refreshed_snapshot.rules.in_scope
+        if asset.eligible_for_submission
+    }
+    if any(asset not in current for asset in manifest.selected_assets):
+        raise OperatorWorkflowError("selected asset is no longer in current scope")
+    selected = [
+        current[name].model_copy(update={
+            "scope_digest": manifest.scope_digest,
+            "authorization_id": str(manifest.authorization["authorization_id"]),
+        }) for name in manifest.selected_assets
+    ]
+    program = refreshed_snapshot.rules.model_copy(update={"in_scope": selected})
+    store.append_event(run_id, "run_resumed", RunStatus.RUNNING, {
+        "previous_event_digest": store.events(run_id)[-1].digest,
+        "scope_digest": manifest.scope_digest,
+    })
+    return PreparedOperatorRun(manifest, program)

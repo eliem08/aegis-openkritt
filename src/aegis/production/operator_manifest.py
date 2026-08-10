@@ -206,6 +206,20 @@ class ImmutableRunStore:
             "last_event_digest": events[-1].digest if events else "",
         }
 
+    def load_manifest(self, run_id: str) -> OperatorRunManifest:
+        """Verify and rehydrate the immutable manifest for restart-safe continuation."""
+        self.verify(run_id)
+        value = json.loads((self.root / run_id / "manifest.json").read_text(encoding="utf-8"))
+        value.pop("manifest_digest", None)
+        value["mode"] = RunMode(value["mode"])
+        value["selected_assets"] = tuple(value.get("selected_assets") or ())
+        value["controlled_identity_refs"] = tuple(value.get("controlled_identity_refs") or ())
+        value["execution_grants"] = tuple(value.get("execution_grants") or ())
+        value["mission_ids"] = tuple(value.get("mission_ids") or ())
+        value["evidence_refs"] = tuple(value.get("evidence_refs") or ())
+        value["budgets"] = RunBudgets(**value["budgets"])
+        return OperatorRunManifest(**value)
+
     @staticmethod
     def new_run_id() -> str:
         return f"run-{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}-{secrets.token_hex(6)}"
