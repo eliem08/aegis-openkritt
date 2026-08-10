@@ -195,12 +195,12 @@ def _matching_survivors(
     rows = bridge.findings(results)
     rows, _ = filter_out_of_scope(rows)
     want = case.expected()
-    raw_hit = sorted({
-        row.tool for row in rows
-        if want in f"{row.cwe} {row.rule} {row.summary}".lower()
-        and (not case.path_hint or case.path_hint.lower() in row.path.lower())
-    })
     red = reduce_candidates(rows)
+    raw_hit = sorted({
+        candidate.tool for candidate in (*red.survivors, *red.suppressed)
+        if want in f"{candidate.cwe} {candidate.rule} {candidate.summary}".lower()
+        and (not case.path_hint or case.path_hint.lower() in candidate.path.lower())
+    })
     hit: list[str] = []
     for c in red.survivors:
         text = f"{c.cwe} {c.rule} {c.summary}".lower()
@@ -250,11 +250,28 @@ def run_real_case(case: RealCase, *, workdir: str | None = None, git=_git,
                 "-C", str(repo_dir), "rev-parse", "--verify",
                 f"{case.expected_fix_commit}^{{commit}}",
             ]).strip()
-            if not present:
+            parent_present = git([
+                "-C", str(repo_dir), "rev-parse", "--verify",
+                f"{case.expected_fix_commit}^",
+            ]).strip()
+            if not present or not parent_present:
                 git([
-                    "-C", str(repo_dir), "fetch", "--quiet", "origin",
+                    "-C", str(repo_dir), "fetch", "--quiet", "--deepen=20", "origin",
                     case.expected_fix_commit,
                 ], timeout=600)
+                present = git([
+                    "-C", str(repo_dir), "rev-parse", "--verify",
+                    f"{case.expected_fix_commit}^{{commit}}",
+                ]).strip()
+                parent_present = git([
+                    "-C", str(repo_dir), "rev-parse", "--verify",
+                    f"{case.expected_fix_commit}^",
+                ]).strip()
+            if not present or not parent_present:
+                return RealCaseResult(
+                    case.id, "unavailable",
+                    "upstream fix revision and first parent could not be fetched",
+                )
         pair = derive_pair(
             str(repo_dir), case.pattern, path_hint=case.path_hint,
             expected_fix_commit=case.expected_fix_commit, git=git,

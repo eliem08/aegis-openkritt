@@ -43,11 +43,20 @@ def run_whole_repository_bench(
     cases: tuple[RealCase, ...] | None = None,
 ) -> WholeRepositoryResult:
     selected = cases if cases is not None else _configured_cases()
-    return WholeRepositoryResult(tuple(
-        run_real_case(
+    def measure(case: RealCase) -> RealCaseResult:
+        return run_real_case(
             case, scanner=_whole_repository_survivors, whole_repository=True,
-        ) for case in selected
-    ))
+        )
+
+    workers = max(1, int(os.environ.get("AEGIS_WHOLE_REPO_CASE_CONCURRENCY", "1")))
+    if workers == 1:
+        measured = tuple(measure(case) for case in selected)
+    else:
+        from concurrent.futures import ThreadPoolExecutor
+
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            measured = tuple(executor.map(measure, selected))
+    return WholeRepositoryResult(measured)
 
 
 def main(argv: list[str] | None = None) -> int:
