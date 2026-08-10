@@ -12,6 +12,11 @@ on:
         type: boolean
         required: true
         default: false
+      soak_mode:
+        description: "Explicit mode: ci, six-hour, or 24-hour"
+        type: choice
+        options: [ci, six-hour, 24-hour]
+        default: ci
   schedule:
     - cron: "17 2 * * *"
 
@@ -30,6 +35,7 @@ jobs:
         env:
           SOAK_SECONDS: ${{ inputs.duration_seconds || '600' }}
           OPERATOR_MODE: ${{ inputs.operator_mode || 'false' }}
+          SOAK_MODE: ${{ inputs.soak_mode || 'ci' }}
         run: |
           operator_flag=""
           if [ "$OPERATOR_MODE" = "true" ]; then operator_flag="--operator"; fi
@@ -44,7 +50,7 @@ jobs:
               cd /tmp/project &&
               pip install -q ".[dev,api]" &&
               python -m aegis.production.soak \
-                --duration-seconds "$SOAK_SECONDS" $OPERATOR_FLAG \
+                --duration-seconds "$SOAK_SECONDS" --mode "$SOAK_MODE" $OPERATOR_FLAG \
                 --report /output/runtime-soak.json -- \
                 pytest -q -p no:cacheprovider \
                   tests/scheduler/test_coordinator.py \
@@ -56,7 +62,10 @@ jobs:
                   tests/oast/test_private_oast.py \
                   tests/test_authorization.py \
                   tests/test_budget.py \
-                  tests/test_killswitch.py'
+                  tests/test_killswitch.py \
+                  tests/production/test_operator_manifest.py \
+                  tests/production/test_operator_workflow.py \
+                  tests/production/test_health_command.py'
       - uses: actions/upload-artifact@v4
         if: always()
         with:
