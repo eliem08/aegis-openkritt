@@ -41,6 +41,7 @@ jobs:
           if [ "$OPERATOR_MODE" = "true" ]; then operator_flag="--operator"; fi
           docker run --rm \
             -e SOAK_SECONDS="$SOAK_SECONDS" \
+            -e SOAK_MODE="$SOAK_MODE" \
             -e OPERATOR_FLAG="$operator_flag" \
             -v "${{ github.workspace }}:/input:ro" \
             -v "${{ github.workspace }}/.soak-output:/output" \
