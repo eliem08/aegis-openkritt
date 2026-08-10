@@ -1,0 +1,100 @@
+# Generalized structural rules learned from independently reviewed upstream security fixes.
+# These rules deliberately contain no repository names, advisory IDs, or commit identities.
+rules:
+  - id: aegis-php-default-client-filename-path-traversal
+    languages: [generic]
+    severity: ERROR
+    message: A default upload destination uses the client-provided filename without sanitization.
+    metadata: {cwe: "CWE-22", class: path-traversal, confidence: HIGH, precision: high, validation: source-to-sink}
+    pattern-regex: '\$[A-Za-z_]\w*\s*\?\?=\s*\$this->getName\(\)\s*;'
+
+  - id: aegis-js-url-constructor-untrusted-authority
+    languages: [generic]
+    severity: ERROR
+    message: A request path is passed as the first URL constructor argument and can replace the intended authority.
+    metadata: {cwe: "CWE-918", class: ssrf, confidence: HIGH, precision: high, validation: source-to-sink}
+    pattern-regex: 'new\s+URL\s*\(\s*(?:originalUrl\s*\?\?\s*)?url\s*,\s*`[^`]*\$\{(?:host|hostname|hostnameWithPort)[^}]*\}[^`]*`\s*\)'
+
+  - id: aegis-js-protocol-relative-open-redirect
+    languages: [generic]
+    severity: ERROR
+    message: A leading-slash check accepts protocol-relative URLs before redirecting.
+    metadata: {cwe: "CWE-601", class: open-redirect, confidence: HIGH, precision: high, validation: source-to-sink}
+    pattern-regex: '(?s)if\s*\(\s*([A-Za-z_]\w*)\.startsWith\(["'']/["'']\)\s*\)\s*\{.{0,300}?redirect\s*\(\s*\1\s*\)'
+
+  - id: aegis-python-ipaddress-is-global-ssrf-bypass
+    languages: [generic]
+    severity: ERROR
+    message: Direct is_global validation misses embedded IPv4 transition-address forms.
+    metadata: {cwe: "CWE-918", class: ssrf, confidence: HIGH, precision: high, validation: source-to-sink}
+    pattern-regex: 'ipaddress\.ip_address\([^\n)]*\)\.is_global'
+
+  - id: aegis-js-raw-html-error-fallback
+    languages: [generic]
+    severity: ERROR
+    message: An HTML-rendering error path falls back to unescaped source content.
+    metadata: {cwe: "CWE-79", class: xss, confidence: HIGH, precision: high, validation: source-to-sink}
+    pattern-regex: '(?:renderedHTML|innerHTML)\s*=\s*(?:content|source|input)\s*;'
+
+  - id: aegis-python-unfiltered-request-model-state
+    languages: [generic]
+    severity: ERROR
+    message: Unfiltered model metadata is attached directly to request state.
+    metadata: {cwe: "CWE-863", class: incorrect-authorization, confidence: HIGH, precision: high, validation: source-to-sink}
+    pattern-regex: 'request\.state\.model\s*=\s*model\b'
+
+  - id: aegis-python-side-effect-before-object-authorization
+    languages: [generic]
+    severity: ERROR
+    message: A task-cancellation side effect occurs before role and object-ownership authorization.
+    metadata: {cwe: "CWE-862", class: missing-authorization, confidence: HIGH, precision: high, validation: source-to-sink}
+    pattern-regex: '(?s)await\s+stop_item_tasks\([^\n]*\bid\s*\)\s*\n\s*\n\s*async\s+def\s+[A-Za-z_]\w*\([^)]*owner_id[^)]*\)'
+
+  - id: aegis-python-write-access-confused-with-authorship
+    languages: [generic]
+    severity: ERROR
+    message: Channel write access is used as an alternative to message ownership.
+    metadata: {cwe: "CWE-863", class: incorrect-authorization, confidence: HIGH, precision: high, validation: source-to-sink}
+    pattern-regex: '(?s)user\.role\s*!=\s*["'']admin["'']\s*and\s+message\.user_id\s*!=\s*user\.id\s*and\s+not\s+await\s+channel_has_access'
+
+  - id: aegis-ruby-interpolated-module-eval
+    languages: [generic]
+    severity: ERROR
+    message: Interpolated data is compiled through module_eval.
+    metadata: {cwe: "CWE-94", class: code-injection, confidence: HIGH, precision: high, validation: source-to-sink}
+    pattern-regex: '(?s)module_eval\s+%\{.{0,600}?\#\{[^}]+\}'
+
+  - id: aegis-ruby-protocol-relative-credential-redirect
+    languages: [generic]
+    severity: ERROR
+    message: A redirect Location is merged without protecting authority or credential headers.
+    metadata: {cwe: "CWE-601", class: open-redirect, confidence: HIGH, precision: high, validation: source-to-sink}
+    pattern-regex: 'response\.response\.env\.url\.merge\(location\)'
+
+  - id: aegis-php-shell-command-concatenated-filename
+    languages: [generic]
+    severity: ERROR
+    message: A filename is concatenated into a shell command without argument escaping.
+    metadata: {cwe: "CWE-78", class: command-injection, confidence: HIGH, precision: high, validation: source-to-sink}
+    pattern-regex: '(?m)^(?![^\n;]*escapeshellarg)[^\n;]*\$command\s*=\s*["''][^\n;]*(?:git|hg|svn)\s+blame[^\n;]*basename\(\$filename\)'
+
+  - id: aegis-ruby-readable-path-file-serve
+    languages: [generic]
+    severity: ERROR
+    message: An arbitrary readable request path is served without containment validation.
+    metadata: {cwe: "CWE-22", class: path-traversal, confidence: HIGH, precision: high, validation: source-to-sink}
+    pattern-regex: '_serve_file\(path\)\s+if\s+_readable_file\(path\)'
+
+  - id: aegis-ruby-token-redirect-mutates-origin
+    languages: [generic]
+    severity: ERROR
+    message: A token-endpoint redirect mutates the client origin from redirect-controlled URI components.
+    metadata: {cwe: "CWE-918", class: ssrf, confidence: HIGH, precision: high, validation: source-to-sink}
+    pattern-regex: 'options\[:site\]\s*=\s*["'']\#\{uri\.scheme\}://\#\{uri\.host\}["'']'
+
+  - id: aegis-php-multibyte-prefix-rescan
+    languages: [generic]
+    severity: ERROR
+    message: Repeated mb_substr calls from the beginning of a line can make parsing quadratic.
+    metadata: {cwe: "CWE-407", class: algorithmic-complexity, confidence: HIGH, precision: high, validation: source-to-sink}
+    pattern-regex: '\$this->charCache\[\$[A-Za-z_]\w*\]\s*\?\?=\s*\\mb_substr\(\$this->line'

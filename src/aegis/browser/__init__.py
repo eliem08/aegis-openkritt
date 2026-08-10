@@ -5,6 +5,7 @@ execution gateway: no arbitrary JS, every request scope-checked, downloads
 quarantined, capabilities disabled, and ephemeral per-tenant/identity contexts.
 """
 
+from .playwright_backend import PlaywrightControlledBrowserBackend
 from .schema import (
     DISABLED_CAPABILITIES,
     FORBIDDEN_STEP_NAMES,
@@ -32,6 +33,7 @@ __all__ = [
     "BrowserWorkflow",
     "EphemeralContext",
     "PageResult",
+    "PlaywrightControlledBrowserBackend",
     "StepType",
     "WorkflowError",
     "WorkflowResult",

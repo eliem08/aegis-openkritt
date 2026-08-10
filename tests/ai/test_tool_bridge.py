@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 
-from aegis.ai.tool_bridge import ToolBridge, available_tools
+from aegis.ai.tool_bridge import ToolBridge, _command_argv, available_tools
 from aegis.ai.tool_registry import TOOLS, tools_for
 
 
@@ -90,3 +90,15 @@ def test_nonzero_exit_without_parseable_findings_is_unavailable_not_a_clean_run(
     result = bridge.scan("/r", tools=[semgrep])[0]
     assert result.ran is False
     assert "scanner exited 2" in result.error
+
+
+def test_windows_command_split_preserves_backslashes_and_removes_quotes():
+    argv = _command_argv(
+        'semgrep --json --config "C:\\Users\\hunter\\ai bug bounty\\rules" '
+        '"C:\\Users\\hunter\\checkout"',
+        windows=True,
+    )
+    assert argv == [
+        "semgrep", "--json", "--config", "C:\\Users\\hunter\\ai bug bounty\\rules",
+        "C:\\Users\\hunter\\checkout",
+    ]

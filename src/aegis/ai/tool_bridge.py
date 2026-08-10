@@ -106,6 +106,28 @@ def _default_run(argv, timeout):
     return process.stdout or "", process.stderr or "", process.returncode
 
 
+def _command_argv(command: str, *, windows: bool | None = None) -> list[str]:
+    """Split a registry command without corrupting Windows backslash paths.
+
+    ``shlex.split`` defaults to POSIX escaping, which turns ``C:\\Users\\...`` into
+    ``C:Users...``. Windows mode preserves backslashes; surrounding quotes are then removed
+    because ``subprocess.run`` receives an argv list rather than a command-line string.
+    """
+    import os
+    import shlex
+
+    is_windows = os.name == "nt" if windows is None else windows
+    argv = shlex.split(command, posix=not is_windows)
+    if is_windows:
+        argv = [
+            value[1:-1]
+            if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'"
+            else value
+            for value in argv
+        ]
+    return argv
+
+
 class ToolBridge:
     """Invoke scanners with production runtime health, pin and provenance checks."""
 
@@ -123,7 +145,6 @@ class ToolBridge:
     def scan(self, checkout_path: str, *, lane: str | None = None,
              tools: list[Tool] | None = None, on_event=None) -> list[ToolResult]:
         import os
-        import shlex
         import time
 
         emit = on_event or (lambda *_: None)
@@ -159,7 +180,7 @@ class ToolBridge:
 
             emit("scanner", {"tool": tool.name, "state": "run"})
             started = time.monotonic()
-            argv = shlex.split(
+            argv = _command_argv(
                 tool.cmd.format(
                     target=str(checkout_path),
                     rules=rules_dir(),

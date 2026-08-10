@@ -315,48 +315,48 @@ TOOLS: tuple[Tool, ...] = (
          # monorepo doesn't blow the wall-clock timeout (the carpet-sweep TimeoutExpired bug).
          # scan everything the target wrote (no size cap, no per-rule timeout); only skip
          # node_modules/vendor/.git (third-party deps + VCS — not the target's own code).
-         "semgrep --config {rules} --json --quiet --timeout 0 "
-         "--exclude node_modules --exclude vendor --exclude .git --error {target}",
+         "semgrep --config \"{rules}\" --json --quiet --timeout 0 "
+         "--exclude node_modules --exclude vendor --exclude .git --error \"{target}\"",
          "LGPL-2.1 (engine) / Aegis rules", _parse_semgrep),
     Tool("gitleaks", "gitleaks", ("secrets",),
          # --no-git scans the working tree (current code) instead of the whole git history —
          # far faster on big repos, and we want secrets in the code, not old commits.
-         "gitleaks detect --no-git --source {target} --report-format json --report-path -", "MIT",
+         "gitleaks detect --no-git --source \"{target}\" --report-format json --report-path -", "MIT",
          _parse_gitleaks),
     Tool("detect-secrets", "detect-secrets", ("secrets",),
          # Offline only: --no-verify prevents provider/network verification. --all-files scans
          # the checkout even when the shallow clone has unusual tracking metadata.
-         "detect-secrets scan {target} --all-files --no-verify",
+         "detect-secrets scan \"{target}\" --all-files --no-verify",
          "Apache-2.0", _parse_detect_secrets),
     Tool("bandit", "bandit", ("code",),
-         "bandit -r {target} -f json -q", "Apache-2.0", _parse_bandit),
+         "bandit -r \"{target}\" -f json -q", "Apache-2.0", _parse_bandit),
     Tool("slither", "slither", ("contract",),
-         "slither {target} --json -", "AGPL-3.0 (invoked, not vendored)", _parse_slither),
+         "slither \"{target}\" --json -", "AGPL-3.0 (invoked, not vendored)", _parse_slither),
     Tool("njsscan", "njsscan", ("code",),
-         "njsscan --json {target}", "LGPL-3.0 (invoked)", _parse_njsscan),
+         "njsscan --json \"{target}\"", "LGPL-3.0 (invoked)", _parse_njsscan),
     Tool("trivy", "trivy", ("deps", "secrets"),
-         "trivy fs --format json --quiet {target}", "Apache-2.0", _parse_trivy),
+         "trivy fs --format json --quiet \"{target}\"", "Apache-2.0", _parse_trivy),
     # High-star additions filling real language gaps (Ruby/Rails, Go) + universal SCA/IaC.
     Tool("brakeman", "brakeman", ("code",),
-         "brakeman -f json -q {target}", "MIT (~7k*)", _parse_brakeman),
+         "brakeman -f json -q \"{target}\"", "MIT (~7k*)", _parse_brakeman),
     Tool("gosec", "gosec", ("code",),
-         "gosec -fmt=json -quiet -no-fail {target}/...", "Apache-2.0 (~8k*)", _parse_gosec),
+         "gosec -fmt=json -quiet -no-fail \"{target}/...\"", "Apache-2.0 (~8k*)", _parse_gosec),
     Tool("osv-scanner", "osv-scanner", ("deps",),
-         "osv-scanner --format json -r {target}", "Apache-2.0 (~6k*)", _parse_osv),
+         "osv-scanner --format json -r \"{target}\"", "Apache-2.0 (~6k*)", _parse_osv),
     Tool("checkov", "checkov", ("deps",),
-         "checkov -d {target} -o json --compact --quiet", "Apache-2.0 (~7k*)", _parse_checkov),
+         "checkov -d \"{target}\" -o json --compact --quiet", "Apache-2.0 (~7k*)", _parse_checkov),
     Tool("grype", "grype", ("deps",),
-         "grype dir:{target} -o json", "Apache-2.0 (~8k*)", _parse_grype),
+         "grype \"dir:{target}\" -o json", "Apache-2.0 (~8k*)", _parse_grype),
     Tool("psalm", "psalm", ("code",),
          # {psalmcfg} is a per-scan psalm.xml (projectFiles=target + WordPress stubs). Stubs
          # must be configured in XML, NOT via a --stubs flag (which psalm rejects, so it used
          # to bail in 0.1s and never run).
-         "psalm --config={psalmcfg} --taint-analysis --output-format=json --no-progress",
+         "psalm \"--config={psalmcfg}\" --taint-analysis --output-format=json --no-progress",
          "MIT (~5k*)", _parse_psalm),
     Tool("mythril", "myth", ("contract",),
-         "myth analyze {target} -o json", "MIT (~4k*)", _parse_mythril),
+         "myth analyze \"{target}\" -o json", "MIT (~4k*)", _parse_mythril),
     Tool("retire.js", "retire", ("deps",),
-         "retire --outputformat json --path {target}", "Apache-2.0 (~4k*)", _parse_retirejs),
+         "retire --outputformat json --path \"{target}\"", "Apache-2.0 (~4k*)", _parse_retirejs),
 )
 
 

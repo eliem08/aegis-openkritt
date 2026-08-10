@@ -79,10 +79,14 @@ class CrossSurfaceIntelligenceAgent:
             row.kind is CrossSurfaceKind.DEEP_LINK and row.probe_succeeded
             and row.protected_state_changed and not row.user_confirmation_observed
         )
-        violation = deep_link_violation or (
-            row.probe_succeeded
-            and (row.protected_marker_in_probe or row.protected_state_changed)
-        )
+        if row.kind is CrossSurfaceKind.DEEP_LINK:
+            violation = deep_link_violation or (
+                row.probe_succeeded and row.protected_marker_in_probe
+            )
+        else:
+            violation = row.probe_succeeded and (
+                row.protected_marker_in_probe or row.protected_state_changed
+            )
         if violation:
             return CrossSurfaceVerdict(verdict_id, CrossSurfaceOutcome.VIOLATION,
                                        "cross-surface probe exposed a protected marker or state effect",

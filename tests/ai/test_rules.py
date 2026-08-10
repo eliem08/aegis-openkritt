@@ -30,7 +30,12 @@ def test_all_rulesets_valid():
                 assert r.get("pattern-sources"), r.get("id")
                 assert r.get("pattern-sinks"), r.get("id")
             else:
-                assert "patterns" in r or "pattern" in r or "pattern-either" in r, r.get("id")
+                assert (
+                    "patterns" in r
+                    or "pattern" in r
+                    or "pattern-either" in r
+                    or "pattern-regex" in r
+                ), r.get("id")
 
 
 def test_semgrep_cmd_uses_bundled_rules():

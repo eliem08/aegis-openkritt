@@ -5,12 +5,15 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass
+from datetime import UTC, datetime
+from hashlib import sha256
 from html.parser import HTMLParser
 from typing import Mapping, Protocol
 from urllib.parse import urljoin, urlsplit
 
 from aegis.ai.agentic_os import AuthorizationEnvelope
 
+from .ct_provider import deserialize_record, serialize_record
 from .recon_intelligence import CertificateRecord
 
 _SOURCE_MAP = re.compile(r"[#@]\s*sourceMappingURL\s*=\s*(?P<url>[^\s*]+)")
@@ -48,17 +51,21 @@ class AcquisitionStatus:
 class HunterAcquisitionResult:
     bundles: Mapping[str, str]
     source_maps: Mapping[str, str]
+    artifact_digests: Mapping[str, str]
     certificates: tuple[CertificateRecord, ...]
+    previous_certificates: tuple[CertificateRecord, ...]
     statuses: tuple[AcquisitionStatus, ...]
 
 
 class HunterArtifactAcquirer:
     def __init__(self, *, fetcher: ArtifactFetcher | None = None,
                  ct_provider: CertificateTransparencyProvider | None = None,
+                 ct_store=None,
                  grant_verifier=None, max_artifact_bytes: int = 5_000_000,
                  max_scripts: int = 100) -> None:
         self.fetcher = fetcher
         self.ct_provider = ct_provider
+        self.ct_store = ct_store
         self.grant_verifier = grant_verifier
         self.max_artifact_bytes = max_artifact_bytes
         self.max_scripts = max_scripts
@@ -70,14 +77,20 @@ class HunterArtifactAcquirer:
         bundles: dict[str, str] = {}
         maps: dict[str, str] = {}
         certificates: list[CertificateRecord] = []
+        previous_certificates: list[CertificateRecord] = []
         statuses = []
+        artifact_digests: dict[str, str] = {}
+        fetch = lambda url: (
+            self.fetcher.get_authorized(url, authorization)
+            if hasattr(self.fetcher, "get_authorized") else self.fetcher.get(url)
+        )
         if self.fetcher is None:
             statuses.append(AcquisitionStatus("html_script_discovery", "UNAVAILABLE",
                                               "no authorized artifact fetcher is registered"))
         else:
             for page_url in page_urls:
                 self._require_scope(page_url, scope)
-                status, _headers, body = self.fetcher.get(page_url)
+                status, _headers, body = fetch(page_url)
                 if status != 200 or len(body) > self.max_artifact_bytes:
                     continue
                 parser = _Scripts()
@@ -85,21 +98,23 @@ class HunterArtifactAcquirer:
                 for source in parser.sources[:self.max_scripts]:
                     script_url = urljoin(page_url, source)
                     self._require_scope(script_url, scope)
-                    code, _script_headers, script_body = self.fetcher.get(script_url)
+                    code, _script_headers, script_body = fetch(script_url)
                     if code != 200 or len(script_body) > self.max_artifact_bytes:
                         continue
                     text = script_body.decode("utf-8", "replace")
                     bundles[script_url] = text
+                    artifact_digests[script_url] = sha256(script_body).hexdigest()
                     for match in _SOURCE_MAP.finditer(text):
                         map_url = urljoin(script_url, match.group("url").strip())
                         self._require_scope(map_url, scope)
-                        map_status, map_headers, map_body = self.fetcher.get(map_url)
+                        map_status, map_headers, map_body = fetch(map_url)
                         content_type = next((value for key, value in map_headers.items()
                                              if key.casefold() == "content-type"), "")
                         if (map_status == 200 and len(map_body) <= self.max_artifact_bytes
                                 and ("json" in content_type.casefold()
                                      or self._valid_json(map_body))):
                             maps[map_url] = map_body.decode("utf-8", "replace")
+                            artifact_digests[map_url] = sha256(map_body).hexdigest()
             statuses.append(AcquisitionStatus("html_script_discovery", "READY",
                                               f"acquired {len(bundles)} scripts"))
             statuses.append(AcquisitionStatus("authorized_source_map_retrieval", "READY",
@@ -110,10 +125,54 @@ class HunterArtifactAcquirer:
         else:
             for domain in ct_domains:
                 self._require_domain_scope(domain, scope)
-                certificates.extend(self.ct_provider.query(domain))
-            statuses.append(AcquisitionStatus("certificate_transparency", "READY",
-                                              f"acquired {len(certificates)} records"))
-        return HunterAcquisitionResult(bundles, maps, tuple(certificates), tuple(statuses))
+                previous_for_domain: tuple[CertificateRecord, ...] = ()
+                if self.ct_store is not None:
+                    snapshots = self.ct_store.ct_snapshots(domain, limit=1)
+                    if snapshots and snapshots[0]["status"] == "READY":
+                        previous_for_domain = tuple(
+                            deserialize_record(row) for row in snapshots[0]["records"]
+                        )
+                        previous_certificates.extend(previous_for_domain)
+                try:
+                    current = tuple(self.ct_provider.query(domain))
+                except Exception as exc:
+                    reason = f"{type(exc).__name__}: {exc}"[:240]
+                    statuses.append(AcquisitionStatus(
+                        "certificate_transparency", "UNAVAILABLE", reason,
+                    ))
+                    if self.ct_store is not None:
+                        self.ct_store.save_ct_snapshot(
+                            domain=domain,
+                            content_digest=sha256(reason.encode()).hexdigest(),
+                            status="UNAVAILABLE", reason=reason, records=[],
+                            observed_at=datetime.now(UTC).isoformat(),
+                        )
+                    continue
+                certificates.extend(current)
+                if self.ct_store is not None:
+                    rows = [serialize_record(record) for record in current]
+                    digest = sha256(json.dumps(
+                        [{key: value for key, value in row.items() if key != "observed_at"}
+                         for row in rows],
+                        sort_keys=True, separators=(",", ":")
+                    ).encode()).hexdigest()
+                    inserted = self.ct_store.save_ct_snapshot(
+                        domain=domain, content_digest=digest, status="READY", reason="",
+                        records=rows, observed_at=datetime.now(UTC).isoformat(),
+                    )
+                    change = "changed" if previous_for_domain and inserted else "unchanged"
+                    statuses.append(AcquisitionStatus(
+                        "certificate_transparency_snapshot", "READY",
+                        f"{change}; digest={digest}",
+                    ))
+            if not any(item.capability == "certificate_transparency"
+                       and item.status == "UNAVAILABLE" for item in statuses):
+                statuses.append(AcquisitionStatus("certificate_transparency", "READY",
+                                                  f"acquired {len(certificates)} records"))
+        return HunterAcquisitionResult(
+            bundles, maps, artifact_digests, tuple(certificates),
+            tuple(previous_certificates), tuple(statuses)
+        )
 
     def _authorize(self, authorization: AuthorizationEnvelope) -> None:
         grant = authorization.grant

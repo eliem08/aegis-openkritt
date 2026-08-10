@@ -17,10 +17,16 @@ from .asset_capabilities import AssetKind
 from .asset_capability_extensions import capability_extensions
 from .asset_capability_planner import plan_capability_scan
 from .asset_deep_capabilities import ExtendedAssetKind, PlannedMethod, TargetAssetKind
-from .asset_execution import OfflineAssetExecutionOutcome, execute_authorized_offline_method
+from .asset_execution import execute_authorized_offline_method
 from .asset_execution_ticket import CapabilityAvailability, issue_offline_execution_ticket
+from .execution_errors import (
+    MissionBackendUnavailableError,
+    MissionObservationPending,
+    MissionPrerequisiteError,
+)
 from .mission_capabilities import CapabilityDisposition, MissionWorkerRegistry
 from .mission_scheduler import MissionPlan, MissionScheduler, MissionTask, TaskState
+from .production_dispatcher import ExecutorProvider, compose_production_executors
 from .universal_mission import compile_opportunity_mission
 
 _TYPE_TO_KIND: dict[AssetType, TargetAssetKind] = {
@@ -137,7 +143,7 @@ class MissionExecutionResult:
     plan: MissionPlan
     disposition: CapabilityDisposition
     reason: str
-    outcome: OfflineAssetExecutionOutcome | None = None
+    outcome: Any | None = None
 
 
 DynamicExecutor = Callable[[PlannedMethod, MissionPlan, AuthorizationEnvelope], Any]
@@ -155,12 +161,15 @@ class UniversalMissionRuntime:
         workers: MissionWorkerRegistry | None = None,
         dynamic_executor: DynamicExecutor | None = None,
         mission_task_executors: dict[str, MissionTaskExecutor] | None = None,
+        executor_providers: tuple[ExecutorProvider, ...] = (),
     ) -> None:
         self.scheduler = scheduler
         self.grant_verifier = grant_verifier
         self.workers = workers or MissionWorkerRegistry()
         self.dynamic_executor = dynamic_executor
-        self.mission_task_executors = dict(mission_task_executors or {})
+        self.mission_task_executors = compose_production_executors(
+            executor_providers, existing=mission_task_executors
+        )
 
     @staticmethod
     def _method(
@@ -306,6 +315,15 @@ class UniversalMissionRuntime:
                     plan, CapabilityDisposition.WAITING_FOR_APPROVAL,
                     "signed grant does not authorize controlled differential execution",
                 )
+            request_budget = min(
+                authorization.budget.max_requests, grant.budget.max_requests
+            )
+            if task.expected_requests > request_budget:
+                plan = self.scheduler.set_task_state(plan, task.task_id, TaskState.BLOCKED)
+                return MissionExecutionResult(
+                    plan, CapabilityDisposition.WAITING_FOR_PREREQUISITE,
+                    "mission request estimate exceeds the signed request budget",
+                )
             executor = self.mission_task_executors.get(task.executor_capability)
             if executor is None:
                 plan = self.scheduler.set_task_state(plan, task.task_id, TaskState.UNAVAILABLE)
@@ -315,7 +333,31 @@ class UniversalMissionRuntime:
                 )
             plan = self.scheduler.set_task_state(plan, task.task_id, TaskState.RUNNING)
             try:
-                executor(task, plan, authorization)
+                execution_outcome = executor(task, plan, authorization)
+            except MissionObservationPending as exc:
+                plan = self.scheduler.set_task_state(plan, task.task_id, TaskState.BLOCKED)
+                return MissionExecutionResult(
+                    plan, CapabilityDisposition.WAITING_FOR_PREREQUISITE, str(exc),
+                )
+            except MissionPrerequisiteError as exc:
+                plan = self.scheduler.set_task_state(
+                    plan, task.task_id, TaskState.WAITING_FOR_PREREQUISITE
+                )
+                return MissionExecutionResult(
+                    plan, CapabilityDisposition.WAITING_FOR_PREREQUISITE, str(exc),
+                )
+            except PermissionError as exc:
+                plan = self.scheduler.set_task_state(
+                    plan, task.task_id, TaskState.WAITING_FOR_APPROVAL
+                )
+                return MissionExecutionResult(
+                    plan, CapabilityDisposition.WAITING_FOR_APPROVAL, str(exc),
+                )
+            except MissionBackendUnavailableError as exc:
+                plan = self.scheduler.set_task_state(plan, task.task_id, TaskState.UNAVAILABLE)
+                return MissionExecutionResult(
+                    plan, CapabilityDisposition.UNAVAILABLE, str(exc),
+                )
             except Exception as exc:
                 plan = self.scheduler.set_task_state(
                     plan, task.task_id, TaskState.FAILED_RETRYABLE
@@ -326,7 +368,8 @@ class UniversalMissionRuntime:
                 )
             plan = self.scheduler.set_task_state(plan, task.task_id, TaskState.COMPLETED)
             return MissionExecutionResult(
-                plan, CapabilityDisposition.READY, "hunter capability completed"
+                plan, CapabilityDisposition.READY, "hunter capability completed",
+                execution_outcome,
             )
 
         if task.executor_capability.startswith("jarvis:"):
@@ -345,7 +388,19 @@ class UniversalMissionRuntime:
                 )
             plan = self.scheduler.set_task_state(plan, task.task_id, TaskState.RUNNING)
             try:
-                executor(task, plan, authorization)
+                execution_outcome = executor(task, plan, authorization)
+            except MissionPrerequisiteError as exc:
+                plan = self.scheduler.set_task_state(
+                    plan, task.task_id, TaskState.WAITING_FOR_PREREQUISITE
+                )
+                return MissionExecutionResult(
+                    plan, CapabilityDisposition.WAITING_FOR_PREREQUISITE, str(exc),
+                )
+            except MissionBackendUnavailableError as exc:
+                plan = self.scheduler.set_task_state(plan, task.task_id, TaskState.UNAVAILABLE)
+                return MissionExecutionResult(
+                    plan, CapabilityDisposition.UNAVAILABLE, str(exc),
+                )
             except Exception as exc:
                 plan = self.scheduler.set_task_state(
                     plan, task.task_id, TaskState.FAILED_RETRYABLE
@@ -356,7 +411,8 @@ class UniversalMissionRuntime:
                 )
             plan = self.scheduler.set_task_state(plan, task.task_id, TaskState.COMPLETED)
             return MissionExecutionResult(
-                plan, CapabilityDisposition.READY, "internal hunter capability completed"
+                plan, CapabilityDisposition.READY, "internal hunter capability completed",
+                execution_outcome,
             )
 
         kind = canonical_kind_value(task.asset_kind)
@@ -383,9 +439,11 @@ class UniversalMissionRuntime:
                     plan, CapabilityDisposition.UNAVAILABLE,
                     "no policy-controlled dynamic executor backend is registered",
                 )
-            self.dynamic_executor(method, plan, authorization)
+            execution_outcome = self.dynamic_executor(method, plan, authorization)
             plan = self.scheduler.set_task_state(plan, task.task_id, TaskState.COMPLETED)
-            return MissionExecutionResult(plan, CapabilityDisposition.READY, "dynamic task completed")
+            return MissionExecutionResult(
+                plan, CapabilityDisposition.READY, "dynamic task completed", execution_outcome
+            )
 
         ticket = issue_offline_execution_ticket(
             asset_kind=kind,

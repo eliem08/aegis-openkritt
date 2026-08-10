@@ -31,6 +31,24 @@ CASES: tuple[Case, ...] = (
          "<?php $wpdb->query(\"SELECT * FROM u WHERE id=\" . $_GET['id']);",
          "<?php $wpdb->query($wpdb->prepare(\"SELECT * FROM u WHERE id=%d\", $_GET['id']));",
          "cwe-89"),
+    Case("php-sqli-query-builder-raw-bind", "CWE-89", "builder.php",
+         """<?php
+foreach ($this->QBWhere as $key => $where) {
+    foreach ($this->binds as $field => $bind) {
+        $this->QBWhere[$key]['condition'] = str_replace(':' . $field . ':', $bind[0], $where['condition']);
+    }
+}
+""",
+         """<?php
+foreach ($this->binds as $field => $bind) {
+    $escaped = $bind[1] ? $this->db->escape($bind[0]) : $bind[0];
+    $replacers[':' . $field . ':'] = (string) $escaped;
+}
+foreach ($this->QBWhere as $key => $where) {
+    $this->QBWhere[$key]['condition'] = strtr($where['condition'], $replacers);
+}
+""",
+         "cwe-89"),
     Case("php-xss-echo", "CWE-79", "xss.php",
          "<?php echo $_GET['name'];",
          "<?php echo esc_html($_GET['name']);",

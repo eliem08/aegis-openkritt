@@ -162,7 +162,9 @@ class HunterIntelligencePhaseA:
         result = self.run(
             program=program, scope_digest=scope_digest, authorization_id=authorization_id,
             graph=graph, bundles=acquired.bundles, source_maps=acquired.source_maps,
-            certificates=acquired.certificates, previous_certificates=previous_certificates,
+            certificates=acquired.certificates,
+            previous_certificates=(tuple(previous_certificates)
+                                   or acquired.previous_certificates),
             capacity=capacity, exploration_fraction=exploration_fraction,
         )
         return acquired, result
