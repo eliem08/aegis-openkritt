@@ -14,6 +14,8 @@ def test_whole_repository_metric_is_separate_and_counts_miss_classes():
     assert summary["whole_repository_discovery_recall"] == 0.3333
     assert summary["detector_misses"] == 1
     assert summary["discovery_misses"] == 1
+    assert summary["unavailable"] == 1
+    assert summary["invalid"] == 0
     assert summary["scored"] == 3
 
 

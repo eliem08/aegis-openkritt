@@ -35,6 +35,8 @@ class WholeRepositoryResult:
             "detector_misses": sum(case.status == "detector_missed" for case in scored),
             "discovery_misses": sum(case.status == "discovery_missed" for case in scored),
             "regressions": sum(case.status == "regressed" for case in scored),
+            "unavailable": sum(case.status == "unavailable" for case in self.cases),
+            "invalid": sum(case.status == "invalid" for case in self.cases),
             "by_status": dict(Counter(case.status for case in self.cases)),
         }
 
@@ -76,7 +78,15 @@ def main(argv: list[str] | None = None) -> int:
     if args.json_path:
         Path(args.json_path).write_text(json.dumps(document, indent=2) + "\n", encoding="utf-8")
     strict = os.environ.get("AEGIS_WHOLE_REPO_CVE_STRICT", "").lower() in {"1", "true", "yes"}
-    return 1 if strict and (not summary["scored"] or summary["regressions"]) else 0
+    failed = (
+        not summary["scored"]
+        or summary["detector_misses"]
+        or summary["discovery_misses"]
+        or summary["regressions"]
+        or summary["unavailable"]
+        or summary["invalid"]
+    )
+    return 1 if strict and failed else 0
 
 
 if __name__ == "__main__":
