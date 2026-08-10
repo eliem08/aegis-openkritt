@@ -27,6 +27,7 @@ class ScopedHttpResponse:
     body: bytes
     final_url: str
     redirects: int
+    pinned_ip: str = ""
 
 
 class ScopedEgressHttpExecutor:
@@ -139,6 +140,7 @@ class ScopedEgressHttpExecutor:
             body=decoded,
             final_url=str(document.get("final_url") or url),
             redirects=int(document.get("redirects") or 0),
+            pinned_ip=str(document.get("pinned_ip") or ""),
         )
 
 

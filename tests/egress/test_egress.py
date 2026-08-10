@@ -66,6 +66,7 @@ def test_authorized_fetch_uses_pinned_ip_and_filters_headers():
     assert observed == {"method": "GET", "url": "https://in.example.test/start",
                         "pinned_ip": "93.184.216.34", "headers": {"accept": "text/plain"}, "body": b""}
     assert response.json()["headers"] == {"content-type": "text/plain"}
+    assert response.json()["pinned_ip"] == "93.184.216.34"
     assert base64.b64decode(response.json()["body_base64"]) == b"ok"
 
 

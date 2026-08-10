@@ -64,6 +64,7 @@ class FetchResponse(BaseModel):
     body_base64: str
     final_url: str
     redirects: int
+    pinned_ip: str
 
 
 class WebSocketRequest(BaseModel):
@@ -337,6 +338,7 @@ def create_egress_app(
                     body_base64=base64.b64encode(upstream.body).decode("ascii"),
                     final_url=url,
                     redirects=redirects,
+                    pinned_ip=decision.pinned_ip,
                 )
             redirects += 1
             if redirects > MAX_REDIRECTS:
