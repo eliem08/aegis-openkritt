@@ -5,14 +5,22 @@ import subprocess
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
+from decimal import Decimal
 
 import pytest
 
 from aegis.effectiveness.funnel import record_funnel_fact
-from aegis.effectiveness.models import EffectivenessFact, FactType, OutcomeInput, OutcomeState
+from aegis.effectiveness.models import (
+    CampaignEvent,
+    EffectivenessFact,
+    FactType,
+    OutcomeInput,
+    OutcomeState,
+)
+from aegis.effectiveness.policy import EconomicShadowCandidate, build_shadow_policy_batch
 from aegis.effectiveness.postgres import PostgresEffectivenessRepository
 
-from .helpers import cost, fact, outcome, subject
+from .helpers import DIGEST, campaign, cost, fact, outcome, subject
 
 DSN = os.environ.get("AEGIS_TEST_POSTGRES_DSN")
 
@@ -123,4 +131,54 @@ def test_postgres_v2_metadata_and_pending_nulls_round_trip():
     record, inserted = repository.record_outcome(pending)
     assert inserted and record.payload.resolved_at is None
     assert record.payload.model_api_cost_usd is None
+    repository.close()
+
+
+@pytest.mark.skipif(not DSN, reason="set AEGIS_TEST_POSTGRES_DSN to run")
+def test_postgres_campaign_jsonb_and_immutable_events_round_trip():
+    pytest.importorskip("psycopg")
+    repository = PostgresEffectivenessRepository(DSN)
+    with repository._pool.connection() as connection, connection.cursor() as cursor:
+        cursor.execute(
+            "TRUNCATE effectiveness_campaign_events,effectiveness_campaigns CASCADE"
+        )
+    item = campaign()
+    record, inserted = repository.record_campaign(item)
+    assert inserted and record.payload == item
+    assert repository.record_campaign(item)[1] is False
+    event = CampaignEvent(
+        campaign_event_id="postgres-event", campaign_id=item.campaign_id,
+        event_type="started", observed_at=item.starts_at, subject_id=None,
+        metadata={"authority_changed": False}, source_digest=DIGEST,
+        idempotency_key="postgres-event",
+    )
+    assert repository.record_campaign_event(event)
+    assert not repository.record_campaign_event(event)
+    assert repository.campaign_events(item.campaign_id) == (event,)
+    repository.close()
+
+
+@pytest.mark.skipif(not DSN, reason="set AEGIS_TEST_POSTGRES_DSN to run")
+def test_postgres_shadow_economics_round_trip_without_authority():
+    pytest.importorskip("psycopg")
+    repository = PostgresEffectivenessRepository(DSN)
+    with repository._pool.connection() as connection, connection.cursor() as cursor:
+        cursor.execute("TRUNCATE effectiveness_shadow_entries,effectiveness_shadow_batches")
+    candidates = tuple(
+        EconomicShadowCandidate(
+            opportunity_id=f"shadow-{index}", program_id="program", asset_class="web_api",
+            technique="authorization-boundary", weakness_family="authorization",
+            existing_score=Decimal(100 - index), actual_selected=index == 1,
+            estimated_hours=Decimal("1"), estimated_requests=10,
+            estimated_compute_cost_usd=Decimal("1"),
+        )
+        for index in range(1, 6)
+    )
+    batch = build_shadow_policy_batch(
+        repository, candidates, batch_id="postgres-shadow", idempotency_key="postgres-shadow",
+        selection_count=5, computed_at="2026-08-11T00:00:00+00:00",
+    )
+    assert repository.record_shadow_batch(batch)
+    assert repository.shadow_batches() == (batch,)
+    assert all(entry.shadow_hypothetical_reward_usd is None for entry in batch.entries)
     repository.close()

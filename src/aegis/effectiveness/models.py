@@ -303,6 +303,75 @@ class EconomicProjection:
 
 
 @dataclass(frozen=True, slots=True)
+class CampaignInput:
+    campaign_id: str
+    program_id: str
+    policy_snapshot_digest: str
+    scope_digest: str
+    selected_assets: tuple[str, ...]
+    allowed_techniques: tuple[str, ...]
+    time_budget_minutes: Decimal
+    cost_budget_usd: Decimal | None
+    starts_at: str
+    ends_at: str
+    operator_id: str
+    idempotency_key: str
+
+    def __post_init__(self) -> None:
+        identity = (
+            self.campaign_id, self.program_id, self.policy_snapshot_digest,
+            self.scope_digest, self.operator_id, self.idempotency_key,
+        )
+        if any(not str(item).strip() for item in identity):
+            raise ValueError("campaign identity, scope, operator, and idempotency are required")
+        if not self.selected_assets or not self.allowed_techniques:
+            raise ValueError("campaign requires selected assets and allowed techniques")
+        if len(self.policy_snapshot_digest) != 64 or len(self.scope_digest) != 64:
+            raise ValueError("campaign policy and scope digests must be SHA-256")
+        object.__setattr__(
+            self, "time_budget_minutes", money(
+                self.time_budget_minutes, field_name="time_budget_minutes",
+            ),
+        )
+        object.__setattr__(
+            self, "cost_budget_usd", money(self.cost_budget_usd, field_name="cost_budget_usd"),
+        )
+        starts = parse_timestamp(self.starts_at, field_name="starts_at")
+        ends = parse_timestamp(self.ends_at, field_name="ends_at")
+        if ends <= starts:
+            raise ValueError("campaign ends_at must follow starts_at")
+
+
+@dataclass(frozen=True, slots=True)
+class CampaignRecord:
+    recorded_at: str
+    payload: CampaignInput
+
+
+@dataclass(frozen=True, slots=True)
+class CampaignEvent:
+    campaign_event_id: str
+    campaign_id: str
+    event_type: str
+    observed_at: str
+    subject_id: str | None
+    metadata: Mapping[str, Any] | None
+    source_digest: str
+    idempotency_key: str
+
+    def __post_init__(self) -> None:
+        if not all((self.campaign_event_id, self.campaign_id, self.event_type,
+                    self.source_digest, self.idempotency_key)):
+            raise ValueError("campaign event identity and provenance are required")
+        if len(self.source_digest) != 64:
+            raise ValueError("campaign event source_digest must be SHA-256")
+        parse_timestamp(self.observed_at, field_name="observed_at")
+        object.__setattr__(
+            self, "metadata", MappingProxyType(canonical_document(dict(self.metadata or {}))),
+        )
+
+
+@dataclass(frozen=True, slots=True)
 class ShadowEntry:
     opportunity_id: str
     existing_rank: int
@@ -312,12 +381,36 @@ class ShadowEntry:
     confidence: ConfidenceState
     samples: int
     fallback_reason: str | None
+    actual_selected: bool | None = None
+    shadow_would_select: bool | None = None
+    economics_status: str | None = None
+    stop_loss_recommendation: str | None = None
+    allocation_mode: str | None = None
+    p_duplicate: Decimal | None = None
+    ev_usd: Decimal | None = None
+    ev_per_hour_usd: Decimal | None = None
+    ev_per_request_usd: Decimal | None = None
+    ev_per_compute_dollar: Decimal | None = None
+    actual_realized_reward_usd: Decimal | None = None
+    shadow_hypothetical_reward_usd: Decimal | None = None
+    model_version: str | None = None
+    computed_at: str | None = None
 
     def __post_init__(self) -> None:
         if not self.opportunity_id or min(self.existing_rank, self.learned_rank) < 1:
             raise ValueError("shadow entry identity and ranks are invalid")
         if self.samples < 0:
             raise ValueError("shadow samples cannot be negative")
+        for name in (
+            "p_duplicate", "ev_usd", "ev_per_hour_usd", "ev_per_request_usd",
+            "ev_per_compute_dollar", "actual_realized_reward_usd",
+            "shadow_hypothetical_reward_usd",
+        ):
+            value = getattr(self, name)
+            if value is not None:
+                object.__setattr__(self, name, Decimal(str(value)))
+        if self.computed_at is not None:
+            parse_timestamp(self.computed_at, field_name="computed_at")
 
 
 @dataclass(frozen=True, slots=True)

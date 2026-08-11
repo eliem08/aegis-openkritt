@@ -4,6 +4,7 @@ from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 from aegis.effectiveness.models import (
+    CampaignInput,
     CostObservation,
     EffectivenessFact,
     EffectivenessSubject,
@@ -13,6 +14,17 @@ from aegis.effectiveness.models import (
 )
 
 DIGEST = "a" * 64
+
+
+def campaign():
+    return CampaignInput(
+        campaign_id="campaign-1", program_id="program", policy_snapshot_digest=DIGEST,
+        scope_digest="b" * 64, selected_assets=("asset",),
+        allowed_techniques=("authorization-boundary",), time_budget_minutes=Decimal("60"),
+        cost_budget_usd=None, starts_at="2026-08-11T00:00:00+00:00",
+        ends_at="2026-08-11T01:00:00+00:00", operator_id="operator",
+        idempotency_key="campaign:1",
+    )
 
 
 def subject(index=1, *, technique="authorization-boundary"):

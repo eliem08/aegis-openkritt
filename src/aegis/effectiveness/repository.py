@@ -11,6 +11,9 @@ from pathlib import Path
 from typing import Iterable, Mapping, Protocol
 
 from .models import (
+    CampaignEvent,
+    CampaignInput,
+    CampaignRecord,
     ConfidenceState,
     CostObservation,
     CostRecord,
@@ -55,6 +58,10 @@ class EffectivenessRepository(Protocol):
     def record_fact(self, fact: EffectivenessFact) -> bool: ...
     def record_cost(self, cost: CostObservation) -> tuple[CostRecord, bool]: ...
     def costs(self, subject_id: str | None = None) -> tuple[CostRecord, ...]: ...
+    def record_campaign(self, campaign: CampaignInput) -> tuple[CampaignRecord, bool]: ...
+    def campaigns(self) -> tuple[CampaignRecord, ...]: ...
+    def record_campaign_event(self, event: CampaignEvent) -> bool: ...
+    def campaign_events(self, campaign_id: str) -> tuple[CampaignEvent, ...]: ...
     def record_outcome(self, outcome: OutcomeInput) -> tuple[OutcomeRecord, bool]: ...
     def outcome_history(self, subject_id: str) -> tuple[OutcomeRecord, ...]: ...
     def latest_outcomes(self) -> tuple[OutcomeRecord, ...]: ...
@@ -220,6 +227,64 @@ SQLITE_MIGRATION_V2_VERSION = 2
 SQLITE_MIGRATION_V2_NAME = "profitability_acceleration_v2_lineage_costs"
 SQLITE_MIGRATION_V2_CHECKSUM = sha256(SQLITE_SCHEMA_V2.encode()).hexdigest()
 
+SQLITE_SCHEMA_V3 = """
+ALTER TABLE effectiveness_shadow_entries ADD COLUMN actual_selected INTEGER;
+ALTER TABLE effectiveness_shadow_entries ADD COLUMN shadow_would_select INTEGER;
+ALTER TABLE effectiveness_shadow_entries ADD COLUMN economics_status TEXT;
+ALTER TABLE effectiveness_shadow_entries ADD COLUMN stop_loss_recommendation TEXT;
+ALTER TABLE effectiveness_shadow_entries ADD COLUMN allocation_mode TEXT;
+ALTER TABLE effectiveness_shadow_entries ADD COLUMN p_duplicate TEXT;
+ALTER TABLE effectiveness_shadow_entries ADD COLUMN ev_usd TEXT;
+ALTER TABLE effectiveness_shadow_entries ADD COLUMN ev_per_hour_usd TEXT;
+ALTER TABLE effectiveness_shadow_entries ADD COLUMN ev_per_request_usd TEXT;
+ALTER TABLE effectiveness_shadow_entries ADD COLUMN ev_per_compute_dollar TEXT;
+ALTER TABLE effectiveness_shadow_entries ADD COLUMN actual_realized_reward_usd TEXT;
+ALTER TABLE effectiveness_shadow_entries ADD COLUMN shadow_hypothetical_reward_usd TEXT;
+ALTER TABLE effectiveness_shadow_entries ADD COLUMN model_version TEXT;
+ALTER TABLE effectiveness_shadow_entries ADD COLUMN computed_at TEXT;
+"""
+SQLITE_MIGRATION_V3_VERSION = 3
+SQLITE_MIGRATION_V3_NAME = "profitability_acceleration_v2_shadow_economics"
+SQLITE_MIGRATION_V3_CHECKSUM = sha256(SQLITE_SCHEMA_V3.encode()).hexdigest()
+
+SQLITE_SCHEMA_V4 = """
+CREATE TABLE effectiveness_campaigns (
+    campaign_id TEXT PRIMARY KEY, program_id TEXT NOT NULL,
+    policy_snapshot_digest TEXT NOT NULL, scope_digest TEXT NOT NULL,
+    selected_assets_json TEXT NOT NULL, allowed_techniques_json TEXT NOT NULL,
+    time_budget_minutes TEXT NOT NULL, cost_budget_usd TEXT,
+    starts_at TEXT NOT NULL, ends_at TEXT NOT NULL, operator_id TEXT NOT NULL,
+    recorded_at TEXT NOT NULL, idempotency_key TEXT NOT NULL UNIQUE,
+    payload_digest TEXT NOT NULL
+);
+CREATE TABLE effectiveness_campaign_events (
+    campaign_event_id TEXT PRIMARY KEY,
+    campaign_id TEXT NOT NULL REFERENCES effectiveness_campaigns(campaign_id),
+    event_type TEXT NOT NULL, observed_at TEXT NOT NULL, subject_id TEXT,
+    metadata_json TEXT NOT NULL, source_digest TEXT NOT NULL,
+    idempotency_key TEXT NOT NULL UNIQUE, payload_digest TEXT NOT NULL
+);
+CREATE INDEX idx_effectiveness_campaign_program
+    ON effectiveness_campaigns(program_id, starts_at);
+CREATE INDEX idx_effectiveness_campaign_events
+    ON effectiveness_campaign_events(campaign_id, observed_at);
+CREATE TRIGGER effectiveness_campaigns_no_update
+BEFORE UPDATE ON effectiveness_campaigns
+BEGIN SELECT RAISE(ABORT, 'immutable effectiveness ledger'); END;
+CREATE TRIGGER effectiveness_campaigns_no_delete
+BEFORE DELETE ON effectiveness_campaigns
+BEGIN SELECT RAISE(ABORT, 'immutable effectiveness ledger'); END;
+CREATE TRIGGER effectiveness_campaign_events_no_update
+BEFORE UPDATE ON effectiveness_campaign_events
+BEGIN SELECT RAISE(ABORT, 'immutable effectiveness ledger'); END;
+CREATE TRIGGER effectiveness_campaign_events_no_delete
+BEFORE DELETE ON effectiveness_campaign_events
+BEGIN SELECT RAISE(ABORT, 'immutable effectiveness ledger'); END;
+"""
+SQLITE_MIGRATION_V4_VERSION = 4
+SQLITE_MIGRATION_V4_NAME = "profitability_acceleration_v2_campaigns"
+SQLITE_MIGRATION_V4_CHECKSUM = sha256(SQLITE_SCHEMA_V4.encode()).hexdigest()
+
 
 def _flag(value: str | None) -> bool:
     return str(value or "").strip().lower() in {"1", "true", "yes", "on"}
@@ -334,6 +399,112 @@ def _cost_from_row(row: Mapping[str, object]) -> CostRecord:
     )
 
 
+def _shadow_entry_values(batch_id: str, item: ShadowEntry) -> tuple[object, ...]:
+    return (
+        batch_id, item.opportunity_id, item.existing_rank, str(item.existing_score),
+        item.learned_rank, str(item.learned_score), item.confidence.value, item.samples,
+        item.fallback_reason, item.actual_selected, item.shadow_would_select,
+        item.economics_status, item.stop_loss_recommendation, item.allocation_mode,
+        _decimal_text(item.p_duplicate), _decimal_text(item.ev_usd),
+        _decimal_text(item.ev_per_hour_usd), _decimal_text(item.ev_per_request_usd),
+        _decimal_text(item.ev_per_compute_dollar),
+        _decimal_text(item.actual_realized_reward_usd),
+        _decimal_text(item.shadow_hypothetical_reward_usd), item.model_version,
+        item.computed_at,
+    )
+
+
+def _shadow_entry_from_row(row: Mapping[str, object]) -> ShadowEntry:
+    def decimal(name: str) -> Decimal | None:
+        return None if row[name] is None else Decimal(str(row[name]))
+
+    return ShadowEntry(
+        opportunity_id=str(row["opportunity_id"]), existing_rank=int(row["existing_rank"]),
+        existing_score=Decimal(str(row["existing_score"])),
+        learned_rank=int(row["learned_rank"]),
+        learned_score=Decimal(str(row["learned_score"])),
+        confidence=ConfidenceState(str(row["confidence"])), samples=int(row["samples"]),
+        fallback_reason=_text(row["fallback_reason"]),
+        actual_selected=(None if row["actual_selected"] is None else bool(row["actual_selected"])),
+        shadow_would_select=(None if row["shadow_would_select"] is None
+                             else bool(row["shadow_would_select"])),
+        economics_status=_text(row["economics_status"]),
+        stop_loss_recommendation=_text(row["stop_loss_recommendation"]),
+        allocation_mode=_text(row["allocation_mode"]), p_duplicate=decimal("p_duplicate"),
+        ev_usd=decimal("ev_usd"), ev_per_hour_usd=decimal("ev_per_hour_usd"),
+        ev_per_request_usd=decimal("ev_per_request_usd"),
+        ev_per_compute_dollar=decimal("ev_per_compute_dollar"),
+        actual_realized_reward_usd=decimal("actual_realized_reward_usd"),
+        shadow_hypothetical_reward_usd=decimal("shadow_hypothetical_reward_usd"),
+        model_version=_text(row["model_version"]), computed_at=_text(row["computed_at"]),
+    )
+
+
+def _legacy_shadow_batch_digest(batch: ShadowBatch) -> str:
+    legacy_entries = [{
+        name: getattr(item, name) for name in (
+            "opportunity_id", "existing_rank", "existing_score", "learned_rank",
+            "learned_score", "confidence", "samples", "fallback_reason",
+        )
+    } for item in batch.entries]
+    return payload_digest({
+        "batch_id": batch.batch_id, "created_at": batch.created_at,
+        "input_digest": batch.input_digest, "idempotency_key": batch.idempotency_key,
+        "entries": legacy_entries,
+    })
+
+
+def _campaign_values(campaign: CampaignInput) -> tuple[object, ...]:
+    return (
+        campaign.campaign_id, campaign.program_id, campaign.policy_snapshot_digest,
+        campaign.scope_digest, json.dumps(campaign.selected_assets),
+        json.dumps(campaign.allowed_techniques), str(campaign.time_budget_minutes),
+        _decimal_text(campaign.cost_budget_usd), campaign.starts_at, campaign.ends_at,
+        campaign.operator_id, campaign.idempotency_key,
+    )
+
+
+def _campaign_from_row(row: Mapping[str, object]) -> CampaignRecord:
+    def array_value(name: str) -> tuple[str, ...]:
+        raw = row[name]
+        values = raw if isinstance(raw, (list, tuple)) else json.loads(str(raw))
+        return tuple(str(item) for item in values)
+
+    item = CampaignInput(
+        campaign_id=str(row["campaign_id"]), program_id=str(row["program_id"]),
+        policy_snapshot_digest=str(row["policy_snapshot_digest"]),
+        scope_digest=str(row["scope_digest"]),
+        selected_assets=array_value("selected_assets_json"),
+        allowed_techniques=array_value("allowed_techniques_json"),
+        time_budget_minutes=Decimal(str(row["time_budget_minutes"])),
+        cost_budget_usd=(None if row["cost_budget_usd"] is None
+                         else Decimal(str(row["cost_budget_usd"]))),
+        starts_at=_text(row["starts_at"]), ends_at=_text(row["ends_at"]),
+        operator_id=str(row["operator_id"]), idempotency_key=str(row["idempotency_key"]),
+    )
+    return CampaignRecord(recorded_at=_text(row["recorded_at"]), payload=item)
+
+
+def _campaign_event_values(event: CampaignEvent) -> tuple[object, ...]:
+    return (
+        event.campaign_event_id, event.campaign_id, event.event_type, event.observed_at,
+        event.subject_id,
+        json.dumps(dict(event.metadata or {}), sort_keys=True, separators=(",", ":")),
+        event.source_digest, event.idempotency_key, payload_digest(event),
+    )
+
+
+def _campaign_event_from_row(row: Mapping[str, object]) -> CampaignEvent:
+    raw = row["metadata_json"]
+    metadata = dict(raw) if isinstance(raw, Mapping) else json.loads(str(raw or "{}"))
+    return CampaignEvent(
+        campaign_event_id=str(row["campaign_event_id"]), campaign_id=str(row["campaign_id"]),
+        event_type=str(row["event_type"]), observed_at=_text(row["observed_at"]),
+        subject_id=_text(row["subject_id"]), metadata=metadata,
+        source_digest=str(row["source_digest"]), idempotency_key=str(row["idempotency_key"]),
+    )
+
+
 def _outcome_payload_values(outcome: OutcomeInput) -> tuple[object, ...]:
     return (
         OutcomeState(outcome.state).value, outcome.submitted_severity,
@@ -416,6 +587,32 @@ class SQLiteEffectivenessRepository:
                 "INSERT INTO effectiveness_schema_migrations VALUES (?,?,?,?)",
                 (SQLITE_MIGRATION_V2_VERSION, SQLITE_MIGRATION_V2_NAME,
                  SQLITE_MIGRATION_V2_CHECKSUM, utc_now()),
+            )
+        row = self._conn.execute(
+            "SELECT name,checksum FROM effectiveness_schema_migrations WHERE version=?",
+            (SQLITE_MIGRATION_V3_VERSION,),
+        ).fetchone()
+        if row is not None and row["checksum"] != SQLITE_MIGRATION_V3_CHECKSUM:
+            raise EffectivenessConflictError("effectiveness migration checksum mismatch")
+        if row is None:
+            self._conn.executescript(SQLITE_SCHEMA_V3)
+            self._conn.execute(
+                "INSERT INTO effectiveness_schema_migrations VALUES (?,?,?,?)",
+                (SQLITE_MIGRATION_V3_VERSION, SQLITE_MIGRATION_V3_NAME,
+                 SQLITE_MIGRATION_V3_CHECKSUM, utc_now()),
+            )
+        row = self._conn.execute(
+            "SELECT name,checksum FROM effectiveness_schema_migrations WHERE version=?",
+            (SQLITE_MIGRATION_V4_VERSION,),
+        ).fetchone()
+        if row is not None and row["checksum"] != SQLITE_MIGRATION_V4_CHECKSUM:
+            raise EffectivenessConflictError("effectiveness migration checksum mismatch")
+        if row is None:
+            self._conn.executescript(SQLITE_SCHEMA_V4)
+            self._conn.execute(
+                "INSERT INTO effectiveness_schema_migrations VALUES (?,?,?,?)",
+                (SQLITE_MIGRATION_V4_VERSION, SQLITE_MIGRATION_V4_NAME,
+                 SQLITE_MIGRATION_V4_CHECKSUM, utc_now()),
             )
 
     def close(self) -> None:
@@ -546,6 +743,74 @@ class SQLiteEffectivenessRepository:
             ).fetchall()
         return tuple(_cost_from_row(row) for row in rows)
 
+    def record_campaign(self, campaign: CampaignInput) -> tuple[CampaignRecord, bool]:
+        digest = payload_digest(campaign)
+        try:
+            self._conn.execute("BEGIN IMMEDIATE")
+            existing = self._conn.execute(
+                "SELECT * FROM effectiveness_campaigns WHERE idempotency_key=?",
+                (campaign.idempotency_key,),
+            ).fetchone()
+            if existing is not None:
+                if existing["payload_digest"] != digest:
+                    raise EffectivenessConflictError("campaign idempotency key has different content")
+                self._conn.commit()
+                return _campaign_from_row(existing), False
+            recorded_at = utc_now()
+            self._conn.execute(
+                "INSERT INTO effectiveness_campaigns VALUES ("
+                + ",".join(["?"] * 14) + ")",
+                (*_campaign_values(campaign)[:11], recorded_at,
+                 _campaign_values(campaign)[11], digest),
+            )
+            row = self._conn.execute(
+                "SELECT * FROM effectiveness_campaigns WHERE campaign_id=?",
+                (campaign.campaign_id,),
+            ).fetchone()
+            self._conn.commit()
+            return _campaign_from_row(row), True
+        except Exception:
+            self._conn.rollback()
+            raise
+
+    def campaigns(self) -> tuple[CampaignRecord, ...]:
+        rows = self._conn.execute(
+            "SELECT * FROM effectiveness_campaigns ORDER BY starts_at,campaign_id"
+        ).fetchall()
+        return tuple(_campaign_from_row(row) for row in rows)
+
+    def record_campaign_event(self, event: CampaignEvent) -> bool:
+        digest = payload_digest(event)
+        try:
+            self._conn.execute("BEGIN IMMEDIATE")
+            existing = self._conn.execute(
+                "SELECT payload_digest FROM effectiveness_campaign_events "
+                "WHERE idempotency_key=?", (event.idempotency_key,),
+            ).fetchone()
+            if existing is not None:
+                if existing["payload_digest"] != digest:
+                    raise EffectivenessConflictError(
+                        "campaign event idempotency key has different content"
+                    )
+                self._conn.commit()
+                return False
+            self._conn.execute(
+                "INSERT INTO effectiveness_campaign_events VALUES (?,?,?,?,?,?,?,?,?)",
+                _campaign_event_values(event),
+            )
+            self._conn.commit()
+            return True
+        except Exception:
+            self._conn.rollback()
+            raise
+
+    def campaign_events(self, campaign_id: str) -> tuple[CampaignEvent, ...]:
+        rows = self._conn.execute(
+            "SELECT * FROM effectiveness_campaign_events WHERE campaign_id=? "
+            "ORDER BY observed_at,campaign_event_id", (campaign_id,),
+        ).fetchall()
+        return tuple(_campaign_event_from_row(row) for row in rows)
+
     def record_outcome(self, outcome: OutcomeInput) -> tuple[OutcomeRecord, bool]:
         digest = payload_digest(outcome)
         try:
@@ -620,7 +885,7 @@ class SQLiteEffectivenessRepository:
                 (batch.idempotency_key,),
             ).fetchone()
             if existing is not None:
-                if existing[0] != digest:
+                if existing[0] not in {digest, _legacy_shadow_batch_digest(batch)}:
                     raise EffectivenessConflictError("shadow idempotency key has different content")
                 self._conn.commit()
                 return False
@@ -629,12 +894,9 @@ class SQLiteEffectivenessRepository:
                 (batch.batch_id, batch.created_at, batch.input_digest, batch.idempotency_key, digest),
             )
             self._conn.executemany(
-                "INSERT INTO effectiveness_shadow_entries VALUES (?,?,?,?,?,?,?,?,?)",
-                [(
-                    batch.batch_id, item.opportunity_id, item.existing_rank,
-                    str(item.existing_score), item.learned_rank, str(item.learned_score),
-                    item.confidence.value, item.samples, item.fallback_reason,
-                ) for item in batch.entries],
+                "INSERT INTO effectiveness_shadow_entries VALUES ("
+                + ",".join(["?"] * 23) + ")",
+                [_shadow_entry_values(batch.batch_id, item) for item in batch.entries],
             )
             self._conn.commit()
             return True
@@ -652,13 +914,7 @@ class SQLiteEffectivenessRepository:
                 "SELECT * FROM effectiveness_shadow_entries WHERE batch_id=? "
                 "ORDER BY existing_rank,opportunity_id", (batch["batch_id"],),
             ).fetchall()
-            entries = tuple(ShadowEntry(
-                opportunity_id=row["opportunity_id"], existing_rank=row["existing_rank"],
-                existing_score=Decimal(row["existing_score"]), learned_rank=row["learned_rank"],
-                learned_score=Decimal(row["learned_score"]),
-                confidence=ConfidenceState(row["confidence"]), samples=row["samples"],
-                fallback_reason=row["fallback_reason"],
-            ) for row in rows)
+            entries = tuple(_shadow_entry_from_row(row) for row in rows)
             output.append(ShadowBatch(
                 batch_id=batch["batch_id"], created_at=batch["created_at"],
                 input_digest=batch["input_digest"], idempotency_key=batch["idempotency_key"],
