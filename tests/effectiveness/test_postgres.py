@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import subprocess
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
@@ -11,15 +12,21 @@ from aegis.effectiveness.funnel import record_funnel_fact
 from aegis.effectiveness.models import EffectivenessFact, FactType, OutcomeInput, OutcomeState
 from aegis.effectiveness.postgres import PostgresEffectivenessRepository
 
-from .helpers import fact, outcome, subject
-from .test_checkpoint1 import cost
+from .helpers import cost, fact, outcome, subject
 
 DSN = os.environ.get("AEGIS_TEST_POSTGRES_DSN")
 
 
 def test_funnel_module_has_no_api_or_fastapi_import_dependency():
-    assert "aegis.api" not in sys.modules
-    assert "fastapi" not in sys.modules
+    result = subprocess.run(
+        [
+            sys.executable, "-c",
+            "import sys; from aegis.effectiveness.funnel import record_funnel_fact; "
+            "assert 'aegis.api' not in sys.modules; assert 'fastapi' not in sys.modules",
+        ],
+        check=False, capture_output=True, text=True, env=dict(os.environ),
+    )
+    assert result.returncode == 0, result.stderr
 
 
 @pytest.mark.skipif(not DSN, reason="set AEGIS_TEST_POSTGRES_DSN to run")

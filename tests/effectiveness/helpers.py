@@ -4,6 +4,7 @@ from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 from aegis.effectiveness.models import (
+    CostObservation,
     EffectivenessFact,
     EffectivenessSubject,
     FactType,
@@ -47,4 +48,25 @@ def outcome(
         compute_cost_usd=Decimal("1.25"), analyst_note="human reviewed", operator_id="operator",
         source_digest="d" * 64, idempotency_key=key or f"outcome:{item.subject_id}",
         supersedes_outcome_event_id=supersedes,
+    )
+
+
+def cost(item, *, key="cost:1", rate=Decimal("120"), model=Decimal("2.50")):
+    return CostObservation(
+        cost_observation_id=f"cost-{key}",
+        subject_id=item.subject_id,
+        campaign_id=None,
+        model_api_cost_usd=model,
+        scanner_compute_cost_usd=Decimal("1.25"),
+        cloud_cost_usd=Decimal("0"),
+        oast_cost_usd=Decimal("0"),
+        browser_device_cost_usd=Decimal("0"),
+        human_review_minutes=Decimal("30"),
+        human_submission_minutes=Decimal("15"),
+        human_other_minutes=Decimal("0"),
+        human_hourly_rate_usd=rate,
+        observed_at="2026-08-11T06:00:00+00:00",
+        operator_id="operator",
+        source_digest=DIGEST,
+        idempotency_key=key,
     )
