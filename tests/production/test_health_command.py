@@ -44,3 +44,31 @@ def test_health_document_is_machine_readable_and_contains_no_credentials():
     assert '"schema_version": 1' in encoded
     assert '"ready": false' in encoded
     assert "AEGIS_API_KEYS" not in encoded
+
+
+def test_effectiveness_learning_degrades_without_blocking_hunting_health():
+    report = build_health_report(
+        None,
+        env={
+            "AEGIS_HEALTH_REQUIRED": "custom",
+            "AEGIS_EFFECTIVENESS_BACKEND": "sqlite",
+        },
+        settings_error=ValueError("policy remains the independent blocker"),
+        extra_probes={"custom": lambda: "ready"},
+    )
+    effectiveness = next(cell for cell in report.cells if cell.name == "effectiveness_learning")
+    assert effectiveness.status is HealthStatus.DEGRADED
+    assert effectiveness.required is False
+
+
+def test_effectiveness_learning_fails_when_explicitly_required():
+    report = build_health_report(
+        None,
+        env={
+            "AEGIS_HEALTH_REQUIRED": "effectiveness_learning",
+            "AEGIS_EFFECTIVENESS_BACKEND": "sqlite",
+        },
+        settings_error=ValueError("configuration unavailable"),
+    )
+    effectiveness = next(cell for cell in report.cells if cell.name == "effectiveness_learning")
+    assert effectiveness.status is HealthStatus.FAILED and effectiveness.required

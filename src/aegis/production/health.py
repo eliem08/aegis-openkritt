@@ -20,6 +20,7 @@ from .drills import run_drills
 
 class HealthStatus(str, Enum):
     READY = "READY"
+    DEGRADED = "DEGRADED"
     NOT_REQUIRED = "NOT_REQUIRED_FOR_SELECTED_MISSION"
     WAITING = "WAITING_FOR_PREREQUISITE"
     UNAVAILABLE = "UNAVAILABLE"
@@ -125,6 +126,43 @@ def _cell(name: str, required: bool, probe: Probe) -> HealthCell:
         return HealthCell(name, HealthStatus.FAILED, required, f"{type(exc).__name__}: {exc}")
 
 
+def _effectiveness_cell(env: Mapping[str, str], required: bool) -> HealthCell:
+    backend = env.get("AEGIS_EFFECTIVENESS_BACKEND", "postgresql").strip().lower()
+    dsn = env.get("AEGIS_EFFECTIVENESS_DB_URL", "").strip()
+    if backend != "postgresql":
+        return HealthCell(
+            "effectiveness_learning",
+            HealthStatus.FAILED if required else HealthStatus.DEGRADED,
+            required,
+            "production effectiveness storage must use PostgreSQL",
+        )
+    if not dsn:
+        return HealthCell(
+            "effectiveness_learning",
+            HealthStatus.WAITING if required else HealthStatus.NOT_REQUIRED,
+            required,
+            "AEGIS_EFFECTIVENESS_DB_URL is not configured",
+        )
+    try:
+        import psycopg
+
+        with psycopg.connect(dsn, connect_timeout=3) as connection, connection.cursor() as cursor:
+            cursor.execute("SELECT to_regclass('effectiveness_subjects')")
+            if cursor.fetchone()[0] is None:
+                raise RuntimeError("effectiveness schema migration has not been applied")
+        return HealthCell(
+            "effectiveness_learning", HealthStatus.READY, required,
+            "authoritative PostgreSQL effectiveness ledger is reachable",
+        )
+    except Exception as exc:
+        return HealthCell(
+            "effectiveness_learning",
+            HealthStatus.FAILED if required else HealthStatus.DEGRADED,
+            required,
+            f"{type(exc).__name__}: authoritative effectiveness ledger unavailable",
+        )
+
+
 def build_health_report(
     settings: ProductionSettings | None,
     *,
@@ -197,6 +235,7 @@ def build_health_report(
             "artifact_acquisition", "artifact_acquisition" in required,
             lambda: _configured(source, "AEGIS_ARTIFACT_ACQUISITION_ENABLED", "artifact acquisition"),
         ),
+        _effectiveness_cell(source, "effectiveness_learning" in required),
     ])
     for name, probe in (extra_probes or {}).items():
         cells.append(_cell(name, name in required, probe))

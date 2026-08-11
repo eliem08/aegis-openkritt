@@ -1,0 +1,1 @@
+"""Effectiveness measurement tests."""
