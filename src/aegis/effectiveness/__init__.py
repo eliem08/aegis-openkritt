@@ -2,6 +2,10 @@
 
 from .models import (
     ConfidenceState,
+    CostObservation,
+    CostRecord,
+    EconomicProjection,
+    EconomicsState,
     EffectivenessFact,
     EffectivenessSubject,
     FactType,
@@ -21,6 +25,10 @@ from .repository import (
 
 __all__ = [
     "ConfidenceState",
+    "CostObservation",
+    "CostRecord",
+    "EconomicProjection",
+    "EconomicsState",
     "EffectivenessConflictError",
     "EffectivenessFact",
     "EffectivenessStorageStateError",

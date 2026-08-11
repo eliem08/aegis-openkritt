@@ -3,26 +3,39 @@
 from __future__ import annotations
 
 import hashlib
-from decimal import Decimal
 from typing import Iterable
 
 from .models import (
-    ConfidenceState,
+    CampaignEvent,
+    CampaignInput,
+    CampaignRecord,
+    CostObservation,
+    CostRecord,
     EffectivenessFact,
     EffectivenessSubject,
-    FactType,
     OutcomeInput,
     OutcomeRecord,
     ShadowBatch,
-    ShadowEntry,
     payload_digest,
     utc_now,
 )
 from .repository import (
     EffectivenessConflictError,
+    _campaign_event_from_row,
+    _campaign_event_values,
+    _campaign_from_row,
+    _campaign_values,
+    _cost_from_row,
+    _cost_values,
+    _fact_from_row,
     _fact_values,
+    _legacy_fact_digest,
+    _legacy_shadow_batch_digest,
+    _legacy_subject_digest,
     _outcome_from_row,
     _outcome_payload_values,
+    _shadow_entry_from_row,
+    _shadow_entry_values,
     _subject_from_row,
     _subject_values,
     _text,
@@ -113,6 +126,107 @@ _MIGRATION_NAME = "effectiveness_measurement_v1"
 _MIGRATION_CHECKSUM = hashlib.sha256(POSTGRES_SCHEMA.encode()).hexdigest()
 _MIGRATION_LOCK_ID = 8234110017
 
+POSTGRES_SCHEMA_V2 = """
+ALTER TABLE effectiveness_subjects ADD COLUMN IF NOT EXISTS candidate_finding_id TEXT;
+ALTER TABLE effectiveness_subjects ADD COLUMN IF NOT EXISTS human_decision_id TEXT;
+ALTER TABLE effectiveness_subjects ADD COLUMN IF NOT EXISTS submission_id TEXT;
+ALTER TABLE effectiveness_facts ADD COLUMN IF NOT EXISTS metadata_json JSONB;
+ALTER TABLE effectiveness_facts ADD COLUMN IF NOT EXISTS model_version TEXT;
+ALTER TABLE effectiveness_outcome_events ALTER COLUMN resolved_at DROP NOT NULL;
+ALTER TABLE effectiveness_outcome_events ALTER COLUMN human_review_minutes DROP NOT NULL;
+ALTER TABLE effectiveness_outcome_events ALTER COLUMN model_api_cost_usd DROP NOT NULL;
+ALTER TABLE effectiveness_outcome_events ALTER COLUMN compute_cost_usd DROP NOT NULL;
+
+CREATE TABLE IF NOT EXISTS effectiveness_cost_observations (
+    cost_record_id TEXT PRIMARY KEY,
+    cost_observation_id TEXT NOT NULL UNIQUE,
+    subject_id TEXT NOT NULL REFERENCES effectiveness_subjects(subject_id),
+    campaign_id TEXT,
+    model_api_cost_usd NUMERIC CHECK(model_api_cost_usd >= 0),
+    scanner_compute_cost_usd NUMERIC CHECK(scanner_compute_cost_usd >= 0),
+    cloud_cost_usd NUMERIC CHECK(cloud_cost_usd >= 0),
+    oast_cost_usd NUMERIC CHECK(oast_cost_usd >= 0),
+    browser_device_cost_usd NUMERIC CHECK(browser_device_cost_usd >= 0),
+    human_review_minutes NUMERIC CHECK(human_review_minutes >= 0),
+    human_submission_minutes NUMERIC CHECK(human_submission_minutes >= 0),
+    human_other_minutes NUMERIC CHECK(human_other_minutes >= 0),
+    human_hourly_rate_usd NUMERIC CHECK(human_hourly_rate_usd >= 0),
+    calculation_version TEXT NOT NULL,
+    observed_at TIMESTAMPTZ NOT NULL,
+    recorded_at TIMESTAMPTZ NOT NULL,
+    operator_id TEXT NOT NULL,
+    source_digest TEXT NOT NULL,
+    idempotency_key TEXT NOT NULL UNIQUE,
+    payload_digest TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_effectiveness_costs_subject
+    ON effectiveness_cost_observations(subject_id, observed_at);
+CREATE INDEX IF NOT EXISTS idx_effectiveness_costs_campaign
+    ON effectiveness_cost_observations(campaign_id, observed_at);
+DROP TRIGGER IF EXISTS effectiveness_costs_immutable ON effectiveness_cost_observations;
+CREATE TRIGGER effectiveness_costs_immutable
+BEFORE UPDATE OR DELETE ON effectiveness_cost_observations
+FOR EACH ROW EXECUTE FUNCTION reject_effectiveness_mutation();
+"""
+_MIGRATION_V2_VERSION = 2
+_MIGRATION_V2_NAME = "profitability_acceleration_v2_lineage_costs"
+_MIGRATION_V2_CHECKSUM = hashlib.sha256(POSTGRES_SCHEMA_V2.encode()).hexdigest()
+
+POSTGRES_SCHEMA_V3 = """
+ALTER TABLE effectiveness_shadow_entries ADD COLUMN IF NOT EXISTS actual_selected BOOLEAN;
+ALTER TABLE effectiveness_shadow_entries ADD COLUMN IF NOT EXISTS shadow_would_select BOOLEAN;
+ALTER TABLE effectiveness_shadow_entries ADD COLUMN IF NOT EXISTS economics_status TEXT;
+ALTER TABLE effectiveness_shadow_entries ADD COLUMN IF NOT EXISTS stop_loss_recommendation TEXT;
+ALTER TABLE effectiveness_shadow_entries ADD COLUMN IF NOT EXISTS allocation_mode TEXT;
+ALTER TABLE effectiveness_shadow_entries ADD COLUMN IF NOT EXISTS p_duplicate NUMERIC;
+ALTER TABLE effectiveness_shadow_entries ADD COLUMN IF NOT EXISTS ev_usd NUMERIC;
+ALTER TABLE effectiveness_shadow_entries ADD COLUMN IF NOT EXISTS ev_per_hour_usd NUMERIC;
+ALTER TABLE effectiveness_shadow_entries ADD COLUMN IF NOT EXISTS ev_per_request_usd NUMERIC;
+ALTER TABLE effectiveness_shadow_entries ADD COLUMN IF NOT EXISTS ev_per_compute_dollar NUMERIC;
+ALTER TABLE effectiveness_shadow_entries ADD COLUMN IF NOT EXISTS actual_realized_reward_usd NUMERIC;
+ALTER TABLE effectiveness_shadow_entries ADD COLUMN IF NOT EXISTS shadow_hypothetical_reward_usd NUMERIC;
+ALTER TABLE effectiveness_shadow_entries ADD COLUMN IF NOT EXISTS model_version TEXT;
+ALTER TABLE effectiveness_shadow_entries ADD COLUMN IF NOT EXISTS computed_at TIMESTAMPTZ;
+"""
+_MIGRATION_V3_VERSION = 3
+_MIGRATION_V3_NAME = "profitability_acceleration_v2_shadow_economics"
+_MIGRATION_V3_CHECKSUM = hashlib.sha256(POSTGRES_SCHEMA_V3.encode()).hexdigest()
+
+POSTGRES_SCHEMA_V4 = """
+CREATE TABLE IF NOT EXISTS effectiveness_campaigns (
+    campaign_id TEXT PRIMARY KEY, program_id TEXT NOT NULL,
+    policy_snapshot_digest TEXT NOT NULL, scope_digest TEXT NOT NULL,
+    selected_assets_json JSONB NOT NULL, allowed_techniques_json JSONB NOT NULL,
+    time_budget_minutes NUMERIC NOT NULL CHECK(time_budget_minutes >= 0),
+    cost_budget_usd NUMERIC CHECK(cost_budget_usd >= 0),
+    starts_at TIMESTAMPTZ NOT NULL, ends_at TIMESTAMPTZ NOT NULL,
+    operator_id TEXT NOT NULL, recorded_at TIMESTAMPTZ NOT NULL,
+    idempotency_key TEXT NOT NULL UNIQUE, payload_digest TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS effectiveness_campaign_events (
+    campaign_event_id TEXT PRIMARY KEY,
+    campaign_id TEXT NOT NULL REFERENCES effectiveness_campaigns(campaign_id),
+    event_type TEXT NOT NULL, observed_at TIMESTAMPTZ NOT NULL, subject_id TEXT,
+    metadata_json JSONB NOT NULL, source_digest TEXT NOT NULL,
+    idempotency_key TEXT NOT NULL UNIQUE, payload_digest TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_effectiveness_campaign_program
+    ON effectiveness_campaigns(program_id, starts_at);
+CREATE INDEX IF NOT EXISTS idx_effectiveness_campaign_events
+    ON effectiveness_campaign_events(campaign_id, observed_at);
+DROP TRIGGER IF EXISTS effectiveness_campaigns_immutable ON effectiveness_campaigns;
+CREATE TRIGGER effectiveness_campaigns_immutable
+BEFORE UPDATE OR DELETE ON effectiveness_campaigns
+FOR EACH ROW EXECUTE FUNCTION reject_effectiveness_mutation();
+DROP TRIGGER IF EXISTS effectiveness_campaign_events_immutable ON effectiveness_campaign_events;
+CREATE TRIGGER effectiveness_campaign_events_immutable
+BEFORE UPDATE OR DELETE ON effectiveness_campaign_events
+FOR EACH ROW EXECUTE FUNCTION reject_effectiveness_mutation();
+"""
+_MIGRATION_V4_VERSION = 4
+_MIGRATION_V4_NAME = "profitability_acceleration_v2_campaigns"
+_MIGRATION_V4_CHECKSUM = hashlib.sha256(POSTGRES_SCHEMA_V4.encode()).hexdigest()
+
 
 class PostgresEffectivenessRepository:
     authoritative = True
@@ -149,6 +263,48 @@ class PostgresEffectivenessRepository:
                         "INSERT INTO effectiveness_schema_migrations VALUES (%s,%s,%s,%s)",
                         (_MIGRATION_VERSION, _MIGRATION_NAME, _MIGRATION_CHECKSUM, utc_now()),
                     )
+                cursor.execute(
+                    "SELECT name,checksum FROM effectiveness_schema_migrations WHERE version=%s",
+                    (_MIGRATION_V2_VERSION,),
+                )
+                row = cursor.fetchone()
+                if row is not None and row["checksum"] != _MIGRATION_V2_CHECKSUM:
+                    raise EffectivenessConflictError("effectiveness migration checksum mismatch")
+                if row is None:
+                    cursor.execute(POSTGRES_SCHEMA_V2)
+                    cursor.execute(
+                        "INSERT INTO effectiveness_schema_migrations VALUES (%s,%s,%s,%s)",
+                        (_MIGRATION_V2_VERSION, _MIGRATION_V2_NAME,
+                         _MIGRATION_V2_CHECKSUM, utc_now()),
+                    )
+                cursor.execute(
+                    "SELECT name,checksum FROM effectiveness_schema_migrations WHERE version=%s",
+                    (_MIGRATION_V3_VERSION,),
+                )
+                row = cursor.fetchone()
+                if row is not None and row["checksum"] != _MIGRATION_V3_CHECKSUM:
+                    raise EffectivenessConflictError("effectiveness migration checksum mismatch")
+                if row is None:
+                    cursor.execute(POSTGRES_SCHEMA_V3)
+                    cursor.execute(
+                        "INSERT INTO effectiveness_schema_migrations VALUES (%s,%s,%s,%s)",
+                        (_MIGRATION_V3_VERSION, _MIGRATION_V3_NAME,
+                         _MIGRATION_V3_CHECKSUM, utc_now()),
+                    )
+                cursor.execute(
+                    "SELECT name,checksum FROM effectiveness_schema_migrations WHERE version=%s",
+                    (_MIGRATION_V4_VERSION,),
+                )
+                row = cursor.fetchone()
+                if row is not None and row["checksum"] != _MIGRATION_V4_CHECKSUM:
+                    raise EffectivenessConflictError("effectiveness migration checksum mismatch")
+                if row is None:
+                    cursor.execute(POSTGRES_SCHEMA_V4)
+                    cursor.execute(
+                        "INSERT INTO effectiveness_schema_migrations VALUES (%s,%s,%s,%s)",
+                        (_MIGRATION_V4_VERSION, _MIGRATION_V4_NAME,
+                         _MIGRATION_V4_CHECKSUM, utc_now()),
+                    )
             finally:
                 cursor.execute("SELECT pg_advisory_unlock(%s)", (_MIGRATION_LOCK_ID,))
 
@@ -170,19 +326,22 @@ class PostgresEffectivenessRepository:
             )
             existing = cursor.fetchone()
             if existing is not None:
-                if existing["payload_digest"] != digest:
+                if existing["payload_digest"] not in {digest, _legacy_subject_digest(subject)}:
                     raise EffectivenessConflictError("subject identity already has different content")
                 return False
             cursor.execute(
-                "INSERT INTO effectiveness_subjects VALUES ("
-                + ",".join(["%s"] * 15) + ")", _subject_values(subject),
+                "INSERT INTO effectiveness_subjects (subject_id,run_id,mission_id,"
+                "opportunity_id,technique,program_id,asset_id,weakness_family,asset_class,"
+                "authentication_mode,execution_mode,evidence_digest,source_digest,created_at,"
+                "candidate_finding_id,human_decision_id,submission_id,payload_digest) VALUES ("
+                + ",".join(["%s"] * 18) + ")", _subject_values(subject),
             )
             for fact in facts:
                 self._insert_fact(cursor, fact)
             return True
 
     @staticmethod
-    def _insert_fact(cursor, fact: EffectivenessFact) -> None:
+    def _insert_fact(cursor, fact: EffectivenessFact) -> bool:
         digest = payload_digest(fact)
         cursor.execute(
             "SELECT payload_digest FROM effectiveness_facts WHERE idempotency_key=%s",
@@ -190,13 +349,26 @@ class PostgresEffectivenessRepository:
         )
         existing = cursor.fetchone()
         if existing is not None:
-            if existing["payload_digest"] != digest:
+            if existing["payload_digest"] not in {digest, _legacy_fact_digest(fact)}:
                 raise EffectivenessConflictError("fact idempotency key has different content")
-            return
+            return False
         cursor.execute(
-            "INSERT INTO effectiveness_facts VALUES (" + ",".join(["%s"] * 7) + ")",
+            "INSERT INTO effectiveness_facts (fact_id,subject_id,fact_type,observed_at,"
+            "source_digest,idempotency_key,metadata_json,model_version,payload_digest) VALUES ("
+            + ",".join(["%s"] * 9) + ")",
             _fact_values(fact),
         )
+        return True
+
+    def record_fact(self, fact: EffectivenessFact) -> bool:
+        with self._pool.connection() as connection, connection.transaction(), connection.cursor() as cursor:
+            cursor.execute("SELECT pg_advisory_xact_lock(hashtext(%s))", (fact.idempotency_key,))
+            cursor.execute(
+                "SELECT 1 FROM effectiveness_subjects WHERE subject_id=%s", (fact.subject_id,),
+            )
+            if cursor.fetchone() is None:
+                raise KeyError(f"unknown effectiveness subject {fact.subject_id}")
+            return self._insert_fact(cursor, fact)
 
     def subject(self, subject_id: str) -> EffectivenessSubject | None:
         with self._pool.connection() as connection, connection.cursor() as cursor:
@@ -214,11 +386,116 @@ class PostgresEffectivenessRepository:
         with self._pool.connection() as connection, connection.cursor() as cursor:
             cursor.execute("SELECT * FROM effectiveness_facts ORDER BY observed_at,fact_id")
             rows = cursor.fetchall()
-        return tuple(EffectivenessFact(
-            fact_id=row["fact_id"], subject_id=row["subject_id"],
-            fact_type=FactType(row["fact_type"]), observed_at=_text(row["observed_at"]),
-            source_digest=row["source_digest"], idempotency_key=row["idempotency_key"],
-        ) for row in rows)
+        return tuple(_fact_from_row(row) for row in rows)
+
+    def record_cost(self, cost: CostObservation) -> tuple[CostRecord, bool]:
+        digest = payload_digest(cost)
+        with self._pool.connection() as connection, connection.transaction(), connection.cursor() as cursor:
+            cursor.execute("SELECT pg_advisory_xact_lock(hashtext(%s))", (cost.idempotency_key,))
+            cursor.execute(
+                "SELECT 1 FROM effectiveness_subjects WHERE subject_id=%s", (cost.subject_id,),
+            )
+            if cursor.fetchone() is None:
+                raise KeyError(f"unknown effectiveness subject {cost.subject_id}")
+            cursor.execute(
+                "SELECT * FROM effectiveness_cost_observations WHERE idempotency_key=%s",
+                (cost.idempotency_key,),
+            )
+            existing = cursor.fetchone()
+            if existing is not None:
+                if existing["payload_digest"] != digest:
+                    raise EffectivenessConflictError("cost idempotency key has different content")
+                return _cost_from_row(existing), False
+            record_id = f"cost-record-{payload_digest({'key': cost.idempotency_key})[:24]}"
+            recorded_at = utc_now()
+            values = _cost_values(cost)
+            cursor.execute(
+                "INSERT INTO effectiveness_cost_observations VALUES ("
+                + ",".join(["%s"] * 20) + ")",
+                (record_id, *values[:14], recorded_at, *values[14:], digest),
+            )
+            cursor.execute(
+                "SELECT * FROM effectiveness_cost_observations WHERE cost_record_id=%s",
+                (record_id,),
+            )
+            return _cost_from_row(cursor.fetchone()), True
+
+    def costs(self, subject_id: str | None = None) -> tuple[CostRecord, ...]:
+        with self._pool.connection() as connection, connection.cursor() as cursor:
+            if subject_id is None:
+                cursor.execute(
+                    "SELECT * FROM effectiveness_cost_observations "
+                    "ORDER BY observed_at,cost_record_id"
+                )
+            else:
+                cursor.execute(
+                    "SELECT * FROM effectiveness_cost_observations WHERE subject_id=%s "
+                    "ORDER BY observed_at,cost_record_id", (subject_id,),
+                )
+            rows = cursor.fetchall()
+        return tuple(_cost_from_row(row) for row in rows)
+
+    def record_campaign(self, campaign: CampaignInput) -> tuple[CampaignRecord, bool]:
+        digest = payload_digest(campaign)
+        with self._pool.connection() as connection, connection.transaction(), connection.cursor() as cursor:
+            cursor.execute("SELECT pg_advisory_xact_lock(hashtext(%s))", (campaign.idempotency_key,))
+            cursor.execute(
+                "SELECT * FROM effectiveness_campaigns WHERE idempotency_key=%s",
+                (campaign.idempotency_key,),
+            )
+            existing = cursor.fetchone()
+            if existing is not None:
+                if existing["payload_digest"] != digest:
+                    raise EffectivenessConflictError("campaign idempotency key has different content")
+                return _campaign_from_row(existing), False
+            recorded_at = utc_now()
+            values = _campaign_values(campaign)
+            cursor.execute(
+                "INSERT INTO effectiveness_campaigns VALUES ("
+                + ",".join(["%s"] * 14) + ")",
+                (*values[:11], recorded_at, values[11], digest),
+            )
+            cursor.execute(
+                "SELECT * FROM effectiveness_campaigns WHERE campaign_id=%s",
+                (campaign.campaign_id,),
+            )
+            return _campaign_from_row(cursor.fetchone()), True
+
+    def campaigns(self) -> tuple[CampaignRecord, ...]:
+        with self._pool.connection() as connection, connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM effectiveness_campaigns ORDER BY starts_at,campaign_id")
+            rows = cursor.fetchall()
+        return tuple(_campaign_from_row(row) for row in rows)
+
+    def record_campaign_event(self, event: CampaignEvent) -> bool:
+        digest = payload_digest(event)
+        with self._pool.connection() as connection, connection.transaction(), connection.cursor() as cursor:
+            cursor.execute("SELECT pg_advisory_xact_lock(hashtext(%s))", (event.idempotency_key,))
+            cursor.execute(
+                "SELECT payload_digest FROM effectiveness_campaign_events "
+                "WHERE idempotency_key=%s", (event.idempotency_key,),
+            )
+            existing = cursor.fetchone()
+            if existing is not None:
+                if existing["payload_digest"] != digest:
+                    raise EffectivenessConflictError(
+                        "campaign event idempotency key has different content"
+                    )
+                return False
+            cursor.execute(
+                "INSERT INTO effectiveness_campaign_events VALUES ("
+                + ",".join(["%s"] * 9) + ")", _campaign_event_values(event),
+            )
+            return True
+
+    def campaign_events(self, campaign_id: str) -> tuple[CampaignEvent, ...]:
+        with self._pool.connection() as connection, connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT * FROM effectiveness_campaign_events WHERE campaign_id=%s "
+                "ORDER BY observed_at,campaign_event_id", (campaign_id,),
+            )
+            rows = cursor.fetchall()
+        return tuple(_campaign_event_from_row(row) for row in rows)
 
     def record_outcome(self, outcome: OutcomeInput) -> tuple[OutcomeRecord, bool]:
         digest = payload_digest(outcome)
@@ -282,7 +559,9 @@ class PostgresEffectivenessRepository:
             )
             rows = cursor.fetchall()
         return tuple(sorted((_outcome_from_row(row) for row in rows),
-                            key=lambda item: (item.payload.resolved_at, item.outcome_event_id)))
+                            key=lambda item: (
+                                item.payload.resolved_at or "", item.outcome_event_id,
+                            )))
 
     def record_shadow_batch(self, batch: ShadowBatch) -> bool:
         digest = payload_digest(batch)
@@ -294,7 +573,9 @@ class PostgresEffectivenessRepository:
             )
             existing = cursor.fetchone()
             if existing is not None:
-                if existing["payload_digest"] != digest:
+                if existing["payload_digest"] not in {
+                    digest, _legacy_shadow_batch_digest(batch),
+                }:
                     raise EffectivenessConflictError("shadow idempotency key has different content")
                 return False
             cursor.execute(
@@ -302,12 +583,9 @@ class PostgresEffectivenessRepository:
                 (batch.batch_id, batch.created_at, batch.input_digest, batch.idempotency_key, digest),
             )
             cursor.executemany(
-                "INSERT INTO effectiveness_shadow_entries VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-                [(
-                    batch.batch_id, item.opportunity_id, item.existing_rank,
-                    item.existing_score, item.learned_rank, item.learned_score,
-                    item.confidence.value, item.samples, item.fallback_reason,
-                ) for item in batch.entries],
+                "INSERT INTO effectiveness_shadow_entries VALUES ("
+                + ",".join(["%s"] * 23) + ")",
+                [_shadow_entry_values(batch.batch_id, item) for item in batch.entries],
             )
             return True
 
@@ -321,13 +599,7 @@ class PostgresEffectivenessRepository:
                     "SELECT * FROM effectiveness_shadow_entries WHERE batch_id=%s "
                     "ORDER BY existing_rank,opportunity_id", (batch["batch_id"],),
                 )
-                entries = tuple(ShadowEntry(
-                    opportunity_id=row["opportunity_id"], existing_rank=row["existing_rank"],
-                    existing_score=Decimal(row["existing_score"]),
-                    learned_rank=row["learned_rank"], learned_score=Decimal(row["learned_score"]),
-                    confidence=ConfidenceState(row["confidence"]), samples=row["samples"],
-                    fallback_reason=row["fallback_reason"],
-                ) for row in cursor.fetchall())
+                entries = tuple(_shadow_entry_from_row(row) for row in cursor.fetchall())
                 output.append(ShadowBatch(
                     batch_id=batch["batch_id"], created_at=_text(batch["created_at"]),
                     input_digest=batch["input_digest"],

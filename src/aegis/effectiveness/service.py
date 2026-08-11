@@ -7,19 +7,21 @@ from typing import Any, Mapping
 
 from aegis.production.operator_manifest import document_digest
 
+from .funnel import LineageValidationError, record_funnel_fact
 from .models import (
+    CostObservation,
+    CostRecord,
     EffectivenessFact,
     EffectivenessSubject,
     FactType,
     OutcomeInput,
     OutcomeRecord,
+    OutcomeState,
     payload_digest,
 )
 from .repository import EffectivenessRepository
 
-
-class LineageValidationError(ValueError):
-    pass
+__all__ = ["LineageValidationError", "record_funnel_fact"]
 
 
 def _required(document: Mapping[str, Any], name: str) -> str:
@@ -70,6 +72,12 @@ def ingest_lineage_document(
         authentication_mode=_required(lineage, "authentication_mode"),
         execution_mode=_required(lineage, "execution_mode"),
         evidence_digest=evidence_digest, source_digest=source_digest, created_at=created_at,
+        candidate_finding_id=(str(lineage["candidate_finding_id"]).strip()
+                              if lineage.get("candidate_finding_id") else None),
+        human_decision_id=(str(lineage["human_decision_id"]).strip()
+                           if lineage.get("human_decision_id") else None),
+        submission_id=(str(lineage["submission_id"]).strip()
+                       if lineage.get("submission_id") else None),
     )
     fact_names = list(document.get("facts") or [FactType.OPPORTUNITY_GENERATED.value])
     if FactType.OPPORTUNITY_GENERATED.value not in fact_names:
@@ -88,6 +96,29 @@ def record_human_outcome(
     repository: EffectivenessRepository,
     outcome: OutcomeInput,
 ) -> tuple[OutcomeRecord, bool]:
-    if repository.subject(outcome.subject_id) is None:
+    subject = repository.subject(outcome.subject_id)
+    if subject is None:
         raise LineageValidationError("outcome cannot be recorded without canonical lineage")
+    v2_facts = tuple(
+        fact for fact in repository.facts()
+        if fact.subject_id == outcome.subject_id and fact.model_version == "funnel-v2"
+    )
+    external_states = {
+        OutcomeState.ACCEPTED, OutcomeState.DUPLICATE, OutcomeState.INFORMATIVE,
+        OutcomeState.NOT_APPLICABLE, OutcomeState.WITHDRAWN, OutcomeState.PENDING,
+    }
+    if v2_facts and outcome.state in external_states:
+        if not any(fact.fact_type is FactType.SUBMITTED for fact in v2_facts):
+            raise LineageValidationError(
+                "external V2 outcome requires traceable submission lineage"
+            )
     return repository.record_outcome(outcome)
+
+
+def record_cost_observation(
+    repository: EffectivenessRepository,
+    cost: CostObservation,
+) -> tuple[CostRecord, bool]:
+    if repository.subject(cost.subject_id) is None:
+        raise LineageValidationError("cost cannot be recorded without canonical lineage")
+    return repository.record_cost(cost)

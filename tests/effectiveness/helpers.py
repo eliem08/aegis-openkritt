@@ -4,6 +4,8 @@ from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 from aegis.effectiveness.models import (
+    CampaignInput,
+    CostObservation,
     EffectivenessFact,
     EffectivenessSubject,
     FactType,
@@ -12,6 +14,17 @@ from aegis.effectiveness.models import (
 )
 
 DIGEST = "a" * 64
+
+
+def campaign():
+    return CampaignInput(
+        campaign_id="campaign-1", program_id="program", policy_snapshot_digest=DIGEST,
+        scope_digest="b" * 64, selected_assets=("asset",),
+        allowed_techniques=("authorization-boundary",), time_budget_minutes=Decimal("60"),
+        cost_budget_usd=None, starts_at="2026-08-11T00:00:00+00:00",
+        ends_at="2026-08-11T01:00:00+00:00", operator_id="operator",
+        idempotency_key="campaign:1",
+    )
 
 
 def subject(index=1, *, technique="authorization-boundary"):
@@ -47,4 +60,25 @@ def outcome(
         compute_cost_usd=Decimal("1.25"), analyst_note="human reviewed", operator_id="operator",
         source_digest="d" * 64, idempotency_key=key or f"outcome:{item.subject_id}",
         supersedes_outcome_event_id=supersedes,
+    )
+
+
+def cost(item, *, key="cost:1", rate=Decimal("120"), model=Decimal("2.50")):
+    return CostObservation(
+        cost_observation_id=f"cost-{key}",
+        subject_id=item.subject_id,
+        campaign_id=None,
+        model_api_cost_usd=model,
+        scanner_compute_cost_usd=Decimal("1.25"),
+        cloud_cost_usd=Decimal("0"),
+        oast_cost_usd=Decimal("0"),
+        browser_device_cost_usd=Decimal("0"),
+        human_review_minutes=Decimal("30"),
+        human_submission_minutes=Decimal("15"),
+        human_other_minutes=Decimal("0"),
+        human_hourly_rate_usd=rate,
+        observed_at="2026-08-11T06:00:00+00:00",
+        operator_id="operator",
+        source_digest=DIGEST,
+        idempotency_key=key,
     )
