@@ -29,6 +29,13 @@ def main(argv: list[str] | None = None) -> int:
         command.add_argument("--requests-per-second", type=float, required=True)
         command.add_argument("--max-cost-usd", type=float, required=True)
         command.add_argument("--confirm-selection", action="store_true")
+        command.add_argument("--parent-dry-run-id")
+        if name == "live-canary":
+            command.add_argument("--canary-url")
+            command.add_argument("--method", choices=("GET", "HEAD", "OPTIONS"))
+            command.add_argument("--execute", action="store_true")
+            command.add_argument("--revalidation-snapshot")
+            command.add_argument("--health-report")
     args = parser.parse_args(argv)
     if args.command == "production" and args.production_command == "health":
         from aegis.production.health import main as health_main
@@ -44,11 +51,18 @@ def main(argv: list[str] | None = None) -> int:
 def _operator(args) -> int:
     from aegis.ingest.source import ProgramSnapshot
     from aegis.policy.signing import Ed25519Signer
-    from aegis.production.operator_manifest import ImmutableRunStore, RunBudgets, RunMode
+    from aegis.production.operator_manifest import (
+        ImmutableRunStore,
+        RunBudgets,
+        RunMode,
+        RunStatus,
+    )
     from aegis.production.operator_workflow import (
         compile_dry_run,
         compile_live_canary,
+        execute_live_canary,
         prepare_operator_run,
+        resume_operator_run,
     )
 
     document = json.loads(Path(args.snapshot).read_text(encoding="utf-8"))
@@ -85,11 +99,75 @@ def _operator(args) -> int:
         mode=mode,
         budgets=RunBudgets(args.max_requests, args.requests_per_second, args.max_cost_usd),
         signer=signer, store=store, controlled_identity_refs=tuple(args.identity_ref),
+        parent_dry_run_id=args.parent_dry_run_id,
     )
     missions = (
         compile_dry_run(prepared, store) if mode is RunMode.DRY_RUN
-        else compile_live_canary(prepared, store)
+        else compile_live_canary(
+            prepared, store, canary_url=args.canary_url, method=args.method,
+        )
     )
+    if mode is RunMode.LIVE_CANARY and args.execute:
+        if not all((args.canary_url, args.method, args.revalidation_snapshot, args.health_report)):
+            raise SystemExit(
+                "--execute requires --canary-url, --method, --revalidation-snapshot, and --health-report"
+            )
+        from aegis.production.live_canary import (
+            build_supervised_runtime,
+            require_fresh_ready_health,
+        )
+
+        health = require_fresh_ready_health(args.health_report)
+        store.append_event(prepared.manifest.run_id, "health_verified", RunStatus.RUNNING, {
+            "observed_at": health["observed_at"], "ready": True,
+        })
+        current = ProgramSnapshot.model_validate_json(
+            Path(args.revalidation_snapshot).read_text(encoding="utf-8")
+        )
+        prepared = resume_operator_run(
+            store, prepared.manifest.run_id, refreshed_snapshot=current,
+            authorization_verifier=signer.verifier(),
+        )
+        egress_url = os.environ.get("AEGIS_EGRESS_URL", "").strip()
+        egress_key_file = os.environ.get("AEGIS_EGRESS_SIGNING_KEY_FILE", "").strip()
+        grant_key_file = os.environ.get("AEGIS_GRANT_SIGNING_KEY_FILE", "").strip()
+        if not all((egress_url, egress_key_file, grant_key_file)):
+            raise SystemExit(
+                "AEGIS_EGRESS_URL, AEGIS_EGRESS_SIGNING_KEY_FILE, and "
+                "AEGIS_GRANT_SIGNING_KEY_FILE are required"
+            )
+        run_dir = Path(args.runs_dir) / prepared.manifest.run_id
+        runtime, grant_verifier, availability = build_supervised_runtime(
+            egress_endpoint=egress_url,
+            egress_signing_key_file=egress_key_file,
+            grant_signing_key_file=grant_key_file,
+            mission_state_path=str(run_dir / "mission-state.db"),
+            run_id=prepared.manifest.run_id,
+            max_requests=prepared.manifest.budgets.max_requests,
+        )
+        result = execute_live_canary(
+            prepared, missions[0], store=store, runtime=runtime,
+            availability=availability, authorization_verifier=signer.verifier(),
+            grant_verifier=grant_verifier,
+        )
+        completed = result.outcome is not None
+        store.append_event(
+            prepared.manifest.run_id,
+            "run_finalized",
+            RunStatus.COMPLETED if completed else RunStatus.FAILED,
+            {
+            "execution_performed": result.outcome is not None,
+            "state_changes": 0,
+            },
+        )
+        print(json.dumps({
+            "run_id": prepared.manifest.run_id,
+            "scope_digest": prepared.manifest.scope_digest,
+            "mission_ids": [missions[0].mission_id],
+            "execution_performed": result.outcome is not None,
+            "disposition": result.disposition.value,
+        }, indent=2))
+        return 0 if result.outcome is not None else 1
     print(json.dumps({
         "run_id": prepared.manifest.run_id,
         "scope_digest": prepared.manifest.scope_digest,

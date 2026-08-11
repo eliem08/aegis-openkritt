@@ -15,7 +15,9 @@ def test_health_fails_closed_and_keeps_dependencies_distinct():
     assert report.ready is False
     assert cells["policy_authority"].status is HealthStatus.FAILED
     assert cells["database"].status is HealthStatus.WAITING
-    assert cells["playwright"].status in {HealthStatus.WAITING, HealthStatus.READY}
+    assert cells["playwright"].status in {
+        HealthStatus.NOT_REQUIRED, HealthStatus.WAITING, HealthStatus.READY,
+    }
     assert {"ct_provider", "private_oast", "android_runtime", "grpc_prerequisites"} <= cells.keys()
 
 

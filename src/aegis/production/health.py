@@ -20,6 +20,7 @@ from .drills import run_drills
 
 class HealthStatus(str, Enum):
     READY = "READY"
+    NOT_REQUIRED = "NOT_REQUIRED_FOR_SELECTED_MISSION"
     WAITING = "WAITING_FOR_PREREQUISITE"
     UNAVAILABLE = "UNAVAILABLE"
     FAILED = "FAILED"
@@ -116,7 +117,8 @@ def _cell(name: str, required: bool, probe: Probe) -> HealthCell:
         detail = probe()
         return HealthCell(name, HealthStatus.READY, required, detail or "ready")
     except FileNotFoundError as exc:
-        return HealthCell(name, HealthStatus.WAITING, required, str(exc))
+        status = HealthStatus.WAITING if required else HealthStatus.NOT_REQUIRED
+        return HealthCell(name, status, required, str(exc))
     except (ImportError, ModuleNotFoundError) as exc:
         return HealthCell(name, HealthStatus.UNAVAILABLE, required, str(exc))
     except Exception as exc:
@@ -180,7 +182,9 @@ def build_health_report(
         else:
             status = {
                 "pass": HealthStatus.READY,
-                "not_configured": HealthStatus.WAITING,
+                "not_configured": (
+                    HealthStatus.WAITING if is_required else HealthStatus.NOT_REQUIRED
+                ),
                 "fail": HealthStatus.FAILED,
             }.get(result.status, HealthStatus.FAILED)
             cells.append(HealthCell(name, status, is_required, result.detail))

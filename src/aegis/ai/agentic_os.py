@@ -11,7 +11,7 @@ from __future__ import annotations
 import json
 import secrets
 from dataclasses import dataclass, field, replace
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from hashlib import sha256
 from typing import Any, Iterable, Mapping, Protocol
@@ -120,6 +120,9 @@ class ExecutionGrant:
     decision_fingerprint: str
     issued_at: str
     nonce: str
+    expires_at: str
+    allowed_destinations: tuple[str, ...] = ()
+    allowed_methods: tuple[str, ...] = ()
     signature: str = ""
 
     def _payload(self) -> dict:
@@ -131,27 +134,43 @@ class ExecutionGrant:
                            "max_requests": self.budget.max_requests,
                            "max_human_minutes": self.budget.max_human_minutes},
                 "decision_fingerprint": self.decision_fingerprint,
-                "issued_at": self.issued_at, "nonce": self.nonce}
+                "issued_at": self.issued_at, "nonce": self.nonce,
+                "expires_at": self.expires_at,
+                "allowed_destinations": list(self.allowed_destinations),
+                "allowed_methods": list(self.allowed_methods)}
 
     def verify(self, verifier, *, key_id: str = "grant") -> bool:
         if verifier is None or not self.signature:
             return False
         try:
+            expires = datetime.fromisoformat(self.expires_at)
+            if expires.tzinfo is None or expires <= _now():
+                return False
             return bool(verifier.verify(self._payload(), self.signature, key_id))
-        except Exception:
+        except (TypeError, ValueError):
             return False
 
 
 def mint_execution_grant(decision, *, scope_digest: str, budget: Budget, verifier,
                          key_id: str = "grant", network: bool = False,
                          state_change: bool = False, external_model_egress: bool = False,
-                         human_approval: bool = False, now: datetime | None = None
+                         human_approval: bool = False, now: datetime | None = None,
+                         ttl_seconds: int = 900,
+                         allowed_destinations: tuple[str, ...] = (),
+                         allowed_methods: tuple[str, ...] = (),
                          ) -> ExecutionGrant:
     """Derive a signed :class:`ExecutionGrant` from a PolicyEngine ``decision``. Capabilities are
     clamped to what the engine ALLOWED — a denied decision yields an all-False (inert) grant, so
     the agentic layer can never obtain more authority than the signed policy authorized. Requires
     a signer (``verifier.sign``); callers without the signing key cannot forge a grant."""
     allowed = bool(getattr(decision, "allowed", False))
+    if ttl_seconds <= 0 or ttl_seconds > 900:
+        raise ValueError("execution grant lifetime must be between 1 and 900 seconds")
+    issued = now or _now()
+    normalized_methods = tuple(sorted({item.upper() for item in allowed_methods}))
+    if any(item not in {"GET", "HEAD", "OPTIONS", "POST", "PUT", "PATCH", "DELETE"}
+           for item in normalized_methods):
+        raise ValueError("execution grant contains an unsupported HTTP method")
     grant = ExecutionGrant(
         scope_digest=str(scope_digest or "unknown"),
         network_allowed=bool(network and allowed),
@@ -159,7 +178,10 @@ def mint_execution_grant(decision, *, scope_digest: str, budget: Budget, verifie
         external_model_egress_allowed=bool(external_model_egress),
         human_approval=bool(human_approval and allowed),
         budget=budget, decision_fingerprint=_decision_fingerprint(decision),
-        issued_at=(now or _now()).isoformat(), nonce=secrets.token_hex(8))
+        issued_at=issued.isoformat(), nonce=secrets.token_hex(8),
+        expires_at=(issued + timedelta(seconds=ttl_seconds)).isoformat(),
+        allowed_destinations=tuple(sorted(set(allowed_destinations))),
+        allowed_methods=normalized_methods)
     signature = verifier.sign(grant._payload(), key_id)
     return replace(grant, signature=signature)
 

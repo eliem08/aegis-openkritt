@@ -6,9 +6,47 @@ import time
 from fastapi.testclient import TestClient
 
 from aegis.egress import EgressClaims, EgressServiceConfig, create_egress_app, issue_token
-from aegis.egress.app import UpstreamResponse, WebSocketResponse
+from aegis.egress.app import UpstreamResponse, WebSocketResponse, _default_sender
 
 SECRET = "s" * 48
+
+
+def test_default_sender_closes_stream_without_response_context_manager(monkeypatch):
+    class Response:
+        status_code = 200
+        headers = {"content-type": "text/plain"}
+        closed = False
+
+        def iter_bytes(self):
+            yield b"ok"
+
+        def close(self):
+            self.closed = True
+
+    response = Response()
+
+    class Client:
+        def __init__(self, **_kwargs):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            pass
+
+        def build_request(self, *_args, **_kwargs):
+            return type("Request", (), {"extensions": {}})()
+
+        def send(self, _request, *, stream):
+            assert stream is True
+            return response
+
+    monkeypatch.setattr("aegis.egress.app.httpx.Client", Client)
+    result = _default_sender("GET", "https://example.test/", "93.184.216.34", {}, b"")
+    assert result.status_code == 200
+    assert result.body == b"ok"
+    assert response.closed
 
 
 def _now() -> int:

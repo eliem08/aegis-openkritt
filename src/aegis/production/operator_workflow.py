@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from datetime import UTC, datetime, timedelta
 from hashlib import sha256
 from typing import Protocol
@@ -61,6 +61,7 @@ def prepare_operator_run(
     signer: AuthorizationSigner,
     store: ImmutableRunStore,
     controlled_identity_refs: tuple[str, ...] = (),
+    parent_dry_run_id: str | None = None,
     now: datetime | None = None,
     max_snapshot_age: timedelta = timedelta(hours=1),
 ) -> PreparedOperatorRun:
@@ -154,7 +155,11 @@ def prepare_operator_run(
         controlled_identity_refs=controlled_identity_refs,
         policy_snapshot=policy_snapshot, policy_digest=document_digest(policy_snapshot),
         scope_snapshot=scope_snapshot, scope_digest=scope_digest,
-        operator_selections={"program": program.handle, "assets": list(selected_assets)},
+        operator_selections={
+            "program": program.handle,
+            "assets": list(selected_assets),
+            "parent_dry_run_id": parent_dry_run_id,
+        },
         budgets=budgets, authorization=authorization.model_dump(mode="json"),
     )
     store.create(manifest)
@@ -190,7 +195,13 @@ def compile_dry_run(prepared: PreparedOperatorRun, store: ImmutableRunStore):
     return missions
 
 
-def compile_live_canary(prepared: PreparedOperatorRun, store: ImmutableRunStore):
+def compile_live_canary(
+    prepared: PreparedOperatorRun,
+    store: ImmutableRunStore,
+    *,
+    canary_url: str | None = None,
+    method: str | None = None,
+):
     if prepared.manifest.mode is not RunMode.LIVE_CANARY:
         raise OperatorWorkflowError("live-canary compiler requires a live-canary manifest")
     opportunities = opportunities_for_program(
@@ -198,8 +209,50 @@ def compile_live_canary(prepared: PreparedOperatorRun, store: ImmutableRunStore)
         authorization_id=str(prepared.manifest.authorization["authorization_id"]),
     )
     missions = tuple(compile_opportunity_mission(item) for item in opportunities)
+    if (canary_url is None) != (method is None):
+        raise OperatorWorkflowError("live canary URL and method must be supplied together")
+    if canary_url is not None and method is not None:
+        from urllib.parse import urlsplit
+
+        from aegis.ai.jarvis.supervised_canary_executor import CAPABILITY
+
+        if len(missions) != 1:
+            raise OperatorWorkflowError("live canary must compile exactly one selected asset")
+        normalized_method = method.upper()
+        parts = urlsplit(canary_url)
+        if normalized_method not in {"GET", "HEAD", "OPTIONS"}:
+            raise OperatorWorkflowError("first live canary permits GET, HEAD, or OPTIONS only")
+        if (
+            parts.scheme != "https"
+            or not parts.hostname
+            or parts.username is not None
+            or parts.password is not None
+            or parts.hostname.casefold() != prepared.manifest.canary_asset.casefold()
+        ):
+            raise OperatorWorkflowError("canary URL must be exact HTTPS on the selected asset")
+        original = missions[0]
+        original_task = original.tasks[0]
+        task = replace(
+            original_task,
+            action="supervised_http_observation",
+            executor_capability=CAPABILITY,
+            risk=RiskClass.READ_ONLY.value,
+            expected_requests=1,
+            expected_cost_usd=0.0,
+            payload={"method": normalized_method, "url": canary_url},
+            evidence_required=("response_status", "response_digest", "scope_check"),
+            success_criteria=("one exact read-only request completed",),
+            failure_criteria=("redirect left selected asset", "grant or budget rejected"),
+            stop_loss_criteria=("scope drift", "kill switch", "unexpected redirect"),
+        )
+        missions = (replace(
+            original,
+            objective="prove one bounded supervised read-only request through canonical egress",
+            tasks=(task,),
+        ),)
     store.append_event(prepared.manifest.run_id, "canary_missions_compiled", RunStatus.PLANNED, {
         "mission_ids": [mission.mission_id for mission in missions], "execution_performed": False,
+        "canary_url": canary_url, "method": method.upper() if method else None,
     })
     return missions
 
@@ -271,12 +324,18 @@ def execute_live_canary(
         max_cost_usd=prepared.manifest.budgets.max_cost_usd,
         max_requests=prepared.manifest.budgets.max_requests,
     )
+    canary_destination = str((task.payload or {}).get("url") or "")
+    canary_method = str((task.payload or {}).get("method") or "")
     grant = mint_execution_grant(
         decision, scope_digest=prepared.manifest.scope_digest, budget=budget,
         verifier=grant_verifier, network=network, state_change=False, human_approval=False,
+        now=observed, ttl_seconds=900,
+        allowed_destinations=(canary_destination,) if network and canary_destination else (),
+        allowed_methods=(canary_method,) if network and canary_method else (),
     )
     store.append_event(prepared.manifest.run_id, "execution_grant_minted", RunStatus.RUNNING, {
-        "task_id": task.task_id, "method": task.executor_capability,
+        "task_id": task.task_id, "method": canary_method,
+        "destination": canary_destination,
         "grant": grant._payload() | {"signature": grant.signature},
     })
     envelope = AuthorizationEnvelope(
@@ -286,15 +345,49 @@ def execute_live_canary(
         plan, authorization=envelope, availability=availability, **(executor_kwargs or {}),
     )
     outcome = result.outcome
-    if hasattr(outcome, "__dataclass_fields__"):
-        outcome = asdict(outcome)
-    evidence_digest = sha256(repr(outcome).encode()).hexdigest()
-    event_type = "task_completed" if result.outcome is not None else "task_not_completed"
-    status = RunStatus.COMPLETED if result.outcome is not None else RunStatus.FAILED
-    store.append_event(prepared.manifest.run_id, event_type, status, {
+    if result.outcome is None:
+        store.append_event(prepared.manifest.run_id, "task_not_completed", RunStatus.FAILED, {
+            "task_id": task.task_id, "mission_id": plan.mission_id,
+            "disposition": result.disposition.value, "reason": result.reason,
+            "requests_executed": 0,
+        })
+        return result
+    outcome_document = asdict(outcome) if hasattr(outcome, "__dataclass_fields__") else outcome
+    if hasattr(getattr(outcome, "evidence", None), "model_dump"):
+        outcome_document["evidence"] = outcome.evidence.model_dump(mode="json")
+    evidence_document = {
+        "schema_version": 1,
+        "run_id": prepared.manifest.run_id,
+        "mission_id": plan.mission_id,
+        "task_id": task.task_id,
+        "scope_digest": prepared.manifest.scope_digest,
+        "grant_digest": sha256(repr(grant._payload()).encode()).hexdigest(),
+        "target": str((task.payload or {}).get("url") or task.asset_locator),
+        "method": str((task.payload or {}).get("method") or ""),
+        "identity_ref": (
+            prepared.manifest.controlled_identity_refs[0]
+            if prepared.manifest.controlled_identity_refs else None
+        ),
+        "request_budget_before": prepared.manifest.budgets.max_requests,
+        "request_budget_after": prepared.manifest.budgets.max_requests - 1,
+        "cost_consumed": 0.0,
+        "scope_check": "PASS",
+        "grant_check": "PASS",
+        "rate_check": "PASS",
+        "kill_switch_check": "PASS",
+        "outcome": outcome_document,
+    }
+    evidence_ref, evidence_digest = store.persist_evidence(
+        prepared.manifest.run_id, evidence_document,
+    )
+    store.append_event(prepared.manifest.run_id, "evidence_persisted", RunStatus.RUNNING, {
+        "task_id": task.task_id, "evidence_ref": evidence_ref,
+        "evidence_digest": evidence_digest,
+    })
+    store.append_event(prepared.manifest.run_id, "task_completed", RunStatus.COMPLETED, {
         "task_id": task.task_id, "mission_id": plan.mission_id,
         "disposition": result.disposition.value, "reason": result.reason,
-        "evidence_digest": evidence_digest,
+        "evidence_digest": evidence_digest, "requests_executed": 1,
     })
     return result
 

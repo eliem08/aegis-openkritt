@@ -206,6 +206,14 @@ class ImmutableRunStore:
             "last_event_digest": events[-1].digest if events else "",
         }
 
+    def persist_evidence(self, run_id: str, document: Mapping[str, Any]) -> tuple[str, str]:
+        """Persist one immutable evidence document and return its path and digest."""
+        self.verify(run_id)
+        digest = document_digest(document)
+        relative = f"evidence/{digest}.json"
+        self._exclusive_json(self.root / run_id / relative, document | {"evidence_digest": digest})
+        return relative, digest
+
     def load_manifest(self, run_id: str) -> OperatorRunManifest:
         """Verify and rehydrate the immutable manifest for restart-safe continuation."""
         self.verify(run_id)

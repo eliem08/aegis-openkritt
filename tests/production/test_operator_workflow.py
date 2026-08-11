@@ -4,10 +4,12 @@ from datetime import UTC, datetime, timedelta
 import pytest
 
 from aegis.ai.jarvis.mission_capabilities import CapabilityDisposition
+from aegis.ai.jarvis.supervised_canary_executor import SupervisedCanaryOutcome
 from aegis.ai.jarvis.universal_runtime import MissionExecutionResult
 from aegis.cli import main as cli_main
 from aegis.ingest.program import AssetType, ProgramRules, ScopeAsset
 from aegis.ingest.source import ProgramSnapshot
+from aegis.model.evidence import EvidenceBundle, InteractionStep
 from aegis.policy.signing import Ed25519Signer, HmacSignatureVerifier
 from aegis.production.operator_manifest import ImmutableRunStore, RunBudgets, RunMode
 from aegis.production.operator_workflow import (
@@ -78,10 +80,24 @@ class FakeRuntime:
     def execute_first(self, plan, *, authorization, availability, **kwargs):
         assert authorization.grant.verify(self.grant_verifier)
         assert authorization.grant.state_change_allowed is False
+        payload = plan.tasks[0].payload or {}
+        if payload.get("url"):
+            assert authorization.grant.allowed_destinations == (payload["url"],)
+            assert authorization.grant.allowed_methods == (payload["method"],)
         self.calls += 1
+        outcome = {"evidence": "controlled"}
+        if payload.get("url"):
+            outcome = SupervisedCanaryOutcome(
+                payload["method"], payload["url"], 200, "a" * 64, 2,
+                payload["url"], 0,
+                EvidenceBundle(
+                    steps=[InteractionStep(summary="test", request="GET /", response="200")],
+                    observed="ok", expected="ok", replay_ref="test", confidence=1.0,
+                ),
+            )
         return MissionExecutionResult(
             plan, CapabilityDisposition.READY, "bounded read-only canary completed",
-            {"evidence": "controlled"},
+            outcome,
         )
 
 
@@ -114,6 +130,30 @@ def test_live_canary_revalidates_and_executes_once(tmp_path):
             prepared, plan, store=store, runtime=runtime, availability=None,
             authorization_verifier=signer.verifier(), grant_verifier=grants,
         )
+
+
+def test_live_canary_compiles_one_exact_read_only_request_and_persists_evidence(tmp_path):
+    store = ImmutableRunStore(tmp_path)
+    signer = Ed25519Signer.generate("operator")
+    prepared = prepare_operator_run(
+        snapshot(), selected_assets=("api.example.test",), operator_id="operator",
+        mode=RunMode.LIVE_CANARY, budgets=RunBudgets(1, 0.1, 0.01),
+        signer=signer, store=store,
+    )
+    plan = compile_live_canary(
+        prepared, store, canary_url="https://api.example.test/", method="GET",
+    )[0]
+    assert len(plan.tasks) == 1
+    assert plan.tasks[0].risk == "read_only"
+    assert plan.tasks[0].payload == {"method": "GET", "url": "https://api.example.test/"}
+    grants = HmacSignatureVerifier({"grant": "g" * 32})
+    result = execute_live_canary(
+        prepared, plan, store=store, runtime=FakeRuntime(grants), availability=None,
+        authorization_verifier=signer.verifier(), grant_verifier=grants,
+    )
+    assert result.outcome
+    evidence_dir = tmp_path / prepared.manifest.run_id / "evidence"
+    assert len(list(evidence_dir.glob("*.json"))) == 1
 
 
 def test_live_canary_fails_closed_on_stale_auth_or_state_change(tmp_path):

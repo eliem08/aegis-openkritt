@@ -123,7 +123,8 @@ def _default_sender(method: str, url: str, pinned_ip: str, headers: dict[str, st
         request = client.build_request(method, pinned_url, headers=outgoing_headers, content=body)
         if parts.scheme == "https":
             request.extensions["sni_hostname"] = parts.hostname.encode("idna")
-        with client.send(request, stream=True) as response:
+        response = client.send(request, stream=True)
+        try:
             chunks = []
             size = 0
             for chunk in response.iter_bytes():
@@ -132,6 +133,8 @@ def _default_sender(method: str, url: str, pinned_ip: str, headers: dict[str, st
                     raise HTTPException(status_code=502, detail="upstream response exceeded limit")
                 chunks.append(chunk)
             return UpstreamResponse(response.status_code, dict(response.headers), b"".join(chunks))
+        finally:
+            response.close()
 
 
 def _read_exact(stream, size: int) -> bytes:
