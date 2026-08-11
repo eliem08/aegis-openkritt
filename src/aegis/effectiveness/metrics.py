@@ -84,16 +84,23 @@ def _metric_row(key: str, subjects, fact_types, outcomes: list[OutcomeRecord]) -
     known_bounties = [item.payload.bounty_usd for item in outcomes
                       if item.payload.bounty_usd is not None]
     unknown_bounties = sum(item.payload.bounty_usd is None for item in outcomes)
-    model_cost = sum((item.payload.model_api_cost_usd for item in outcomes), Decimal(0))
-    compute_cost = sum((item.payload.compute_cost_usd for item in outcomes), Decimal(0))
-    review_minutes = sum((item.payload.human_review_minutes for item in outcomes), Decimal(0))
+    model_values = [item.payload.model_api_cost_usd for item in outcomes]
+    compute_values = [item.payload.compute_cost_usd for item in outcomes]
+    review_values = [item.payload.human_review_minutes for item in outcomes]
+    model_cost = sum((value for value in model_values if value is not None), Decimal(0))
+    compute_cost = sum((value for value in compute_values if value is not None), Decimal(0))
+    review_minutes = sum((value for value in review_values if value is not None), Decimal(0))
     known_bounty = sum(known_bounties, Decimal(0))
     total_cost = model_cost + compute_cost
-    complete_money = unknown_bounties == 0
+    complete_money = (
+        unknown_bounties == 0
+        and all(value is not None for value in model_values)
+        and all(value is not None for value in compute_values)
+    )
     realized_profit = known_bounty - total_cost if complete_money else None
     known_profit = known_bounty - total_cost
     profit_hour = None
-    if complete_money and review_minutes > 0:
+    if complete_money and all(value is not None for value in review_values) and review_minutes > 0:
         profit_hour = realized_profit * Decimal(60) / review_minutes
     triage_seconds = []
     for item in outcomes:

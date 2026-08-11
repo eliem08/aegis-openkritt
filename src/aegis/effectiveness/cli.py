@@ -87,10 +87,13 @@ def run_effectiveness(args) -> int:
                     bounty_usd=(None if document.get("bounty_usd") is None
                                 else Decimal(str(document["bounty_usd"]))),
                     submitted_at=document.get("submitted_at"),
-                    triaged_at=document.get("triaged_at"), resolved_at=document["resolved_at"],
-                    human_review_minutes=Decimal(str(document["human_review_minutes"])),
-                    model_api_cost_usd=Decimal(str(document["model_api_cost_usd"])),
-                    compute_cost_usd=Decimal(str(document["compute_cost_usd"])),
+                    triaged_at=document.get("triaged_at"), resolved_at=document.get("resolved_at"),
+                    human_review_minutes=(None if document.get("human_review_minutes") is None
+                                          else Decimal(str(document["human_review_minutes"]))),
+                    model_api_cost_usd=(None if document.get("model_api_cost_usd") is None
+                                        else Decimal(str(document["model_api_cost_usd"]))),
+                    compute_cost_usd=(None if document.get("compute_cost_usd") is None
+                                      else Decimal(str(document["compute_cost_usd"]))),
                     analyst_note=document.get("analyst_note"), operator_id=document["operator_id"],
                     source_digest=document["source_digest"],
                     idempotency_key=document["idempotency_key"],

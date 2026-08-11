@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import json
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass, fields, is_dataclass
 from datetime import UTC, datetime
 from decimal import Decimal
 from enum import Enum
 from hashlib import sha256
+from types import MappingProxyType
 from typing import Any, Mapping
 
 
@@ -17,10 +18,22 @@ class OutcomeState(str, Enum):
     INFORMATIVE = "informative"
     NOT_APPLICABLE = "not_applicable"
     REJECTED = "rejected"
+    WITHDRAWN = "withdrawn"
+    PENDING = "pending"
 
 
 class FactType(str, Enum):
     OPPORTUNITY_GENERATED = "opportunity_generated"
+    CANDIDATE_GENERATED = "candidate_generated"
+    RUNTIME_OBSERVED = "runtime_observed"
+    LOCALLY_REPRODUCED = "locally_reproduced"
+    INDEPENDENTLY_VERIFIED = "independently_verified"
+    HUMAN_APPROVED = "human_approved"
+    SUBMITTED = "submitted"
+    TRIAGED = "triaged"
+    ACCEPTED = "accepted"
+    PAID = "paid"
+    # V1 stored values remain valid and are never rewritten.
     FINDING_REPRODUCED = "finding_reproduced"
     SKEPTIC_TRIAGE_SURVIVED = "skeptic_triage_survived"
     REPORT_HUMAN_APPROVED = "report_human_approved"
@@ -38,6 +51,11 @@ class StorageState(str, Enum):
     READY = "READY"
     DEGRADED = "DEGRADED"
     UNAVAILABLE = "UNAVAILABLE"
+
+
+class EconomicsState(str, Enum):
+    COMPLETE = "ECONOMICS_COMPLETE"
+    INCOMPLETE = "ECONOMICS_INCOMPLETE"
 
 
 def utc_now() -> str:
@@ -66,6 +84,8 @@ def money(value: Decimal | str | int | float | None, *, field_name: str) -> Deci
 
 
 def canonical_document(value: Any) -> Any:
+    if is_dataclass(value):
+        return {item.name: canonical_document(getattr(value, item.name)) for item in fields(value)}
     if isinstance(value, Enum):
         return value.value
     if isinstance(value, Decimal):
@@ -78,8 +98,6 @@ def canonical_document(value: Any) -> Any:
 
 
 def payload_digest(value: Any) -> str:
-    if hasattr(value, "__dataclass_fields__"):
-        value = asdict(value)
     document = canonical_document(value)
     raw = json.dumps(document, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
     return sha256(raw.encode("utf-8")).hexdigest()
@@ -113,6 +131,9 @@ class EffectivenessSubject:
     evidence_digest: str
     source_digest: str
     created_at: str
+    candidate_finding_id: str | None = None
+    human_decision_id: str | None = None
+    submission_id: str | None = None
 
     def __post_init__(self) -> None:
         identity = (
@@ -137,6 +158,8 @@ class EffectivenessFact:
     observed_at: str
     source_digest: str
     idempotency_key: str
+    metadata: Mapping[str, Any] | None = None
+    model_version: str | None = None
 
     def __post_init__(self) -> None:
         if not all((self.fact_id, self.subject_id, self.idempotency_key)):
@@ -144,6 +167,10 @@ class EffectivenessFact:
         parse_timestamp(self.observed_at, field_name="observed_at")
         if len(self.source_digest) != 64:
             raise ValueError("fact source_digest must be a SHA-256 digest")
+        metadata = canonical_document(dict(self.metadata or {}))
+        object.__setattr__(self, "metadata", MappingProxyType(metadata))
+        if self.model_version is not None and not self.model_version.strip():
+            raise ValueError("fact model_version cannot be blank")
 
 
 @dataclass(frozen=True, slots=True)
@@ -155,10 +182,10 @@ class OutcomeInput:
     bounty_usd: Decimal | None
     submitted_at: str | None
     triaged_at: str | None
-    resolved_at: str
-    human_review_minutes: Decimal
-    model_api_cost_usd: Decimal
-    compute_cost_usd: Decimal
+    resolved_at: str | None
+    human_review_minutes: Decimal | None
+    model_api_cost_usd: Decimal | None
+    compute_cost_usd: Decimal | None
     analyst_note: str | None
     operator_id: str
     source_digest: str
@@ -176,8 +203,10 @@ class OutcomeInput:
         submitted = parse_timestamp(self.submitted_at, field_name="submitted_at")
         triaged = parse_timestamp(self.triaged_at, field_name="triaged_at")
         resolved = parse_timestamp(self.resolved_at, field_name="resolved_at")
-        if self.state is not OutcomeState.REJECTED and submitted is None:
+        if self.state not in {OutcomeState.REJECTED} and submitted is None:
             raise ValueError("externally resolved outcomes require submitted_at")
+        if self.state is not OutcomeState.PENDING and resolved is None:
+            raise ValueError("terminal outcomes require resolved_at")
         if submitted and triaged and triaged < submitted:
             raise ValueError("triaged_at cannot precede submitted_at")
         if submitted and resolved and resolved < submitted:
@@ -194,6 +223,83 @@ class OutcomeRecord:
     version: int
     recorded_at: str
     payload: OutcomeInput
+
+
+@dataclass(frozen=True, slots=True)
+class CostObservation:
+    cost_observation_id: str
+    subject_id: str
+    campaign_id: str | None
+    model_api_cost_usd: Decimal | None
+    scanner_compute_cost_usd: Decimal | None
+    cloud_cost_usd: Decimal | None
+    oast_cost_usd: Decimal | None
+    browser_device_cost_usd: Decimal | None
+    human_review_minutes: Decimal | None
+    human_submission_minutes: Decimal | None
+    human_other_minutes: Decimal | None
+    human_hourly_rate_usd: Decimal | None
+    observed_at: str
+    operator_id: str
+    source_digest: str
+    idempotency_key: str
+    calculation_version: str = "human-cost-v1"
+
+    def __post_init__(self) -> None:
+        identity = (
+            self.cost_observation_id, self.subject_id, self.operator_id,
+            self.source_digest, self.idempotency_key, self.calculation_version,
+        )
+        if any(not str(item).strip() for item in identity):
+            raise ValueError("cost identity, lineage, provenance, and version are required")
+        if len(self.source_digest) != 64:
+            raise ValueError("cost source_digest must be a SHA-256 digest")
+        parse_timestamp(self.observed_at, field_name="observed_at")
+        for name in (
+            "model_api_cost_usd", "scanner_compute_cost_usd", "cloud_cost_usd",
+            "oast_cost_usd", "browser_device_cost_usd", "human_review_minutes",
+            "human_submission_minutes", "human_other_minutes", "human_hourly_rate_usd",
+        ):
+            object.__setattr__(self, name, money(getattr(self, name), field_name=name))
+
+    @property
+    def total_human_minutes(self) -> Decimal | None:
+        values = (
+            self.human_review_minutes, self.human_submission_minutes,
+            self.human_other_minutes,
+        )
+        if any(value is None for value in values):
+            return None
+        return sum(values, Decimal(0))
+
+    @property
+    def human_cost_usd(self) -> Decimal | None:
+        minutes = self.total_human_minutes
+        if minutes is None or self.human_hourly_rate_usd is None:
+            return None
+        return minutes / Decimal(60) * self.human_hourly_rate_usd
+
+
+@dataclass(frozen=True, slots=True)
+class CostRecord:
+    cost_record_id: str
+    recorded_at: str
+    payload: CostObservation
+
+
+@dataclass(frozen=True, slots=True)
+class EconomicProjection:
+    state: EconomicsState
+    realized_revenue_usd: Decimal | None
+    machine_infrastructure_cost_usd: Decimal | None
+    human_cost_usd: Decimal | None
+    total_human_minutes: Decimal | None
+    realized_profit_excluding_human_cost_usd: Decimal | None
+    realized_profit_usd: Decimal | None
+    missing_inputs: tuple[str, ...]
+    sample_count: int
+    model_version: str
+    computed_at: str
 
 
 @dataclass(frozen=True, slots=True)
