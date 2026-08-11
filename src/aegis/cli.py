@@ -11,6 +11,9 @@ from pathlib import Path
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="aegis")
     commands = parser.add_subparsers(dest="command", required=True)
+    from aegis.effectiveness.cli import add_effectiveness_parser
+
+    add_effectiveness_parser(commands)
     production = commands.add_parser("production")
     production_commands = production.add_subparsers(dest="production_command", required=True)
     health = production_commands.add_parser("health")
@@ -44,6 +47,10 @@ def main(argv: list[str] | None = None) -> int:
         return health_main(health_args)
     if args.command == "production" and args.production_command == "operator":
         return _operator(args)
+    if args.command == "effectiveness":
+        from aegis.effectiveness.cli import run_effectiveness
+
+        return run_effectiveness(args)
     parser.error("unsupported command")
     return 2
 
