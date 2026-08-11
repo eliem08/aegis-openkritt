@@ -23,13 +23,15 @@ def test_postgres_concurrent_outcome_is_exactly_once_and_immutable():
         )
     item = subject()
     repository.record_subject(item, (fact(item),))
+    recorded_outcome = outcome(item)
 
     def record(_):
-        return repository.record_outcome(outcome(item))[1]
+        return repository.record_outcome(recorded_outcome)[1]
 
     with ThreadPoolExecutor(max_workers=8) as pool:
         inserted = list(pool.map(record, range(16)))
-    assert sum(inserted) == 1
+    assert inserted.count(True) == 1
+    assert inserted.count(False) == 15
     assert len(repository.latest_outcomes()) == 1
     with repository._pool.connection() as connection, connection.cursor() as cursor:
         with pytest.raises(Exception, match="immutable effectiveness ledger"):
