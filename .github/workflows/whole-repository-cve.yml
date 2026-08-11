@@ -1,0 +1,48 @@
+name: Whole Repository CVE Discovery Recall
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/whole-repository-cve.yml"
+      - "benchmarks/real_cve_cases.json"
+      - "src/aegis/bench/real_cve.py"
+      - "src/aegis/bench/whole_repo_cve.py"
+      - "src/aegis/ai/tool_bridge.py"
+      - "src/aegis/ai/tool_registry.py"
+  schedule:
+    - cron: "53 3 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Aegis and pinned scanner
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,ai]"
+          pip install "semgrep==1.172.0"
+      - name: Measure independent whole-repository discovery
+        env:
+          AEGIS_REAL_CVE_CASES: benchmarks/real_cve_cases.json
+          AEGIS_WHOLE_REPO_CVE_STRICT: "1"
+          AEGIS_WHOLE_REPO_CASE_CONCURRENCY: "2"
+          AEGIS_SCANNER_CONCURRENCY: "2"
+        run: python -m aegis.bench.whole_repo_cve --json whole-repository-cve-results.json
+      - name: Upload measured results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: whole-repository-cve-results
+          path: whole-repository-cve-results.json
+          if-no-files-found: error

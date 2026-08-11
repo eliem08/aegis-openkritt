@@ -86,6 +86,10 @@ class ScopedEgressHttpExecutor:
             raise ValueError("unsupported HTTP method")
         if len(body) > self.max_request_bytes:
             raise ValueError("HTTP request body exceeded executor size budget")
+        if grant.allowed_methods and normalized_method not in grant.allowed_methods:
+            raise PermissionError("HTTP method is outside the signed execution grant")
+        if grant.allowed_destinations and url not in grant.allowed_destinations:
+            raise PermissionError("HTTP destination is outside the signed execution grant")
         authorized_limit = min(
             max(0, authorization.budget.max_requests),
             max(0, grant.budget.max_requests),
