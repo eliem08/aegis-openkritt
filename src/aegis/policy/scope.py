@@ -65,7 +65,14 @@ class ScopeGuard:
         if entry.startswith("*."):
             self._wildcards.add(entry[2:])
         else:
-            self._exact.add(entry)
+            # Exact authorization targets may be repository/API URLs while
+            # enforcement compares destinations at the host boundary. Apply
+            # the same normalization on both sides. Invalid allowlist entries
+            # are ignored and therefore remain fail closed.
+            try:
+                self._exact.add(normalize_host(entry))
+            except ValueError:
+                return
 
     @classmethod
     def from_authorization(cls, targets: list[str]) -> ScopeGuard:
