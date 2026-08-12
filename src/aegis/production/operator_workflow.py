@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, replace
 from datetime import UTC, datetime, timedelta
 from hashlib import sha256
-from typing import Protocol
+from typing import Any, Mapping, Protocol
 
 from aegis.ai.agentic_os import (
     AuthorizationEnvelope,
@@ -51,6 +51,31 @@ class PreparedOperatorRun:
     program: ProgramRules
 
 
+def policy_snapshot_document(snapshot: ProgramSnapshot) -> dict[str, Any]:
+    return {
+        "source": snapshot.source,
+        "source_hash": snapshot.source_hash,
+        "retrieved_at": snapshot.retrieved_at.isoformat(),
+        "expires_at": snapshot.authorization_expires_at.isoformat(),
+        "policy_text": snapshot.rules.policy_text,
+        "automation_allowed": snapshot.rules.automation_allowed,
+        "ai_allowed": snapshot.rules.ai_allowed,
+        "rate_limit_rps": snapshot.rules.rate_limit_rps,
+        "conflicts": list(snapshot.rules.conflicts),
+    }
+
+
+def scope_snapshot_document(
+    snapshot: ProgramSnapshot, selected_assets: tuple[str, ...],
+) -> dict[str, Any]:
+    return {
+        "program_handle": snapshot.rules.handle,
+        "selected_assets": list(selected_assets),
+        "in_scope": [asset.model_dump(mode="json") for asset in snapshot.rules.in_scope],
+        "out_of_scope": [asset.model_dump(mode="json") for asset in snapshot.rules.out_of_scope],
+    }
+
+
 def prepare_operator_run(
     snapshot: ProgramSnapshot,
     *,
@@ -64,6 +89,9 @@ def prepare_operator_run(
     parent_dry_run_id: str | None = None,
     now: datetime | None = None,
     max_snapshot_age: timedelta = timedelta(hours=1),
+    permitted_actions: tuple[str, ...] | None = None,
+    approval_required_for: tuple[str, ...] | None = None,
+    operator_selections: Mapping[str, Any] | None = None,
 ) -> PreparedOperatorRun:
     """Validate operator choices and persist a fresh signed authorization snapshot."""
     observed = (now or datetime.now(UTC)).astimezone(UTC)
@@ -71,6 +99,8 @@ def prepare_operator_run(
         raise OperatorWorkflowError("candidate registry is not an authorization source")
     if snapshot.expired or observed - snapshot.retrieved_at > max_snapshot_age:
         raise OperatorWorkflowError("program policy/scope snapshot is stale or expired")
+    if snapshot.rules.submission_state.strip().casefold() not in {"open", "active", "public"}:
+        raise OperatorWorkflowError("program is not explicitly open or active in the current snapshot")
     if not selected_assets or len(set(selected_assets)) != len(selected_assets):
         raise OperatorWorkflowError("operator must explicitly select unique assets")
     if mode is RunMode.LIVE_CANARY and len(selected_assets) != 1:
@@ -81,27 +111,14 @@ def prepare_operator_run(
     }
     if any(asset not in available for asset in selected_assets):
         raise OperatorWorkflowError("selected asset is not in the refreshed current scope")
-    if mode is RunMode.LIVE_CANARY and not snapshot.rules.automation_allowed:
+    if mode is not RunMode.DRY_RUN and not snapshot.rules.automation_allowed:
         raise OperatorWorkflowError("current program policy prohibits automated testing")
+    if mode is RunMode.CAMPAIGN and not snapshot.rules.ai_allowed:
+        raise OperatorWorkflowError("current program policy prohibits AI-assisted testing")
 
     authorization_id = f"operator:{store.new_run_id()}"
-    policy_snapshot = {
-        "source": snapshot.source,
-        "source_hash": snapshot.source_hash,
-        "retrieved_at": snapshot.retrieved_at.isoformat(),
-        "expires_at": snapshot.authorization_expires_at.isoformat(),
-        "policy_text": snapshot.rules.policy_text,
-        "automation_allowed": snapshot.rules.automation_allowed,
-        "ai_allowed": snapshot.rules.ai_allowed,
-        "rate_limit_rps": snapshot.rules.rate_limit_rps,
-        "conflicts": list(snapshot.rules.conflicts),
-    }
-    scope_snapshot = {
-        "program_handle": snapshot.rules.handle,
-        "selected_assets": list(selected_assets),
-        "in_scope": [asset.model_dump(mode="json") for asset in snapshot.rules.in_scope],
-        "out_of_scope": [asset.model_dump(mode="json") for asset in snapshot.rules.out_of_scope],
-    }
+    policy_snapshot = policy_snapshot_document(snapshot)
+    scope_snapshot = scope_snapshot_document(snapshot, selected_assets)
     scope_digest = document_digest(scope_snapshot)
     selected = [
         available[name].model_copy(update={
@@ -113,14 +130,16 @@ def prepare_operator_run(
     ]
     program = snapshot.rules.model_copy(update={"in_scope": selected})
     valid_until = min(snapshot.authorization_expires_at, observed + timedelta(hours=24))
+    default_actions = (
+        ("passive_discovery",) if mode is RunMode.DRY_RUN else
+        ("passive_discovery", "authenticated_testing", "synthetic_data_access")
+    )
     draft = program.to_authorization_draft(
         customer_id=operator_id,
         authorization_id=authorization_id,
         valid_from=observed.isoformat(),
         valid_until=valid_until.isoformat(),
-        permitted_actions=["passive_discovery"] if mode is RunMode.DRY_RUN else [
-            "passive_discovery", "authenticated_testing", "synthetic_data_access",
-        ],
+        permitted_actions=list(permitted_actions or default_actions),
     )
     draft.pop("_meta", None)
     draft["targets"] = list(selected_assets)
@@ -132,6 +151,8 @@ def prepare_operator_run(
         "max_concurrent_sessions": budgets.max_concurrent_sessions,
     }
     draft["spend_budget"] = budgets.max_cost_usd
+    if approval_required_for is not None:
+        draft["approval_required_for"] = list(approval_required_for)
     draft["test_identities"] = [
         TestIdentity(role="controlled", creds_ref=reference).model_dump(mode="json")
         for reference in controlled_identity_refs
@@ -159,6 +180,7 @@ def prepare_operator_run(
             "program": program.handle,
             "assets": list(selected_assets),
             "parent_dry_run_id": parent_dry_run_id,
+            **dict(operator_selections or {}),
         },
         budgets=budgets, authorization=authorization.model_dump(mode="json"),
     )

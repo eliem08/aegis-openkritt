@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, replace
 from decimal import Decimal
 from hashlib import sha256
@@ -148,6 +149,49 @@ class MissionExecutionResult:
 
 DynamicExecutor = Callable[[PlannedMethod, MissionPlan, AuthorizationEnvelope], Any]
 MissionTaskExecutor = Callable[[MissionTask, MissionPlan, AuthorizationEnvelope], Any]
+
+
+def _campaign_constraint_error(task: MissionTask, grant) -> str | None:
+    """Validate the common signed campaign constraint envelope before dispatch."""
+    constraints = dict(getattr(grant, "constraints", {}) or {})
+    if not constraints or "campaign_id" not in constraints:
+        return None
+    payload = dict(task.payload or {})
+    exact = {
+        "decision_digest": "authorization_decision_digest",
+        "technique": "technique",
+        "context": "execution_context",
+        "execution_input_digest": "execution_input_digest",
+    }
+    for constraint_name, payload_name in exact.items():
+        if str(constraints.get(constraint_name) or "") != str(payload.get(payload_name) or ""):
+            return f"signed campaign constraint {constraint_name} does not match the mission"
+    if str(constraints.get("asset") or "") != task.asset_locator:
+        return "signed campaign asset constraint does not match the mission"
+    execution_inputs = payload.get("campaign_execution_inputs", {})
+    if not isinstance(execution_inputs, dict):
+        return "campaign execution inputs are malformed"
+    input_digest = sha256(json.dumps(
+        execution_inputs, sort_keys=True, separators=(",", ":"), ensure_ascii=False,
+    ).encode()).hexdigest()
+    if input_digest != str(constraints.get("execution_input_digest") or ""):
+        return "campaign execution inputs do not match the signed digest"
+    if any(payload.get(key) != value for key, value in execution_inputs.items()):
+        return "campaign executor input differs from the signed input document"
+    try:
+        if int(constraints["max_requests"]) < task.expected_requests:
+            return "signed campaign request constraint is below the mission estimate"
+        if float(constraints["max_cost_usd"]) < task.expected_cost_usd:
+            return "signed campaign cost constraint is below the mission estimate"
+    except (KeyError, TypeError, ValueError):
+        return "signed campaign budget constraints are malformed"
+    destination = str(payload.get("url") or payload.get("destination") or "")
+    method = str(payload.get("method") or "").upper()
+    if destination and destination not in grant.allowed_destinations:
+        return "mission destination is absent from the signed campaign grant"
+    if method and method not in grant.allowed_methods:
+        return "mission method is absent from the signed campaign grant"
+    return None
 
 
 class UniversalMissionRuntime:
@@ -302,6 +346,16 @@ class UniversalMissionRuntime:
             return MissionExecutionResult(
                 plan, CapabilityDisposition.WAITING_FOR_APPROVAL,
                 "execution requires a verified PolicyEngine-derived grant bound to mission scope",
+            )
+
+        campaign_constraint_error = _campaign_constraint_error(task, grant)
+        if campaign_constraint_error:
+            plan = self.scheduler.set_task_state(
+                plan, task.task_id, TaskState.WAITING_FOR_APPROVAL
+            )
+            return MissionExecutionResult(
+                plan, CapabilityDisposition.WAITING_FOR_APPROVAL,
+                campaign_constraint_error,
             )
 
         if task.executor_capability.startswith("dynamic:"):

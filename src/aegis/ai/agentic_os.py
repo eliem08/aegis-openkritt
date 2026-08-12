@@ -123,6 +123,7 @@ class ExecutionGrant:
     expires_at: str
     allowed_destinations: tuple[str, ...] = ()
     allowed_methods: tuple[str, ...] = ()
+    constraints: Mapping[str, Any] = field(default_factory=dict)
     signature: str = ""
 
     def _payload(self) -> dict:
@@ -137,7 +138,8 @@ class ExecutionGrant:
                 "issued_at": self.issued_at, "nonce": self.nonce,
                 "expires_at": self.expires_at,
                 "allowed_destinations": list(self.allowed_destinations),
-                "allowed_methods": list(self.allowed_methods)}
+                "allowed_methods": list(self.allowed_methods),
+                "constraints": _canonical_constraints(self.constraints)}
 
     def verify(self, verifier, *, key_id: str = "grant") -> bool:
         if verifier is None or not self.signature:
@@ -158,6 +160,7 @@ def mint_execution_grant(decision, *, scope_digest: str, budget: Budget, verifie
                          ttl_seconds: int = 900,
                          allowed_destinations: tuple[str, ...] = (),
                          allowed_methods: tuple[str, ...] = (),
+                         constraints: Mapping[str, Any] | None = None,
                          ) -> ExecutionGrant:
     """Derive a signed :class:`ExecutionGrant` from a PolicyEngine ``decision``. Capabilities are
     clamped to what the engine ALLOWED — a denied decision yields an all-False (inert) grant, so
@@ -171,6 +174,7 @@ def mint_execution_grant(decision, *, scope_digest: str, budget: Budget, verifie
     if any(item not in {"GET", "HEAD", "OPTIONS", "POST", "PUT", "PATCH", "DELETE"}
            for item in normalized_methods):
         raise ValueError("execution grant contains an unsupported HTTP method")
+    normalized_constraints = _canonical_constraints(constraints or {})
     grant = ExecutionGrant(
         scope_digest=str(scope_digest or "unknown"),
         network_allowed=bool(network and allowed),
@@ -181,9 +185,21 @@ def mint_execution_grant(decision, *, scope_digest: str, budget: Budget, verifie
         issued_at=issued.isoformat(), nonce=secrets.token_hex(8),
         expires_at=(issued + timedelta(seconds=ttl_seconds)).isoformat(),
         allowed_destinations=tuple(sorted(set(allowed_destinations))),
-        allowed_methods=normalized_methods)
+        allowed_methods=normalized_methods, constraints=normalized_constraints)
     signature = verifier.sign(grant._payload(), key_id)
     return replace(grant, signature=signature)
+
+
+def _canonical_constraints(value: Mapping[str, Any]) -> dict[str, Any]:
+    """Return a deterministic JSON-compatible copy for signed technique constraints."""
+    try:
+        encoded = json.dumps(dict(value), sort_keys=True, separators=(",", ":"))
+        decoded = json.loads(encoded)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("execution grant constraints must be JSON-compatible") from exc
+    if not isinstance(decoded, dict):
+        raise ValueError("execution grant constraints must be an object")
+    return decoded
 
 
 @dataclass(frozen=True)
