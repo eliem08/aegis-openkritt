@@ -67,6 +67,12 @@ def compile_opportunity_mission(
         str(item) for item in opportunity.metadata.get("evidence_requirements", ())
     )
     intelligence_requests = max(0, int(opportunity.metadata.get("expected_requests", 0)))
+    authorization_decision_id = str(opportunity.metadata.get("decision_id", ""))
+    authorization_decision_digest = str(opportunity.metadata.get("decision_digest", ""))
+    technique = str(opportunity.metadata.get("technique", ""))
+    execution_context = str(opportunity.metadata.get("context", ""))
+    execution_inputs = dict(opportunity.metadata.get("execution_inputs", {}) or {})
+    execution_input_digest = str(opportunity.metadata.get("execution_input_digest", ""))
 
     for index, action in enumerate(actions):
         task_id = f"{key}-{index:02d}-{action}"
@@ -89,6 +95,15 @@ def compile_opportunity_mission(
                 "lane_id": lane.lane_id,
                 "local_only": lane.local_validation,
                 "requires_human_approval": state_change,
+                **({
+                    "authorization_decision_id": authorization_decision_id,
+                    "authorization_decision_digest": authorization_decision_digest,
+                    "technique": technique,
+                    "execution_context": execution_context,
+                    "execution_input_digest": execution_input_digest,
+                    "campaign_execution_inputs": execution_inputs,
+                    **execution_inputs,
+                } if index == 0 and authorization_decision_id else {}),
             },
             opportunity_id=opportunity.opportunity_id,
             asset_id=opportunity.asset_id,
