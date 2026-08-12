@@ -220,7 +220,7 @@ def _campaign_operator(args) -> int:
         prepare_campaign,
     )
     from aegis.production.live_canary import require_fresh_ready_health
-    from aegis.production.operator_manifest import ImmutableRunStore, RunBudgets
+    from aegis.production.operator_manifest import ImmutableRunStore, RunBudgets, RunStatus
 
     snapshot_document = json.loads(Path(args.snapshot).read_text(encoding="utf-8"))
     snapshots = snapshot_document if isinstance(snapshot_document, list) else [snapshot_document]
@@ -285,6 +285,16 @@ def _campaign_operator(args) -> int:
     prepared = prepare_campaign(
         snapshot, request, permissions=permissions, approvals=approvals,
         backends=backends, signer=signer, store=store,
+    )
+    store.append_event(
+        prepared.operator_run.manifest.run_id,
+        "operator_signing_key_referenced",
+        RunStatus.AUTHORIZED,
+        {
+            "signing_key_id": key_id,
+            "signing_key_path_reference": key_file,
+            "private_key_persisted": False,
+        },
     )
     if not args.execute:
         print(json.dumps({
