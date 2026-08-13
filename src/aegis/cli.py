@@ -26,6 +26,13 @@ def main(argv: list[str] | None = None) -> int:
     arsenal_audit.add_argument(
         "--release-lock", default="secrets/scanner-releases.lock.json",
     )
+    arsenal_exercise = arsenal_commands.add_parser("exercise")
+    exercise_selection = arsenal_exercise.add_mutually_exclusive_group(required=True)
+    exercise_selection.add_argument("--capability")
+    exercise_selection.add_argument("--all-fixture-tools", action="store_true")
+    arsenal_exercise.add_argument("--runs-dir", default="reports/operator-runs")
+    arsenal_exercise.add_argument("--json", dest="json_path")
+    arsenal_exercise.add_argument("--coverage-sqlite", help=argparse.SUPPRESS)
     production = commands.add_parser("production")
     production_commands = production.add_subparsers(dest="production_command", required=True)
     health = production_commands.add_parser("health")
@@ -86,6 +93,48 @@ def main(argv: list[str] | None = None) -> int:
         if not args.json_path and not args.markdown_path:
             print(json.dumps(report.document(), indent=2, sort_keys=True))
         return 0
+    if args.command == "arsenal" and args.arsenal_command == "exercise":
+        from aegis.arsenal.exercise import execute_llm_fixture, write_result
+        from aegis.arsenal.inventory import ArsenalInventoryBuilder
+        from aegis.arsenal.ledger import SqliteCoverageRepository, repository_from_env
+        from aegis.arsenal.tool_exercise import execute_tool_fixture
+
+        repository = None
+        try:
+            repository = (
+                SqliteCoverageRepository(args.coverage_sqlite)
+                if args.coverage_sqlite else repository_from_env()
+            )
+        except Exception:
+            # Runtime evidence remains canonical; the exercise records the coverage projection
+            # outage explicitly instead of fabricating a successful ledger write.
+            repository = None
+        try:
+            capabilities = (
+                [item.capability_id for item in ArsenalInventoryBuilder().build()
+                 if item.capability_id.startswith("tool:") and item.fixture_executable]
+                if args.all_fixture_tools else [args.capability]
+            )
+            results = [
+                execute_llm_fixture(runs_dir=args.runs_dir, coverage_repository=repository)
+                if capability == "fixture:ai/llm-security-boundary"
+                else execute_tool_fixture(
+                    capability, runs_dir=args.runs_dir, coverage_repository=repository,
+                )
+                for capability in capabilities
+            ]
+        finally:
+            if repository is not None:
+                repository.close()
+        if args.json_path and len(results) == 1:
+            write_result(results[0], args.json_path)
+        elif args.json_path:
+            Path(args.json_path).write_text(json.dumps(
+                [item.document() for item in results], indent=2, sort_keys=True,
+            ) + "\n", encoding="utf-8")
+        else:
+            print(json.dumps([item.document() for item in results], indent=2, sort_keys=True))
+        return 0 if all(item.result.value == "EXECUTED_PASS" for item in results) else 1
     parser.error("unsupported command")
     return 2
 

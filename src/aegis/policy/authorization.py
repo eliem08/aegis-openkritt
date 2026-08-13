@@ -26,6 +26,7 @@ from .signing import SignatureVerifier
 class Environment(str, Enum):
     STAGING = "staging"
     APPROVED_PRODUCTION = "approved-production"
+    LOCAL_FIXTURE_ONLY = "local-fixture-only"
 
 
 class RateLimits(BaseModel):

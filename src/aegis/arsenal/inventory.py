@@ -134,8 +134,22 @@ class ArsenalInventoryBuilder:
                                 technique.value),
                     _provenance("executor_provider", "TECHNIQUES", technique.value,
                                 definition.worker_capability),
-                ), fixture_executable=True,
+                ), fixture_executable=False,
             )
+
+        capability_id = "fixture:ai/llm-security-boundary"
+        definitions[capability_id] = CapabilityDefinition(
+            capability_id, 1, ("ai-llm-boundary",), (), ("ai_model",),
+            "jarvis:arsenal:llm-security-fixture", "aegis.arsenal.llm_lab",
+            ("arsenal_builtin_fixtures",),
+            ("src/aegis/arsenal/llm_lab.py", "src/aegis/arsenal/exercise.py"),
+            (
+                _provenance("executor_provider", "arsenal_builtin_fixtures", capability_id,
+                            "jarvis:arsenal:llm-security-fixture"),
+                _provenance("fixture_provider", "arsenal_builtin_fixtures", capability_id,
+                            "aegis.arsenal.llm_lab"),
+            ), fixture_executable=True,
+        )
 
         manifests = tuple(DISCOVERY_MANIFESTS) + tuple(SOURCE_SCANNER_MANIFESTS)
         for manifest in manifests:

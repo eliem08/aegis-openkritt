@@ -21,6 +21,7 @@ class RunMode(str, Enum):
     DRY_RUN = "dry_run"
     LIVE_CANARY = "live_canary"
     CAMPAIGN = "campaign"
+    ARSENAL_FIXTURE = "arsenal_fixture"
 
 
 class RunStatus(str, Enum):
