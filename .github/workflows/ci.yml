@@ -60,7 +60,7 @@ jobs:
       - name: Install PostgreSQL test dependencies
         run: pip install -e ".[dev,postgres]"
       - name: Validate authoritative effectiveness ledger
-        run: pytest -q tests/effectiveness/test_postgres.py
+        run: pytest -q tests/effectiveness/test_postgres.py tests/arsenal/test_postgres.py
 
   bench:
     # Aegis-Bench is a canonical detector regression/sanity gate, not evidence of

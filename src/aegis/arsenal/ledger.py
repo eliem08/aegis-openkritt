@@ -182,10 +182,17 @@ POSTGRES_SCHEMA = SQLITE_SCHEMA.replace(
 ) + """
 CREATE OR REPLACE FUNCTION arsenal_coverage_reject_mutation() RETURNS trigger AS $$
 BEGIN RAISE EXCEPTION 'immutable coverage'; END; $$ LANGUAGE plpgsql;
-DROP TRIGGER IF EXISTS arsenal_coverage_immutable ON arsenal_coverage_records;
-CREATE TRIGGER arsenal_coverage_immutable
-BEFORE UPDATE OR DELETE ON arsenal_coverage_records
-FOR EACH ROW EXECUTE FUNCTION arsenal_coverage_reject_mutation();
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_trigger
+    WHERE tgname = 'arsenal_coverage_immutable'
+      AND tgrelid = 'arsenal_coverage_records'::regclass
+  ) THEN
+    CREATE TRIGGER arsenal_coverage_immutable
+    BEFORE UPDATE OR DELETE ON arsenal_coverage_records
+    FOR EACH ROW EXECUTE FUNCTION arsenal_coverage_reject_mutation();
+  END IF;
+END $$;
 """
 
 
@@ -201,6 +208,9 @@ class PostgresCoverageRepository:
         self._psycopg = psycopg
         self._connection = psycopg.connect(dsn, row_factory=tuple_row)
         with self._connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT pg_advisory_xact_lock(hashtext('aegis_arsenal_coverage_schema'))"
+            )
             cursor.execute(POSTGRES_SCHEMA)
         self._connection.commit()
 
