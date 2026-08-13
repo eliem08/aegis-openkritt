@@ -17,6 +17,15 @@ def main(argv: list[str] | None = None) -> int:
     from aegis.products.cli import add_products_parser
 
     add_products_parser(commands)
+    arsenal = commands.add_parser("arsenal")
+    arsenal_commands = arsenal.add_subparsers(dest="arsenal_command", required=True)
+    arsenal_audit = arsenal_commands.add_parser("audit")
+    arsenal_audit.add_argument("--json", dest="json_path")
+    arsenal_audit.add_argument("--markdown", dest="markdown_path")
+    arsenal_audit.add_argument("--runs-dir", default="reports/operator-runs")
+    arsenal_audit.add_argument(
+        "--release-lock", default="secrets/scanner-releases.lock.json",
+    )
     production = commands.add_parser("production")
     production_commands = production.add_subparsers(dest="production_command", required=True)
     health = production_commands.add_parser("health")
@@ -67,6 +76,16 @@ def main(argv: list[str] | None = None) -> int:
         from aegis.products.cli import run_products
 
         return run_products(args)
+    if args.command == "arsenal" and args.arsenal_command == "audit":
+        from aegis.arsenal.audit import build_audit, write_audit
+
+        report = build_audit(
+            runs_dir=args.runs_dir, release_lock_path=args.release_lock,
+        )
+        write_audit(report, json_path=args.json_path, markdown_path=args.markdown_path)
+        if not args.json_path and not args.markdown_path:
+            print(json.dumps(report.document(), indent=2, sort_keys=True))
+        return 0
     parser.error("unsupported command")
     return 2
 
