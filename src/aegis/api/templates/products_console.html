@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aegis Products</title>
+<style>
+  :root{
+    --ground:#EEF2F1; --surface:#FFFFFF; --surface-2:#F6FAF9; --raise:#FFFFFF;
+    --ink:#14201E; --muted:#54635E; --faint:#7C8B85; --hairline:#DAE2E0;
+    --accent:#0E6E68; --accent-2:#0A524D; --accent-ink:#FFFFFF; --accent-soft:#E2F0EE;
+    --good:#2E7D55; --good-bg:#E6F1EB; --warn:#A9751F; --warn-bg:#F7EEDB;
+    --crit:#AF412A; --crit-bg:#F8E7E2; --neutral-bg:#EAEFED;
+    --shadow:0 1px 2px rgba(20,32,30,.05),0 10px 30px rgba(20,32,30,.07);
+    --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,Consolas,monospace;
+    --r:12px;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --ground:#0C1312; --surface:#111B19; --surface-2:#15201E; --raise:#182422;
+    --ink:#E9EEEC; --muted:#9CABA6; --faint:#6F807A; --hairline:#25322F;
+    --accent:#3FB3AA; --accent-2:#5FC7BE; --accent-ink:#06201E; --accent-soft:#13302C;
+    --good:#4FA877; --good-bg:#123023; --warn:#CDA24E; --warn-bg:#2C2413;
+    --crit:#DB6B50; --crit-bg:#331C16; --neutral-bg:#1A2523;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 34px rgba(0,0,0,.36);
+  }}
+  :root[data-theme="dark"]{
+    --ground:#0C1312; --surface:#111B19; --surface-2:#15201E; --raise:#182422;
+    --ink:#E9EEEC; --muted:#9CABA6; --faint:#6F807A; --hairline:#25322F;
+    --accent:#3FB3AA; --accent-2:#5FC7BE; --accent-ink:#06201E; --accent-soft:#13302C;
+    --good:#4FA877; --good-bg:#123023; --warn:#CDA24E; --warn-bg:#2C2413;
+    --crit:#DB6B50; --crit-bg:#331C16; --neutral-bg:#1A2523;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 34px rgba(0,0,0,.36);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);
+    font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  a{color:var(--accent)}
+  .app{display:grid;grid-template-columns:288px 1fr;min-height:100vh}
+  @media(max-width:900px){.app{grid-template-columns:1fr}}
+
+  /* ---------- sidebar ---------- */
+  .side{background:var(--surface);border-right:1px solid var(--hairline);display:flex;
+    flex-direction:column;gap:6px;padding:20px 16px;position:sticky;top:0;height:100vh;overflow:auto}
+  @media(max-width:900px){.side{position:static;height:auto;border-right:none;
+    border-bottom:1px solid var(--hairline)}}
+  .brand{display:flex;align-items:center;gap:10px;padding:2px 6px 14px;font-weight:700;
+    letter-spacing:-.01em;font-size:1.05rem}
+  .brand svg{width:22px;height:22px;color:var(--accent);flex:none}
+  .brand small{font-family:var(--mono);font-size:.6rem;letter-spacing:.14em;color:var(--faint);
+    text-transform:uppercase;font-weight:500}
+  .navgroup{font-family:var(--mono);font-size:.62rem;letter-spacing:.15em;text-transform:uppercase;
+    color:var(--faint);padding:14px 8px 6px}
+  .navitem{display:block;width:100%;text-align:left;background:transparent;border:1px solid transparent;
+    color:var(--muted);padding:9px 10px;border-radius:9px;cursor:pointer;font-size:.9rem;
+    font-family:inherit;transition:background .15s,color .15s,border-color .15s}
+  .navitem:hover{background:var(--surface-2);color:var(--ink)}
+  .navitem.active{background:var(--accent-soft);color:var(--accent-2);border-color:transparent;font-weight:600}
+  .navitem .n-sub{display:block;font-size:.72rem;color:var(--faint);font-weight:400;margin-top:1px}
+  .navitem.active .n-sub{color:var(--accent-2);opacity:.8}
+  .side .spacer{flex:1}
+  .tokbox{border-top:1px solid var(--hairline);padding-top:14px;margin-top:8px}
+  .tokbox label{font-family:var(--mono);font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--faint);display:block;margin-bottom:6px}
+  .row{display:flex;gap:8px;align-items:center}
+  .themebtn{background:transparent;border:1px solid var(--hairline);color:var(--muted);border-radius:8px;
+    padding:8px 10px;cursor:pointer;font-family:var(--mono);font-size:.66rem;letter-spacing:.06em;
+    text-transform:uppercase}
+  .themebtn:hover{color:var(--ink);border-color:var(--muted)}
+
+  /* ---------- inputs ---------- */
+  input[type=text],input[type=number],textarea,select{width:100%;background:var(--surface-2);
+    border:1px solid var(--hairline);border-radius:9px;color:var(--ink);padding:9px 11px;
+    font-family:var(--sans);font-size:.9rem}
+  textarea{font-family:var(--mono);font-size:.82rem;min-height:120px;resize:vertical;line-height:1.5}
+  input:focus,textarea:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:transparent}
+  input::placeholder,textarea::placeholder{color:var(--faint)}
+
+  /* ---------- main ---------- */
+  .main{padding:clamp(20px,3.5vw,40px);max-width:1080px;width:100%}
+  .head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:6px}
+  .eyebrow{font-family:var(--mono);font-size:.64rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+  h1{font-size:clamp(1.5rem,3vw,2rem);margin:.25em 0 .1em;letter-spacing:-.02em;font-weight:750}
+  .desc{color:var(--muted);max-width:64ch;margin:0}
+  .card{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r);
+    box-shadow:var(--shadow);padding:22px;margin-top:22px}
+  .card h2{font-size:.95rem;margin:0 0 16px;font-weight:680;letter-spacing:-.01em}
+  .field{margin-bottom:16px}
+  .field > label{display:block;font-weight:600;font-size:.85rem;margin-bottom:5px}
+  .field .hint{color:var(--faint);font-size:.76rem;margin-top:5px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:620px){.grid2{grid-template-columns:1fr}}
+  .check{display:flex;align-items:center;gap:9px;font-size:.88rem;color:var(--ink)}
+  .check input{width:auto}
+  .actions{display:flex;align-items:center;gap:14px;margin-top:6px}
+  .run{background:var(--accent);color:var(--accent-ink);border:none;border-radius:10px;
+    padding:11px 20px;font-weight:650;font-size:.92rem;cursor:pointer;font-family:inherit;
+    transition:filter .15s}
+  .run:hover{filter:brightness(1.06)}
+  .run:disabled{opacity:.55;cursor:not-allowed}
+  .runhint{color:var(--faint);font-size:.8rem}
+
+  /* ---------- results ---------- */
+  .status{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:.8rem;color:var(--muted)}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--faint);flex:none}
+  .dot.run{background:var(--warn);animation:pulse 1.1s ease-in-out infinite}
+  .dot.ok{background:var(--good)} .dot.err{background:var(--crit)}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  @media (prefers-reduced-motion:reduce){.dot.run{animation:none}}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:1px;
+    background:var(--hairline);border:1px solid var(--hairline);border-radius:var(--r);overflow:hidden;margin:4px 0 18px}
+  .tile{background:var(--surface);padding:14px 16px}
+  .tile .k{font-family:var(--mono);font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+  .tile .v{font-size:1.5rem;font-weight:750;letter-spacing:-.02em;margin-top:4px;font-variant-numeric:tabular-nums}
+  .tile.good .v{color:var(--good)} .tile.acc .v{color:var(--accent)} .tile.crit .v{color:var(--crit)}
+  .tbl{width:100%;border-collapse:collapse;font-size:.85rem}
+  .tblwrap{overflow-x:auto;border:1px solid var(--hairline);border-radius:var(--r)}
+  .tbl th{font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--faint);text-align:left;padding:11px 14px;background:var(--surface-2);font-weight:600}
+  .tbl td{padding:11px 14px;border-top:1px solid var(--hairline);vertical-align:top}
+  .tbl tr:hover td{background:var(--surface-2)}
+  .loc{font-family:var(--mono);font-size:.8rem;color:var(--muted)}
+  .badge{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:.68rem;
+    padding:3px 9px;border-radius:999px;border:1px solid var(--hairline);white-space:nowrap}
+  .badge::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--faint)}
+  .b-reproduced{color:var(--good);background:var(--good-bg);border-color:transparent}.b-reproduced::before{background:var(--good)}
+  .b-confirmed{color:var(--accent-2);background:var(--accent-soft);border-color:transparent}.b-confirmed::before{background:var(--accent)}
+  .b-refuted{color:var(--crit);background:var(--crit-bg);border-color:transparent}.b-refuted::before{background:var(--crit)}
+  .b-unresolved,.b-detected{color:var(--warn);background:var(--warn-bg);border-color:transparent}.b-unresolved::before,.b-detected::before{background:var(--warn)}
+  .b-fix_confirmed{color:var(--good);background:var(--good-bg);border-color:transparent}.b-fix_confirmed::before{background:var(--good)}
+  .b-still_vulnerable{color:var(--crit);background:var(--crit-bg);border-color:transparent}.b-still_vulnerable::before{background:var(--crit)}
+  .b-fix_unproven{color:var(--warn);background:var(--warn-bg);border-color:transparent}.b-fix_unproven::before{background:var(--warn)}
+  .gate{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:.8rem;font-weight:600;
+    padding:8px 14px;border-radius:10px;margin-bottom:16px}
+  .gate.pass{color:var(--good);background:var(--good-bg)} .gate.block{color:var(--crit);background:var(--crit-bg)}
+  .sev{font-weight:600;text-transform:capitalize}
+  .honesty{margin-top:18px;border-left:3px solid var(--accent);background:var(--surface-2);
+    padding:12px 16px;border-radius:0 10px 10px 0;color:var(--muted);font-size:.82rem}
+  .empty{color:var(--faint);text-align:center;padding:40px 0;font-size:.9rem}
+  .err{color:var(--crit);background:var(--crit-bg);border-radius:10px;padding:12px 16px;font-size:.85rem;
+    font-family:var(--mono);white-space:pre-wrap;word-break:break-word}
+  code{font-family:var(--mono);background:var(--neutral-bg);padding:1px 5px;border-radius:5px;font-size:.85em}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2l8 3v6c0 5-3.4 8.5-8 11-4.6-2.5-8-6-8-11V5l8-3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8.5 12l2.4 2.4L16 9.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Aegis <small>products</small>
+    </div>
+    <nav id="nav"></nav>
+    <div class="spacer"></div>
+    <div class="tokbox">
+      <label for="token">API token (Bearer)</label>
+      <input type="text" id="token" placeholder="agent token" autocomplete="off" spellcheck="false">
+      <div class="row" style="margin-top:10px;justify-content:space-between">
+        <span style="font-family:var(--mono);font-size:.6rem;letter-spacing:.1em;color:var(--faint)">CONTROL PLANE</span>
+        <button class="themebtn" id="theme" aria-label="Toggle theme">Theme</button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="head">
+      <div>
+        <span class="eyebrow" id="p-group">—</span>
+        <h1 id="p-name">Select a product</h1>
+        <p class="desc" id="p-desc">Choose a product on the left. Group A finds vulnerabilities in your own code; Group B proves or refutes findings. Every run is a job you can watch here.</p>
+      </div>
+    </div>
+
+    <div class="card" id="formcard" hidden>
+      <h2>Run</h2>
+      <div id="form"></div>
+      <div class="actions">
+        <button class="run" id="run">Run product</button>
+        <span class="runhint" id="runhint"></span>
+      </div>
+    </div>
+
+    <div class="card" id="resultcard" hidden>
+      <div class="status" id="status"><span class="dot"></span><span id="statustext">idle</span></div>
+      <div id="result"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+
+const PRODUCTS = [
+  {key:"autopilot", name:"Repo Autopilot", group:"A · Find", endpoint:"/products/autopilot",
+   sub:"Continuous review of your own repo",
+   desc:"Runs the full engine over a repository you own and ships only confirmed/reproduced findings — no scanner noise.",
+   fields:[
+     {name:"repo", label:"Repository", type:"text", placeholder:"owner/repo", required:true},
+     {name:"repo_dir", label:"Local checkout path", type:"text", placeholder:"/path/to/checkout (own-code)"},
+     {name:"files", label:"Files to analyze", type:"number", def:12},
+     {name:"samples", label:"Ensemble samples", type:"number", def:2},
+     {name:"reproduce", label:"Reproduce confirmed findings", type:"checkbox", def:true},
+     {name:"reproduced_only", label:"Reproduced only (auto-ticket mode)", type:"checkbox", def:false},
+   ]},
+  {key:"pr-gate", name:"PR Gatekeeper", group:"A · Find", endpoint:"/products/pr-gate",
+   sub:"Diff-scoped CI gate",
+   desc:"Reviews only the files a pull request changed and returns a pass/fail gate. Blocks when a finding lands in the diff.",
+   fields:[
+     {name:"repo", label:"Repository", type:"text", placeholder:"owner/repo", required:true},
+     {name:"changed", label:"Changed files", type:"lines", placeholder:"one path per line\napp/x.py"},
+     {name:"repo_dir", label:"Local checkout path", type:"text", placeholder:"/path/to/checkout"},
+     {name:"files", label:"Max files", type:"number", def:40},
+     {name:"samples", label:"Ensemble samples", type:"number", def:2},
+   ]},
+  {key:"redteam", name:"Standing Red Team", group:"A · Find", endpoint:"/products/redteam",
+   sub:"Scheduled autopilot + what's-new",
+   desc:"Runs the autopilot and flags only what is newly exploitable versus the previous run.",
+   fields:[
+     {name:"repo", label:"Repository", type:"text", placeholder:"owner/repo", required:true},
+     {name:"repo_dir", label:"Local checkout path", type:"text", placeholder:"/path/to/checkout"},
+     {name:"files", label:"Files to analyze", type:"number", def:12},
+     {name:"samples", label:"Ensemble samples", type:"number", def:2},
+     {name:"reproduce", label:"Reproduce confirmed findings", type:"checkbox", def:true},
+   ]},
+  {key:"proof-vuln", name:"Proof of Vuln", group:"B · Prove", endpoint:"/products/proof-vuln",
+   sub:"Reproduce or refute a finding",
+   desc:"Validates a finding against source and, when the checkout can run locally, reproduces it against a deterministic oracle.",
+   fields:[
+     {name:"finding", label:"Finding (JSON)", type:"json",
+      def:{json_answer:{vulnerability_type:"CWE-89",file_path:"app/models.py",line:42,summary:"SQL injection"},severity:"high"}},
+     {name:"repo_dir", label:"Checkout path", type:"text", placeholder:"/path/to/checkout", required:true},
+     {name:"reproduce", label:"Attempt local reproduction", type:"checkbox", def:true},
+   ]},
+  {key:"proof-fix", name:"Proof of Fix", group:"B · Prove", endpoint:"/products/proof-fix",
+   sub:"Prove a patch closes the bug",
+   desc:"Reproduces the finding on the vulnerable checkout (must trigger) and the fixed checkout (must not).",
+   fields:[
+     {name:"finding", label:"Finding (JSON)", type:"json",
+      def:{json_answer:{vulnerability_type:"CWE-89",file_path:"app/models.py",line:42,summary:"SQL injection"},severity:"high"}},
+     {name:"vuln_dir", label:"Vulnerable checkout path", type:"text", required:true},
+     {name:"fixed_dir", label:"Fixed checkout path", type:"text", required:true},
+   ]},
+  {key:"slop-filter", name:"Slop Filter", group:"B · Prove", endpoint:"/products/slop-filter",
+   sub:"Validate/kill another tool's findings",
+   desc:"Runs another scanner's findings through the citation validator and splits them into kept vs killed.",
+   fields:[
+     {name:"findings", label:"Findings (JSON array)", type:"json",
+      def:[{json_answer:{vulnerability_type:"CWE-79",file_path:"app/views.py",line:10,summary:"reflected XSS"},severity:"medium"}]},
+     {name:"repo_dir", label:"Checkout path", type:"text", required:true},
+     {name:"reproduce", label:"Also reproduce survivors", type:"checkbox", def:false},
+   ]},
+  {key:"triage", name:"Bounty Triage", group:"B · Prove", endpoint:"/products/triage",
+   sub:"Dedupe + validate incoming reports",
+   desc:"For the receiving side of a bounty program: clusters duplicates, validates each unique report, and ranks the queue.",
+   fields:[
+     {name:"reports", label:"Incoming reports (JSON array)", type:"json",
+      def:[{json_answer:{vulnerability_type:"CWE-89",file_path:"app/models.py",line:42,summary:"SQLi"},severity:"high"},
+           {json_answer:{vulnerability_type:"CWE-89",file_path:"app/models.py",line:43,summary:"SQLi dup"},severity:"high"}]},
+     {name:"repo_dir", label:"Checkout path (optional, enables validation)", type:"text"},
+     {name:"validate_reports", label:"Validate against source", type:"checkbox", def:true},
+   ]},
+];
+
+let current = null;
+let poll = null;
+
+/* ---- theme ---- */
+(function(){
+  const root=document.documentElement;
+  try{const s=localStorage.getItem("aegis-theme"); if(s) root.setAttribute("data-theme",s);}catch(e){}
+  $("theme").addEventListener("click",()=>{
+    const cur=root.getAttribute("data-theme") ||
+      (matchMedia("(prefers-color-scheme:dark)").matches?"dark":"light");
+    const next=cur==="dark"?"light":"dark";
+    root.setAttribute("data-theme",next);
+    try{localStorage.setItem("aegis-theme",next);}catch(e){}
+  });
+})();
+
+/* ---- token persistence ---- */
+try{ $("token").value = localStorage.getItem("aegis-token") || ""; }catch(e){}
+$("token").addEventListener("input", e=>{ try{localStorage.setItem("aegis-token", e.target.value);}catch(_){}});
+
+/* ---- sidebar nav ---- */
+function buildNav(){
+  const nav=$("nav"); let lastGroup=null;
+  PRODUCTS.forEach(p=>{
+    if(p.group!==lastGroup){
+      const g=document.createElement("div"); g.className="navgroup"; g.textContent=p.group; nav.appendChild(g);
+      lastGroup=p.group;
+    }
+    const b=document.createElement("button"); b.className="navitem"; b.dataset.key=p.key;
+    b.innerHTML=`${p.name}<span class="n-sub">${p.sub}</span>`;
+    b.addEventListener("click",()=>select(p.key));
+    nav.appendChild(b);
+  });
+}
+
+function select(key){
+  current=PRODUCTS.find(p=>p.key===key);
+  document.querySelectorAll(".navitem").forEach(n=>n.classList.toggle("active",n.dataset.key===key));
+  $("p-group").textContent=current.group;
+  $("p-name").textContent=current.name;
+  $("p-desc").textContent=current.desc;
+  $("formcard").hidden=false; $("resultcard").hidden=true;
+  renderForm();
+}
+
+function renderForm(){
+  const f=$("form"); f.innerHTML="";
+  let numBuffer=[];
+  const flushNums=()=>{
+    if(!numBuffer.length) return;
+    const g=document.createElement("div"); g.className="grid2";
+    numBuffer.forEach(n=>g.appendChild(n)); f.appendChild(g); numBuffer=[];
+  };
+  current.fields.forEach(fd=>{
+    const wrap=document.createElement("div"); wrap.className="field"; wrap.dataset.name=fd.name;
+    if(fd.type==="checkbox"){
+      flushNums();
+      wrap.innerHTML=`<label class="check"><input type="checkbox" ${fd.def?"checked":""}> ${esc(fd.label)}</label>`;
+      f.appendChild(wrap);
+    } else if(fd.type==="json"){
+      flushNums();
+      wrap.innerHTML=`<label>${esc(fd.label)}${fd.required?' *':''}</label>`+
+        `<textarea spellcheck="false">${esc(JSON.stringify(fd.def,null,2))}</textarea>`;
+      f.appendChild(wrap);
+    } else if(fd.type==="lines"){
+      flushNums();
+      wrap.innerHTML=`<label>${esc(fd.label)}</label>`+
+        `<textarea spellcheck="false" placeholder="${esc(fd.placeholder||"")}"></textarea>`;
+      f.appendChild(wrap);
+    } else if(fd.type==="number"){
+      wrap.innerHTML=`<label>${esc(fd.label)}</label><input type="number" value="${fd.def}">`;
+      numBuffer.push(wrap);
+    } else {
+      flushNums();
+      const val=fd.def!==undefined?`value="${esc(fd.def)}"`:"";
+      wrap.innerHTML=`<label>${esc(fd.label)}${fd.required?' *':''}</label>`+
+        `<input type="text" ${val} placeholder="${esc(fd.placeholder||"")}">`+
+        (fd.hint?`<div class="hint">${esc(fd.hint)}</div>`:"");
+      f.appendChild(wrap);
+    }
+  });
+  flushNums();
+}
+
+function collect(){
+  const body={};
+  for(const fd of current.fields){
+    const wrap=$("form").querySelector(`.field[data-name="${fd.name}"]`);
+    const el=wrap?wrap.querySelector("input,textarea,select"):null;
+    if(!el) continue;
+    if(fd.type==="checkbox") body[fd.name]=el.checked;
+    else if(fd.type==="number") body[fd.name]=Number(el.value);
+    else if(fd.type==="json"){
+      const t=el.value.trim(); if(!t){ if(fd.required) throw new Error(`${fd.label} is required`); continue; }
+      try{ body[fd.name]=JSON.parse(t); }catch(e){ throw new Error(`${fd.label}: invalid JSON — ${e.message}`); }
+    }
+    else if(fd.type==="lines") body[fd.name]=el.value.split("\n").map(s=>s.trim()).filter(Boolean);
+    else { const v=el.value.trim(); if(v) body[fd.name]=v; else if(fd.required) throw new Error(`${fd.label} is required`); }
+  }
+  return body;
+}
+
+function setStatus(kind,text){
+  const dot=$("status").querySelector(".dot");
+  dot.className="dot"+(kind?" "+kind:"");
+  $("statustext").textContent=text;
+}
+
+async function jfetch(url,opts){
+  const headers=Object.assign({accept:"application/json"},opts.headers||{});
+  const tok=$("token").value.trim();
+  if(tok) headers.authorization="Bearer "+tok;
+  const r=await fetch(url,Object.assign({},opts,{headers}));
+  const txt=await r.text();
+  let data; try{ data=txt?JSON.parse(txt):{}; }catch(_){ data={detail:txt}; }
+  if(!r.ok) throw new Error((data && (data.detail||data.error))||`${r.status} ${r.statusText}`);
+  return data;
+}
+
+async function run(){
+  if(!current) return;
+  let body;
+  try{ body=collect(); }catch(e){ showError(e.message); return; }
+  $("run").disabled=true; $("resultcard").hidden=false; $("result").innerHTML="";
+  setStatus("run","submitting…");
+  if(poll){ clearInterval(poll); poll=null; }
+  try{
+    const job=await jfetch(current.endpoint,{method:"POST",
+      headers:{"content-type":"application/json"},body:JSON.stringify(body)});
+    setStatus("run",`job ${job.job_id} · queued`);
+    const started=Date.now();
+    poll=setInterval(async()=>{
+      try{
+        const s=await jfetch(`/products/jobs/${job.job_id}`,{});
+        const secs=Math.round((Date.now()-started)/1000);
+        if(s.status==="completed"){ clearInterval(poll); poll=null; $("run").disabled=false;
+          setStatus("ok",`completed in ${secs}s · job ${job.job_id}`); renderResult(s.result); }
+        else if(s.status==="failed"){ clearInterval(poll); poll=null; $("run").disabled=false;
+          setStatus("err",`failed · job ${job.job_id}`); showError(s.error||"job failed"); }
+        else setStatus("run",`${s.status}… ${secs}s · job ${job.job_id}`);
+      }catch(e){ clearInterval(poll); poll=null; $("run").disabled=false; setStatus("err","poll error"); showError(e.message); }
+    },1200);
+  }catch(e){ $("run").disabled=false; setStatus("err","error"); showError(e.message); }
+}
+
+function showError(msg){ $("result").innerHTML=`<div class="err">${esc(msg)}</div>`; }
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+function renderResult(res){
+  if(!res){ showError("empty result"); return; }
+  const st=res.stats||{}; let html="";
+
+  if(st.gate){ const blocked=st.gate.failed;
+    html+=`<div class="gate ${blocked?"block":"pass"}">${blocked?"■ GATE: BLOCK":"● GATE: PASS"} — ${(st.gate.blocking||[]).length} blocking</div>`; }
+  if(st.fix_verdict){ const fv=st.fix_verdict;
+    html+=`<div class="tiles">`+
+      tile("fix confirmed",fv.fix_confirmed||0,"good")+
+      tile("still vulnerable",fv.still_vulnerable||0,"crit")+
+      tile("unproven",fv.fix_unproven||0,"")+`</div>`;
+  }
+
+  const tiles=[["total",st.total,""],["reproduced",st.reproduced,"good"],["confirmed",st.confirmed,"acc"],
+    ["refuted",st.refuted,"crit"]];
+  if(st.kept!==undefined){ tiles.push(["kept",st.kept,"good"],["killed",st.killed,"crit"]); }
+  if(st.received!==undefined){ tiles.length=0; tiles.push(["received",st.received,""],["unique",st.unique,"acc"],
+    ["duplicates",st.duplicates,""],["confirmed",st.confirmed,"good"]); }
+  html+=`<div class="tiles">`+tiles.filter(t=>t[1]!==undefined).map(t=>tile(t[0],t[1],t[2])).join("")+`</div>`;
+
+  const fs=res.findings||[];
+  if(fs.length){
+    html+=`<div class="tblwrap"><table class="tbl"><thead><tr>`+
+      `<th>Severity</th><th>Type</th><th>Location</th><th>Evidence</th><th>Conf.</th><th>Source</th>`+
+      `</tr></thead><tbody>`+
+      fs.map(f=>{
+        const v=(f.evidence&&f.evidence.verdict)||"detected";
+        const dup=f.meta&&f.meta.duplicate_reports?` <span class="loc">×${f.meta.duplicate_reports}</span>`:"";
+        const loc=f.file?`${esc(f.file)}${f.line?":"+f.line:""}`:"—";
+        return `<tr><td><span class="sev">${esc(f.severity||"")}</span></td>`+
+          `<td>${esc(f.cwe||f.title||"")}${dup}</td>`+
+          `<td class="loc">${loc}</td>`+
+          `<td><span class="badge b-${esc(v)}">${esc(v)}</span></td>`+
+          `<td class="loc">${(f.confidence!=null?f.confidence:"")}</td>`+
+          `<td class="loc">${esc(f.source||"")}</td></tr>`;
+      }).join("")+`</tbody></table></div>`;
+  } else {
+    html+=`<div class="empty">No findings returned for this run.</div>`;
+  }
+  if(res.honesty) html+=`<div class="honesty">${esc(res.honesty)}</div>`;
+  $("result").innerHTML=html;
+}
+function tile(k,v,cls){ return `<div class="tile ${cls||""}"><div class="k">${esc(k)}</div><div class="v">${v==null?"—":v}</div></div>`; }
+
+$("run").addEventListener("click",run);
+buildNav();
+select(PRODUCTS[0].key);
+</script>
+</body>
+</html>
