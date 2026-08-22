@@ -28,12 +28,25 @@ def _hunt_console_html() -> str:
     except OSError:
         return "<h1>hunt console template missing</h1>"
 
+
+def _products_console_html() -> str:
+    """The product-suite operator console (submits to the /products job API)."""
+    try:
+        return (_TEMPLATES / "products_console.html").read_text(encoding="utf-8")
+    except OSError:
+        return "<h1>products console template missing</h1>"
+
 router = APIRouter(tags=["ui"])
 
 
 @router.get("/ui", response_class=HTMLResponse, summary="Findings review console")
 def console_page() -> HTMLResponse:
     return HTMLResponse(CONSOLE_HTML)
+
+
+@router.get("/ui/products", response_class=HTMLResponse, summary="Products console")
+def products_console_page() -> HTMLResponse:
+    return HTMLResponse(_products_console_html())
 
 
 @router.get("/ui/review", summary="Merged review model (live from open·kritt if connected)")

@@ -89,3 +89,13 @@ def test_products_api_autopilot_ships_conclusions(client, agent_headers):
 def test_products_api_job_isolation_and_404(client, agent_headers):
     client.app.state.product_ports = _fake_ports()
     assert client.get("/products/jobs/does-not-exist", headers=agent_headers).status_code == 404
+
+
+def test_products_console_page_served(client):
+    r = client.get("/ui/products")
+    assert r.status_code == 200
+    assert "text/html" in r.headers["content-type"]
+    body = r.text
+    for marker in ("Aegis", "Repo Autopilot", "Proof of Vuln", "Bounty Triage",
+                   "/products/autopilot", "/products/jobs/"):
+        assert marker in body, f"console missing marker: {marker}"
