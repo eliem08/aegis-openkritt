@@ -14,6 +14,9 @@ def main(argv: list[str] | None = None) -> int:
     from aegis.effectiveness.cli import add_effectiveness_parser
 
     add_effectiveness_parser(commands)
+    from aegis.products.cli import add_products_parser
+
+    add_products_parser(commands)
     production = commands.add_parser("production")
     production_commands = production.add_subparsers(dest="production_command", required=True)
     health = production_commands.add_parser("health")
@@ -51,6 +54,10 @@ def main(argv: list[str] | None = None) -> int:
         from aegis.effectiveness.cli import run_effectiveness
 
         return run_effectiveness(args)
+    if args.command == "products":
+        from aegis.products.cli import run_products
+
+        return run_products(args)
     parser.error("unsupported command")
     return 2
 
