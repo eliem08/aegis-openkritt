@@ -75,6 +75,12 @@ class DeepSeekClient:
         }
         if self._config.provider == "deepseek":
             payload["thinking"] = {"type": self._config.thinking}
+        if self._config.provider == "openrouter" and self._config.thinking == "disabled":
+            # OpenRouter reasoning models (e.g. deepseek-v4-flash-0731) otherwise spend the
+            # ENTIRE completion-token budget on hidden reasoning and return empty content
+            # (finish_reason=length, 0 content tokens). Explicitly disable reasoning so the
+            # model emits the answer we parse. Verified against deepseek-v4-flash-0731.
+            payload["reasoning"] = {"enabled": False}
         if self._config.provider == "deepseek" and self._config.thinking == "enabled":
             payload["reasoning_effort"] = self._config.reasoning_effort
         else:

@@ -65,6 +65,33 @@ def test_sends_auth_model_and_json_mode():
     assert seen["body"]["response_format"] == {"type": "json_object"}
 
 
+def test_openrouter_disables_reasoning():
+    """Reasoning models on OpenRouter (e.g. deepseek-v4-flash-0731) burn the whole token
+    budget on hidden reasoning and return empty content unless reasoning is disabled."""
+    seen = {}
+
+    def handler(request):
+        seen["body"] = jsonlib.loads(request.content)
+        return httpx.Response(200, json=_resp("ok"))
+
+    _client(handler, provider="openrouter", thinking="disabled").complete(
+        [{"role": "user", "content": "x"}])
+    assert seen["body"]["reasoning"] == {"enabled": False}
+
+
+def test_deepseek_provider_has_no_reasoning_key():
+    seen = {}
+
+    def handler(request):
+        seen["body"] = jsonlib.loads(request.content)
+        return httpx.Response(200, json=_resp("ok"))
+
+    _client(handler, provider="deepseek", thinking="disabled").complete(
+        [{"role": "user", "content": "x"}])
+    assert "reasoning" not in seen["body"]
+    assert seen["body"]["thinking"] == {"type": "disabled"}
+
+
 def test_from_env_requires_key():
     with pytest.raises(DeepSeekAuthError):
         DeepSeekConfig.from_env(env={})
