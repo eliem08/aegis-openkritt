@@ -234,8 +234,9 @@ class Reduction:
 
     def funnel_lines(self) -> list[str]:
         f = self.funnel
-        order = ["raw", "deduped", "drop_non_product_path", "drop_low_value_rule",
-                 "drop_weak_single_engine", "drop_placeholder_secret", "survivors", "families"]
+        order = ["raw", "deduped", "drop_dependency_advisory", "drop_non_product_path",
+                 "drop_low_value_rule", "drop_weak_single_engine", "drop_placeholder_secret",
+                 "survivors", "families"]
         return [f"  {k:26} {f.get(k, 0)}" for k in order if k in f]
 
 
@@ -258,7 +259,30 @@ def _to_candidate(row: dict) -> Candidate:
         path_class="", raw=row)
 
 
+_ADVISORY_ID = re.compile(r"^(CVE-\d{4}-\d+|GHSA-\w{4}-\w{4}-\w{4})$", re.I)
+_DEP_TOOLS = {"trivy", "grype", "osv-scanner", "osv", "retire.js", "retire"}
+_DEP_MANIFEST = re.compile(
+    r"(requirements[^/]*\.txt|(^|/)(package-lock\.json|yarn\.lock|pnpm-lock\.yaml|"
+    r"Gemfile\.lock|go\.sum|poetry\.lock|Cargo\.lock|composer\.lock))$", re.I)
+
+
+def _is_dependency_advisory(c: Candidate) -> bool:
+    """A scanner reporting a known CVE/GHSA in a third-party dependency.
+
+    These are real but out of scope for SOURCE-CODE review: public, in code the target does not
+    own, and — corroborated by trivy+grype+osv — they otherwise top the survivor list and bury the
+    target's own bugs (observed: 17 aiohttp CVEs ranking above every contract finding). Suppressed
+    from survivors; retained in ``suppressed`` for audit.
+    """
+    if _ADVISORY_ID.match((c.rule or "").strip()):
+        return True
+    return c.tool in _DEP_TOOLS and bool(_DEP_MANIFEST.search(c.path or ""))
+
+
 def _suppression_reason(c: Candidate) -> str:
+    if _is_dependency_advisory(c):
+        return (f"dependency-advisory:{c.rule or c.tool} (known CVE in a third-party "
+                "dependency; out of scope for source-code review)")
     is_secret = c.cwe in _SECRET_RULES or c.tool in _SECRET_TOOLS
     if c.path_class in _NONPRODUCT:
         # deploy/build tooling is non-product for CODE findings (a subprocess/exec in a build
@@ -346,7 +370,9 @@ def reduce_candidates(rows: list[dict]) -> Reduction:
 
     cats: dict[str, int] = {}
     for c in suppressed:
-        if c.reason.startswith("non-product"):
+        if c.reason.startswith("dependency-advisory"):
+            cat = "drop_dependency_advisory"
+        elif c.reason.startswith("non-product"):
             cat = "drop_non_product_path"
         elif c.reason.startswith("low-value"):
             cat = "drop_low_value_rule"
