@@ -36,6 +36,33 @@ def test_hygiene_rules_are_suppressed_with_reasons():
     assert all(c.reason.startswith("low-value-rule") for c in red.suppressed)
 
 
+def test_dependency_advisories_are_suppressed_so_real_findings_surface():
+    """Known CVE/GHSA advisories in third-party deps otherwise top the survivor list (osv+trivy+
+    grype corroborate) and bury the target's own bugs. They must drop to `suppressed`."""
+    rows = [
+        row("osv-scanner", "GHSA-pjjw-qhg8-p2p9", "requirements.txt", cwe="GHSA-pjjw-qhg8-p2p9"),
+        row("grype", "CVE-2024-30251", "requirements.txt", cwe="CVE-2024-30251"),
+        row("trivy", "GHSA-2fqr-mr3j-6wp8", "yarn.lock", cwe="GHSA-2fqr-mr3j-6wp8"),
+        # the target's OWN code bug must still survive
+        row("semgrep", "aegis-ruby-unsafe-render-inline", "app/controllers/x.rb",
+            cwe="CWE-1336", conf=0.9),
+    ]
+    red = reduce_candidates(rows)
+    dep = [c for c in red.suppressed if c.reason.startswith("dependency-advisory")]
+    assert len(dep) == 3
+    assert red.funnel.get("drop_dependency_advisory") == 3
+    assert [c.cwe for c in red.survivors] == ["CWE-1336"]      # real finding surfaces alone
+
+
+def test_real_cwe_ids_are_not_mistaken_for_advisories():
+    """A CWE id (the target's own bug class) must never be filtered as a dependency advisory."""
+    red = reduce_candidates([
+        row("semgrep", "aegis-php-sqli", "src/app.php", cwe="CWE-89", conf=0.9),
+    ])
+    assert [c.cwe for c in red.survivors] == ["CWE-89"]
+    assert red.funnel.get("drop_dependency_advisory", 0) == 0
+
+
 def test_checkov_docker_prefix_family_collapses():
     # on a Dockerfile these are suppressed by the non-product (deploy) path; on a non-deploy
     # path the CKV_DOCKER_* rule prefix still suppresses them.
