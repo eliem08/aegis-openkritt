@@ -15,6 +15,11 @@ def test_skips_non_production_code():
         "pkg/auth/token_test.go", "test/auth/login.go", "examples/auth/demo.go",
         "vendor/x/auth.go", "third_party/auth/session.go", "pkg/auth/mocks/token.go",
         "pkg/api/types_generated.go", "docs/auth.md",
+        # regression (self-hunt 2026-08-24): i18n/translation files and dev tooling were
+        # sampled and crowded out real handlers (LibreNMS lang/de/commands.php picked over
+        # its PHP handlers; Dolibarr dev/tools/*.php produced only dev-script taint noise).
+        "lang/de/commands.php", "html/lang/en.php", "locale/fr/messages.php",
+        "i18n/es.php", "translations/token.php", "dev/tools/webhook_login.php",
     ]:
         assert score_path(path) is None, path
 

@@ -36,7 +36,11 @@ _EXCLUDED = re.compile(
     # (chia/_tests/...) were previously slipping through and crowding out real code.
     r"(^|/)_*(tests?|specs?)_*(/|$)|"
     r"(^|/)(example|examples|demo|demos|fixtures?|mocks?|benchmarks?|vendor|"
-    r"third_party|node_modules|docs?|\.github|anvil|scripts?|"
+    r"third_party|node_modules|docs?|\.github|anvil|scripts?|dev|"
+    # i18n/translation dirs hold only localized strings — never the attack surface, but
+    # they are real source files (e.g. LibreNMS lang/de/commands.php) so they slip past
+    # the extension filter and crowd out the handlers.
+    r"lang|langs|locale|locales|i18n|translations?|languages?|"
     # client-side/generated bundles: almost never the server-side attack surface, and
     # they crowd out the real handlers (e.g. a WordPress plugin's assets/js/* libraries).
     r"assets?|dist|build|static|public/js|bower_components|jquery|bootstrap)(/|$)|"

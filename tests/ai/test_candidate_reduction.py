@@ -26,6 +26,10 @@ def test_path_class():
     assert path_class("docs/guide.md") == "docs"
     assert path_class("deploy/docker-compose.yml") == "deploy"
     assert path_class("config/settings.yaml") == "config"
+    # regression (self-hunt 2026-08-24): Dolibarr dev/tools/*.php taint findings from
+    # whole-repo scanners must land in a non-product class so the funnel suppresses them.
+    assert path_class("dev/tools/github_pr_reviewers_webhook.php") == "build"
+    assert path_class("dev/setup_helper.php") == "build"
 
 
 def test_hygiene_rules_are_suppressed_with_reasons():
