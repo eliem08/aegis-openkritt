@@ -97,7 +97,7 @@ _PATH_CLASSES: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("docs", re.compile(r"(^|/)docs?(/|$)|\.(md|rst)$|(^|/)readme", re.I)),
     # CI/deploy/build tooling: not the audited app/contract surface for a code/contract bounty.
     ("build", re.compile(r"(^|/)(certora|foundry|hardhat|truffle|scripts?|tools?|tooling|"
-                         r"ci|deployments?)(/|$)|certora[_-]?build", re.I)),
+                         r"dev|ci|deployments?)(/|$)|certora[_-]?build", re.I)),
     ("deploy", re.compile(r"(^|/)(deploy|\.github|k8s|helm|charts?|terraform)(/|$)|"
                           r"(^|/)docker-compose[^/]*\.ya?ml$|(^|/)dockerfile[^/]*$|\.tf$", re.I)),
     ("config", re.compile(r"\.(ya?ml|toml|ini|cfg|conf|json|env)$|(^|/)\.env", re.I)),
