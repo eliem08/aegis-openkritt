@@ -7,6 +7,13 @@ prechecks; all real action authority is delegated to the canonical proposal poli
 
 from __future__ import annotations
 
+from aegis.policy.live_gate import (
+    CONSEQUENTIAL_ACTION_CLASSES,
+    PROHIBITED_ACTION_CLASSES,
+)
+from aegis.policy.program_eligibility import Eligibility, verify_target
+from aegis.policy.vrt_coverage import HuntLane, classify
+
 from ..agentic_os import (
     AgentProposal,
     AuthorizationEnvelope,
@@ -59,6 +66,31 @@ class PolicyGate:
             reasons.append("negative_request_count")
         if proposal.requires_human_approval and not human_approved:
             reasons.append("human_approval_required")
+
+        # --- policy-arsenal prechecks (optional, metadata-driven; fail-closed) ---
+        # These enforce the scope-eligibility gate, the VRT hunt-lane routing, and the
+        # live-action class rules. All are gated on the caller supplying the relevant
+        # metadata, so existing callers are unaffected.
+        md = proposal.metadata or {}
+
+        vrt_category = md.get("vrt_category")
+        if vrt_category:
+            cov = classify(str(vrt_category), md.get("vrt_specific"))
+            if cov.lane in (HuntLane.CATEGORICALLY_OFF, HuntLane.OUT_OF_BOUNDARY):
+                reasons.append(f"vrt_lane_blocked:{cov.lane.value}")
+
+        action_class = str(md.get("action_class") or "").strip().lower()
+        if action_class in PROHIBITED_ACTION_CLASSES:
+            reasons.append(f"prohibited_action_class:{action_class}")
+        if action_class in CONSEQUENTIAL_ACTION_CLASSES and not human_approved:
+            reasons.append("human_approval_required")
+
+        program = md.get("program")
+        if isinstance(program, dict):
+            elig = verify_target(program, objective.target)
+            if elig.verdict in (Eligibility.NOT_ELIGIBLE, Eligibility.UNKNOWN):
+                reasons.append(f"target_not_eligible:{elig.verdict.value}")
+
         if reasons:
             return GateDecision(allowed=False, reasons=tuple(dict.fromkeys(reasons)))
 
