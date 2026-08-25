@@ -55,3 +55,54 @@ def test_unknown_category_fails_to_governed_live_lane():
     c = classify("Some Brand New Category", "whatever")
     assert c.lane is HuntLane.LIVE_ONLY and c.pursuable
     assert "unknown" in c.reason
+
+
+# --- leaf-level routing: coarse source-web categories split correctly ---------
+
+def test_security_headers_leaf_is_live_not_source():
+    # Filed under Server Security Misconfiguration (source_web) but only confirmable live.
+    c = classify("Server Security Misconfiguration", "Lack of Security Headers")
+    assert c.lane is HuntLane.LIVE_ONLY and c.pursuable
+
+
+def test_ssl_and_dns_leaves_are_live():
+    assert classify("Server Security Misconfiguration", "Insecure SSL").lane is HuntLane.LIVE_ONLY
+    assert classify("Server Security Misconfiguration", "Misconfigured DNS").lane is HuntLane.LIVE_ONLY
+
+
+def test_mail_spoofing_leaf_is_live():
+    c = classify("Server Security Misconfiguration", "Mail Server Misconfiguration")
+    assert c.lane is HuntLane.LIVE_ONLY
+
+
+def test_ssrf_still_source_web_regression():
+    # SSRF sink is source-reviewable — the source-web override must still win.
+    c = classify("Server Security Misconfiguration", "Server-Side Request Forgery (SSRF)")
+    assert c.lane is HuntLane.SOURCE_WEB and c.pursuable
+
+
+def test_hardcoded_password_is_source_despite_firmware_category():
+    c = classify("Insecure OS/Firmware", "Hardcoded Password")
+    assert c.lane is HuntLane.SOURCE_WEB and c.pursuable
+
+
+def test_ai_model_extraction_is_live_not_source():
+    # AI Application Security is source_web by default, but model extraction needs a live model.
+    c = classify("AI Application Security", "Model Extraction")
+    assert c.lane is HuntLane.LIVE_ONLY and c.pursuable
+
+
+def test_side_channel_power_is_out_of_boundary():
+    # Cryptographic Weakness is source_web, but power analysis needs hardware.
+    c = classify("Cryptographic Weakness", "Side-Channel Attack Power Analysis Attack")
+    assert c.lane is HuntLane.OUT_OF_BOUNDARY and not c.pursuable
+
+
+def test_timing_side_channel_is_live():
+    c = classify("Cryptographic Weakness", "Side-Channel Attack Timing Attack")
+    assert c.lane is HuntLane.LIVE_ONLY and c.pursuable
+
+
+def test_binary_planting_is_out_of_boundary():
+    c = classify("Client-Side Injection", "Binary Planting Default Folder Privilege Escalation")
+    assert c.lane is HuntLane.OUT_OF_BOUNDARY and not c.pursuable

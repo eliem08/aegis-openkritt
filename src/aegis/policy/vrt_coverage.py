@@ -92,18 +92,70 @@ _CATEGORY_LANE: dict[str, HuntLane] = {
 # Specific-name overrides that cut across categories (checked before the category).
 # Keyed by a substring of the specific vulnerability name (lowercased).
 _SPECIFIC_OVERRIDES: tuple[tuple[str, HuntLane], ...] = (
+    # --- categorically off (safety) — win over everything ---
     ("denial-of-service", HuntLane.CATEGORICALLY_OFF),
     ("denial of service", HuntLane.CATEGORICALLY_OFF),
     ("resource consumption", HuntLane.CATEGORICALLY_OFF),
     ("captcha", HuntLane.CATEGORICALLY_OFF),
     ("phishing", HuntLane.CATEGORICALLY_OFF),
     ("social engineering", HuntLane.CATEGORICALLY_OFF),
-    # command injection appears under Insecure OS/Firmware but is source-reviewable
-    ("command injection", HuntLane.SOURCE_WEB),
+    # --- source-reviewable leaves filed under a non-source category ---
+    ("command injection", HuntLane.SOURCE_WEB),      # under Insecure OS/Firmware
+    ("hardcoded password", HuntLane.SOURCE_WEB),     # under Insecure OS/Firmware
     ("path traversal", HuntLane.SOURCE_WEB),
+    ("file inclusion", HuntLane.SOURCE_WEB),
+    ("sql injection", HuntLane.SOURCE_WEB),
+    ("xml external entity", HuntLane.SOURCE_WEB),
     ("server-side request forgery", HuntLane.SOURCE_WEB),
     ("server-side template injection", HuntLane.SOURCE_WEB),
     ("insufficient signature validation", HuntLane.SOURCE_CRYPTO),
+    # --- needs hardware / a local device — out of boundary despite a web category ---
+    ("power analysis", HuntLane.OUT_OF_BOUNDARY),         # under Cryptographic Weakness
+    ("emanations", HuntLane.OUT_OF_BOUNDARY),
+    ("differential fault", HuntLane.OUT_OF_BOUNDARY),
+    ("binary planting", HuntLane.OUT_OF_BOUNDARY),        # under Client-Side Injection
+    # --- only demonstrable against a running target — governed live lane ---
+    # (these leaves live under source-web categories but are runtime/network-observable
+    #  facts that source review cannot confirm; route them through the live_gate.)
+    ("lack of security headers", HuntLane.LIVE_ONLY),
+    ("insecure ssl", HuntLane.LIVE_ONLY),
+    ("insecure cipher", HuntLane.LIVE_ONLY),
+    ("forward secrecy", HuntLane.LIVE_ONLY),
+    ("misconfigured dns", HuntLane.LIVE_ONLY),
+    ("missing dnssec", HuntLane.LIVE_ONLY),
+    ("subdomain takeover", HuntLane.LIVE_ONLY),
+    ("mail server misconfiguration", HuntLane.LIVE_ONLY),
+    ("email spoofing", HuntLane.LIVE_ONLY),
+    ("dmarc", HuntLane.LIVE_ONLY),
+    ("dkim", HuntLane.LIVE_ONLY),
+    ("no spoofing protection", HuntLane.LIVE_ONLY),
+    ("rate limiting", HuntLane.LIVE_ONLY),
+    ("clickjacking", HuntLane.LIVE_ONLY),
+    ("cache poisoning", HuntLane.LIVE_ONLY),
+    ("cache deception", HuntLane.LIVE_ONLY),
+    ("web application firewall", HuntLane.LIVE_ONLY),
+    ("fingerprinting", HuntLane.LIVE_ONLY),
+    ("banner disclosure", HuntLane.LIVE_ONLY),
+    ("unsafe cross-origin resource sharing", HuntLane.LIVE_ONLY),
+    ("host header", HuntLane.LIVE_ONLY),
+    ("token leakage via referer", HuntLane.LIVE_ONLY),
+    ("mixed content", HuntLane.LIVE_ONLY),
+    ("graphql introspection", HuntLane.LIVE_ONLY),
+    ("internal ip disclosure", HuntLane.LIVE_ONLY),
+    ("directory listing enabled", HuntLane.LIVE_ONLY),
+    ("visible detailed error", HuntLane.LIVE_ONLY),
+    ("reflected file download", HuntLane.LIVE_ONLY),
+    ("same-site scripting", HuntLane.LIVE_ONLY),
+    ("email verification bypass", HuntLane.LIVE_ONLY),
+    ("timing attack", HuntLane.LIVE_ONLY),
+    ("padding oracle", HuntLane.LIVE_ONLY),
+    # AI classes that need a live model endpoint (not pure source)
+    ("model extraction", HuntLane.LIVE_ONLY),
+    ("model reconstruction", HuntLane.LIVE_ONLY),
+    ("training data poisoning", HuntLane.LIVE_ONLY),
+    ("adversarial example", HuntLane.LIVE_ONLY),
+    ("vector and embedding", HuntLane.LIVE_ONLY),
+    ("embedding exfiltration", HuntLane.LIVE_ONLY),
 )
 
 
