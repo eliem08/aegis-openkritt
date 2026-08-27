@@ -92,7 +92,22 @@ def validate_deepseek_report(
                         "where the flagged function is INVOKED — if the flawed function defers a "
                         "check to its caller (e.g. 'verify in caller'), it is only a vulnerability "
                         "when a caller actually fails to supply that guard; confirm by reading "
-                        "these callers, and refute if every caller verifies. No live execution."
+                        "these callers, and refute if every caller verifies. No live execution. "
+                        "A dangerous SINK is not a vulnerability unless a tainted value actually "
+                        "reaches it attacker-controlled AND unguarded — mark false_positive when: "
+                        "(1) PROVENANCE — the 'input' is a server constant, config-file value, or "
+                        "admin-authored DB record, not attacker-supplied HTTP input (e.g. a binary "
+                        "path or code snippet loaded from config / written by a privileged action); "
+                        "(2) SANITIZER — a framework neutralizes it before the sink: global input "
+                        "cleaners that HTML-encode superglobals (e.g. securexss), sanitize_sql_orderby, "
+                        "ORM/prepared parameters, or escape()/quote() on the value; "
+                        "(3) AUTH CONTEXT — the path is not actually unauthenticated: it is admin-only, "
+                        "signature/token-gated, or an 'internal'/session-authenticated caller, so a "
+                        "powerful operation available only to an already-authenticated admin by design "
+                        "is not a standalone finding; "
+                        "(4) DELEGATION — verification is delegated to a vetted library that fails "
+                        "closed (e.g. a WebAuthn/JWT/crypto verify() that throws on mismatch). "
+                        "State which of (1)-(4) you checked and why it does or does not neutralize it."
                     ),
                 )
                 payload = validation.model_dump(mode="json")

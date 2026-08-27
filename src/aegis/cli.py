@@ -17,6 +17,23 @@ def main(argv: list[str] | None = None) -> int:
     from aegis.products.cli import add_products_parser
 
     add_products_parser(commands)
+    arsenal = commands.add_parser("arsenal")
+    arsenal_commands = arsenal.add_subparsers(dest="arsenal_command", required=True)
+    arsenal_audit = arsenal_commands.add_parser("audit")
+    arsenal_audit.add_argument("--json", dest="json_path")
+    arsenal_audit.add_argument("--markdown", dest="markdown_path")
+    arsenal_audit.add_argument("--runs-dir", default="reports/operator-runs")
+    arsenal_audit.add_argument(
+        "--release-lock", default="secrets/scanner-releases.lock.json",
+    )
+    arsenal_exercise = arsenal_commands.add_parser("exercise")
+    exercise_selection = arsenal_exercise.add_mutually_exclusive_group(required=True)
+    exercise_selection.add_argument("--capability")
+    exercise_selection.add_argument("--all-fixture-tools", action="store_true")
+    arsenal_exercise.add_argument("--runs-dir", default="reports/operator-runs")
+    arsenal_exercise.add_argument("--json", dest="json_path")
+    arsenal_exercise.add_argument("--coverage-sqlite", help=argparse.SUPPRESS)
+    _add_arsenal_hunt_parser(arsenal_commands)
     production = commands.add_parser("production")
     production_commands = production.add_subparsers(dest="production_command", required=True)
     health = production_commands.add_parser("health")
@@ -42,6 +59,15 @@ def main(argv: list[str] | None = None) -> int:
             command.add_argument("--execute", action="store_true")
             command.add_argument("--revalidation-snapshot")
             command.add_argument("--health-report")
+    campaign = operator_commands.add_parser("campaign")
+    campaign.add_argument("--snapshot", required=True)
+    campaign.add_argument("--program", required=True)
+    campaign.add_argument("--campaign-manifest", required=True)
+    campaign.add_argument("--runs-dir", default="reports/operator-runs")
+    campaign.add_argument("--confirm-selection", action="store_true")
+    campaign.add_argument("--execute", action="store_true")
+    campaign.add_argument("--revalidation-snapshot")
+    campaign.add_argument("--health-report")
     args = parser.parse_args(argv)
     if args.command == "production" and args.production_command == "health":
         from aegis.production.health import main as health_main
@@ -58,11 +84,223 @@ def main(argv: list[str] | None = None) -> int:
         from aegis.products.cli import run_products
 
         return run_products(args)
+    if args.command == "arsenal" and args.arsenal_command == "hunt":
+        return _arsenal_hunt(args)
+    if args.command == "arsenal" and args.arsenal_command == "assets":
+        from aegis.arsenal.assets import coverage_matrix
+
+        print(json.dumps(coverage_matrix(), indent=2, sort_keys=True))
+        return 0
+    if args.command == "arsenal" and args.arsenal_command == "audit":
+        from aegis.arsenal.audit import build_audit, write_audit
+
+        report = build_audit(
+            runs_dir=args.runs_dir, release_lock_path=args.release_lock,
+        )
+        write_audit(report, json_path=args.json_path, markdown_path=args.markdown_path)
+        if not args.json_path and not args.markdown_path:
+            print(json.dumps(report.document(), indent=2, sort_keys=True))
+        return 0
+    if args.command == "arsenal" and args.arsenal_command == "exercise":
+        from aegis.arsenal.exercise import execute_llm_fixture, write_result
+        from aegis.arsenal.inventory import ArsenalInventoryBuilder
+        from aegis.arsenal.ledger import SqliteCoverageRepository, repository_from_env
+        from aegis.arsenal.tool_exercise import execute_tool_fixture
+
+        repository = None
+        try:
+            if args.coverage_sqlite:
+                Path(args.coverage_sqlite).parent.mkdir(parents=True, exist_ok=True)
+            repository = (
+                SqliteCoverageRepository(args.coverage_sqlite)
+                if args.coverage_sqlite else repository_from_env()
+            )
+        except Exception:
+            # Runtime evidence remains canonical; the exercise records the coverage projection
+            # outage explicitly instead of fabricating a successful ledger write.
+            repository = None
+        try:
+            capabilities = (
+                [item.capability_id for item in ArsenalInventoryBuilder().build()
+                 if item.capability_id.startswith("tool:") and item.fixture_executable]
+                if args.all_fixture_tools else [args.capability]
+            )
+            results = [
+                execute_llm_fixture(runs_dir=args.runs_dir, coverage_repository=repository)
+                if capability == "fixture:ai/llm-security-boundary"
+                else execute_tool_fixture(
+                    capability, runs_dir=args.runs_dir, coverage_repository=repository,
+                )
+                for capability in capabilities
+            ]
+        finally:
+            if repository is not None:
+                repository.close()
+        if args.json_path and len(results) == 1:
+            write_result(results[0], args.json_path)
+        elif args.json_path:
+            Path(args.json_path).write_text(json.dumps(
+                [item.document() for item in results], indent=2, sort_keys=True,
+            ) + "\n", encoding="utf-8")
+        else:
+            print(json.dumps([item.document() for item in results], indent=2, sort_keys=True))
+        return 0 if all(item.result.value == "EXECUTED_PASS" for item in results) else 1
     parser.error("unsupported command")
     return 2
 
 
+def _add_arsenal_hunt_parser(arsenal_commands) -> None:
+    """Register ``aegis arsenal hunt`` and ``aegis arsenal assets``.
+
+    The scope file is required with no default. Making the operator name it every
+    time is the point: a hunt that could inherit a stale allowlist is a hunt that
+    can wander out of scope without anyone noticing.
+    """
+    arsenal_commands.add_parser(
+        "assets", help="print the supported asset types and the techniques each routes to",
+    )
+    hunt = arsenal_commands.add_parser(
+        "hunt", help="run the techniques registered for one in-scope asset",
+    )
+    hunt.add_argument("--asset", required=True, help="the asset identifier to hunt")
+    hunt.add_argument(
+        "--asset-type",
+        help="asset type; inferred from the identifier when omitted "
+             "(cidr, domain, wildcard, ip_address, api, aws_account, azure_account, "
+             "source_code, executable, smart_contract, ai_model, other_asset)",
+    )
+    hunt.add_argument(
+        "--scope-file", required=True,
+        help="operator scope allowlist (JSON or newline-delimited; '!' marks exclusions)",
+    )
+    hunt.add_argument("--technique", action="append", default=[],
+                      help="run only this technique (repeatable)")
+    hunt.add_argument("--artifact", help="local artifact: checkout, binary, or contract source")
+    hunt.add_argument("--api-spec", help="OpenAPI/Swagger document for an API asset")
+    hunt.add_argument("--policy-document", action="append", default=[],
+                      help="IAM/resource policy JSON to review (repeatable)")
+    hunt.add_argument(
+        "--identity", action="append", default=[],
+        help="an already-authenticated role as label:Header=value[,Header=value]; "
+             "Aegis never logs in, so you supply the session material yourself",
+    )
+    hunt.add_argument("--option", action="append", default=[],
+                      help="lane option as key=value (repeatable)")
+    hunt.add_argument("--workspace", help="directory for unpacked artifacts")
+    hunt.add_argument("--requests-per-second", type=float, default=0.5)
+    hunt.add_argument("--max-requests", type=int, default=200)
+    hunt.add_argument("--timeout-seconds", type=float, default=15.0)
+    hunt.add_argument(
+        "--allow-state-change", action="store_true",
+        help="permit non-GET/HEAD/OPTIONS requests; only with program authorization",
+    )
+    hunt.add_argument("--request-log", help="append every outbound attempt to this JSONL file")
+    hunt.add_argument("--json", dest="json_path")
+    hunt.add_argument("--markdown", dest="markdown_path")
+
+
+def _parse_identity(raw: str):
+    from aegis.arsenal.assets import Identity
+
+    label, separator, remainder = raw.partition(":")
+    if not separator or not label.strip():
+        raise SystemExit(f"--identity must be label:Header=value, got {raw!r}")
+    headers: dict[str, str] = {}
+    for pair in remainder.split(","):
+        if not pair.strip():
+            continue
+        name, equals, value = pair.partition("=")
+        if not equals:
+            raise SystemExit(f"--identity header must be Name=value, got {pair!r}")
+        headers[name.strip()] = value.strip()
+    if not headers:
+        raise SystemExit(f"--identity {label!r} carries no headers")
+    return Identity(label.strip(), headers)
+
+
+def _parse_options(raw_options: list[str]) -> dict:
+    options: dict = {}
+    for entry in raw_options:
+        key, equals, value = entry.partition("=")
+        if not equals:
+            raise SystemExit(f"--option must be key=value, got {entry!r}")
+        key = key.strip()
+        value = value.strip()
+        if key in {"buckets", "containers", "vhost_candidates"}:
+            options[key] = [item.strip() for item in value.split(",") if item.strip()]
+        elif value.lstrip("-").isdigit():
+            options[key] = int(value)
+        else:
+            options[key] = value
+    return options
+
+
+def _arsenal_hunt(args) -> int:
+    from aegis.arsenal.assets import (
+        HuntRefused,
+        RateLimit,
+        ScopeFileError,
+        UnsupportedAssetType,
+        load_allowlist,
+        parse_asset_type,
+        render_markdown,
+        run_hunt,
+        write_report,
+    )
+
+    try:
+        allowlist = load_allowlist(args.scope_file)
+    except ScopeFileError as exc:
+        print(json.dumps({"error": "scope_file_invalid", "detail": str(exc)}, indent=2))
+        return 2
+    try:
+        asset_type = parse_asset_type(args.asset_type) if args.asset_type else None
+    except (UnsupportedAssetType, ValueError) as exc:
+        print(json.dumps({"error": "asset_type_rejected", "detail": str(exc)}, indent=2))
+        return 2
+
+    try:
+        report = run_hunt(
+            asset=args.asset,
+            allowlist=allowlist,
+            asset_type=asset_type,
+            rate_limit=RateLimit(
+                requests_per_second=args.requests_per_second,
+                max_requests=args.max_requests,
+                timeout_seconds=args.timeout_seconds,
+            ),
+            allow_state_change=args.allow_state_change,
+            artifact_path=args.artifact,
+            specification_path=args.api_spec,
+            policy_documents=args.policy_document,
+            identities=[_parse_identity(item) for item in args.identity],
+            workspace=args.workspace,
+            options=_parse_options(args.option),
+            log_path=args.request_log,
+            only=args.technique,
+        )
+    except HuntRefused as exc:
+        # The single most important failure mode: refuse loudly, do nothing.
+        print(json.dumps({"error": "out_of_scope", "detail": str(exc)}, indent=2))
+        return 3
+    except (UnsupportedAssetType, ValueError) as exc:
+        print(json.dumps({"error": "hunt_rejected", "detail": str(exc)}, indent=2))
+        return 2
+
+    if args.json_path:
+        write_report(report, args.json_path)
+    if args.markdown_path:
+        markdown = Path(args.markdown_path)
+        markdown.parent.mkdir(parents=True, exist_ok=True)
+        markdown.write_text(render_markdown(report), encoding="utf-8")
+    if not args.json_path and not args.markdown_path:
+        print(json.dumps(report.document(), indent=2, sort_keys=True))
+    return 0 if report.executed_count else 1
+
+
 def _operator(args) -> int:
+    if args.operator_command == "campaign":
+        return _campaign_operator(args)
     from aegis.ingest.source import ProgramSnapshot
     from aegis.policy.signing import Ed25519Signer
     from aegis.production.operator_manifest import (
@@ -190,6 +428,166 @@ def _operator(args) -> int:
         "next_action": "invoke supervised canonical executor" if mode is RunMode.LIVE_CANARY else "human review",
     }, indent=2))
     return 0
+
+
+def _campaign_operator(args) -> int:
+    """Prepare or execute an operator-supplied campaign manifest fail closed."""
+    from aegis.ai.jarvis.asset_execution_ticket import CapabilityAvailability
+    from aegis.ai.jarvis.deterministic_hunter_executors import (
+        DeterministicHunterExecutorProvider,
+    )
+    from aegis.ai.jarvis.hunter_techniques import HunterTechnique
+    from aegis.ai.jarvis.mission_scheduler import MissionScheduler
+    from aegis.ai.jarvis.state_store import JarvisStateStore
+    from aegis.ai.jarvis.universal_runtime import UniversalMissionRuntime
+    from aegis.ingest.source import ProgramSnapshot
+    from aegis.policy.signing import Ed25519Signer, HmacSignatureVerifier
+    from aegis.production.campaign_runner import (
+        BackendCapability,
+        CampaignRequest,
+        OperatorTechniqueApproval,
+        PermissionEffect,
+        PolicyEvidence,
+        TechniqueRequest,
+        TypedTechniquePermission,
+        execute_campaign,
+        prepare_campaign,
+    )
+    from aegis.production.live_canary import require_fresh_ready_health
+    from aegis.production.operator_manifest import ImmutableRunStore, RunBudgets, RunStatus
+
+    snapshot_document = json.loads(Path(args.snapshot).read_text(encoding="utf-8"))
+    snapshots = snapshot_document if isinstance(snapshot_document, list) else [snapshot_document]
+    matches = [ProgramSnapshot.model_validate(item) for item in snapshots
+               if isinstance(item, dict) and item.get("rules", {}).get("handle") == args.program]
+    if len(matches) != 1:
+        raise SystemExit("snapshot must contain exactly one selected program")
+    snapshot = matches[0]
+    document = json.loads(Path(args.campaign_manifest).read_text(encoding="utf-8"))
+    budget = RunBudgets(**dict(document.get("budgets") or {}))
+    techniques = tuple(TechniqueRequest(
+        HunterTechnique(item["technique"]), str(item["asset"]),
+        str(item.get("context") or "default"),
+        tuple(str(value) for value in item.get("identity_refs") or ()),
+        dict(item.get("execution_inputs") or {}),
+    ) for item in document.get("techniques") or ())
+    request = CampaignRequest(
+        str(document.get("campaign_id") or ""),
+        str(document.get("operator_id") or ""), techniques, budget,
+    )
+    permissions = tuple(TypedTechniquePermission(
+        HunterTechnique(item["technique"]), str(item["asset"]),
+        str(item.get("context") or "default"), PermissionEffect(item["effect"]),
+        str(item["policy_action"]), dict(item.get("typed_constraints") or {}),
+        PolicyEvidence(**dict(item["evidence"])),
+    ) for item in document.get("permissions") or ())
+    approvals = tuple(OperatorTechniqueApproval(
+        str(item["approval_id"]), str(item["campaign_id"]),
+        HunterTechnique(item["technique"]), str(item["asset"]),
+        str(item.get("context") or "default"),
+        tuple(str(value) for value in item.get("identity_refs") or ()),
+        str(item["valid_from"]), str(item["valid_until"]),
+        str(item["key_id"]), str(item["signature"]), int(item.get("version", 1)),
+    ) for item in document.get("approvals") or ())
+    backends = tuple(BackendCapability(
+        str(item["worker_capability"]), str(item["backend"]),
+        str(item["backend_version"]), item["available"], item["safe"],
+        tuple(str(value) for value in item.get("enforceable_constraints") or ()),
+        tuple(str(value) for value in item.get("satisfied_prerequisites") or ()),
+        str(item.get("unavailable_reason") or ""),
+    ) for item in document.get("backends") or ())
+    print(json.dumps({"operator_campaign_selection": {
+        "campaign_id": request.campaign_id,
+        "program": snapshot.rules.handle,
+        "source": snapshot.source,
+        "source_hash": snapshot.source_hash,
+        "assets": list(dict.fromkeys(item.asset for item in techniques)),
+        "techniques": [item.technique.value for item in techniques],
+        "budgets": document["budgets"],
+    }}, indent=2))
+    if not args.confirm_selection:
+        print("selection not confirmed; no authorization or run manifest was created")
+        return 2
+    key_file = os.environ.get("AEGIS_OPERATOR_SIGNING_KEY_FILE", "").strip()
+    key_id = os.environ.get("AEGIS_OPERATOR_SIGNING_KEY_ID", "").strip()
+    if not key_file or not key_id:
+        raise SystemExit(
+            "AEGIS_OPERATOR_SIGNING_KEY_FILE and AEGIS_OPERATOR_SIGNING_KEY_ID are required"
+        )
+    signer = Ed25519Signer(Path(key_file).read_text(encoding="utf-8").strip(), key_id)
+    store = ImmutableRunStore(args.runs_dir)
+    prepared = prepare_campaign(
+        snapshot, request, permissions=permissions, approvals=approvals,
+        backends=backends, signer=signer, store=store,
+    )
+    store.append_event(
+        prepared.operator_run.manifest.run_id,
+        "operator_signing_key_referenced",
+        RunStatus.AUTHORIZED,
+        {
+            "signing_key_id": key_id,
+            "signing_key_path_reference": key_file,
+            "private_key_persisted": False,
+        },
+    )
+    if not args.execute:
+        print(json.dumps({
+            "run_id": prepared.operator_run.manifest.run_id,
+            "campaign_id": request.campaign_id,
+            "scope_digest": prepared.operator_run.manifest.scope_digest,
+            "decisions": [item.document() for item in prepared.decisions],
+            "mission_ids": [item.mission_id for item in prepared.missions],
+            "execution_performed": False,
+            "human_submission_required": True,
+        }, indent=2))
+        return 0
+    if not args.revalidation_snapshot or not args.health_report:
+        raise SystemExit("--execute requires --revalidation-snapshot and --health-report")
+    require_fresh_ready_health(args.health_report)
+    grant_file = os.environ.get("AEGIS_GRANT_SIGNING_KEY_FILE", "").strip()
+    if not grant_file:
+        raise SystemExit("AEGIS_GRANT_SIGNING_KEY_FILE is required")
+    grant_secret = Path(grant_file).read_text(encoding="utf-8").strip()
+    if len(grant_secret) < 32:
+        raise SystemExit("execution grant signing key is too short")
+    grant_verifier = HmacSignatureVerifier({"grant": grant_secret})
+    provider = DeterministicHunterExecutorProvider(grant_verifier=grant_verifier)
+    executable = set(provider.runtime_executors())
+    requested_authorized = {
+        item.worker_capability for item in backends if item.available and item.safe
+    }
+    if not requested_authorized <= executable:
+        raise SystemExit(
+            "CLI execution supports only registered networkless hunter backends; "
+            "use the production worker assembly for scoped dynamic capabilities"
+        )
+    run_dir = Path(args.runs_dir) / prepared.operator_run.manifest.run_id
+    runtime = UniversalMissionRuntime(
+        MissionScheduler(JarvisStateStore(run_dir / "mission-state.db")),
+        grant_verifier=grant_verifier, executor_providers=(provider,),
+    )
+
+    def current_snapshot() -> ProgramSnapshot:
+        return ProgramSnapshot.model_validate_json(
+            Path(args.revalidation_snapshot).read_text(encoding="utf-8")
+        )
+
+    results = execute_campaign(
+        prepared, snapshot_provider=current_snapshot, permissions=permissions,
+        approvals=approvals, backends=backends, store=store, runtime=runtime,
+        availability=CapabilityAvailability(), authorization_verifier=signer.verifier(),
+        grant_verifier=grant_verifier,
+    )
+    print(json.dumps({
+        "run_id": prepared.operator_run.manifest.run_id,
+        "campaign_id": request.campaign_id,
+        "execution_performed": any(item.outcome is not None for item in results),
+        "results": [{"disposition": item.disposition.value, "reason": item.reason}
+                    for item in results],
+        "final_status": store.verify(prepared.operator_run.manifest.run_id)["last_status"],
+        "human_submission_required": True,
+    }, indent=2))
+    return 0 if all(item.outcome is not None for item in results) else 1
 
 
 if __name__ == "__main__":

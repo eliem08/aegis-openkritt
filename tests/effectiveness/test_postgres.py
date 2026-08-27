@@ -6,6 +6,7 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 from decimal import Decimal
+from pathlib import Path
 
 import pytest
 
@@ -26,13 +27,18 @@ DSN = os.environ.get("AEGIS_TEST_POSTGRES_DSN")
 
 
 def test_funnel_module_has_no_api_or_fastapi_import_dependency():
+    env = dict(os.environ)
+    source_root = str(Path(__file__).resolve().parents[2] / "src")
+    env["PYTHONPATH"] = os.pathsep.join(
+        part for part in (source_root, env.get("PYTHONPATH")) if part
+    )
     result = subprocess.run(
         [
             sys.executable, "-c",
             "import sys; from aegis.effectiveness.funnel import record_funnel_fact; "
             "assert 'aegis.api' not in sys.modules; assert 'fastapi' not in sys.modules",
         ],
-        check=False, capture_output=True, text=True, env=dict(os.environ),
+        check=False, capture_output=True, text=True, env=env,
     )
     assert result.returncode == 0, result.stderr
 

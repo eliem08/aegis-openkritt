@@ -20,6 +20,8 @@ class OperatorRunError(RuntimeError):
 class RunMode(str, Enum):
     DRY_RUN = "dry_run"
     LIVE_CANARY = "live_canary"
+    CAMPAIGN = "campaign"
+    ARSENAL_FIXTURE = "arsenal_fixture"
 
 
 class RunStatus(str, Enum):
@@ -29,6 +31,7 @@ class RunStatus(str, Enum):
     PLANNED = "planned"
     RUNNING = "running"
     COMPLETED = "completed"
+    EXECUTION_COMPLETE_OUTCOMES_PENDING = "execution_complete_outcomes_pending"
     FAILED = "failed"
     REVOKED = "revoked"
 
@@ -51,6 +54,8 @@ class RunBudgets:
     requests_per_second: float
     max_cost_usd: float
     max_concurrent_sessions: int = 1
+    max_duration_seconds: int = 86400
+    max_attempts: int = 100
 
     def __post_init__(self) -> None:
         if (
@@ -58,6 +63,8 @@ class RunBudgets:
             or self.requests_per_second <= 0
             or self.max_cost_usd < 0
             or self.max_concurrent_sessions <= 0
+            or self.max_duration_seconds <= 0
+            or self.max_attempts <= 0
         ):
             raise ValueError("operator budgets must be positive and cost cannot be negative")
 

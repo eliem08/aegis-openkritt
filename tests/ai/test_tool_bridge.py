@@ -92,6 +92,22 @@ def test_nonzero_exit_without_parseable_findings_is_unavailable_not_a_clean_run(
     assert "scanner exited 2" in result.error
 
 
+def test_nonzero_finding_exit_remains_a_run_when_all_findings_are_noise():
+    semgrep = next(t for t in TOOLS if t.name == "semgrep")
+    output = json.dumps({"results": [
+        {"check_id": "python.sqli", "path": "benchmarks/fixture.py",
+         "start": {"line": 12},
+         "extra": {"severity": "ERROR", "message": "fixture finding"}},
+    ]})
+    bridge = ToolBridge(run=lambda _argv, _timeout: (output, "", 1))
+
+    result = bridge.scan("/r", tools=[semgrep])[0]
+
+    assert result.ran is True
+    assert result.findings == []
+    assert result.error == ""
+
+
 def test_windows_command_split_preserves_backslashes_and_removes_quotes():
     argv = _command_argv(
         'semgrep --json --config "C:\\Users\\hunter\\ai bug bounty\\rules" '

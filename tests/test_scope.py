@@ -1,6 +1,6 @@
-from aegis.policy import ScopeGuard, normalize_host
-
 import pytest
+
+from aegis.policy import ScopeGuard, normalize_host
 
 
 @pytest.mark.parametrize(
@@ -30,6 +30,16 @@ def test_exact_match_only():
     assert guard.is_allowed("https://api.example.test/v1")
     assert not guard.is_allowed("evil.example.test")
     assert not guard.is_allowed("api.example.test.evil.com")
+
+
+def test_exact_url_allowlist_entry_is_normalized_to_its_host():
+    guard = ScopeGuard(["https://gitlab.com/gitlab-org/gitlab"])
+
+    result = guard.evaluate("https://gitlab.com/gitlab-org/gitlab")
+
+    assert result.in_scope is True
+    assert result.host == "gitlab.com"
+    assert result.matched_rule == "gitlab.com"
 
 
 def test_wildcard_matches_subdomains_not_apex():
