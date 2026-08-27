@@ -78,14 +78,17 @@ jobs:
           set -e
           echo "fixture command exit: $exercise_exit (partial coverage is evaluated from evidence)"
           test -s reports/arsenal/ci-full-fixture.json
+          # The isolated image runs as root and writes the mounted evidence tree.
+          # Return ownership to the runner before artifact packaging.
+          sudo chown -R "$(id -u):$(id -g)" reports/arsenal
       - name: Verify evidence-backed partial-or-full result
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
           report = json.loads(Path("reports/arsenal/ci-full-fixture.json").read_text())
-          assert report["summary"]["fixture_executed_backend_count"] > 0
-          assert report["summary"]["p0_defect_count"] == 0
+          assert report["metrics"]["fixture_executed_backends"] > 0
+          assert not report["p0_defects"]
           assert report["verdict"] in {
               "FULL FIXTURE ARSENAL VERIFIED",
               "FIXTURE ARSENAL PARTIALLY VERIFIED",
