@@ -33,6 +33,7 @@ def main(argv: list[str] | None = None) -> int:
     arsenal_exercise.add_argument("--runs-dir", default="reports/operator-runs")
     arsenal_exercise.add_argument("--json", dest="json_path")
     arsenal_exercise.add_argument("--coverage-sqlite", help=argparse.SUPPRESS)
+    _add_arsenal_hunt_parser(arsenal_commands)
     production = commands.add_parser("production")
     production_commands = production.add_subparsers(dest="production_command", required=True)
     health = production_commands.add_parser("health")
@@ -83,6 +84,13 @@ def main(argv: list[str] | None = None) -> int:
         from aegis.products.cli import run_products
 
         return run_products(args)
+    if args.command == "arsenal" and args.arsenal_command == "hunt":
+        return _arsenal_hunt(args)
+    if args.command == "arsenal" and args.arsenal_command == "assets":
+        from aegis.arsenal.assets import coverage_matrix
+
+        print(json.dumps(coverage_matrix(), indent=2, sort_keys=True))
+        return 0
     if args.command == "arsenal" and args.arsenal_command == "audit":
         from aegis.arsenal.audit import build_audit, write_audit
 
@@ -101,6 +109,8 @@ def main(argv: list[str] | None = None) -> int:
 
         repository = None
         try:
+            if args.coverage_sqlite:
+                Path(args.coverage_sqlite).parent.mkdir(parents=True, exist_ok=True)
             repository = (
                 SqliteCoverageRepository(args.coverage_sqlite)
                 if args.coverage_sqlite else repository_from_env()
@@ -137,6 +147,155 @@ def main(argv: list[str] | None = None) -> int:
         return 0 if all(item.result.value == "EXECUTED_PASS" for item in results) else 1
     parser.error("unsupported command")
     return 2
+
+
+def _add_arsenal_hunt_parser(arsenal_commands) -> None:
+    """Register ``aegis arsenal hunt`` and ``aegis arsenal assets``.
+
+    The scope file is required with no default. Making the operator name it every
+    time is the point: a hunt that could inherit a stale allowlist is a hunt that
+    can wander out of scope without anyone noticing.
+    """
+    arsenal_commands.add_parser(
+        "assets", help="print the supported asset types and the techniques each routes to",
+    )
+    hunt = arsenal_commands.add_parser(
+        "hunt", help="run the techniques registered for one in-scope asset",
+    )
+    hunt.add_argument("--asset", required=True, help="the asset identifier to hunt")
+    hunt.add_argument(
+        "--asset-type",
+        help="asset type; inferred from the identifier when omitted "
+             "(cidr, domain, wildcard, ip_address, api, aws_account, azure_account, "
+             "source_code, executable, smart_contract, ai_model, other_asset)",
+    )
+    hunt.add_argument(
+        "--scope-file", required=True,
+        help="operator scope allowlist (JSON or newline-delimited; '!' marks exclusions)",
+    )
+    hunt.add_argument("--technique", action="append", default=[],
+                      help="run only this technique (repeatable)")
+    hunt.add_argument("--artifact", help="local artifact: checkout, binary, or contract source")
+    hunt.add_argument("--api-spec", help="OpenAPI/Swagger document for an API asset")
+    hunt.add_argument("--policy-document", action="append", default=[],
+                      help="IAM/resource policy JSON to review (repeatable)")
+    hunt.add_argument(
+        "--identity", action="append", default=[],
+        help="an already-authenticated role as label:Header=value[,Header=value]; "
+             "Aegis never logs in, so you supply the session material yourself",
+    )
+    hunt.add_argument("--option", action="append", default=[],
+                      help="lane option as key=value (repeatable)")
+    hunt.add_argument("--workspace", help="directory for unpacked artifacts")
+    hunt.add_argument("--requests-per-second", type=float, default=0.5)
+    hunt.add_argument("--max-requests", type=int, default=200)
+    hunt.add_argument("--timeout-seconds", type=float, default=15.0)
+    hunt.add_argument(
+        "--allow-state-change", action="store_true",
+        help="permit non-GET/HEAD/OPTIONS requests; only with program authorization",
+    )
+    hunt.add_argument("--request-log", help="append every outbound attempt to this JSONL file")
+    hunt.add_argument("--json", dest="json_path")
+    hunt.add_argument("--markdown", dest="markdown_path")
+
+
+def _parse_identity(raw: str):
+    from aegis.arsenal.assets import Identity
+
+    label, separator, remainder = raw.partition(":")
+    if not separator or not label.strip():
+        raise SystemExit(f"--identity must be label:Header=value, got {raw!r}")
+    headers: dict[str, str] = {}
+    for pair in remainder.split(","):
+        if not pair.strip():
+            continue
+        name, equals, value = pair.partition("=")
+        if not equals:
+            raise SystemExit(f"--identity header must be Name=value, got {pair!r}")
+        headers[name.strip()] = value.strip()
+    if not headers:
+        raise SystemExit(f"--identity {label!r} carries no headers")
+    return Identity(label.strip(), headers)
+
+
+def _parse_options(raw_options: list[str]) -> dict:
+    options: dict = {}
+    for entry in raw_options:
+        key, equals, value = entry.partition("=")
+        if not equals:
+            raise SystemExit(f"--option must be key=value, got {entry!r}")
+        key = key.strip()
+        value = value.strip()
+        if key in {"buckets", "containers", "vhost_candidates"}:
+            options[key] = [item.strip() for item in value.split(",") if item.strip()]
+        elif value.lstrip("-").isdigit():
+            options[key] = int(value)
+        else:
+            options[key] = value
+    return options
+
+
+def _arsenal_hunt(args) -> int:
+    from aegis.arsenal.assets import (
+        HuntRefused,
+        RateLimit,
+        ScopeFileError,
+        UnsupportedAssetType,
+        load_allowlist,
+        parse_asset_type,
+        render_markdown,
+        run_hunt,
+        write_report,
+    )
+
+    try:
+        allowlist = load_allowlist(args.scope_file)
+    except ScopeFileError as exc:
+        print(json.dumps({"error": "scope_file_invalid", "detail": str(exc)}, indent=2))
+        return 2
+    try:
+        asset_type = parse_asset_type(args.asset_type) if args.asset_type else None
+    except (UnsupportedAssetType, ValueError) as exc:
+        print(json.dumps({"error": "asset_type_rejected", "detail": str(exc)}, indent=2))
+        return 2
+
+    try:
+        report = run_hunt(
+            asset=args.asset,
+            allowlist=allowlist,
+            asset_type=asset_type,
+            rate_limit=RateLimit(
+                requests_per_second=args.requests_per_second,
+                max_requests=args.max_requests,
+                timeout_seconds=args.timeout_seconds,
+            ),
+            allow_state_change=args.allow_state_change,
+            artifact_path=args.artifact,
+            specification_path=args.api_spec,
+            policy_documents=args.policy_document,
+            identities=[_parse_identity(item) for item in args.identity],
+            workspace=args.workspace,
+            options=_parse_options(args.option),
+            log_path=args.request_log,
+            only=args.technique,
+        )
+    except HuntRefused as exc:
+        # The single most important failure mode: refuse loudly, do nothing.
+        print(json.dumps({"error": "out_of_scope", "detail": str(exc)}, indent=2))
+        return 3
+    except (UnsupportedAssetType, ValueError) as exc:
+        print(json.dumps({"error": "hunt_rejected", "detail": str(exc)}, indent=2))
+        return 2
+
+    if args.json_path:
+        write_report(report, args.json_path)
+    if args.markdown_path:
+        markdown = Path(args.markdown_path)
+        markdown.parent.mkdir(parents=True, exist_ok=True)
+        markdown.write_text(render_markdown(report), encoding="utf-8")
+    if not args.json_path and not args.markdown_path:
+        print(json.dumps(report.document(), indent=2, sort_keys=True))
+    return 0 if report.executed_count else 1
 
 
 def _operator(args) -> int:

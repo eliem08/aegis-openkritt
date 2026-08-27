@@ -152,7 +152,9 @@ def build_audit(
     runtime_manager: ToolRuntimeManager | None = None,
 ) -> ArsenalAuditReport:
     definitions = ArsenalInventoryBuilder(release_lock_path=release_lock_path).build()
-    health = _health(definitions, runtime_manager or ToolRuntimeManager())
+    health = _health(
+        definitions, runtime_manager or ToolRuntimeManager(version_timeout=15.0),
+    )
     history, errors = _historical_execution(runs_dir)
     return ArsenalAuditReport(1, _now(), definitions, health, history, errors)
 

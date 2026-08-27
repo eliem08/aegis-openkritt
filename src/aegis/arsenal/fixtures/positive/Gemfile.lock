@@ -1,7 +1,0 @@
-GEM
-  specs:
-    rails (5.2.0)
-PLATFORMS
-  ruby
-DEPENDENCIES
-  rails (= 5.2.0)

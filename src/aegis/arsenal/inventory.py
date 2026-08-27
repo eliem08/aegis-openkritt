@@ -18,6 +18,7 @@ from aegis.ai.jarvis.asset_deep_capabilities import (
 from aegis.ai.jarvis.hunter_techniques import TECHNIQUES
 from aegis.ai.tool_registry import TOOLS
 
+from .assets.types import TECHNIQUE_MAP as ASSET_TECHNIQUE_MAP
 from .models import (
     CapabilityConflict,
     CapabilityDefinition,
@@ -150,6 +151,40 @@ class ArsenalInventoryBuilder:
                             "aegis.arsenal.llm_lab"),
             ), fixture_executable=True,
         )
+
+        # Per-asset-type lanes (aegis.arsenal.assets). These are executable arsenal
+        # techniques with a concrete implementation, so they are inventoried
+        # alongside the tool and hunter capabilities rather than living outside the
+        # audit. Asset classes are taken from the routing table, so audit coverage
+        # and the CLI cannot drift apart.
+        assets_by_technique: dict[str, set[str]] = defaultdict(set)
+        asset_techniques: dict[str, Any] = {}
+        for asset_type, techniques in ASSET_TECHNIQUE_MAP.items():
+            for technique in techniques:
+                asset_techniques[technique.technique_id] = technique
+                assets_by_technique[technique.technique_id].add(asset_type.value)
+        for technique_id, technique in sorted(asset_techniques.items()):
+            capability_id = f"asset-lane:{technique_id}"
+            module, _, function = technique.executor.partition(":")
+            backends = tuple(
+                ToolBackend(f"asset-lane:{technique_id}:{name}", name, name,
+                            versions.get(name.lower(), ""), "asset-lane/1")
+                for name in technique.tools
+            )
+            definitions[capability_id] = CapabilityDefinition(
+                capability_id, 1, (technique_id,), backends,
+                tuple(sorted(assets_by_technique[technique_id])),
+                f"{module}:{function}", None, ("ASSET_TECHNIQUE_MAP",),
+                ("src/aegis/arsenal/assets/types.py", module.replace(".", "/") + ".py"),
+                (
+                    _provenance("technique_ids", "ASSET_TECHNIQUE_MAP", technique_id,
+                                technique_id),
+                    _provenance("supported_asset_classes", "ASSET_TECHNIQUE_MAP",
+                                technique_id, sorted(assets_by_technique[technique_id])),
+                    _provenance("executor_provider", "ASSET_TECHNIQUE_MAP", technique_id,
+                                technique.executor),
+                ), fixture_executable=False,
+            )
 
         manifests = tuple(DISCOVERY_MANIFESTS) + tuple(SOURCE_SCANNER_MANIFESTS)
         for manifest in manifests:

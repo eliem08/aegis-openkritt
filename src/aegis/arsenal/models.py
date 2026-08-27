@@ -221,6 +221,18 @@ class ArsenalAuditReport:
             and not item.historical_evidence_invalid
         })
         healthy = sum(item.backend_healthy for item in self.health)
+        current_counts = {
+            state: sum(item.current_state is state for item in self.health)
+            for state in ArsenalCoverageState
+        }
+        verified_pass = sum(
+            item.state is ArsenalCoverageState.EXECUTED_PASS
+            and not item.historical_evidence_invalid for item in self.history
+        )
+        verified_finding = sum(
+            item.state is ArsenalCoverageState.EXECUTED_FINDING
+            and not item.historical_evidence_invalid for item in self.history
+        )
         return {
             "schema_version": self.schema_version,
             "generated_at": self.generated_at,
@@ -235,6 +247,19 @@ class ArsenalAuditReport:
                 ),
                 "authorized_real_execution_coverage": None,
                 "authorized_real_eligible_denominator": None,
+                "verified_pass_count": verified_pass,
+                "verified_finding_count": verified_finding,
+                "blocked_by_policy_count": current_counts[
+                    ArsenalCoverageState.DENIED_BY_POLICY
+                ] + current_counts[ArsenalCoverageState.DENIED_POLICY_AMBIGUOUS],
+                "waiting_prerequisite_count": current_counts[
+                    ArsenalCoverageState.WAITING_FOR_PREREQUISITE
+                ],
+                "unavailable_count": current_counts[ArsenalCoverageState.UNAVAILABLE],
+                "not_implemented_count": current_counts[ArsenalCoverageState.NOT_IMPLEMENTED],
+                "backend_unhealthy_count": current_counts[
+                    ArsenalCoverageState.BACKEND_UNHEALTHY
+                ],
             },
             "definitions": [item.document() for item in self.definitions],
             "health": [item.document() for item in self.health],

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import secrets
+import tempfile
 from datetime import UTC, datetime
 from hashlib import sha256
 from pathlib import Path
@@ -19,6 +20,7 @@ from aegis.ai.jarvis.state_store import JarvisStateStore
 from aegis.ai.jarvis.universal_runtime import UniversalMissionRuntime
 from aegis.ai.tool_bridge import ToolBridge
 from aegis.ai.tool_registry import TOOLS
+from aegis.ai.tool_runtime import ToolRuntimeManager
 from aegis.policy.consequence import ConsequenceTier
 from aegis.policy.decisions import ActionRequest
 from aegis.policy.engine import PolicyEngine
@@ -43,6 +45,52 @@ from .ledger import CoverageRepository
 from .models import ArsenalCoverageState, CapabilityCoverageRecord, CapabilityMode
 
 TOOL_FIXTURE_CAPABILITY = "jarvis:arsenal:tool-fixture"
+
+_POSITIVE_FIXTURES = {
+    "app.py": "import os\ndef unsafe(value):\n    return os.system(value)\n",
+    "app.js": "const cp=require('child_process'); module.exports=x=>cp.exec(x);\n",
+    "main.go": "package main\nimport (\"os/exec\")\nfunc main(){exec.Command(\"sh\",\"-c\",\"input\").Run()}\n",
+    "unsafe.php": "<?php $pdo->query(\"SELECT * FROM users WHERE id=\".$_GET['id']);\n",
+    "Unsafe.sol": (
+        "pragma solidity ^0.8.0; contract Unsafe { mapping(address=>uint) b; "
+        "function w() public {(bool ok,)=msg.sender.call{value:b[msg.sender]}(''); "
+        "require(ok); b[msg.sender]=0;} }\n"
+    ),
+    "main.tf": (
+        "resource \"aws_s3_bucket\" \"x\" { bucket=\"aegis-fixture\" }\n"
+        "resource \"aws_s3_bucket_public_access_block\" \"x\" { "
+        "bucket=aws_s3_bucket.x.id block_public_acls=false }\n"
+    ),
+    "package.json": (
+        '{"name":"aegis-positive-fixture","version":"1.0.0",'
+        '"dependencies":{"lodash":"4.17.19"}}\n'
+    ),
+    "Gemfile.lock": "GEM\n  specs:\n    rails (5.2.0)\nDEPENDENCIES\n  rails (= 5.2.0)\n",
+}
+_NEGATIVE_FIXTURES = {
+    "app.py": "def add(left: int, right: int) -> int:\n    return left + right\n",
+    "app.js": "module.exports=(left,right)=>left+right;\n",
+    "main.go": 'package main\nimport "fmt"\nfunc main(){fmt.Println("fixture")}\n',
+    "safe.php": "<?php function add(int $a,int $b): int { return $a+$b; }\n",
+    "Safe.sol": (
+        "pragma solidity ^0.8.0; contract Safe { function add(uint a,uint b) "
+        "public pure returns(uint){return a+b;} }\n"
+    ),
+    "main.tf": 'terraform { required_version = ">= 1.5.0" }\n',
+    "package.json": '{"name":"aegis-negative-fixture","version":"1.0.0"}\n',
+}
+
+
+def _materialize_builtin_fixtures() -> tuple[tempfile.TemporaryDirectory, Path]:
+    temporary = tempfile.TemporaryDirectory(prefix="aegis-arsenal-fixture-")
+    root = Path(temporary.name)
+    for control, documents in (("positive", _POSITIVE_FIXTURES),
+                               ("negative", _NEGATIVE_FIXTURES)):
+        directory = root / control
+        directory.mkdir()
+        for name, content in documents.items():
+            (directory / name).write_text(content, encoding="utf-8")
+    return temporary, root
 
 
 def _definition(capability_id: str):
@@ -104,7 +152,11 @@ def execute_tool_fixture(
 ) -> ExerciseResult:
     definition = _definition(capability_id)
     backend = definition.tool_backends[0]
-    root = Path(fixture_root) if fixture_root else Path(__file__).with_name("fixtures")
+    temporary = None
+    if fixture_root:
+        root = Path(fixture_root)
+    else:
+        temporary, root = _materialize_builtin_fixtures()
     positive, negative = root / "positive", root / "negative"
     if not positive.is_dir() or not negative.is_dir():
         raise FileNotFoundError("both positive and negative scanner fixture directories are required")
@@ -172,7 +224,9 @@ def execute_tool_fixture(
     scheduler = MissionScheduler(state_store)
     provider = _ToolFixtureProvider(
         capability_id=capability_id, tool_name=backend.tool_name,
-        bridge=bridge or ToolBridge(timeout=300), positive=positive, negative=negative,
+        bridge=bridge or ToolBridge(
+            timeout=300, runtime_manager=ToolRuntimeManager(version_timeout=15.0),
+        ), positive=positive, negative=negative,
     )
     runtime = UniversalMissionRuntime(
         scheduler, grant_verifier=verifier,
@@ -249,10 +303,13 @@ def execute_tool_fixture(
         })
     store.verify(run_id)
     state_store.close()
-    return ExerciseResult(
+    result = ExerciseResult(
         run_id, mission_id, task_id, capability_id, result_state, evidence_ref, evidence_digest,
         recorded, degraded, summary,
     )
+    if temporary is not None:
+        temporary.cleanup()
+    return result
 
 
 __all__ = ["execute_tool_fixture"]

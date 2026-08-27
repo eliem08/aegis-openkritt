@@ -44,6 +44,11 @@ from .llm_lab import lab_summary, run_lab_cases
 from .models import ArsenalCoverageState, CapabilityCoverageRecord, CapabilityMode
 
 FIXTURE_CAPABILITY = "jarvis:arsenal:llm-security-fixture"
+FIXTURE_POLICY_SNAPSHOT = {
+    "authorization_class": LOCAL_FIXTURE_ONLY,
+    "permitted_actions": ["source_analysis"],
+    "prohibited_real_targets": True,
+}
 
 
 @dataclass(frozen=True, slots=True)
@@ -90,11 +95,7 @@ class _LabExecutorProvider:
 
 
 def _manifest(run_id: str, authorization, *, scope_digest: str) -> OperatorRunManifest:
-    policy_snapshot = {
-        "authorization_class": LOCAL_FIXTURE_ONLY,
-        "permitted_actions": ["source_analysis"],
-        "prohibited_real_targets": True,
-    }
+    policy_snapshot = FIXTURE_POLICY_SNAPSHOT
     scope_snapshot = {"assets": ["127.0.0.1"], "network_isolation": "loopback-only"}
     if scope_digest != document_digest(scope_snapshot):
         raise ValueError("fixture scope digest is not bound to the immutable scope snapshot")
@@ -213,7 +214,9 @@ def execute_llm_fixture(
     store.append_event(run_id, "arsenal_task_completed", RunStatus.COMPLETED if passed else RunStatus.FAILED, {
         "capability_id": "fixture:ai/llm-security-boundary", "mode": CapabilityMode.FIXTURE.value,
         "mission_id": mission_id, "task_id": task_id, "backend": "canonical-llm-lab",
-        "backend_version": "1", "policy_snapshot_digest": scope_digest,
+        "backend_version": "1", "policy_snapshot_digest": document_digest(
+            FIXTURE_POLICY_SNAPSHOT
+        ),
         "asset": "127.0.0.1", "authorization_decision": decision.request_id or "",
         "execution_grant_id": grant.nonce, "evidence_ref": evidence_ref,
         "evidence_digest": evidence_digest, "result": state_value.value,
@@ -229,7 +232,8 @@ def execute_llm_fixture(
             tool_name="aegis-llm-lab", tool_version="1", technique_id="ai-llm-boundary",
             asset_classes=("ai_model",), implementation_path="aegis.arsenal.llm_lab",
             backend="canonical-llm-lab", backend_version="1", backend_health="HEALTHY",
-            policy_snapshot_digest=scope_digest, asset="127.0.0.1",
+            policy_snapshot_digest=document_digest(FIXTURE_POLICY_SNAPSHOT),
+            asset="127.0.0.1",
             authorization_decision=decision.request_id or "", operator_approval_id=None,
             execution_grant_id=grant.nonce, run_id=run_id, mission_id=mission_id, task_id=task_id,
             executed=outcome.disposition.value == "ready", execution_timestamp=now.isoformat(),
