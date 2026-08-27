@@ -4,9 +4,12 @@ from __future__ import annotations
 
 from aegis.ai.agents.contracts import AgentKind
 from aegis.ai.repo_hunt import (
-    RepoHuntConfig, RepoHuntResult, hunt_repository, score_path, select_files,
+    RepoHuntConfig,
+    RepoHuntResult,
+    hunt_repository,
+    score_path,
+    select_files,
 )
-
 
 # --- deterministic file selection -------------------------------------------
 
@@ -92,7 +95,8 @@ def test_interface_only_files_are_never_selected():
 def test_content_scan_promotes_a_neutral_named_logic_file(tmp_path):
     # the exact CCTP failure: a crown-jewel file whose NAME carries no signal but
     # whose BODY verifies signatures + tracks nonces must outrank an inert file.
-    from aegis.ai.repo_hunt import refine_by_content, select_files as _select
+    from aegis.ai.repo_hunt import refine_by_content
+    from aegis.ai.repo_hunt import select_files as _select
 
     files = {
         "src/MessageTransmitter.sol": "function receiveMessage() { require(ecrecover(h,v,r,s)==attester); usedNonces[nonce]=true; }",
@@ -314,8 +318,8 @@ def test_duplicate_hypotheses_are_collapsed(tmp_path):
 
 
 def test_diversify_caps_files_per_component_across_subdirs():
-    from aegis.ai.repo_hunt import _diversify, SelectedFile
     from aegis.ai.agents.contracts import AgentKind as K
+    from aegis.ai.repo_hunt import SelectedFile, _diversify
     # the exact Matomo case: one dense PLUGIN spread across several subdirs must be
     # capped as ONE component, not 3-per-subdir (which the old dirname cap allowed)
     cands = [
@@ -337,7 +341,7 @@ def test_diversify_caps_files_per_component_across_subdirs():
 
 
 def test_diversify_component_key_adapts_to_shared_prefix():
-    from aegis.ai.repo_hunt import _component_key, _common_prefix_segments
+    from aegis.ai.repo_hunt import _common_prefix_segments, _component_key
     # deep shared prefix (a k8s-style subpath): component is the next segment
     paths = ["a/b/c/token/x.go", "a/b/c/request/y.go", "a/b/c/token/z.go"]
     n = len(_common_prefix_segments(paths))
@@ -346,8 +350,8 @@ def test_diversify_component_key_adapts_to_shared_prefix():
 
 
 def test_diversify_backfills_when_few_dirs():
-    from aegis.ai.repo_hunt import _diversify, SelectedFile
     from aegis.ai.agents.contracts import AgentKind as K
+    from aegis.ai.repo_hunt import SelectedFile, _diversify
     # only one dir but budget of 5 and cap 3 -> backfill fills the remaining 2
     cands = [SelectedFile(f"core/f{i}.go", 8, K.INJECTION) for i in range(5)]
     out = _diversify(cands, max_files=5, max_per_dir=3)
