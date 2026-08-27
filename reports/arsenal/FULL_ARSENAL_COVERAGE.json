@@ -7375,7 +7375,7 @@
     }
   ],
   "generated_at": "2026-08-27T20:35:36.070721+00:00",
-  "git_sha": "",
+  "git_sha": "f579ac35a7f4f47f273eca4ad4cf6bd26560a919",
   "historical_evidence_errors": [],
   "llm_boundary": {
     "authorized_real_ai_execution_coverage": null,

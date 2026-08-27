@@ -2,7 +2,7 @@
 
 Verdict: **FIXTURE ARSENAL PARTIALLY VERIFIED**
 
-Git SHA: ``  
+Git SHA: `f579ac35a7f4f47f273eca4ad4cf6bd26560a919`  
 Arsenal image: `sha256:3766088055a72f82346bf7318cb0acf9ec6b2e82ddf6df6bcba9558f70e9c40d`
 
 ## Metrics
