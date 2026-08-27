@@ -25,20 +25,42 @@ def main(argv: list[str] | None = None) -> int:
     arsenal_audit.add_argument("--markdown", dest="markdown_path")
     arsenal_audit.add_argument("--runs-dir", default="reports/operator-runs")
     arsenal_audit.add_argument(
-        "--release-lock", default="secrets/scanner-releases.lock.json",
+        "--release-lock", default="config/arsenal-release-lock.json",
+    )
+    arsenal_backlog = arsenal_commands.add_parser("backlog")
+    arsenal_backlog.add_argument("--json", dest="json_path", required=True)
+    arsenal_backlog.add_argument("--markdown", dest="markdown_path", required=True)
+    arsenal_backlog.add_argument(
+        "--coverage", default="reports/arsenal/FULL_ARSENAL_COVERAGE.json",
+    )
+    arsenal_backlog.add_argument("--runs-dir", default="reports/operator-runs")
+    arsenal_backlog.add_argument(
+        "--release-lock", default="config/arsenal-release-lock.json",
+    )
+    arsenal_runners = arsenal_commands.add_parser("runners")
+    arsenal_runners.add_argument("--json", dest="json_path")
+    arsenal_runners.add_argument("--markdown", dest="markdown_path")
+    arsenal_runners.add_argument("--runtime-lock-json")
+    arsenal_runners.add_argument(
+        "--coverage", default="reports/arsenal/FULL_ARSENAL_COVERAGE.json",
+    )
+    arsenal_runners.add_argument(
+        "--release-lock", default="config/arsenal-release-lock.json",
     )
     arsenal_exercise = arsenal_commands.add_parser("exercise")
     exercise_selection = arsenal_exercise.add_mutually_exclusive_group(required=True)
     exercise_selection.add_argument("--capability")
     exercise_selection.add_argument("--all-fixture-tools", action="store_true")
+    exercise_selection.add_argument("--runner")
     arsenal_exercise.add_argument("--runs-dir", default="reports/operator-runs")
     arsenal_exercise.add_argument("--json", dest="json_path")
     arsenal_exercise.add_argument("--markdown", dest="markdown_path")
     arsenal_exercise.add_argument("--backend-inventory-json")
     arsenal_exercise.add_argument("--backend-inventory-markdown")
     arsenal_exercise.add_argument("--tool-lock-json")
+    arsenal_exercise.add_argument("--runtime-lock-json")
     arsenal_exercise.add_argument(
-        "--release-lock", default="secrets/scanner-releases.lock.json",
+        "--release-lock", default="config/arsenal-release-lock.json",
     )
     arsenal_exercise.add_argument(
         "--image-digest", default=os.environ.get("AEGIS_ARSENAL_IMAGE_DIGEST", ""),
@@ -112,6 +134,67 @@ def main(argv: list[str] | None = None) -> int:
         if not args.json_path and not args.markdown_path:
             print(json.dumps(report.document(), indent=2, sort_keys=True))
         return 0
+    if args.command == "arsenal" and args.arsenal_command == "backlog":
+        from aegis.arsenal.audit import build_audit
+        from aegis.arsenal.backend_report import build_backend_inventory
+        from aegis.arsenal.backlog import build_never_executed_backlog, write_backlog
+
+        audit = build_audit(
+            runs_dir=args.runs_dir, release_lock_path=args.release_lock,
+        )
+        inventory = build_backend_inventory(audit)
+        coverage = {}
+        coverage_path = Path(args.coverage)
+        if coverage_path.is_file():
+            coverage = json.loads(coverage_path.read_text(encoding="utf-8"))
+        write_backlog(
+            build_never_executed_backlog(inventory, coverage),
+            json_path=args.json_path, markdown_path=args.markdown_path,
+        )
+        return 0
+    if args.command == "arsenal" and args.arsenal_command == "runners":
+        from aegis.arsenal.audit import build_audit
+        from aegis.arsenal.backend_report import (
+            build_backend_inventory,
+            build_runtime_lock,
+            write_json,
+        )
+        from aegis.arsenal.runners import render_runner_markdown, runner_readiness
+
+        inventory = build_backend_inventory(build_audit(
+            release_lock_path=args.release_lock,
+        ))
+        mapping: dict[str, list[str]] = {}
+        executable_mapping: dict[str, list[str]] = {}
+        coverage_path = Path(args.coverage)
+        coverage = (
+            json.loads(coverage_path.read_text(encoding="utf-8"))
+            if coverage_path.is_file() else {}
+        )
+        never = set(coverage.get("never_executed_backend_ids", ()))
+        for backend in inventory["backends"]:
+            if backend.get("external"):
+                mapping.setdefault(backend["runner_profile"], []).append(
+                    backend["backend_runtime_id"]
+                )
+                if backend["backend_id"] not in never and coverage:
+                    executable_mapping.setdefault(backend["runner_profile"], []).append(
+                        backend["backend_runtime_id"]
+                    )
+        document = runner_readiness(
+            backend_runtimes=mapping, executable_runtimes=executable_mapping,
+        )
+        if args.json_path:
+            write_json(args.json_path, document)
+        if args.markdown_path:
+            Path(args.markdown_path).write_text(
+                render_runner_markdown(document), encoding="utf-8",
+            )
+        if args.runtime_lock_json:
+            write_json(args.runtime_lock_json, build_runtime_lock(inventory))
+        if not args.json_path and not args.markdown_path and not args.runtime_lock_json:
+            print(json.dumps(document, indent=2, sort_keys=True))
+        return 0
     if args.command == "arsenal" and args.arsenal_command == "exercise":
         from aegis.ai.tool_runtime import ToolRuntimeManager, ToolRuntimeStatus
         from aegis.arsenal.audit import build_audit
@@ -119,6 +202,7 @@ def main(argv: list[str] | None = None) -> int:
             backend_prerequisite,
             build_backend_inventory,
             build_full_coverage_report,
+            build_runtime_lock,
             build_tool_lock,
             canonical_binary,
             render_backend_inventory_markdown,
@@ -168,6 +252,28 @@ def main(argv: list[str] | None = None) -> int:
                     capability_id
                     for capability_id in fixture_capabilities
                     if capability_id not in projected_aliases
+                ]
+            elif args.runner:
+                from aegis.arsenal.runners import runner_profile_for_binary
+
+                fixture_capabilities = [
+                    item for item in definitions if item.fixture_executable
+                ]
+                projected_aliases = {
+                    alias for item in fixture_capabilities
+                    for alias in equivalent_capability_ids(item.capability_id)
+                }
+                capabilities = [
+                    item.capability_id for item in fixture_capabilities
+                    if item.capability_id not in projected_aliases
+                    and (
+                        item.capability_id == "fixture:ai/llm-security-boundary"
+                        and args.runner == "arsenal-llm"
+                        or item.tool_backends
+                        and runner_profile_for_binary(
+                            canonical_binary(item.tool_backends[0].binary)
+                        ) == args.runner
+                    )
                 ]
             else:
                 capabilities = [args.capability]
@@ -306,6 +412,11 @@ def main(argv: list[str] | None = None) -> int:
                 write_json(
                     args.tool_lock_json,
                     build_tool_lock(inventory, image_digest=args.image_digest),
+                )
+            if args.runtime_lock_json:
+                write_json(
+                    args.runtime_lock_json,
+                    build_runtime_lock(inventory, image_digest=args.image_digest),
                 )
         elif args.markdown_path:
             audit = build_audit(runs_dir=args.runs_dir, release_lock_path=args.release_lock)

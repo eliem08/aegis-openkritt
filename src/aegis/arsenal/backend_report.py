@@ -14,6 +14,7 @@ from typing import Any, Iterable, Mapping
 from aegis.ai.tool_runtime import ToolRuntimeManager, ToolRuntimeStatus
 
 from .models import ArsenalAuditReport, ArsenalCoverageState, CapabilityDefinition
+from .runners import backend_runtime_id, runner_profile_for_binary
 
 _INTERNAL_PREFIXES = ("aegis-", "stdlib-")
 _BINARY_ALIASES = {
@@ -137,8 +138,14 @@ def build_backend_inventory(
                     "checked_at": _now(),
                 }
             capability_ids = sorted({item.capability_id for item in definitions})
+            runner_profile = runner_profile_for_binary(binary)
             rows.append({
                 "backend_id": f"{'external' if external else 'internal'}:{binary}",
+                "backend_runtime_id": (
+                    backend_runtime_id(binary, runner_profile=runner_profile)
+                    if external else f"aegis/{binary or backends[0].backend_id}"
+                ),
+                "runner_profile": runner_profile if external else "arsenal-core",
                 "external": external,
                 "binary": binary,
                 "tool_names": sorted({item.tool_name for item in backends}),
@@ -175,14 +182,22 @@ def build_backend_inventory(
                 "installation_source": "resolved executable/runtime probe" if external else "Aegis",
             })
     external_rows = [item for item in rows if item["external"]]
+    logical_backend_claims = sum(
+        len(item.tool_backends) for item in report.definitions
+    )
+    external_runtime_ids = {
+        item["backend_runtime_id"] for item in external_rows
+    }
     return {
         "schema_version": 1,
         "generated_at": _now(),
         "git_sha": _git_sha(),
         "metrics": {
             "canonical_capability_count": len(report.definitions),
+            "logical_backend_count": logical_backend_claims,
             "unique_backend_count": len(rows),
             "unique_external_backend_count": len(external_rows),
+            "unique_external_executable_runtime_count": len(external_runtime_ids),
             "unique_internal_backend_count": len(rows) - len(external_rows),
             "installed_external_backend_count": sum(
                 item["runtime"]["status"] == ToolRuntimeStatus.READY.value
@@ -203,6 +218,8 @@ def build_tool_lock(inventory: Mapping[str, Any], *, image_digest: str = "") -> 
             continue
         tools.append({
             "backend_id": backend["backend_id"],
+            "backend_runtime_id": backend.get("backend_runtime_id", backend["backend_id"]),
+            "runner_profile": backend.get("runner_profile", ""),
             "tool_names": backend["tool_names"],
             "executable_path": runtime.get("resolved_path", ""),
             "installed_version": runtime.get("version", ""),
@@ -219,6 +236,63 @@ def build_tool_lock(inventory: Mapping[str, Any], *, image_digest: str = "") -> 
         "git_sha": inventory.get("git_sha", ""),
         "arsenal_image_digest": image_digest,
         "tools": sorted(tools, key=lambda item: item["backend_id"]),
+    }
+
+
+def build_runtime_lock(inventory: Mapping[str, Any], *, image_digest: str = "") -> dict[str, Any]:
+    """Create the exhaustive runtime-installation manifest from canonical inventory.
+
+    Unknown installation metadata remains explicit.  The lock is not proof of execution; its
+    records are joined with coverage evidence by ``backend_runtime_id``.
+    """
+    rows = []
+    for backend in inventory.get("backends", []):
+        if not backend.get("external"):
+            continue
+        runtime = dict(backend.get("runtime") or {})
+        binary = str(backend.get("binary") or "")
+        profile = str(backend.get("runner_profile") or runner_profile_for_binary(binary))
+        expected = list(backend.get("expected_versions", ()))
+        installed = str(runtime.get("version") or "")
+        rows.append({
+            "backend_runtime_id": backend.get("backend_runtime_id") or backend_runtime_id(
+                binary, runner_profile=profile,
+            ),
+            "name": ",".join(backend.get("tool_names", ())) or binary,
+            "version": installed or (expected[0] if expected else "UNRESOLVED"),
+            "platforms": [profile],
+            "installation_method": (
+                "pinned-container-image" if runtime.get("resolved_path") else "UNRESOLVED"
+            ),
+            "source": backend.get("installation_source", "UNRESOLVED"),
+            "sha256": str(runtime.get("sha256") or ""),
+            "binary": binary,
+            "health_probe": [binary, "--version"] if binary else [],
+            "runner_profile": profile,
+            "resource_limits": {
+                "wall_clock_seconds": 1200,
+                "cpu": 4,
+                "ram_mb": 6144,
+                "output_bytes": 8388608,
+                "process_count": 512,
+                "concurrency": 1,
+            },
+            "network_policy": (
+                "isolated-fixture-network" if profile in {
+                    "arsenal-network-lab", "arsenal-android", "arsenal-firmware",
+                    "arsenal-kubernetes",
+                } else "none"
+            ),
+            "fixture_provider": list(backend.get("fixture_providers", ())),
+            "capability_ids": list(backend.get("capability_ids", ())),
+            "container_digest": image_digest,
+            "status": str(runtime.get("status") or "unavailable"),
+        })
+    return {
+        "schema_version": 1,
+        "generated_at": inventory.get("generated_at", ""),
+        "git_sha": inventory.get("git_sha", ""),
+        "runtimes": sorted(rows, key=lambda item: item["backend_runtime_id"]),
     }
 
 
@@ -345,16 +419,20 @@ def render_backend_inventory_markdown(inventory: Mapping[str, Any]) -> str:
         "# Aegis backend inventory", "",
         f"Git SHA: `{inventory.get('git_sha', '')}`", "",
         f"Canonical capabilities: **{metrics['canonical_capability_count']}**  ",
+        f"Logical backend claims: **{metrics['logical_backend_count']}**  ",
         f"Unique external backends: **{metrics['unique_external_backend_count']}**  ",
+        "Unique external executable runtimes: "
+        f"**{metrics['unique_external_executable_runtime_count']}**  ",
         f"Installed external backends: **{metrics['installed_external_backend_count']}**", "",
-        "| Backend | State | Version | Capabilities | Prerequisite |",
-        "|---|---|---|---:|---|",
+        "| Backend runtime | State | Runner | Version | Capabilities | Prerequisite |",
+        "|---|---|---|---|---:|---|",
     ]
     for item in inventory["backends"]:
         runtime = item["runtime"]
         lines.append(
-            f"| `{item['backend_id']}` | {item['current_state']} | "
-            f"`{runtime.get('version', '')}` | {item['capability_count']} | "
+            f"| `{item['backend_runtime_id']}` | {item['current_state']} | "
+            f"`{item['runner_profile']}` | `{runtime.get('version', '')}` | "
+            f"{item['capability_count']} | "
             f"{item.get('prerequisite', '')} |"
         )
     return "\n".join(lines) + "\n"
@@ -396,7 +474,7 @@ def write_json(path: str | Path, document: Mapping[str, Any]) -> None:
 
 __all__ = [
     "backend_prerequisite", "build_backend_inventory", "build_full_coverage_report",
-    "build_tool_lock",
+    "build_runtime_lock", "build_tool_lock",
     "canonical_binary", "render_backend_inventory_markdown",
     "render_full_coverage_markdown", "write_json",
 ]
