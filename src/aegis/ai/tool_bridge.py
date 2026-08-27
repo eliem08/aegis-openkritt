@@ -220,8 +220,14 @@ class ToolBridge:
                     runtime=runtime_record.as_dict() if runtime_record else {},
                 )
 
-            findings = _drop_noise_paths(_parse(tool, stdout))
-            if exit_code != 0 and not findings:
+            # Some scanners (notably Semgrep with ``--error``) return a non-zero
+            # status when they found matches. Classify execution from the raw,
+            # parseable scanner result before applying Aegis' non-product-path
+            # suppression; otherwise an all-noise result is misreported as a tool
+            # outage and the successful scan disappears from coverage evidence.
+            parsed_findings = _parse(tool, stdout)
+            findings = _drop_noise_paths(parsed_findings)
+            if exit_code != 0 and not parsed_findings:
                 emit(
                     "scanner",
                     {
