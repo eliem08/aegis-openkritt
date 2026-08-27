@@ -1,0 +1,13 @@
+{
+  "detail": {
+    "capability_id": "tool:gosec/code",
+    "mission_id": "arsenal-tool-c0b87080a668",
+    "task_id": "arsenal-tool-c0b87080a668-execute"
+  },
+  "digest": "e77cabe9ee5cf009220475ffa955b9a7ed8397abb4fcf1f839b53fb41fd662e3",
+  "event_type": "arsenal_task_started",
+  "observed_at": "2026-08-27T20:33:01.283701+00:00",
+  "previous_digest": "5f20c1fa29144f7cefa4e7f0c205d6efc476e2f499ad0ee5cc0c348d3bc23b90",
+  "sequence": 3,
+  "status": "running"
+}

@@ -1,0 +1,13 @@
+{
+  "detail": {
+    "capability_id": "tool:mythril/contract",
+    "mission_id": "arsenal-tool-0d641fa22b4c",
+    "task_id": "arsenal-tool-0d641fa22b4c-execute"
+  },
+  "digest": "14d4cc28eb725a31476c41344fc4a51770a15b7d753baf4154c510d2f7ceb2f6",
+  "event_type": "arsenal_task_started",
+  "observed_at": "2026-08-27T20:33:18.294590+00:00",
+  "previous_digest": "81f273c21bd9bec78c1a6e94dbe7c12c079e5df834dc7cf3587697faa86bfb09",
+  "sequence": 3,
+  "status": "running"
+}

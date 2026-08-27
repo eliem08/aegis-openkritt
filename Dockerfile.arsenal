@@ -10,12 +10,32 @@
 #   docker run --rm --env-file .env aegis-arsenal \
 #       python -m aegis.ai.hunt_repo owner/repo --files 12 --samples 3
 #
-FROM python:3.12-slim-bookworm
+FROM python:3.12-slim-bookworm@sha256:0f5b26b9518d002b6173fd61daad821fa340635ebfec5bba471013f9ca114579
+
+ARG SEMGREP_VERSION=1.172.0
+ARG BANDIT_VERSION=1.9.4
+ARG NJSSCAN_VERSION=0.4.3
+ARG SLITHER_VERSION=0.11.6
+ARG DETECT_SECRETS_VERSION=1.5.0
+ARG CHECKOV_VERSION=3.3.9
+ARG MYTHRIL_VERSION=0.24.8
+ARG BRAKEMAN_VERSION=7.1.1
+ARG PSALM_VERSION=6.16.1
+ARG RETIRE_VERSION=5.4.3
+ARG GOSEC_VERSION=v2.22.8
+ARG OSV_SCANNER_VERSION=2.5.1
+ARG TRIVY_VERSION=0.73.0
+ARG GRYPE_VERSION=0.116.1
+ARG GITLEAKS_VERSION=8.21.2
+ARG RETIRE_REPOSITORY_COMMIT=7ddda6314785f7e4dbca442296aa399520e13c13
 
 ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     AEGIS_HOST=0.0.0.0 \
     AEGIS_PORT=8000 \
+    AEGIS_SCANNER_HOME=/root \
+    GRYPE_DB_AUTO_UPDATE=false \
+    GRYPE_CHECK_FOR_APP_UPDATE=false \
     PATH="/root/.composer/vendor/bin:/root/go/bin:/usr/local/go/bin:${PATH}" \
     AEGIS_SKILLS_DIR=/root/.aegis/skills \
     AEGIS_SKILL_CMD="{python} -m aegis.ai.skill_runner --skill {source} --target {target}" \
@@ -57,12 +77,29 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 #     fetch the exact newer toolchain a tool pins (e.g. gosec needs go >= 1.25). ---
 RUN curl -sfL https://go.dev/dl/go1.22.5.linux-amd64.tar.gz | tar -C /usr/local -xz
 
-# --- Python scanners (semgrep, bandit, njsscan, slither, checkov, detect-secrets, mythril) ---
-RUN pip install --upgrade pip && \
-    pip install semgrep bandit njsscan slither-analyzer detect-secrets checkov
-# mythril (Solidity symbolic exec) + a solc via solc-select (no apt solc package exists)
-RUN pip install mythril solc-select && solc-select install 0.8.24 && solc-select use 0.8.24 \
-    || echo "mythril/solc install skipped (heavy build)"
+# --- Python scanners. Every production binary is version-pinned; build failures are fatal. ---
+RUN pip install --upgrade "pip==25.2" "setuptools<81" && \
+    pip install \
+      "semgrep==${SEMGREP_VERSION}" \
+      "bandit==${BANDIT_VERSION}" \
+      "slither-analyzer==${SLITHER_VERSION}" \
+      "detect-secrets==${DETECT_SECRETS_VERSION}" \
+      "checkov==${CHECKOV_VERSION}"
+# njsscan pins a different Semgrep release; keep its interpreter and engine isolated.
+RUN python -m venv /opt/aegis-tools/njsscan && \
+    /opt/aegis-tools/njsscan/bin/pip install "pip==25.2" && \
+    /opt/aegis-tools/njsscan/bin/pip install "njsscan==${NJSSCAN_VERSION}" && \
+    ln -s /opt/aegis-tools/njsscan/bin/njsscan /usr/local/bin/njsscan
+# Mythril has an older dependency surface, so isolate it from the control-plane environment.
+RUN python -m venv /opt/aegis-tools/mythril && \
+    /opt/aegis-tools/mythril/bin/pip install "pip==25.2" "setuptools<81" && \
+    /opt/aegis-tools/mythril/bin/pip install \
+      "mythril==${MYTHRIL_VERSION}" "solc-select==1.1.0" && \
+    ln -s /opt/aegis-tools/mythril/bin/myth /usr/local/bin/myth
+RUN curl -fL \
+      "https://github.com/ethereum/solidity/releases/download/v0.8.24/solc-static-linux" \
+      -o /usr/local/bin/solc && chmod 0755 /usr/local/bin/solc && \
+    solc --version | grep -F "0.8.24"
 
 # --- PHP: Psalm (taint) · Ruby: Brakeman · Node: retire.js ---
 # Each install is its OWN layer and non-fatal: a transient network blip on one tool can't
@@ -72,40 +109,47 @@ ENV COMPOSER_ALLOW_SUPERUSER=1 COMPOSER_PROCESS_TIMEOUT=900
 # Psalm + WordPress stubs so taint analysis resolves wp_*/$wpdb and traces through them
 # (psalm on a WP plugin is near-blind without these). AEGIS_PHP_STUBS is injected into the
 # psalm command when the file exists.
-RUN for i in 1 2 3; do composer global require --no-interaction vimeo/psalm php-stubs/wordpress-stubs && break || sleep 5; done \
-    || echo "psalm skipped"
+RUN composer global require --no-interaction \
+      "vimeo/psalm:${PSALM_VERSION}" "php-stubs/wordpress-stubs:^6.7"
 ENV AEGIS_PHP_STUBS=/root/.composer/vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
-RUN gem install --no-document brakeman || echo "brakeman skipped"
-RUN npm install -g retire || echo "retire.js skipped"
+RUN gem install --no-document brakeman -v "${BRAKEMAN_VERSION}"
+RUN npm install -g "retire@${RETIRE_VERSION}"
+RUN mkdir -p /opt/aegis-data/retire && curl -fL \
+      "https://raw.githubusercontent.com/RetireJS/retire.js/${RETIRE_REPOSITORY_COMMIT}/repository/jsrepository.json" \
+      -o /opt/aegis-data/retire/jsrepository.json
 
 # --- Go-based scanners: gosec + osv-scanner via modern Go's go install ---
-RUN go install github.com/securego/gosec/v2/cmd/gosec@latest || echo "gosec skipped"
-RUN go install github.com/google/osv-scanner/cmd/osv-scanner@v1.9.2 || echo "osv-scanner skipped"
+RUN go install "github.com/securego/gosec/v2/cmd/gosec@${GOSEC_VERSION}"
+RUN curl -fL \
+      "https://github.com/google/osv-scanner/releases/download/v${OSV_SCANNER_VERSION}/osv-scanner_linux_amd64" \
+      -o /usr/local/bin/osv-scanner && chmod 0755 /usr/local/bin/osv-scanner
+RUN mkdir -p /root/.cache/osv-scalibr/npm && curl -fL \
+      "https://osv-vulnerabilities.storage.googleapis.com/npm/all.zip" \
+      -o /root/.cache/osv-scalibr/npm/all.zip
 
 # --- Prebuilt-binary scanners: trivy, grype, gitleaks (to /usr/local/bin) ---
-RUN curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh \
-      | sh -s -- -b /usr/local/bin || echo "trivy skipped"
-RUN curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh \
-      | sh -s -- -b /usr/local/bin || echo "grype skipped"
-RUN GL=8.21.2 && curl -sfL \
-      "https://github.com/gitleaks/gitleaks/releases/download/v${GL}/gitleaks_${GL}_linux_x64.tar.gz" \
-      | tar -xz -C /usr/local/bin gitleaks || echo "gitleaks skipped"
+RUN curl -sfL \
+      "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz" \
+      | tar -xz -C /usr/local/bin trivy
+RUN curl -sfL \
+      "https://github.com/anchore/grype/releases/download/v${GRYPE_VERSION}/grype_${GRYPE_VERSION}_linux_amd64.tar.gz" \
+      | tar -xz -C /usr/local/bin grype
+RUN curl -sfL \
+      "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
+      | tar -xz -C /usr/local/bin gitleaks
 
-# --- docker CLI (late layer to keep the heavy scanner layers cached). Strix's sandbox +
-#     reproduction's compose talk to the HOST daemon via a mounted /var/run/docker.sock. ---
-RUN apt-get update && apt-get install -y --no-install-recommends docker.io \
-    && rm -rf /var/lib/apt/lists/* || echo "docker cli skipped"
+# Dependency databases are baked into the image so fixture runs can use --network none.
+RUN trivy image --download-db-only --no-progress
+RUN grype db update
 
 # --- Strix (usestrix/strix) — arm's-length autonomous AI pentester, Apache-2.0.
 #     Invoked opt-in (AEGIS_ALLOW_STRIX=1) on local source; drives its own LLM (point
 #     STRIX_LLM/LLM_API_KEY at your model). Installed here so the bin resolves. ---
-RUN pip install strix-agent || echo "strix-agent skipped"
-
 # --- Aegis itself (editable) ---
 WORKDIR /app
 COPY pyproject.toml README.md ./
 COPY src ./src
-RUN pip install -e ".[api]" || pip install -e .
+RUN pip install -e ".[api,postgres]"
 COPY . .
 
 # clone the arm's-length skill catalog so the prompt-only runner can read their instructions
@@ -114,17 +158,12 @@ COPY . .
 # and runs it via the LLM over LOCAL source; it never executes a skill's own scripts, never
 # copies their text into Aegis, and never performs the live-target actions some describe.
 # Gabson0x/bountyforge is unlicensed, so it is invoke-only here (read, never vendored).
-RUN mkdir -p "$AEGIS_SKILLS_DIR" && \
-    for repo in pashov/skills cloudflare/security-audit-skill github/awesome-copilot \
-                trailofbits/skills getsentry/skills NMitchem/SkillScan \
-                dstiliadis/security-review-skill Gabson0x/bountyforge ; do \
-      name=$(echo "$repo" | tr '/' '_') ; \
-      git clone --depth 1 "https://github.com/$repo.git" "$AEGIS_SKILLS_DIR/$name" 2>/dev/null || true ; \
-    done
-
-# report which scanners resolved (non-fatal) so the build log shows the live arsenal
-RUN python -c "from aegis.ai.tool_bridge import available_tools; \
-print('SCANNERS AVAILABLE:', sorted({t.name for ln in ('code','secrets','deps','contract') for t in available_tools(ln)}))" || true
+# Fail packaging if a required scanner is absent. This is not execution credit: only the
+# signed fixture path can produce an EXECUTED_* coverage record.
+RUN python -c "from aegis.ai.tool_registry import TOOLS; from aegis.ai.tool_bridge import available_tools; \
+expected={t.name for t in TOOLS}; actual={t.name for t in available_tools()}; \
+assert expected == actual, f'missing packaged scanners: {sorted(expected-actual)}'; \
+print('PACKAGED SCANNERS:', sorted(actual))"
 
 EXPOSE 8000
 CMD ["python", "-m", "aegis.api"]

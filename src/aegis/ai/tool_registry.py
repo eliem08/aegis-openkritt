@@ -190,6 +190,13 @@ def _parse_trivy(data) -> list[dict]:
             rows.append(_row("trivy", f"{v.get('VulnerabilityID','CVE')} in {v.get('PkgName','')}",
                              res.get("Target"), 0, v.get("Title", ""),
                              str(v.get("Severity", "medium")).lower(), v.get("Description", "")))
+        for secret in res.get("Secrets", []) or []:
+            rows.append(_row(
+                "trivy", secret.get("RuleID", "secret"), res.get("Target"),
+                secret.get("StartLine", 0), secret.get("Title", "secret detected"),
+                str(secret.get("Severity", "medium")).lower(),
+                secret.get("Category", "potential secret"),
+            ))
     return rows
 
 

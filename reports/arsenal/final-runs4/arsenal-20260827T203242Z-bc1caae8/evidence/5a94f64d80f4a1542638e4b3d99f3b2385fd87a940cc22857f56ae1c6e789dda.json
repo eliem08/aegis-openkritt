@@ -1,0 +1,13 @@
+{
+  "blocking_reason": "binary not found",
+  "capability_id": "asset:pip-audit/python-dependency-vulnerability-analysis",
+  "coverage_state": "UNAVAILABLE",
+  "evidence_digest": "5a94f64d80f4a1542638e4b3d99f3b2385fd87a940cc22857f56ae1c6e789dda",
+  "execution_grant_issued": false,
+  "execution_performed": false,
+  "kind": "arsenal_fixture_blocked",
+  "mission_id": "arsenal-blocked-bc1caae870ae6d5b",
+  "mode": "FIXTURE",
+  "run_id": "arsenal-20260827T203242Z-bc1caae8",
+  "task_id": "arsenal-blocked-bc1caae870ae6d5b-execute"
+}

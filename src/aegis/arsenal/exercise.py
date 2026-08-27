@@ -262,6 +262,115 @@ def execute_llm_fixture(
     )
 
 
+def record_blocked_fixture(
+    capability_id: str,
+    *,
+    state_value: ArsenalCoverageState,
+    reason: str,
+    runs_dir: str | Path,
+    coverage_repository: CoverageRepository | None = None,
+) -> ExerciseResult:
+    """Persist a planned fixture that cannot honestly reach grant issuance/execution."""
+    if state_value in {
+        ArsenalCoverageState.EXECUTED_PASS,
+        ArsenalCoverageState.EXECUTED_FINDING,
+    }:
+        raise ValueError("blocked fixture cannot use an executed terminal state")
+    definitions = {
+        item.capability_id: item for item in ArsenalInventoryBuilder().build()
+    }
+    definition = definitions.get(capability_id)
+    if definition is None:
+        raise ValueError(f"unknown fixture capability: {capability_id}")
+    now = datetime.now(UTC)
+    key = sha256(f"{capability_id}:{now.isoformat()}".encode()).hexdigest()[:16]
+    run_id = f"arsenal-{now.strftime('%Y%m%dT%H%M%SZ')}-{key[:8]}"
+    mission_id = f"arsenal-blocked-{key}"
+    task_id = f"{mission_id}-execute"
+    raw = HmacSignatureVerifier({"fixture-auth": secrets.token_bytes(32)})
+    verifier = LocalFixtureSignatureVerifier(raw)
+    authorization = signed_fixture_authorization(verifier)
+    scope_snapshot = {"assets": ["127.0.0.1"], "network_isolation": "loopback-only"}
+    scope_digest = document_digest(scope_snapshot)
+    store = ImmutableRunStore(runs_dir)
+    manifest = OperatorRunManifest(
+        1, run_id, RunMode.ARSENAL_FIXTURE, now.isoformat(), "local-fixture-operator",
+        "aegis-local-fixtures", "built-in deterministic fixtures", ("127.0.0.1",),
+        None, (), FIXTURE_POLICY_SNAPSHOT, document_digest(FIXTURE_POLICY_SNAPSHOT),
+        scope_snapshot, scope_digest, {"capabilities": [capability_id]},
+        RunBudgets(1, 1.0, 0.0, max_duration_seconds=1, max_attempts=1),
+        authorization.model_dump(mode="json"),
+    )
+    store.create(manifest)
+    task = MissionTask(
+        task_id, "reproduction", "execute_blocked_arsenal_fixture",
+        payload={"authorization_class": LOCAL_FIXTURE_ONLY, "capability_id": capability_id},
+        opportunity_id=f"fixture-opp-{key}", asset_id="fixture:blocked",
+        asset_kind=(definition.supported_asset_classes[0]
+                    if definition.supported_asset_classes else "source_code"),
+        asset_locator="127.0.0.1", executor_capability=(
+            definition.executor_provider or "unavailable"
+        ), risk="offline", expected_cost_usd=0.0,
+        evidence_required=("blocking_reason",), idempotency_key=f"{mission_id}:{task_id}",
+    )
+    plan = MissionPlan(
+        mission_id, scope_digest, f"Blocked fixture for {capability_id}", (task,),
+        opportunity_id=task.opportunity_id, program_id="aegis-local-fixtures",
+        asset_id=task.asset_id, asset_kind=task.asset_kind,
+        authorization_id=authorization.authorization_id,
+    )
+    scheduler_state = JarvisStateStore(":memory:")
+    MissionScheduler(scheduler_state).create(plan)
+    evidence = {
+        "kind": "arsenal_fixture_blocked", "capability_id": capability_id,
+        "mode": CapabilityMode.FIXTURE.value, "run_id": run_id,
+        "mission_id": mission_id, "task_id": task_id,
+        "execution_performed": False, "execution_grant_issued": False,
+        "coverage_state": state_value.value, "blocking_reason": reason,
+    }
+    evidence_ref, evidence_digest = store.persist_evidence(run_id, evidence)
+    store.append_event(run_id, "arsenal_task_blocked", RunStatus.FAILED, {
+        "capability_id": capability_id, "mission_id": mission_id, "task_id": task_id,
+        "result": state_value.value, "blocking_reason": reason,
+        "evidence_ref": evidence_ref, "evidence_digest": evidence_digest,
+        "execution_grant_id": None,
+    })
+    recorded = False
+    degraded = coverage_repository is None
+    backend = definition.tool_backends[0] if definition.tool_backends else None
+    if coverage_repository is not None:
+        record = CapabilityCoverageRecord(
+            f"acr:{sha256((run_id + task_id).encode()).hexdigest()[:24]}",
+            f"arsenal:{run_id}:{task_id}", capability_id, CapabilityMode.FIXTURE,
+            backend.tool_name if backend else "", "",
+            definition.technique_ids[0] if definition.technique_ids else "",
+            definition.supported_asset_classes, definition.implementation_paths[0],
+            backend.backend_id if backend else "", backend.adapter_version if backend else "",
+            "UNAVAILABLE", document_digest(FIXTURE_POLICY_SNAPSHOT), "127.0.0.1",
+            "prerequisite-resolution", None, None, run_id, mission_id, task_id, False,
+            None, None, state_value, (), reason, "PREREQUISITE_UNSATISFIED", "NOT_RUN",
+        )
+        try:
+            _, recorded = coverage_repository.record(record)
+        except Exception as exc:
+            degraded = True
+            store.append_event(run_id, "coverage_recording_degraded", RunStatus.FAILED, {
+                "error_class": type(exc).__name__, "execution_result_remains_canonical": True,
+            })
+    if coverage_repository is None:
+        store.append_event(run_id, "coverage_recording_degraded", RunStatus.FAILED, {
+            "error_class": "CoverageRepositoryUnavailable",
+            "execution_result_remains_canonical": True,
+        })
+    store.verify(run_id)
+    scheduler_state.close()
+    return ExerciseResult(
+        run_id, mission_id, task_id, capability_id, state_value,
+        evidence_ref, evidence_digest, recorded, degraded,
+        {"execution_performed": False, "blocking_reason": reason},
+    )
+
+
 def exercise_inventory() -> tuple[str, ...]:
     """Return fixture-executable capability IDs without executing or targeting anything."""
     return tuple(
@@ -276,4 +385,7 @@ def write_result(result: ExerciseResult, path: str | Path) -> None:
     destination.write_text(json.dumps(result.document(), indent=2, sort_keys=True) + "\n")
 
 
-__all__ = ["ExerciseResult", "execute_llm_fixture", "exercise_inventory", "write_result"]
+__all__ = [
+    "ExerciseResult", "execute_llm_fixture", "exercise_inventory",
+    "record_blocked_fixture", "write_result",
+]

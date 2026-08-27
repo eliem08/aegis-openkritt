@@ -122,18 +122,39 @@ def _historical_execution(
                 capability_id = f"hunter:{technique}"
             if not capability_id:
                 continue
+            recorded_result = str(event.detail.get("result") or "")
+            executed = evidence.get("execution_performed") is True
+            if recorded_result not in {
+                ArsenalCoverageState.EXECUTED_PASS.value,
+                ArsenalCoverageState.EXECUTED_FINDING.value,
+            } or not executed:
+                # Preserve the immutable event/evidence in the run store, but do not
+                # reconstruct failed, blocked, or merely planned work as execution coverage.
+                continue
             grant = dict(evidence.get("grant") or {})
+            if not grant:
+                grant = dict(evidence.get("execution_grant_payload") or {})
             constraints = dict(grant.get("constraints") or {})
-            state = ArsenalCoverageState.EXECUTED_PASS
+            state = ArsenalCoverageState(recorded_result)
             finding_ids = tuple(str(item) for item in evidence.get("finding_ids") or ())
             if finding_ids and evidence.get("human_reviewed") is True:
                 state = ArsenalCoverageState.EXECUTED_FINDING
+            elif state is ArsenalCoverageState.EXECUTED_FINDING:
+                # An immutable executor event cannot award finding credit without the
+                # canonical human-reviewed finding reference required by the schema.
+                state = ArsenalCoverageState.EXECUTED_PASS
             history.append(HistoricalExecution(
                 capability_id=capability_id, mode=mode, state=state, run_id=run_id,
                 mission_id=str(evidence.get("mission_id") or ""),
                 task_id=str(evidence.get("task_id") or ""),
-                backend=str(evidence.get("backend") or technique),
-                backend_version=str(evidence.get("backend_version") or ""),
+                backend=str(
+                    evidence.get("backend") or event.detail.get("backend") or technique
+                ),
+                backend_version=str(
+                    evidence.get("backend_version")
+                    or event.detail.get("backend_version")
+                    or ""
+                ),
                 policy_snapshot_digest=str(evidence.get("policy_snapshot_digest") or ""),
                 asset=str(evidence.get("asset") or ""),
                 authorization_decision=str(constraints.get("decision_digest") or ""),

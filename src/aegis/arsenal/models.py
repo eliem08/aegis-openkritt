@@ -177,6 +177,24 @@ class CapabilityCoverageRecord:
     negative_control_status: str = "NOT_APPLICABLE"
     historical_evidence_invalid: bool = False
     schema_version: int = 1
+    backend_execution_id: str = ""
+    binary_path: str = ""
+    container_digest: str = ""
+    adapter_version: str = ""
+    capability_ids: tuple[str, ...] = ()
+    fixture_version: str = ""
+    positive_fixture_digest: str = ""
+    negative_fixture_digest: str = ""
+    execution_started_at: str = ""
+    execution_completed_at: str = ""
+    duration_ms: int = 0
+    exit_code: int | None = None
+    stdout_digest: str = ""
+    stderr_digest: str = ""
+    parsed_result_digest: str = ""
+    positive_control_detected: bool | None = None
+    negative_control_clean: bool | None = None
+    supersedes_coverage_record_id: str | None = None
 
     def __post_init__(self) -> None:
         if not all((self.coverage_record_id, self.idempotency_key, self.capability_id)):
@@ -187,12 +205,55 @@ class CapabilityCoverageRecord:
             raise ValueError("EXECUTED_FINDING requires canonical human-reviewed finding IDs")
         if self.executed and not all((self.execution_timestamp, self.evidence_digest)):
             raise ValueError("executed coverage requires timestamp and evidence digest")
+        if self.schema_version >= 2 and self.executed:
+            if not all((
+                self.backend_execution_id,
+                self.binary_path,
+                self.adapter_version,
+                self.capability_ids,
+                self.fixture_version,
+                self.positive_fixture_digest,
+                self.negative_fixture_digest,
+                self.execution_started_at,
+                self.execution_completed_at,
+                self.stdout_digest,
+                self.stderr_digest,
+                self.parsed_result_digest,
+            )):
+                raise ValueError("schema-v2 execution coverage requires complete backend evidence")
+        if self.result is ArsenalCoverageState.EXECUTED_PASS and self.schema_version >= 2:
+            if self.positive_control_detected is not True:
+                raise ValueError("EXECUTED_PASS requires a detected positive control")
+            if self.negative_control_clean is not True:
+                raise ValueError("EXECUTED_PASS requires a clean negative control")
 
     def document(self) -> dict[str, Any]:
         value = asdict(self)
         value["mode"] = self.mode.value
         value["result"] = self.result.value
         return value
+
+    def execution_metadata(self) -> dict[str, Any]:
+        return {
+            "backend_execution_id": self.backend_execution_id,
+            "binary_path": self.binary_path,
+            "container_digest": self.container_digest,
+            "adapter_version": self.adapter_version,
+            "capability_ids": list(self.capability_ids),
+            "fixture_version": self.fixture_version,
+            "positive_fixture_digest": self.positive_fixture_digest,
+            "negative_fixture_digest": self.negative_fixture_digest,
+            "execution_started_at": self.execution_started_at,
+            "execution_completed_at": self.execution_completed_at,
+            "duration_ms": self.duration_ms,
+            "exit_code": self.exit_code,
+            "stdout_digest": self.stdout_digest,
+            "stderr_digest": self.stderr_digest,
+            "parsed_result_digest": self.parsed_result_digest,
+            "positive_control_detected": self.positive_control_detected,
+            "negative_control_clean": self.negative_control_clean,
+            "supersedes_coverage_record_id": self.supersedes_coverage_record_id,
+        }
 
 
 @dataclass(frozen=True, slots=True)

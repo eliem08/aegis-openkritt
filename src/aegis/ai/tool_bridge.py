@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from hashlib import sha256
 
 from .tool_registry import TOOLS, Tool, tools_for
 from .tool_runtime import (
@@ -28,6 +30,13 @@ class ToolResult:
     findings: list[dict] = field(default_factory=list)
     error: str = ""
     runtime: dict = field(default_factory=dict)
+    exit_code: int | None = None
+    duration_ms: int = 0
+    execution_started_at: str = ""
+    execution_completed_at: str = ""
+    stdout_digest: str = ""
+    stderr_digest: str = ""
+    parsed_result_digest: str = ""
 
 
 def resolve_binary(binary: str) -> str | None:
@@ -80,7 +89,9 @@ def _scanner_env() -> dict:
     import os
     import tempfile
 
-    cache = os.path.join(tempfile.gettempdir(), "aegis-scanner-home")
+    cache = os.environ.get("AEGIS_SCANNER_HOME", "").strip() or os.path.join(
+        tempfile.gettempdir(), "aegis-scanner-home"
+    )
     os.makedirs(os.path.join(cache, ".cache"), exist_ok=True)
     env = dict(os.environ)
     env.update(
@@ -133,11 +144,13 @@ class ToolBridge:
 
     def __init__(self, *, run=None, timeout: int = 1200,
                  runtime_manager: ToolRuntimeManager | None = None,
-                 require_healthy: bool | None = None) -> None:
+                 require_healthy: bool | None = None,
+                 max_output_bytes: int = 8 * 1024 * 1024) -> None:
         self._run = run or _default_run
         self._timeout = timeout
         self._runtime = runtime_manager or ToolRuntimeManager()
         self._require_healthy = (run is None) if require_healthy is None else bool(require_healthy)
+        self._max_output_bytes = max(1024, int(max_output_bytes))
         # Explicitly configured malformed/missing pin files fail construction instead of
         # silently running an unpinned scanner. Injected tests do not read operator config.
         self._pins = load_tool_pins() if self._require_healthy else {}
@@ -180,15 +193,21 @@ class ToolBridge:
 
             emit("scanner", {"tool": tool.name, "state": "run"})
             started = time.monotonic()
-            argv = _command_argv(
-                tool.cmd.format(
-                    target=str(checkout_path),
-                    rules=rules_dir(),
-                    phpstubs=php_stubs_arg(),
-                    psalmcfg=psalmcfg,
-                )
+            started_at = datetime.now(UTC).isoformat()
+            command_text = tool.cmd.format(
+                target=str(checkout_path),
+                rules=rules_dir(),
+                phpstubs=php_stubs_arg(),
+                psalmcfg=psalmcfg,
             )
-            if runtime_record is not None:
+            # A small number of scanners (detect-secrets in particular) use the
+            # working directory to discover the checkout's file set. Keep that
+            # local and auditable while resolving ordinary commands via the registry.
+            if command_text.lstrip().startswith("cd ") and "&&" in command_text:
+                argv = ["/bin/sh", "-lc", command_text]
+            else:
+                argv = _command_argv(command_text)
+            if runtime_record is not None and argv[0] not in {"/bin/sh", "sh"}:
                 argv[0] = runtime_record.resolved_path
             else:
                 resolved = resolve_binary(argv[0])
@@ -203,6 +222,7 @@ class ToolBridge:
                     stdout, stderr = execution
                     exit_code = 0
             except Exception as exc:
+                completed_at = datetime.now(UTC).isoformat()
                 emit(
                     "scanner",
                     {
@@ -218,6 +238,25 @@ class ToolBridge:
                     ran=False,
                     error=f"{type(exc).__name__}: {exc}"[:200],
                     runtime=runtime_record.as_dict() if runtime_record else {},
+                    duration_ms=round((time.monotonic() - started) * 1000),
+                    execution_started_at=started_at,
+                    execution_completed_at=completed_at,
+                )
+
+            completed_at = datetime.now(UTC).isoformat()
+            duration_ms = round((time.monotonic() - started) * 1000)
+            stdout_digest = sha256((stdout or "").encode()).hexdigest()
+            stderr_digest = sha256((stderr or "").encode()).hexdigest()
+            output_size = len((stdout or "").encode()) + len((stderr or "").encode())
+            if output_size > self._max_output_bytes:
+                return ToolResult(
+                    tool=tool.name, ran=False,
+                    error=(f"OutputLimitExceeded: scanner output {output_size} bytes exceeds "
+                           f"{self._max_output_bytes} byte limit"),
+                    runtime=runtime_record.as_dict() if runtime_record else {},
+                    exit_code=exit_code, duration_ms=duration_ms,
+                    execution_started_at=started_at, execution_completed_at=completed_at,
+                    stdout_digest=stdout_digest, stderr_digest=stderr_digest,
                 )
 
             # Some scanners (notably Semgrep with ``--error``) return a non-zero
@@ -227,6 +266,9 @@ class ToolBridge:
             # outage and the successful scan disappears from coverage evidence.
             parsed_findings = _parse(tool, stdout)
             findings = _drop_noise_paths(parsed_findings)
+            parsed_result_digest = sha256(json.dumps(
+                parsed_findings, sort_keys=True, separators=(",", ":"), default=str,
+            ).encode()).hexdigest()
             if exit_code != 0 and not parsed_findings:
                 emit(
                     "scanner",
@@ -234,7 +276,7 @@ class ToolBridge:
                         "tool": tool.name,
                         "state": "done",
                         "count": 0,
-                        "ms": round((time.monotonic() - started) * 1000),
+                        "ms": duration_ms,
                         "error": True,
                     },
                 )
@@ -243,6 +285,13 @@ class ToolBridge:
                     ran=False,
                     error=(f"scanner exited {exit_code}: {stderr or stdout}")[:200],
                     runtime=runtime_record.as_dict() if runtime_record else {},
+                    exit_code=exit_code,
+                    duration_ms=duration_ms,
+                    execution_started_at=started_at,
+                    execution_completed_at=completed_at,
+                    stdout_digest=stdout_digest,
+                    stderr_digest=stderr_digest,
+                    parsed_result_digest=parsed_result_digest,
                 )
             runtime_payload = provenance(runtime_record, argv) if runtime_record else {}
             if runtime_payload:
@@ -255,7 +304,7 @@ class ToolBridge:
                     "tool": tool.name,
                     "state": "done",
                     "count": len(findings),
-                    "ms": round((time.monotonic() - started) * 1000),
+                    "ms": duration_ms,
                     "runtime_status": runtime_record.status.value if runtime_record else "injected",
                 },
             )
@@ -265,6 +314,13 @@ class ToolBridge:
                 findings=findings,
                 error="" if (findings or not stderr) else stderr[:200],
                 runtime=runtime_record.as_dict() if runtime_record else {},
+                exit_code=exit_code,
+                duration_ms=duration_ms,
+                execution_started_at=started_at,
+                execution_completed_at=completed_at,
+                stdout_digest=stdout_digest,
+                stderr_digest=stderr_digest,
+                parsed_result_digest=parsed_result_digest,
             )
 
         workers = max(1, int(os.environ.get("AEGIS_SCANNER_CONCURRENCY", "4") or 4))

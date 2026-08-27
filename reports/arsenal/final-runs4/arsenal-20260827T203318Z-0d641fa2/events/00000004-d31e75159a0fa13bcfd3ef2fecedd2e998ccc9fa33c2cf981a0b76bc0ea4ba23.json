@@ -1,0 +1,28 @@
+{
+  "detail": {
+    "asset": "127.0.0.1",
+    "authorization_decision": "arsenal:tool:mythril/contract",
+    "backend": "mythril",
+    "backend_version": "Mythril version v0.24.8",
+    "blocking_reason": "",
+    "capability_id": "tool:mythril/contract",
+    "evidence_digest": "5e2d001da170c6b7a10663eb343bca49594ed7743a893e2d8c6b84e3e1729fa9",
+    "evidence_ref": "evidence/5e2d001da170c6b7a10663eb343bca49594ed7743a893e2d8c6b84e3e1729fa9.json",
+    "execution_error_class": null,
+    "execution_grant_id": "3837d4a2a34180c5",
+    "finding_ids": [],
+    "fixture_detection": true,
+    "mission_id": "arsenal-tool-0d641fa22b4c",
+    "mode": "FIXTURE",
+    "negative_control_status": "PASSED",
+    "policy_snapshot_digest": "e9dc52e97b35225a0c936cbb21cf6a57125fab156ebe781fbf0dd01d0c147d2f",
+    "result": "EXECUTED_PASS",
+    "task_id": "arsenal-tool-0d641fa22b4c-execute"
+  },
+  "digest": "d31e75159a0fa13bcfd3ef2fecedd2e998ccc9fa33c2cf981a0b76bc0ea4ba23",
+  "event_type": "arsenal_task_completed",
+  "observed_at": "2026-08-27T20:33:48.004192+00:00",
+  "previous_digest": "14d4cc28eb725a31476c41344fc4a51770a15b7d753baf4154c510d2f7ceb2f6",
+  "sequence": 4,
+  "status": "completed"
+}

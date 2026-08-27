@@ -1,0 +1,18 @@
+{
+  "detail": {
+    "blocking_reason": "binary not found",
+    "capability_id": "asset:jadx/android-decompile",
+    "evidence_digest": "7667f1376c793dc4b4e1c7993e749d2da09c2ec27eacec9d5c07ac54c8c50cc7",
+    "evidence_ref": "evidence/7667f1376c793dc4b4e1c7993e749d2da09c2ec27eacec9d5c07ac54c8c50cc7.json",
+    "execution_grant_id": null,
+    "mission_id": "arsenal-blocked-82e131ab6158b7da",
+    "result": "UNAVAILABLE",
+    "task_id": "arsenal-blocked-82e131ab6158b7da-execute"
+  },
+  "digest": "913f890bee77697bacc4f41653a2cc9a0a94d0a541a46958e6baf442b98e9fce",
+  "event_type": "arsenal_task_blocked",
+  "observed_at": "2026-08-27T20:32:40.352910+00:00",
+  "previous_digest": "f929764d471efcca28060f70b68eddf682abb20c8741417208e0087fa9b03c43",
+  "sequence": 2,
+  "status": "failed"
+}

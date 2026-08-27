@@ -1,0 +1,13 @@
+{
+  "detail": {
+    "capability_id": "tool:gitleaks/secrets",
+    "mission_id": "arsenal-tool-b832d86d82be",
+    "task_id": "arsenal-tool-b832d86d82be-execute"
+  },
+  "digest": "87678e1c1cf11b2f65896a3aa0b7e8cc5d706694d4c9c18d2da14c885cd4c7f7",
+  "event_type": "arsenal_task_started",
+  "observed_at": "2026-08-27T20:33:00.851458+00:00",
+  "previous_digest": "562bfbc52ba708771a222b08d866c2c1840d9ca2953e209e82f24a7b2a779683",
+  "sequence": 3,
+  "status": "running"
+}

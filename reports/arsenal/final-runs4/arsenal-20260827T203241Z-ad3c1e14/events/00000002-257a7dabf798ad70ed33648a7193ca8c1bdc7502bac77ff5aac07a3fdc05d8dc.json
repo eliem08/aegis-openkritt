@@ -1,0 +1,18 @@
+{
+  "detail": {
+    "blocking_reason": "backend is present but its deterministic positive/negative fixture provider is not connected to the canonical executor",
+    "capability_id": "asset:npm/npm-dependency-audit",
+    "evidence_digest": "a01364d1cdcd0e8c1940c8885d90298d21bed59f8ca8ecc18080290c738e473a",
+    "evidence_ref": "evidence/a01364d1cdcd0e8c1940c8885d90298d21bed59f8ca8ecc18080290c738e473a.json",
+    "execution_grant_id": null,
+    "mission_id": "arsenal-blocked-ad3c1e1462e9e362",
+    "result": "WAITING_FOR_PREREQUISITE",
+    "task_id": "arsenal-blocked-ad3c1e1462e9e362-execute"
+  },
+  "digest": "257a7dabf798ad70ed33648a7193ca8c1bdc7502bac77ff5aac07a3fdc05d8dc",
+  "event_type": "arsenal_task_blocked",
+  "observed_at": "2026-08-27T20:32:41.767041+00:00",
+  "previous_digest": "c7d5d7d7af91b2d87ee70f30a837671f4385d9847a04c7560677675f93d8204a",
+  "sequence": 2,
+  "status": "failed"
+}

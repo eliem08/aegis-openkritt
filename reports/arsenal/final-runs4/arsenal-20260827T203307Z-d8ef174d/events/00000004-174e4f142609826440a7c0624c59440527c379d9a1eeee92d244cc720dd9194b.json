@@ -1,0 +1,28 @@
+{
+  "detail": {
+    "asset": "127.0.0.1",
+    "authorization_decision": "arsenal:tool:grype/deps",
+    "backend": "grype",
+    "backend_version": "grype 0.116.1",
+    "blocking_reason": "",
+    "capability_id": "tool:grype/deps",
+    "evidence_digest": "f0de750328fc8cfab1d691875e4a714c1fca15719786a4d561aa597e9fd833e1",
+    "evidence_ref": "evidence/f0de750328fc8cfab1d691875e4a714c1fca15719786a4d561aa597e9fd833e1.json",
+    "execution_error_class": null,
+    "execution_grant_id": "66cdf85f8c311e22",
+    "finding_ids": [],
+    "fixture_detection": true,
+    "mission_id": "arsenal-tool-d8ef174d8873",
+    "mode": "FIXTURE",
+    "negative_control_status": "PASSED",
+    "policy_snapshot_digest": "e9dc52e97b35225a0c936cbb21cf6a57125fab156ebe781fbf0dd01d0c147d2f",
+    "result": "EXECUTED_PASS",
+    "task_id": "arsenal-tool-d8ef174d8873-execute"
+  },
+  "digest": "174e4f142609826440a7c0624c59440527c379d9a1eeee92d244cc720dd9194b",
+  "event_type": "arsenal_task_completed",
+  "observed_at": "2026-08-27T20:33:11.514088+00:00",
+  "previous_digest": "be7d038b4ea07e2e2fca02c33c81c9335d0bfc8ddf451a8d953e1d241eda1d1f",
+  "sequence": 4,
+  "status": "completed"
+}

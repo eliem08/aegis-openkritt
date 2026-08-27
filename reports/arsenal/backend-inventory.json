@@ -1,0 +1,5072 @@
+{
+  "backends": [
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "electron_app",
+        "executable",
+        "hardware",
+        "windows_microsoft_store"
+      ],
+      "backend_id": "external:analyzeHeadless",
+      "binary": "analyzeHeadless",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:ghidra/headless-binary-analysis"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:ghidra/headless-binary-analysis"
+      ],
+      "fixture_providers": [
+        "fixture:asset:ghidra:headless-binary-analysis"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "analyzeHeadless",
+        "checked_at": "2026-08-27T20:35:22.014899+00:00",
+        "name": "Ghidra",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "Ghidra"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "executable"
+      ],
+      "backend_id": "external:angr",
+      "binary": "angr",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:angr/binary-control-flow-analysis"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:angr/binary-control-flow-analysis"
+      ],
+      "fixture_providers": [
+        "fixture:asset:angr:binary-control-flow-analysis"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "angr",
+        "checked_at": "2026-08-27T20:35:22.015163+00:00",
+        "name": "angr",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "angr"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "android_apk",
+        "android_play_store"
+      ],
+      "backend_id": "external:apktool",
+      "binary": "apktool",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:apktool/android-resource-and-manifest-decode"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:apktool/android-resource-and-manifest-decode"
+      ],
+      "fixture_providers": [
+        "fixture:asset:apktool:android-resource-and-manifest-decode"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "apktool",
+        "checked_at": "2026-08-27T20:35:22.015358+00:00",
+        "name": "apktool",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "apktool"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "electron_app"
+      ],
+      "backend_id": "external:asar",
+      "binary": "asar",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:electron-asar/electron-package-extraction"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:electron-asar/electron-package-extraction"
+      ],
+      "fixture_providers": [
+        "fixture:asset:electron-asar:electron-package-extraction"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "asar",
+        "checked_at": "2026-08-27T20:35:22.015503+00:00",
+        "name": "@electron/asar",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "@electron/asar"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "azure_account"
+      ],
+      "backend_id": "external:azurehound",
+      "binary": "azurehound",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:azurehound/azure-entra-relationship-collection"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [
+        "fixture:asset:azurehound:azure-entra-relationship-collection"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "local Entra fixture or explicitly supplied controlled tenant",
+      "runtime": {
+        "binary": "azurehound",
+        "checked_at": "2026-08-27T20:35:22.015640+00:00",
+        "name": "AzureHound",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "AzureHound"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "asset-lane/1",
+        "deep-asset/1",
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "source_code"
+      ],
+      "backend_id": "external:bandit",
+      "binary": "bandit",
+      "capability_count": 3,
+      "capability_ids": [
+        "asset-lane:source-scanner-sweep",
+        "asset:bandit/python-security-static-analysis",
+        "tool:bandit/code"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor",
+        "aegis.ai.tool_bridge.ToolBridge",
+        "aegis.arsenal.assets.source:scanner_sweep"
+      ],
+      "expected_versions": [
+        "1.9.4"
+      ],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:bandit/python-security-static-analysis",
+        "tool:bandit/code"
+      ],
+      "fixture_providers": [
+        "fixture:asset:bandit:python-security-static-analysis",
+        "fixture:scanner:bandit"
+      ],
+      "implementation_paths": [
+        "aegis/arsenal/assets/source.py",
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py",
+        "src/aegis/ai/tool_bridge.py",
+        "src/aegis/ai/tool_registry.py",
+        "src/aegis/arsenal/assets/types.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "bandit",
+        "checked_at": "2026-08-27T20:35:22.015780+00:00",
+        "name": "Bandit",
+        "reason": "healthy",
+        "resolved_path": "/usr/local/bin/bandit",
+        "sha256": "701a6f815afc3903f7676f5a75bbf131efa591b89070970f9449d7683f13dce0",
+        "status": "ready",
+        "version": "bandit 1.9.4"
+      },
+      "source_registries": [
+        "ASSET_TECHNIQUE_MAP",
+        "TOOLS",
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "Bandit",
+        "bandit"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "hardware"
+      ],
+      "backend_id": "external:binwalk",
+      "binary": "binwalk",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:binwalk/firmware-structure-analysis"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:binwalk/firmware-structure-analysis"
+      ],
+      "fixture_providers": [
+        "fixture:asset:binwalk:firmware-structure-analysis"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "binwalk",
+        "checked_at": "2026-08-27T20:35:22.235916+00:00",
+        "name": "binwalk",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "binwalk"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1",
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "source_code"
+      ],
+      "backend_id": "external:brakeman",
+      "binary": "brakeman",
+      "capability_count": 2,
+      "capability_ids": [
+        "asset:brakeman/rails-security-static-analysis",
+        "tool:brakeman/code"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor",
+        "aegis.ai.tool_bridge.ToolBridge"
+      ],
+      "expected_versions": [
+        "7.1.1"
+      ],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:brakeman/rails-security-static-analysis",
+        "tool:brakeman/code"
+      ],
+      "fixture_providers": [
+        "fixture:asset:brakeman:rails-security-static-analysis",
+        "fixture:scanner:brakeman"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py",
+        "src/aegis/ai/tool_bridge.py",
+        "src/aegis/ai/tool_registry.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "brakeman",
+        "checked_at": "2026-08-27T20:35:22.236131+00:00",
+        "name": "Brakeman",
+        "reason": "healthy",
+        "resolved_path": "/usr/local/bin/brakeman",
+        "sha256": "465aaa233fd9f9655ccac5d8e2931b1ffe6a27803102bc2c7c9dbb9092093070",
+        "status": "ready",
+        "version": "brakeman 7.1.1"
+      },
+      "source_registries": [
+        "TOOLS",
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "Brakeman",
+        "brakeman"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "executable",
+        "windows_microsoft_store"
+      ],
+      "backend_id": "external:capa",
+      "binary": "capa",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:capa/binary-capability-analysis"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:capa/binary-capability-analysis"
+      ],
+      "fixture_providers": [
+        "fixture:asset:capa:binary-capability-analysis"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "capa",
+        "checked_at": "2026-08-27T20:35:22.337787+00:00",
+        "name": "capa",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "capa"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1",
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "browser_extension",
+        "cicd_pipeline",
+        "container_image",
+        "kubernetes_cluster",
+        "source_code",
+        "terraform_repo"
+      ],
+      "backend_id": "external:checkov",
+      "binary": "checkov",
+      "capability_count": 3,
+      "capability_ids": [
+        "asset:checkov/container-image-policy-scan",
+        "asset:checkov/iac-cicd-and-container-policy-scan",
+        "tool:checkov/deps"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor",
+        "aegis.ai.tool_bridge.ToolBridge"
+      ],
+      "expected_versions": [
+        "3.3.9"
+      ],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:checkov/container-image-policy-scan",
+        "asset:checkov/iac-cicd-and-container-policy-scan",
+        "tool:checkov/deps"
+      ],
+      "fixture_providers": [
+        "fixture:asset:checkov:container-image-policy-scan",
+        "fixture:asset:checkov:iac-cicd-and-container-policy-scan",
+        "fixture:scanner:checkov"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py",
+        "src/aegis/ai/tool_bridge.py",
+        "src/aegis/ai/tool_registry.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "checkov",
+        "checked_at": "2026-08-27T20:35:22.337985+00:00",
+        "name": "Checkov",
+        "reason": "healthy",
+        "resolved_path": "/usr/local/bin/checkov",
+        "sha256": "26d2dab23712276430d913195a817ed8b881afe924c876d4b4a1a57f6f02950d",
+        "status": "ready",
+        "version": "3.3.9"
+      },
+      "source_registries": [
+        "TOOLS",
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "Checkov",
+        "checkov"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "ios_app_store",
+        "ios_ipa",
+        "ios_testflight"
+      ],
+      "backend_id": "external:class-dump",
+      "binary": "class-dump",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:class-dump/objective-c-interface-recovery"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:class-dump/objective-c-interface-recovery"
+      ],
+      "fixture_providers": [
+        "fixture:asset:class-dump:objective-c-interface-recovery"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "macOS worker; readiness: command -v class-dump && uname -s | grep Darwin",
+      "runtime": {
+        "binary": "class-dump",
+        "checked_at": "2026-08-27T20:35:24.812843+00:00",
+        "name": "class-dump",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "class-dump"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "aws_account"
+      ],
+      "backend_id": "external:cloudsplaining",
+      "binary": "cloudsplaining",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:cloudsplaining/aws-iam-risk-analysis"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [
+        "fixture:asset:cloudsplaining:aws-iam-risk-analysis"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "cloudsplaining",
+        "checked_at": "2026-08-27T20:35:24.813077+00:00",
+        "name": "Cloudsplaining",
+        "reason": "healthy",
+        "resolved_path": "/usr/local/bin/cloudsplaining",
+        "sha256": "3e4fefa0b7d14a7e98707ded87bbf3bd57a94abb24a09646d3530035de0d9ed6",
+        "status": "ready",
+        "version": "cloudsplaining, version 0.7.0"
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "Cloudsplaining"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "source_code"
+      ],
+      "backend_id": "external:codeql",
+      "binary": "codeql",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:codeql/cross-file-dataflow"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:codeql/cross-file-dataflow"
+      ],
+      "fixture_providers": [
+        "fixture:asset:codeql:cross-file-dataflow"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "codeql",
+        "checked_at": "2026-08-27T20:35:25.466924+00:00",
+        "name": "CodeQL",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "CodeQL"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "source_code"
+      ],
+      "backend_id": "external:detect-secrets",
+      "binary": "detect-secrets",
+      "capability_count": 1,
+      "capability_ids": [
+        "tool:detect-secrets/secrets"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.ai.tool_bridge.ToolBridge"
+      ],
+      "expected_versions": [
+        "1.5.0"
+      ],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "tool:detect-secrets/secrets"
+      ],
+      "fixture_providers": [
+        "fixture:scanner:detect-secrets"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/tool_bridge.py",
+        "src/aegis/ai/tool_registry.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "detect-secrets",
+        "checked_at": "2026-08-27T20:35:25.467141+00:00",
+        "name": "detect-secrets",
+        "reason": "healthy",
+        "resolved_path": "/usr/local/bin/detect-secrets",
+        "sha256": "6b3e5f0a76e83cf8f497619d1937e4f96c1bf67e00838caa5911bb24147509e4",
+        "status": "ready",
+        "version": "1.5.47"
+      },
+      "source_registries": [
+        "TOOLS"
+      ],
+      "tool_names": [
+        "detect-secrets"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "domain",
+        "wildcard"
+      ],
+      "backend_id": "external:dnsx",
+      "binary": "dnsx",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:dnsx/dns-resolution-and-wildcard-filtering"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [
+        "fixture:asset:dnsx:dns-resolution-and-wildcard-filtering"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "dnsx",
+        "checked_at": "2026-08-27T20:35:25.652985+00:00",
+        "name": "dnsx",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "dnsx"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "smart_contract"
+      ],
+      "backend_id": "external:echidna",
+      "binary": "echidna",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:echidna/smart-contract-property-fuzzing"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:echidna/smart-contract-property-fuzzing"
+      ],
+      "fixture_providers": [
+        "fixture:asset:echidna:smart-contract-property-fuzzing"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "echidna",
+        "checked_at": "2026-08-27T20:35:25.653242+00:00",
+        "name": "Echidna",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "Echidna"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "hardware"
+      ],
+      "backend_id": "external:firmadyne",
+      "binary": "firmadyne",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:firmadyne/firmware-emulation-fallback"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:firmadyne/firmware-emulation-fallback"
+      ],
+      "fixture_providers": [
+        "fixture:asset:firmadyne:firmware-emulation-fallback"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "opt-in privileged Linux worker with QEMU/binfmt; readiness: test -e /dev/kvm && command -v qemu-system-x86_64",
+      "runtime": {
+        "binary": "firmadyne",
+        "checked_at": "2026-08-27T20:35:25.653381+00:00",
+        "name": "Firmadyne",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "Firmadyne"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "hardware"
+      ],
+      "backend_id": "external:firmae",
+      "binary": "firmae",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:firmae/firmware-emulation"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:firmae/firmware-emulation"
+      ],
+      "fixture_providers": [
+        "fixture:asset:firmae:firmware-emulation"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "opt-in privileged Linux worker with FirmAE/QEMU/binfmt; readiness: test -e /dev/kvm && command -v qemu-system-x86_64 && test -d /opt/FirmAE",
+      "runtime": {
+        "binary": "firmae",
+        "checked_at": "2026-08-27T20:35:25.653516+00:00",
+        "name": "FirmAE",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "FirmAE"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "electron_app",
+        "executable",
+        "windows_microsoft_store"
+      ],
+      "backend_id": "external:floss",
+      "binary": "floss",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:floss/static-string-deobfuscation"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:floss/static-string-deobfuscation"
+      ],
+      "fixture_providers": [
+        "fixture:asset:floss:static-string-deobfuscation"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "floss",
+        "checked_at": "2026-08-27T20:35:25.653688+00:00",
+        "name": "FLOSS",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "FLOSS"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "smart_contract"
+      ],
+      "backend_id": "external:forge",
+      "binary": "forge",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:foundry/smart-contract-fuzz-and-invariant-tests"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:foundry/smart-contract-fuzz-and-invariant-tests"
+      ],
+      "fixture_providers": [
+        "fixture:asset:foundry:smart-contract-fuzz-and-invariant-tests"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "forge",
+        "checked_at": "2026-08-27T20:35:25.653867+00:00",
+        "name": "Foundry",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "Foundry"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "android_apk",
+        "android_play_store",
+        "ios_app_store",
+        "ios_ipa",
+        "ios_testflight"
+      ],
+      "backend_id": "external:frida",
+      "binary": "frida",
+      "capability_count": 2,
+      "capability_ids": [
+        "asset:frida/android-runtime-instrumentation",
+        "asset:frida/ios-runtime-instrumentation"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:frida/android-runtime-instrumentation",
+        "asset:frida/ios-runtime-instrumentation"
+      ],
+      "fixture_providers": [
+        "fixture:asset:frida:android-runtime-instrumentation",
+        "fixture:asset:frida:ios-runtime-instrumentation"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "operator-owned local emulator/device and fixture app; readiness: adb devices && frida-ps -U",
+      "runtime": {
+        "binary": "frida",
+        "checked_at": "2026-08-27T20:35:25.654024+00:00",
+        "name": "Frida",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "Frida"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "ai_model"
+      ],
+      "backend_id": "external:garak",
+      "binary": "garak",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:garak/llm-security-probing"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [
+        "fixture:asset:garak:llm-security-probing"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "garak",
+        "checked_at": "2026-08-27T20:35:25.654168+00:00",
+        "name": "garak",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "garak"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "2.2.4"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [],
+      "backend_id": "external:gau",
+      "binary": "gau",
+      "capability_count": 1,
+      "capability_ids": [
+        "adapter:gau/passive-discovery"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "adapter:gau"
+      ],
+      "expected_versions": [
+        "2.2.4"
+      ],
+      "external": true,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [],
+      "implementation_paths": [
+        "src/aegis/adapters"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "gau",
+        "checked_at": "2026-08-27T20:35:25.654337+00:00",
+        "name": "gau",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "adapter_manifests"
+      ],
+      "tool_names": [
+        "gau"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "8.30.1",
+        "asset-lane/1",
+        "deep-asset/1",
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "source_code"
+      ],
+      "backend_id": "external:gitleaks",
+      "binary": "gitleaks",
+      "capability_count": 4,
+      "capability_ids": [
+        "adapter:gitleaks/passive-discovery",
+        "asset-lane:source-scanner-sweep",
+        "asset:gitleaks/git-secret-detection",
+        "tool:gitleaks/secrets"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "adapter:gitleaks",
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor",
+        "aegis.ai.tool_bridge.ToolBridge",
+        "aegis.arsenal.assets.source:scanner_sweep"
+      ],
+      "expected_versions": [
+        "8.21.2",
+        "8.30.1"
+      ],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:gitleaks/git-secret-detection",
+        "tool:gitleaks/secrets"
+      ],
+      "fixture_providers": [
+        "fixture:asset:gitleaks:git-secret-detection",
+        "fixture:scanner:gitleaks"
+      ],
+      "implementation_paths": [
+        "aegis/arsenal/assets/source.py",
+        "src/aegis/adapters",
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py",
+        "src/aegis/ai/tool_bridge.py",
+        "src/aegis/ai/tool_registry.py",
+        "src/aegis/arsenal/assets/types.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "gitleaks",
+        "checked_at": "2026-08-27T20:35:25.654484+00:00",
+        "name": "gitleaks",
+        "reason": "healthy",
+        "resolved_path": "/usr/local/bin/gitleaks",
+        "sha256": "50b742abd7daad8bbddb6301f3017efb680632d9a5b3b4d8f137b3aac250e359",
+        "status": "ready",
+        "version": "gitleaks version 8.21.2"
+      },
+      "source_registries": [
+        "ASSET_TECHNIQUE_MAP",
+        "TOOLS",
+        "adapter_manifests",
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "gitleaks"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1",
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "source_code"
+      ],
+      "backend_id": "external:gosec",
+      "binary": "gosec",
+      "capability_count": 2,
+      "capability_ids": [
+        "asset:gosec/go-security-static-analysis",
+        "tool:gosec/code"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor",
+        "aegis.ai.tool_bridge.ToolBridge"
+      ],
+      "expected_versions": [
+        "2.22.8"
+      ],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:gosec/go-security-static-analysis",
+        "tool:gosec/code"
+      ],
+      "fixture_providers": [
+        "fixture:asset:gosec:go-security-static-analysis",
+        "fixture:scanner:gosec"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py",
+        "src/aegis/ai/tool_bridge.py",
+        "src/aegis/ai/tool_registry.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "gosec",
+        "checked_at": "2026-08-27T20:35:25.665824+00:00",
+        "name": "gosec",
+        "reason": "healthy",
+        "resolved_path": "/root/go/bin/gosec",
+        "sha256": "f7baa2053a48c3c6efdeded9f114533ad13e9eac1677991d2d8313557260834b",
+        "status": "ready",
+        "version": "Version: dev"
+      },
+      "source_registries": [
+        "TOOLS",
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "gosec"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "grpc_api"
+      ],
+      "backend_id": "external:grpcurl",
+      "binary": "grpcurl",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:grpcurl/grpc-service-introspection"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [
+        "fixture:asset:grpcurl:grpc-service-introspection"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "grpcurl",
+        "checked_at": "2026-08-27T20:35:25.745104+00:00",
+        "name": "grpcurl",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "grpcurl"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1",
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "container_image",
+        "executable",
+        "hardware",
+        "source_code",
+        "windows_microsoft_store"
+      ],
+      "backend_id": "external:grype",
+      "binary": "grype",
+      "capability_count": 3,
+      "capability_ids": [
+        "asset:grype/artifact-vulnerability-scan",
+        "asset:grype/container-image-vulnerability-scan",
+        "tool:grype/deps"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor",
+        "aegis.ai.tool_bridge.ToolBridge"
+      ],
+      "expected_versions": [
+        "0.116.1"
+      ],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:grype/artifact-vulnerability-scan",
+        "asset:grype/container-image-vulnerability-scan",
+        "tool:grype/deps"
+      ],
+      "fixture_providers": [
+        "fixture:asset:grype:artifact-vulnerability-scan",
+        "fixture:asset:grype:container-image-vulnerability-scan",
+        "fixture:scanner:grype"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py",
+        "src/aegis/ai/tool_bridge.py",
+        "src/aegis/ai/tool_registry.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "grype",
+        "checked_at": "2026-08-27T20:35:25.745327+00:00",
+        "name": "grype",
+        "reason": "healthy",
+        "resolved_path": "/usr/local/bin/grype",
+        "sha256": "a8fff88f37a08af6a536e162f37f9902ec94af03df9928ee6295dffe7044dc43",
+        "status": "ready",
+        "version": "grype 0.116.1"
+      },
+      "source_registries": [
+        "TOOLS",
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "grype"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "1.6.9"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [],
+      "backend_id": "external:http-probe",
+      "binary": "http-probe",
+      "capability_count": 1,
+      "capability_ids": [
+        "adapter:http-probe/passive-discovery"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "adapter:http-probe"
+      ],
+      "expected_versions": [
+        "1.6.9"
+      ],
+      "external": true,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [],
+      "implementation_paths": [
+        "src/aegis/adapters"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "http-probe",
+        "checked_at": "2026-08-27T20:35:25.871094+00:00",
+        "name": "http-probe",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "adapter_manifests"
+      ],
+      "tool_names": [
+        "http-probe"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "api",
+        "cidr",
+        "domain",
+        "ip_address",
+        "wildcard"
+      ],
+      "backend_id": "external:httpx",
+      "binary": "httpx",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:httpx/http-service-enrichment"
+      ],
+      "current_state": "BACKEND_UNHEALTHY",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [
+        "fixture:asset:httpx:http-service-enrichment"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "httpx",
+        "checked_at": "2026-08-27T20:35:25.871358+00:00",
+        "name": "httpx",
+        "reason": "version probe did not produce a bounded healthy response",
+        "resolved_path": "/usr/local/bin/httpx",
+        "sha256": "87712e740953ec1d804e449d8b619481609c7c8277337004c4b1b2b34a1a3385",
+        "status": "stale",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "httpx"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "android_apk",
+        "android_play_store"
+      ],
+      "backend_id": "external:jadx",
+      "binary": "jadx",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:jadx/android-decompile"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:jadx/android-decompile"
+      ],
+      "fixture_providers": [
+        "fixture:asset:jadx:android-decompile"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "jadx",
+        "checked_at": "2026-08-27T20:35:26.587499+00:00",
+        "name": "jadx",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "jadx"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "0.0.3"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [],
+      "backend_id": "external:jsluice",
+      "binary": "jsluice",
+      "capability_count": 1,
+      "capability_ids": [
+        "adapter:jsluice/passive-discovery"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "adapter:jsluice"
+      ],
+      "expected_versions": [
+        "0.0.3"
+      ],
+      "external": true,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [],
+      "implementation_paths": [
+        "src/aegis/adapters"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "jsluice",
+        "checked_at": "2026-08-27T20:35:26.587701+00:00",
+        "name": "jsluice",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "adapter_manifests"
+      ],
+      "tool_names": [
+        "jsluice"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "1.1.0",
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "api",
+        "domain",
+        "wildcard"
+      ],
+      "backend_id": "external:katana",
+      "binary": "katana",
+      "capability_count": 2,
+      "capability_ids": [
+        "adapter:katana/passive-discovery",
+        "asset:katana/scoped-endpoint-crawl"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "adapter:katana",
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [
+        "1.1.0"
+      ],
+      "external": true,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [
+        "fixture:asset:katana:scoped-endpoint-crawl"
+      ],
+      "implementation_paths": [
+        "src/aegis/adapters",
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "katana",
+        "checked_at": "2026-08-27T20:35:26.587823+00:00",
+        "name": "katana",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "adapter_manifests",
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "katana"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "browser_extension",
+        "cicd_pipeline",
+        "kubernetes_cluster",
+        "source_code",
+        "terraform_repo"
+      ],
+      "backend_id": "external:kics",
+      "binary": "kics",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:kics/iac-security-scan"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:kics/iac-security-scan"
+      ],
+      "fixture_providers": [
+        "fixture:asset:kics:iac-security-scan"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "kics",
+        "checked_at": "2026-08-27T20:35:26.587940+00:00",
+        "name": "KICS",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "KICS"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "kubernetes_cluster"
+      ],
+      "backend_id": "external:kubescape",
+      "binary": "kubescape",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:kubescape/kubernetes-posture-and-runtime-scan"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [
+        "fixture:asset:kubescape:kubernetes-posture-and-runtime-scan"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "kubescape",
+        "checked_at": "2026-08-27T20:35:26.588057+00:00",
+        "name": "Kubescape",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "Kubescape"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "api",
+        "graphql_endpoint",
+        "saas_tenant",
+        "websocket_service"
+      ],
+      "backend_id": "external:mitmproxy",
+      "binary": "mitmproxy",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:mitmproxy/authorized-http-traffic-capture"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [
+        "fixture:asset:mitmproxy:authorized-http-traffic-capture"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "mitmproxy",
+        "checked_at": "2026-08-27T20:35:26.588172+00:00",
+        "name": "mitmproxy",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "mitmproxy"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "android_apk",
+        "android_play_store",
+        "ios_app_store",
+        "ios_ipa",
+        "ios_testflight",
+        "windows_microsoft_store"
+      ],
+      "backend_id": "external:mobsf",
+      "binary": "mobsf",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:mobsf/rest-static-analysis"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:mobsf/rest-static-analysis"
+      ],
+      "fixture_providers": [
+        "fixture:asset:mobsf:rest-static-analysis"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "loopback MobSF service and synthetic APK; readiness: test -n \"$AEGIS_MOBSF_URL\" && curl -fsS \"$AEGIS_MOBSF_URL/api/v1/scans\"",
+      "runtime": {
+        "binary": "mobsf",
+        "checked_at": "2026-08-27T20:35:26.588288+00:00",
+        "name": "MobSF",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "MobSF"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "ai_model"
+      ],
+      "backend_id": "external:modelscan",
+      "binary": "modelscan",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:modelscan/serialized-model-safety-scan"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:modelscan/serialized-model-safety-scan"
+      ],
+      "fixture_providers": [
+        "fixture:asset:modelscan:serialized-model-safety-scan"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "modelscan",
+        "checked_at": "2026-08-27T20:35:26.588404+00:00",
+        "name": "ModelScan",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "ModelScan"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "asset-lane/1",
+        "deep-asset/1",
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "smart_contract",
+        "source_code"
+      ],
+      "backend_id": "external:myth",
+      "binary": "myth",
+      "capability_count": 3,
+      "capability_ids": [
+        "asset-lane:contract-static-analysis",
+        "asset:mythril/evm-symbolic-execution",
+        "tool:mythril/contract"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor",
+        "aegis.ai.tool_bridge.ToolBridge",
+        "aegis.arsenal.assets.contract:static_analysis"
+      ],
+      "expected_versions": [
+        "0.24.8"
+      ],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:mythril/evm-symbolic-execution",
+        "tool:mythril/contract"
+      ],
+      "fixture_providers": [
+        "fixture:asset:mythril:evm-symbolic-execution",
+        "fixture:scanner:mythril"
+      ],
+      "implementation_paths": [
+        "aegis/arsenal/assets/contract.py",
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py",
+        "src/aegis/ai/tool_bridge.py",
+        "src/aegis/ai/tool_registry.py",
+        "src/aegis/arsenal/assets/types.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "myth",
+        "checked_at": "2026-08-27T20:35:26.588521+00:00",
+        "name": "Mythril",
+        "reason": "healthy",
+        "resolved_path": "/opt/aegis-tools/mythril/bin/myth",
+        "sha256": "8fe9178fd9157ba015fcc58ddf24699f5c75445556b76cf1b367ffee888240fb",
+        "status": "ready",
+        "version": "Mythril version v0.24.8"
+      },
+      "source_registries": [
+        "ASSET_TECHNIQUE_MAP",
+        "TOOLS",
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "Mythril",
+        "mythril"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "cidr",
+        "ip_address"
+      ],
+      "backend_id": "external:naabu",
+      "binary": "naabu",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:naabu/bounded-port-discovery"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [
+        "fixture:asset:naabu:bounded-port-discovery"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "naabu",
+        "checked_at": "2026-08-27T20:35:32.660508+00:00",
+        "name": "naabu",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "naabu"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "source_code"
+      ],
+      "backend_id": "external:njsscan",
+      "binary": "njsscan",
+      "capability_count": 1,
+      "capability_ids": [
+        "tool:njsscan/code"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.ai.tool_bridge.ToolBridge"
+      ],
+      "expected_versions": [
+        "0.4.3"
+      ],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "tool:njsscan/code"
+      ],
+      "fixture_providers": [
+        "fixture:scanner:njsscan"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/tool_bridge.py",
+        "src/aegis/ai/tool_registry.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "njsscan",
+        "checked_at": "2026-08-27T20:35:32.660716+00:00",
+        "name": "njsscan",
+        "reason": "healthy",
+        "resolved_path": "/opt/aegis-tools/njsscan/bin/njsscan",
+        "sha256": "4784e4300260da62238c6fd5922865d8c4f65466abc9e1b76abb6c696999eee7",
+        "status": "ready",
+        "version": "\u001b[34m"
+      },
+      "source_registries": [
+        "TOOLS"
+      ],
+      "tool_names": [
+        "njsscan"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "asset-lane/1",
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "cidr",
+        "domain",
+        "ip_address",
+        "wildcard"
+      ],
+      "backend_id": "external:nmap",
+      "binary": "nmap",
+      "capability_count": 2,
+      "capability_ids": [
+        "asset-lane:service-identification",
+        "asset:nmap/bounded-service-fingerprinting"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor",
+        "aegis.arsenal.assets.network:service_identification"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [
+        "fixture:asset:nmap:bounded-service-fingerprinting"
+      ],
+      "implementation_paths": [
+        "aegis/arsenal/assets/network.py",
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py",
+        "src/aegis/arsenal/assets/types.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "nmap",
+        "checked_at": "2026-08-27T20:35:32.918324+00:00",
+        "name": "nmap",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "ASSET_TECHNIQUE_MAP",
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "nmap"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "npm_package"
+      ],
+      "backend_id": "external:npm",
+      "binary": "npm",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:npm/npm-dependency-audit"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:npm/npm-dependency-audit"
+      ],
+      "fixture_providers": [
+        "fixture:asset:npm:npm-dependency-audit"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "npm",
+        "checked_at": "2026-08-27T20:35:32.918523+00:00",
+        "name": "npm",
+        "reason": "healthy",
+        "resolved_path": "/usr/share/nodejs/npm/bin/npm-cli.js",
+        "sha256": "8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7",
+        "status": "ready",
+        "version": "9.2.0"
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "npm"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "api",
+        "cidr",
+        "domain",
+        "ip_address",
+        "wildcard"
+      ],
+      "backend_id": "external:nuclei",
+      "binary": "nuclei",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:nuclei/signed-safe-template-validation"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [
+        "fixture:asset:nuclei:signed-safe-template-validation"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "nuclei",
+        "checked_at": "2026-08-27T20:35:33.410289+00:00",
+        "name": "nuclei",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "nuclei"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "android_apk",
+        "android_play_store",
+        "ios_app_store",
+        "ios_ipa",
+        "ios_testflight"
+      ],
+      "backend_id": "external:objection",
+      "binary": "objection",
+      "capability_count": 2,
+      "capability_ids": [
+        "asset:objection/android-runtime-exploration",
+        "asset:objection/ios-runtime-exploration"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:objection/android-runtime-exploration",
+        "asset:objection/ios-runtime-exploration"
+      ],
+      "fixture_providers": [
+        "fixture:asset:objection:android-runtime-exploration",
+        "fixture:asset:objection:ios-runtime-exploration"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "Frida-capable operator-owned emulator/device; readiness: adb devices && frida-ps -U && objection --version",
+      "runtime": {
+        "binary": "objection",
+        "checked_at": "2026-08-27T20:35:33.410724+00:00",
+        "name": "objection",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "objection"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "2.4.0",
+        "deep-asset/1",
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "npm_package",
+        "package_registry",
+        "pypi_package",
+        "source_code"
+      ],
+      "backend_id": "external:osv-scanner",
+      "binary": "osv-scanner",
+      "capability_count": 3,
+      "capability_ids": [
+        "adapter:osv-scanner/passive-discovery",
+        "asset:osv-scanner/dependency-vulnerability-analysis",
+        "tool:osv-scanner/deps"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "adapter:osv-scanner",
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor",
+        "aegis.ai.tool_bridge.ToolBridge"
+      ],
+      "expected_versions": [
+        "2.4.0",
+        "2.5.1"
+      ],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:osv-scanner/dependency-vulnerability-analysis",
+        "tool:osv-scanner/deps"
+      ],
+      "fixture_providers": [
+        "fixture:asset:osv-scanner:dependency-vulnerability-analysis",
+        "fixture:scanner:osv-scanner"
+      ],
+      "implementation_paths": [
+        "src/aegis/adapters",
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py",
+        "src/aegis/ai/tool_bridge.py",
+        "src/aegis/ai/tool_registry.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "osv-scanner",
+        "checked_at": "2026-08-27T20:35:33.410900+00:00",
+        "name": "osv-scanner",
+        "reason": "healthy",
+        "resolved_path": "/usr/local/bin/osv-scanner",
+        "sha256": "f9f25499a2c8cc367b3af45df2ea7eeca7fbccceab9c35079968f4b3652194be",
+        "status": "ready",
+        "version": "osv-scanner version: 2.5.1"
+      },
+      "source_registries": [
+        "TOOLS",
+        "adapter_manifests",
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "osv-scanner"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "ios_app_store",
+        "ios_ipa",
+        "ios_testflight"
+      ],
+      "backend_id": "external:otool",
+      "binary": "otool",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:otool/ios-macos-load-command-analysis"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:otool/ios-macos-load-command-analysis"
+      ],
+      "fixture_providers": [
+        "fixture:asset:otool:ios-macos-load-command-analysis"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "macOS worker; readiness: command -v otool && uname -s | grep Darwin",
+      "runtime": {
+        "binary": "otool",
+        "checked_at": "2026-08-27T20:35:33.534892+00:00",
+        "name": "otool",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "otool"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "executable",
+        "windows_microsoft_store"
+      ],
+      "backend_id": "external:pefile",
+      "binary": "pefile",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:pefile/pe-structure-analysis"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:pefile/pe-structure-analysis"
+      ],
+      "fixture_providers": [
+        "fixture:asset:pefile:pe-structure-analysis"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "pefile",
+        "checked_at": "2026-08-27T20:35:33.535088+00:00",
+        "name": "pefile",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "pefile"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "pypi_package"
+      ],
+      "backend_id": "external:pip-audit",
+      "binary": "pip-audit",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:pip-audit/python-dependency-vulnerability-analysis"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:pip-audit/python-dependency-vulnerability-analysis"
+      ],
+      "fixture_providers": [
+        "fixture:asset:pip-audit:python-dependency-vulnerability-analysis"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "pip-audit",
+        "checked_at": "2026-08-27T20:35:33.535208+00:00",
+        "name": "pip-audit",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "pip-audit"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "api",
+        "graphql_endpoint",
+        "llm_rag_app",
+        "saas_tenant",
+        "websocket_service"
+      ],
+      "backend_id": "external:playwright",
+      "binary": "playwright",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:playwright/authenticated-browser-traffic-learning"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [
+        "fixture:asset:playwright:authenticated-browser-traffic-learning"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "playwright",
+        "checked_at": "2026-08-27T20:35:33.535326+00:00",
+        "name": "Playwright",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "Playwright"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "ai_model"
+      ],
+      "backend_id": "external:promptfoo",
+      "binary": "promptfoo",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:promptfoo/ai-red-team-evaluation"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [
+        "fixture:asset:promptfoo:ai-red-team-evaluation"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "promptfoo",
+        "checked_at": "2026-08-27T20:35:33.535470+00:00",
+        "name": "promptfoo",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "promptfoo"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "aws_account",
+        "azure_account"
+      ],
+      "backend_id": "external:prowler",
+      "binary": "prowler",
+      "capability_count": 2,
+      "capability_ids": [
+        "asset:prowler/aws-security-posture",
+        "asset:prowler/azure-security-posture"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [
+        "fixture:asset:prowler:aws-security-posture",
+        "fixture:asset:prowler:azure-security-posture"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "local cloud emulator or explicitly supplied controlled cloud account",
+      "runtime": {
+        "binary": "prowler",
+        "checked_at": "2026-08-27T20:35:33.535601+00:00",
+        "name": "Prowler",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "Prowler"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "source_code"
+      ],
+      "backend_id": "external:psalm",
+      "binary": "psalm",
+      "capability_count": 1,
+      "capability_ids": [
+        "tool:psalm/code"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.ai.tool_bridge.ToolBridge"
+      ],
+      "expected_versions": [
+        "6.16.1"
+      ],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "tool:psalm/code"
+      ],
+      "fixture_providers": [
+        "fixture:scanner:psalm"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/tool_bridge.py",
+        "src/aegis/ai/tool_registry.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "psalm",
+        "checked_at": "2026-08-27T20:35:33.535719+00:00",
+        "name": "psalm",
+        "reason": "healthy",
+        "resolved_path": "/root/.composer/vendor/bin/psalm",
+        "sha256": "3f11e55364339adc1b31fcabe8704f69e5192c83f7913d71670695f234c2979b",
+        "status": "ready",
+        "version": "Psalm 6.16.1@f1f5de594dc76faf8784e02d3dc4716c91c6f6ac"
+      },
+      "source_registries": [
+        "TOOLS"
+      ],
+      "tool_names": [
+        "psalm"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "ai_model",
+        "llm_rag_app"
+      ],
+      "backend_id": "external:pyrit",
+      "binary": "pyrit",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:pyrit/generative-ai-risk-identification"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [
+        "fixture:asset:pyrit:generative-ai-risk-identification"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "pyrit",
+        "checked_at": "2026-08-27T20:35:33.564055+00:00",
+        "name": "PyRIT",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "PyRIT"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "api"
+      ],
+      "backend_id": "external:restler",
+      "binary": "restler",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:restler/stateful-openapi-sequence-testing"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:restler/stateful-openapi-sequence-testing"
+      ],
+      "fixture_providers": [
+        "fixture:asset:restler:stateful-openapi-sequence-testing"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "restler",
+        "checked_at": "2026-08-27T20:35:33.564279+00:00",
+        "name": "RESTler",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "RESTler"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "source_code"
+      ],
+      "backend_id": "external:retire",
+      "binary": "retire",
+      "capability_count": 1,
+      "capability_ids": [
+        "tool:retire-js/deps"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.ai.tool_bridge.ToolBridge"
+      ],
+      "expected_versions": [
+        "5.4.3"
+      ],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "tool:retire-js/deps"
+      ],
+      "fixture_providers": [
+        "fixture:scanner:retire.js"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/tool_bridge.py",
+        "src/aegis/ai/tool_registry.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "retire",
+        "checked_at": "2026-08-27T20:35:33.564405+00:00",
+        "name": "retire.js",
+        "reason": "healthy",
+        "resolved_path": "/usr/local/lib/node_modules/retire/lib/cli.js",
+        "sha256": "fc0cef3213de99d5ee2ac8e074bc1254c2f4014bdfcf9cd427d7566a0337b52e",
+        "status": "ready",
+        "version": "5.4.3"
+      },
+      "source_registries": [
+        "TOOLS"
+      ],
+      "tool_names": [
+        "retire.js"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "executable"
+      ],
+      "backend_id": "external:rizin",
+      "binary": "rizin",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:rizin/binary-reverse-engineering"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:rizin/binary-reverse-engineering"
+      ],
+      "fixture_providers": [
+        "fixture:asset:rizin:binary-reverse-engineering"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "rizin",
+        "checked_at": "2026-08-27T20:35:33.752262+00:00",
+        "name": "Rizin",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "Rizin"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "azure_account"
+      ],
+      "backend_id": "external:roadrecon",
+      "binary": "roadrecon",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:roadtools/entra-identity-analysis"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [
+        "fixture:asset:roadtools:entra-identity-analysis"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "local Entra fixture or explicitly supplied controlled tenant",
+      "runtime": {
+        "binary": "roadrecon",
+        "checked_at": "2026-08-27T20:35:33.752457+00:00",
+        "name": "ROADtools",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "ROADtools"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "cidr",
+        "domain",
+        "ip_address",
+        "wildcard"
+      ],
+      "backend_id": "external:rustscan",
+      "binary": "rustscan",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:rustscan/bounded-fast-port-prefilter"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [
+        "fixture:asset:rustscan:bounded-fast-port-prefilter"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "rustscan",
+        "checked_at": "2026-08-27T20:35:33.752661+00:00",
+        "name": "RustScan",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "RustScan"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "api",
+        "graphql_endpoint",
+        "saas_tenant"
+      ],
+      "backend_id": "external:schemathesis",
+      "binary": "schemathesis",
+      "capability_count": 2,
+      "capability_ids": [
+        "asset:schemathesis/graphql-schema-guided-testing",
+        "asset:schemathesis/schema-guided-api-testing"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [
+        "fixture:asset:schemathesis:graphql-schema-guided-testing",
+        "fixture:asset:schemathesis:schema-guided-api-testing"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "schemathesis",
+        "checked_at": "2026-08-27T20:35:33.752787+00:00",
+        "name": "Schemathesis",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "Schemathesis"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "source_code"
+      ],
+      "backend_id": "external:scorecard",
+      "binary": "scorecard",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:openssf-scorecard/repository-supply-chain-posture"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [
+        "fixture:asset:openssf-scorecard:repository-supply-chain-posture"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "scorecard",
+        "checked_at": "2026-08-27T20:35:33.752901+00:00",
+        "name": "OpenSSF Scorecard",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "OpenSSF Scorecard"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "aws_account",
+        "azure_account"
+      ],
+      "backend_id": "external:scout",
+      "binary": "scout",
+      "capability_count": 2,
+      "capability_ids": [
+        "asset:scoutsuite/aws-attack-surface-audit",
+        "asset:scoutsuite/azure-attack-surface-audit"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [
+        "fixture:asset:scoutsuite:aws-attack-surface-audit",
+        "fixture:asset:scoutsuite:azure-attack-surface-audit"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "local cloud emulator or explicitly supplied controlled cloud account",
+      "runtime": {
+        "binary": "scout",
+        "checked_at": "2026-08-27T20:35:33.753013+00:00",
+        "name": "ScoutSuite",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "ScoutSuite"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "1.164.0",
+        "asset-lane/1",
+        "deep-asset/1",
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "source_code"
+      ],
+      "backend_id": "external:semgrep",
+      "binary": "semgrep",
+      "capability_count": 4,
+      "capability_ids": [
+        "adapter:semgrep/passive-discovery",
+        "asset-lane:source-scanner-sweep",
+        "asset:semgrep/source-static-analysis",
+        "tool:semgrep/code"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "adapter:semgrep",
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor",
+        "aegis.ai.tool_bridge.ToolBridge",
+        "aegis.arsenal.assets.source:scanner_sweep"
+      ],
+      "expected_versions": [
+        "1.164.0",
+        "1.172.0"
+      ],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:semgrep/source-static-analysis",
+        "tool:semgrep/code"
+      ],
+      "fixture_providers": [
+        "fixture:asset:semgrep:source-static-analysis",
+        "fixture:scanner:semgrep"
+      ],
+      "implementation_paths": [
+        "aegis/arsenal/assets/source.py",
+        "src/aegis/adapters",
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py",
+        "src/aegis/ai/tool_bridge.py",
+        "src/aegis/ai/tool_registry.py",
+        "src/aegis/arsenal/assets/types.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "semgrep",
+        "checked_at": "2026-08-27T20:35:33.753179+00:00",
+        "name": "semgrep",
+        "reason": "healthy",
+        "resolved_path": "/usr/local/bin/semgrep",
+        "sha256": "c7d9046d766bb5c035107e169808e64345abbfe6cddbb25dc3c2c1c994e3b80e",
+        "status": "ready",
+        "version": "1.172.0"
+      },
+      "source_registries": [
+        "ASSET_TECHNIQUE_MAP",
+        "TOOLS",
+        "adapter_manifests",
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "semgrep"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "docker_registry"
+      ],
+      "backend_id": "external:skopeo",
+      "binary": "skopeo",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:skopeo/container-registry-metadata"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [
+        "fixture:asset:skopeo:container-registry-metadata"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "skopeo",
+        "checked_at": "2026-08-27T20:35:35.436902+00:00",
+        "name": "skopeo",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "skopeo"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "asset-lane/1",
+        "deep-asset/1",
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "smart_contract",
+        "source_code"
+      ],
+      "backend_id": "external:slither",
+      "binary": "slither",
+      "capability_count": 3,
+      "capability_ids": [
+        "asset-lane:contract-static-analysis",
+        "asset:slither/solidity-vyper-static-analysis",
+        "tool:slither/contract"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor",
+        "aegis.ai.tool_bridge.ToolBridge",
+        "aegis.arsenal.assets.contract:static_analysis"
+      ],
+      "expected_versions": [
+        "0.11.6"
+      ],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:slither/solidity-vyper-static-analysis",
+        "tool:slither/contract"
+      ],
+      "fixture_providers": [
+        "fixture:asset:slither:solidity-vyper-static-analysis",
+        "fixture:scanner:slither"
+      ],
+      "implementation_paths": [
+        "aegis/arsenal/assets/contract.py",
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py",
+        "src/aegis/ai/tool_bridge.py",
+        "src/aegis/ai/tool_registry.py",
+        "src/aegis/arsenal/assets/types.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "slither",
+        "checked_at": "2026-08-27T20:35:35.437098+00:00",
+        "name": "slither",
+        "reason": "healthy",
+        "resolved_path": "/usr/local/bin/slither",
+        "sha256": "04fe49c2c65830eef0a6cb2cfb3a165b858c1650d933be62e859dfdf4771b5cf",
+        "status": "ready",
+        "version": "0.11.6"
+      },
+      "source_registries": [
+        "ASSET_TECHNIQUE_MAP",
+        "TOOLS",
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "slither"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "source_code"
+      ],
+      "backend_id": "external:spotbugs",
+      "binary": "spotbugs",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:spotbugs/java-bytecode-static-analysis"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:spotbugs/java-bytecode-static-analysis"
+      ],
+      "fixture_providers": [
+        "fixture:asset:spotbugs:java-bytecode-static-analysis"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "spotbugs",
+        "checked_at": "2026-08-27T20:35:35.806478+00:00",
+        "name": "SpotBugs",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "SpotBugs"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "cidr",
+        "domain",
+        "ip_address",
+        "wildcard"
+      ],
+      "backend_id": "external:ssh-audit",
+      "binary": "ssh-audit",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:ssh-audit/ssh-configuration-analysis"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [
+        "fixture:asset:ssh-audit:ssh-configuration-analysis"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "ssh-audit",
+        "checked_at": "2026-08-27T20:35:35.806699+00:00",
+        "name": "ssh-audit",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "ssh-audit"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "2.6.6",
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "domain",
+        "wildcard"
+      ],
+      "backend_id": "external:subfinder",
+      "binary": "subfinder",
+      "capability_count": 2,
+      "capability_ids": [
+        "adapter:subfinder/passive-discovery",
+        "asset:subfinder/passive-subdomain-enumeration"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "adapter:subfinder",
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [
+        "2.6.6"
+      ],
+      "external": true,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [
+        "fixture:asset:subfinder:passive-subdomain-enumeration"
+      ],
+      "implementation_paths": [
+        "src/aegis/adapters",
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "subfinder",
+        "checked_at": "2026-08-27T20:35:35.806859+00:00",
+        "name": "subfinder",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "adapter_manifests",
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "subfinder"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "asset-lane/1",
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "container_image",
+        "executable",
+        "hardware",
+        "windows_microsoft_store"
+      ],
+      "backend_id": "external:syft",
+      "binary": "syft",
+      "capability_count": 3,
+      "capability_ids": [
+        "asset-lane:dependency-extraction",
+        "asset:syft/artifact-sbom",
+        "asset:syft/container-image-sbom"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor",
+        "aegis.arsenal.assets.executable:dependency_extraction"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:syft/artifact-sbom",
+        "asset:syft/container-image-sbom"
+      ],
+      "fixture_providers": [
+        "fixture:asset:syft:artifact-sbom",
+        "fixture:asset:syft:container-image-sbom"
+      ],
+      "implementation_paths": [
+        "aegis/arsenal/assets/executable.py",
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py",
+        "src/aegis/arsenal/assets/types.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "syft",
+        "checked_at": "2026-08-27T20:35:35.807006+00:00",
+        "name": "syft",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "ASSET_TECHNIQUE_MAP",
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "syft"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "cidr",
+        "domain",
+        "ip_address",
+        "wildcard"
+      ],
+      "backend_id": "external:testssl.sh",
+      "binary": "testssl.sh",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:testssl-sh/tls-configuration-analysis"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [
+        "fixture:asset:testssl-sh:tls-configuration-analysis"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "testssl.sh",
+        "checked_at": "2026-08-27T20:35:35.807313+00:00",
+        "name": "testssl.sh",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "testssl.sh"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "asset-lane/1",
+        "deep-asset/1",
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "container_image",
+        "hardware",
+        "source_code"
+      ],
+      "backend_id": "external:trivy",
+      "binary": "trivy",
+      "capability_count": 5,
+      "capability_ids": [
+        "asset-lane:source-scanner-sweep",
+        "asset:trivy/container-image-security-scan",
+        "asset:trivy/filesystem-security-scan",
+        "tool:trivy/deps",
+        "tool:trivy/secrets"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor",
+        "aegis.ai.tool_bridge.ToolBridge",
+        "aegis.arsenal.assets.source:scanner_sweep"
+      ],
+      "expected_versions": [
+        "0.73.0"
+      ],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:trivy/container-image-security-scan",
+        "asset:trivy/filesystem-security-scan",
+        "tool:trivy/deps",
+        "tool:trivy/secrets"
+      ],
+      "fixture_providers": [
+        "fixture:asset:trivy:container-image-security-scan",
+        "fixture:asset:trivy:filesystem-security-scan",
+        "fixture:scanner:trivy"
+      ],
+      "implementation_paths": [
+        "aegis/arsenal/assets/source.py",
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py",
+        "src/aegis/ai/tool_bridge.py",
+        "src/aegis/ai/tool_registry.py",
+        "src/aegis/arsenal/assets/types.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "trivy",
+        "checked_at": "2026-08-27T20:35:35.808025+00:00",
+        "name": "trivy",
+        "reason": "healthy",
+        "resolved_path": "/usr/local/bin/trivy",
+        "sha256": "5b3ebab0f98d95196c85efc3a9d31a01520c96fa342e4e611f56db64c516df1d",
+        "status": "ready",
+        "version": "Version: 0.73.0"
+      },
+      "source_registries": [
+        "ASSET_TECHNIQUE_MAP",
+        "TOOLS",
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "trivy"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "browser_extension"
+      ],
+      "backend_id": "external:web-ext",
+      "binary": "web-ext",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:web-ext/browser-extension-structure-lint"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:web-ext/browser-extension-structure-lint"
+      ],
+      "fixture_providers": [
+        "fixture:asset:web-ext:browser-extension-structure-lint"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "web-ext",
+        "checked_at": "2026-08-27T20:35:36.062686+00:00",
+        "name": "web-ext",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "web-ext"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "websocket_service"
+      ],
+      "backend_id": "external:websocat",
+      "binary": "websocat",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:websocat/websocket-protocol-observation"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [
+        "fixture:asset:websocat:websocket-protocol-observation"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "websocat",
+        "checked_at": "2026-08-27T20:35:36.062939+00:00",
+        "name": "websocat",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "websocat"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "electron_app",
+        "executable",
+        "windows_microsoft_store"
+      ],
+      "backend_id": "external:yara",
+      "binary": "yara",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:yara/approved-rule-binary-scan"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:yara/approved-rule-binary-scan"
+      ],
+      "fixture_providers": [
+        "fixture:asset:yara:approved-rule-binary-scan"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "yara",
+        "checked_at": "2026-08-27T20:35:36.063081+00:00",
+        "name": "YARA",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "YARA"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "cicd_pipeline",
+        "github_org",
+        "source_code"
+      ],
+      "backend_id": "external:zizmor",
+      "binary": "zizmor",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:zizmor/github-actions-security-audit"
+      ],
+      "current_state": "UNAVAILABLE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": true,
+      "fixture_executable_capabilities": [
+        "asset:zizmor/github-actions-security-audit"
+      ],
+      "fixture_providers": [
+        "fixture:asset:zizmor:github-actions-security-audit"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "zizmor",
+        "checked_at": "2026-08-27T20:35:36.063208+00:00",
+        "name": "zizmor",
+        "reason": "binary not found",
+        "resolved_path": "",
+        "sha256": "",
+        "status": "unavailable",
+        "version": ""
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "zizmor"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "ai_model",
+        "llm_rag_app"
+      ],
+      "backend_id": "internal:aegis-agent-permission-audit",
+      "binary": "aegis-agent-permission-audit",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:aegis-agent-permission-audit/agent-tool-permission-analysis"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": false,
+      "fixture_executable_capabilities": [
+        "asset:aegis-agent-permission-audit/agent-tool-permission-analysis"
+      ],
+      "fixture_providers": [
+        "fixture:asset:aegis-agent-permission-audit:agent-tool-permission-analysis"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "Aegis",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "aegis-agent-permission-audit",
+        "checked_at": "2026-08-27T20:35:36.063351+00:00",
+        "name": "aegis-agent-permission-audit",
+        "reason": "internal adapter; external binary health is not applicable",
+        "resolved_path": "internal-adapter",
+        "sha256": "",
+        "status": "internal",
+        "version": "aegis-internal"
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "aegis-agent-permission-audit"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "android_play_store",
+        "ios_app_store",
+        "ios_testflight",
+        "windows_microsoft_store"
+      ],
+      "backend_id": "internal:aegis-artifact-diff",
+      "binary": "aegis-artifact-diff",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:aegis-artifact-diff/authorized-mobile-release-diff"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": false,
+      "fixture_executable_capabilities": [
+        "asset:aegis-artifact-diff/authorized-mobile-release-diff"
+      ],
+      "fixture_providers": [
+        "fixture:asset:aegis-artifact-diff:authorized-mobile-release-diff"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "Aegis",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "aegis-artifact-diff",
+        "checked_at": "2026-08-27T20:35:36.063367+00:00",
+        "name": "aegis-artifact-diff",
+        "reason": "internal adapter; external binary health is not applicable",
+        "resolved_path": "internal-adapter",
+        "sha256": "",
+        "status": "internal",
+        "version": "aegis-internal"
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "aegis-artifact-diff"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "asset-lane/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "executable"
+      ],
+      "backend_id": "internal:aegis-asar",
+      "binary": "aegis-asar",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset-lane:bundle-unpack"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.arsenal.assets.executable:bundle_unpack"
+      ],
+      "expected_versions": [],
+      "external": false,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [],
+      "implementation_paths": [
+        "aegis/arsenal/assets/executable.py",
+        "src/aegis/arsenal/assets/types.py"
+      ],
+      "installation_source": "Aegis",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "aegis-asar",
+        "checked_at": "2026-08-27T20:35:36.063391+00:00",
+        "name": "aegis-asar",
+        "reason": "internal adapter; external binary health is not applicable",
+        "resolved_path": "internal-adapter",
+        "sha256": "",
+        "status": "internal",
+        "version": "aegis-internal"
+      },
+      "source_registries": [
+        "ASSET_TECHNIQUE_MAP"
+      ],
+      "tool_names": [
+        "aegis-asar"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "other_asset"
+      ],
+      "backend_id": "internal:aegis-asset-classifier",
+      "binary": "aegis-asset-classifier",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:aegis-asset-classifier/deterministic-asset-classification"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": false,
+      "fixture_executable_capabilities": [
+        "asset:aegis-asset-classifier/deterministic-asset-classification"
+      ],
+      "fixture_providers": [
+        "fixture:asset:aegis-asset-classifier:deterministic-asset-classification"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "Aegis",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "aegis-asset-classifier",
+        "checked_at": "2026-08-27T20:35:36.063408+00:00",
+        "name": "aegis-asset-classifier",
+        "reason": "internal adapter; external binary health is not applicable",
+        "resolved_path": "internal-adapter",
+        "sha256": "",
+        "status": "internal",
+        "version": "aegis-internal"
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "aegis-asset-classifier"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "asset-lane/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "other_asset"
+      ],
+      "backend_id": "internal:aegis-asset-triage",
+      "binary": "aegis-asset-triage",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset-lane:asset-triage"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.arsenal.assets.other:asset_triage"
+      ],
+      "expected_versions": [],
+      "external": false,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [],
+      "implementation_paths": [
+        "aegis/arsenal/assets/other.py",
+        "src/aegis/arsenal/assets/types.py"
+      ],
+      "installation_source": "Aegis",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "aegis-asset-triage",
+        "checked_at": "2026-08-27T20:35:36.063420+00:00",
+        "name": "aegis-asset-triage",
+        "reason": "internal adapter; external binary health is not applicable",
+        "resolved_path": "internal-adapter",
+        "sha256": "",
+        "status": "internal",
+        "version": "aegis-internal"
+      },
+      "source_registries": [
+        "ASSET_TECHNIQUE_MAP"
+      ],
+      "tool_names": [
+        "aegis-asset-triage"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "asset-lane/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "api"
+      ],
+      "backend_id": "internal:aegis-authz-matrix",
+      "binary": "aegis-authz-matrix",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset-lane:authorization-matrix"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.arsenal.assets.api_surface:authorization_matrix"
+      ],
+      "expected_versions": [],
+      "external": false,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [],
+      "implementation_paths": [
+        "aegis/arsenal/assets/api_surface.py",
+        "src/aegis/arsenal/assets/types.py"
+      ],
+      "installation_source": "Aegis",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "aegis-authz-matrix",
+        "checked_at": "2026-08-27T20:35:36.063435+00:00",
+        "name": "aegis-authz-matrix",
+        "reason": "internal adapter; external binary health is not applicable",
+        "resolved_path": "internal-adapter",
+        "sha256": "",
+        "status": "internal",
+        "version": "aegis-internal"
+      },
+      "source_registries": [
+        "ASSET_TECHNIQUE_MAP"
+      ],
+      "tool_names": [
+        "aegis-authz-matrix"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "asset-lane/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "executable"
+      ],
+      "backend_id": "internal:aegis-binary-triage",
+      "binary": "aegis-binary-triage",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset-lane:binary-triage"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.arsenal.assets.executable:binary_triage"
+      ],
+      "expected_versions": [],
+      "external": false,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [],
+      "implementation_paths": [
+        "aegis/arsenal/assets/executable.py",
+        "src/aegis/arsenal/assets/types.py"
+      ],
+      "installation_source": "Aegis",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "aegis-binary-triage",
+        "checked_at": "2026-08-27T20:35:36.063447+00:00",
+        "name": "aegis-binary-triage",
+        "reason": "internal adapter; external binary health is not applicable",
+        "resolved_path": "internal-adapter",
+        "sha256": "",
+        "status": "internal",
+        "version": "aegis-internal"
+      },
+      "source_registries": [
+        "ASSET_TECHNIQUE_MAP"
+      ],
+      "tool_names": [
+        "aegis-binary-triage"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "asset-lane/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "api"
+      ],
+      "backend_id": "internal:aegis-bola-probe",
+      "binary": "aegis-bola-probe",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset-lane:object-reference-probe"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.arsenal.assets.api_surface:object_reference_probe"
+      ],
+      "expected_versions": [],
+      "external": false,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [],
+      "implementation_paths": [
+        "aegis/arsenal/assets/api_surface.py",
+        "src/aegis/arsenal/assets/types.py"
+      ],
+      "installation_source": "Aegis",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "aegis-bola-probe",
+        "checked_at": "2026-08-27T20:35:36.063458+00:00",
+        "name": "aegis-bola-probe",
+        "reason": "internal adapter; external binary health is not applicable",
+        "resolved_path": "internal-adapter",
+        "sha256": "",
+        "status": "internal",
+        "version": "aegis-internal"
+      },
+      "source_registries": [
+        "ASSET_TECHNIQUE_MAP"
+      ],
+      "tool_names": [
+        "aegis-bola-probe"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "asset-lane/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "smart_contract"
+      ],
+      "backend_id": "internal:aegis-contract-patterns",
+      "binary": "aegis-contract-patterns",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset-lane:contract-pattern-review"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.arsenal.assets.contract:pattern_review"
+      ],
+      "expected_versions": [],
+      "external": false,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [],
+      "implementation_paths": [
+        "aegis/arsenal/assets/contract.py",
+        "src/aegis/arsenal/assets/types.py"
+      ],
+      "installation_source": "Aegis",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "aegis-contract-patterns",
+        "checked_at": "2026-08-27T20:35:36.063469+00:00",
+        "name": "aegis-contract-patterns",
+        "reason": "internal adapter; external binary health is not applicable",
+        "resolved_path": "internal-adapter",
+        "sha256": "",
+        "status": "internal",
+        "version": "aegis-internal"
+      },
+      "source_registries": [
+        "ASSET_TECHNIQUE_MAP"
+      ],
+      "tool_names": [
+        "aegis-contract-patterns"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "hardware"
+      ],
+      "backend_id": "internal:aegis-firmware-arch",
+      "binary": "aegis-firmware-arch",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:aegis-firmware-arch/firmware-architecture-detection"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": false,
+      "fixture_executable_capabilities": [
+        "asset:aegis-firmware-arch/firmware-architecture-detection"
+      ],
+      "fixture_providers": [
+        "fixture:asset:aegis-firmware-arch:firmware-architecture-detection"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "Aegis",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "aegis-firmware-arch",
+        "checked_at": "2026-08-27T20:35:36.063481+00:00",
+        "name": "aegis-firmware-arch",
+        "reason": "internal adapter; external binary health is not applicable",
+        "resolved_path": "internal-adapter",
+        "sha256": "",
+        "status": "internal",
+        "version": "aegis-internal"
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "aegis-firmware-arch"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "github_org"
+      ],
+      "backend_id": "internal:aegis-github-org",
+      "binary": "aegis-github-org",
+      "capability_count": 2,
+      "capability_ids": [
+        "asset:aegis-github-org/github-org-authorized-inventory",
+        "asset:aegis-github-org/github-org-public-inventory"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": false,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [
+        "fixture:asset:aegis-github-org:github-org-authorized-inventory",
+        "fixture:asset:aegis-github-org:github-org-public-inventory"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "Aegis",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "aegis-github-org",
+        "checked_at": "2026-08-27T20:35:36.063494+00:00",
+        "name": "aegis-github-org",
+        "reason": "internal adapter; external binary health is not applicable",
+        "resolved_path": "internal-adapter",
+        "sha256": "",
+        "status": "internal",
+        "version": "aegis-internal"
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "aegis-github-org"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "gitlab_group"
+      ],
+      "backend_id": "internal:aegis-gitlab-group",
+      "binary": "aegis-gitlab-group",
+      "capability_count": 2,
+      "capability_ids": [
+        "asset:aegis-gitlab-group/gitlab-group-authorized-inventory",
+        "asset:aegis-gitlab-group/gitlab-group-public-inventory"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": false,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [
+        "fixture:asset:aegis-gitlab-group:gitlab-group-authorized-inventory",
+        "fixture:asset:aegis-gitlab-group:gitlab-group-public-inventory"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "Aegis",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "aegis-gitlab-group",
+        "checked_at": "2026-08-27T20:35:36.063508+00:00",
+        "name": "aegis-gitlab-group",
+        "reason": "internal adapter; external binary health is not applicable",
+        "resolved_path": "internal-adapter",
+        "sha256": "",
+        "status": "internal",
+        "version": "aegis-internal"
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "aegis-gitlab-group"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "asset-lane/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "ai_model"
+      ],
+      "backend_id": "internal:aegis-llm-lab",
+      "binary": "aegis-llm-lab",
+      "capability_count": 3,
+      "capability_ids": [
+        "asset-lane:prompt-injection-suite",
+        "asset-lane:system-prompt-extraction",
+        "asset-lane:tool-abuse-chain"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.arsenal.assets.ai_model:prompt_injection_suite",
+        "aegis.arsenal.assets.ai_model:system_prompt_extraction",
+        "aegis.arsenal.assets.ai_model:tool_abuse_chain"
+      ],
+      "expected_versions": [],
+      "external": false,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [],
+      "implementation_paths": [
+        "aegis/arsenal/assets/ai_model.py",
+        "src/aegis/arsenal/assets/types.py"
+      ],
+      "installation_source": "Aegis",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "aegis-llm-lab",
+        "checked_at": "2026-08-27T20:35:36.063521+00:00",
+        "name": "aegis-llm-lab",
+        "reason": "internal adapter; external binary health is not applicable",
+        "resolved_path": "internal-adapter",
+        "sha256": "",
+        "status": "internal",
+        "version": "aegis-internal"
+      },
+      "source_registries": [
+        "ASSET_TECHNIQUE_MAP"
+      ],
+      "tool_names": [
+        "aegis-llm-lab"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "ai_model",
+        "llm_rag_app"
+      ],
+      "backend_id": "internal:aegis-memory-poisoning",
+      "binary": "aegis-memory-poisoning",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:aegis-memory-poisoning/agent-memory-poisoning-regression"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": false,
+      "fixture_executable_capabilities": [
+        "asset:aegis-memory-poisoning/agent-memory-poisoning-regression"
+      ],
+      "fixture_providers": [
+        "fixture:asset:aegis-memory-poisoning:agent-memory-poisoning-regression"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "Aegis",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "aegis-memory-poisoning",
+        "checked_at": "2026-08-27T20:35:36.063536+00:00",
+        "name": "aegis-memory-poisoning",
+        "reason": "internal adapter; external binary health is not applicable",
+        "resolved_path": "internal-adapter",
+        "sha256": "",
+        "status": "internal",
+        "version": "aegis-internal"
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "aegis-memory-poisoning"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "ai_model"
+      ],
+      "backend_id": "internal:aegis-model-provenance",
+      "binary": "aegis-model-provenance",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:aegis-model-provenance/model-provenance-and-hash-ledger"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": false,
+      "fixture_executable_capabilities": [
+        "asset:aegis-model-provenance/model-provenance-and-hash-ledger"
+      ],
+      "fixture_providers": [
+        "fixture:asset:aegis-model-provenance:model-provenance-and-hash-ledger"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "Aegis",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "aegis-model-provenance",
+        "checked_at": "2026-08-27T20:35:36.063548+00:00",
+        "name": "aegis-model-provenance",
+        "reason": "internal adapter; external binary health is not applicable",
+        "resolved_path": "internal-adapter",
+        "sha256": "",
+        "status": "internal",
+        "version": "aegis-internal"
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "aegis-model-provenance"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "asset-lane/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "api"
+      ],
+      "backend_id": "internal:aegis-openapi-parser",
+      "binary": "aegis-openapi-parser",
+      "capability_count": 2,
+      "capability_ids": [
+        "asset-lane:mass-assignment",
+        "asset-lane:openapi-ingest"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.arsenal.assets.api_surface:ingest_specification",
+        "aegis.arsenal.assets.api_surface:mass_assignment"
+      ],
+      "expected_versions": [],
+      "external": false,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [],
+      "implementation_paths": [
+        "aegis/arsenal/assets/api_surface.py",
+        "src/aegis/arsenal/assets/types.py"
+      ],
+      "installation_source": "Aegis",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "aegis-openapi-parser",
+        "checked_at": "2026-08-27T20:35:36.063561+00:00",
+        "name": "aegis-openapi-parser",
+        "reason": "internal adapter; external binary health is not applicable",
+        "resolved_path": "internal-adapter",
+        "sha256": "",
+        "status": "internal",
+        "version": "aegis-internal"
+      },
+      "source_registries": [
+        "ASSET_TECHNIQUE_MAP"
+      ],
+      "tool_names": [
+        "aegis-openapi-parser"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "asset-lane/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "ai_model"
+      ],
+      "backend_id": "internal:aegis-output-oracle",
+      "binary": "aegis-output-oracle",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset-lane:output-handling-review"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.arsenal.assets.ai_model:output_handling_review"
+      ],
+      "expected_versions": [],
+      "external": false,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [],
+      "implementation_paths": [
+        "aegis/arsenal/assets/ai_model.py",
+        "src/aegis/arsenal/assets/types.py"
+      ],
+      "installation_source": "Aegis",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "aegis-output-oracle",
+        "checked_at": "2026-08-27T20:35:36.063575+00:00",
+        "name": "aegis-output-oracle",
+        "reason": "internal adapter; external binary health is not applicable",
+        "resolved_path": "internal-adapter",
+        "sha256": "",
+        "status": "internal",
+        "version": "aegis-internal"
+      },
+      "source_registries": [
+        "ASSET_TECHNIQUE_MAP"
+      ],
+      "tool_names": [
+        "aegis-output-oracle"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "npm_package",
+        "package_registry",
+        "pypi_package"
+      ],
+      "backend_id": "internal:aegis-package-registry",
+      "binary": "aegis-package-registry",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:aegis-package-registry/public-package-metadata"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": false,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [
+        "fixture:asset:aegis-package-registry:public-package-metadata"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "Aegis",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "aegis-package-registry",
+        "checked_at": "2026-08-27T20:35:36.063586+00:00",
+        "name": "aegis-package-registry",
+        "reason": "internal adapter; external binary health is not applicable",
+        "resolved_path": "internal-adapter",
+        "sha256": "",
+        "status": "internal",
+        "version": "aegis-internal"
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "aegis-package-registry"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "asset-lane/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "aws_account",
+        "azure_account"
+      ],
+      "backend_id": "internal:aegis-policy-parser",
+      "binary": "aegis-policy-parser",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset-lane:iam-policy-review"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.arsenal.assets.cloud:iam_policy_review"
+      ],
+      "expected_versions": [],
+      "external": false,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [],
+      "implementation_paths": [
+        "aegis/arsenal/assets/cloud.py",
+        "src/aegis/arsenal/assets/types.py"
+      ],
+      "installation_source": "Aegis",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "aegis-policy-parser",
+        "checked_at": "2026-08-27T20:35:36.063598+00:00",
+        "name": "aegis-policy-parser",
+        "reason": "internal adapter; external binary health is not applicable",
+        "resolved_path": "internal-adapter",
+        "sha256": "",
+        "status": "internal",
+        "version": "aegis-internal"
+      },
+      "source_registries": [
+        "ASSET_TECHNIQUE_MAP"
+      ],
+      "tool_names": [
+        "aegis-policy-parser"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "ai_model",
+        "llm_rag_app"
+      ],
+      "backend_id": "internal:aegis-rag-boundary",
+      "binary": "aegis-rag-boundary",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:aegis-rag-boundary/rag-retrieval-trust-analysis"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": false,
+      "fixture_executable_capabilities": [
+        "asset:aegis-rag-boundary/rag-retrieval-trust-analysis"
+      ],
+      "fixture_providers": [
+        "fixture:asset:aegis-rag-boundary:rag-retrieval-trust-analysis"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "Aegis",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "aegis-rag-boundary",
+        "checked_at": "2026-08-27T20:35:36.063610+00:00",
+        "name": "aegis-rag-boundary",
+        "reason": "internal adapter; external binary health is not applicable",
+        "resolved_path": "internal-adapter",
+        "sha256": "",
+        "status": "internal",
+        "version": "aegis-internal"
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "aegis-rag-boundary"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "android_play_store",
+        "ios_app_store",
+        "ios_testflight",
+        "windows_microsoft_store"
+      ],
+      "backend_id": "internal:aegis-store-metadata",
+      "binary": "aegis-store-metadata",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset:aegis-store-metadata/public-listing-metadata"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
+      ],
+      "expected_versions": [],
+      "external": false,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [
+        "fixture:asset:aegis-store-metadata:public-listing-metadata"
+      ],
+      "implementation_paths": [
+        "src/aegis/ai/jarvis/asset_deep_capabilities.py"
+      ],
+      "installation_source": "Aegis",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "aegis-store-metadata",
+        "checked_at": "2026-08-27T20:35:36.063621+00:00",
+        "name": "aegis-store-metadata",
+        "reason": "internal adapter; external binary health is not applicable",
+        "resolved_path": "internal-adapter",
+        "sha256": "",
+        "status": "internal",
+        "version": "aegis-internal"
+      },
+      "source_registries": [
+        "deep_asset_capabilities"
+      ],
+      "tool_names": [
+        "aegis-store-metadata"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "asset-lane/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "executable"
+      ],
+      "backend_id": "internal:aegis-strings",
+      "binary": "aegis-strings",
+      "capability_count": 2,
+      "capability_ids": [
+        "asset-lane:dependency-extraction",
+        "asset-lane:embedded-secret-scan"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.arsenal.assets.executable:dependency_extraction",
+        "aegis.arsenal.assets.executable:embedded_secret_scan"
+      ],
+      "expected_versions": [],
+      "external": false,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [],
+      "implementation_paths": [
+        "aegis/arsenal/assets/executable.py",
+        "src/aegis/arsenal/assets/types.py"
+      ],
+      "installation_source": "Aegis",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "aegis-strings",
+        "checked_at": "2026-08-27T20:35:36.063635+00:00",
+        "name": "aegis-strings",
+        "reason": "internal adapter; external binary health is not applicable",
+        "resolved_path": "internal-adapter",
+        "sha256": "",
+        "status": "internal",
+        "version": "aegis-internal"
+      },
+      "source_registries": [
+        "ASSET_TECHNIQUE_MAP"
+      ],
+      "tool_names": [
+        "aegis-strings"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "asset-lane/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "cidr",
+        "domain",
+        "ip_address",
+        "wildcard"
+      ],
+      "backend_id": "internal:crt.sh",
+      "binary": "crt.sh",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset-lane:passive-certificate-transparency"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.arsenal.assets.network:certificate_transparency"
+      ],
+      "expected_versions": [],
+      "external": false,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [],
+      "implementation_paths": [
+        "aegis/arsenal/assets/network.py",
+        "src/aegis/arsenal/assets/types.py"
+      ],
+      "installation_source": "Aegis",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "crt.sh",
+        "checked_at": "2026-08-27T20:35:36.063649+00:00",
+        "name": "crt.sh",
+        "reason": "internal adapter; external binary health is not applicable",
+        "resolved_path": "internal-adapter",
+        "sha256": "",
+        "status": "internal",
+        "version": "aegis-internal"
+      },
+      "source_registries": [
+        "ASSET_TECHNIQUE_MAP"
+      ],
+      "tool_names": [
+        "crt.sh"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "asset-lane/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "api",
+        "aws_account",
+        "azure_account",
+        "cidr",
+        "domain",
+        "ip_address",
+        "wildcard"
+      ],
+      "backend_id": "internal:stdlib-http",
+      "binary": "stdlib-http",
+      "capability_count": 6,
+      "capability_ids": [
+        "asset-lane:metadata-endpoint-exposure",
+        "asset-lane:public-blob-review",
+        "asset-lane:public-bucket-review",
+        "asset-lane:rate-limit-check",
+        "asset-lane:security-headers",
+        "asset-lane:virtual-host-discovery"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.arsenal.assets.api_surface:rate_limit_check",
+        "aegis.arsenal.assets.cloud:metadata_endpoint_exposure",
+        "aegis.arsenal.assets.cloud:public_blob_review",
+        "aegis.arsenal.assets.cloud:public_bucket_review",
+        "aegis.arsenal.assets.network:security_headers",
+        "aegis.arsenal.assets.network:virtual_host_discovery"
+      ],
+      "expected_versions": [],
+      "external": false,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [],
+      "implementation_paths": [
+        "aegis/arsenal/assets/api_surface.py",
+        "aegis/arsenal/assets/cloud.py",
+        "aegis/arsenal/assets/network.py",
+        "src/aegis/arsenal/assets/types.py"
+      ],
+      "installation_source": "Aegis",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "stdlib-http",
+        "checked_at": "2026-08-27T20:35:36.063662+00:00",
+        "name": "stdlib-http",
+        "reason": "internal adapter; external binary health is not applicable",
+        "resolved_path": "internal-adapter",
+        "sha256": "",
+        "status": "internal",
+        "version": "aegis-internal"
+      },
+      "source_registries": [
+        "ASSET_TECHNIQUE_MAP"
+      ],
+      "tool_names": [
+        "stdlib-http"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "asset-lane/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "cidr",
+        "domain",
+        "ip_address",
+        "wildcard"
+      ],
+      "backend_id": "internal:stdlib-resolver",
+      "binary": "stdlib-resolver",
+      "capability_count": 2,
+      "capability_ids": [
+        "asset-lane:dns-enumeration",
+        "asset-lane:subdomain-takeover"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.arsenal.assets.network:dns_enumeration",
+        "aegis.arsenal.assets.network:subdomain_takeover"
+      ],
+      "expected_versions": [],
+      "external": false,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [],
+      "implementation_paths": [
+        "aegis/arsenal/assets/network.py",
+        "src/aegis/arsenal/assets/types.py"
+      ],
+      "installation_source": "Aegis",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "stdlib-resolver",
+        "checked_at": "2026-08-27T20:35:36.063681+00:00",
+        "name": "stdlib-resolver",
+        "reason": "internal adapter; external binary health is not applicable",
+        "resolved_path": "internal-adapter",
+        "sha256": "",
+        "status": "internal",
+        "version": "aegis-internal"
+      },
+      "source_registries": [
+        "ASSET_TECHNIQUE_MAP"
+      ],
+      "tool_names": [
+        "stdlib-resolver"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "asset-lane/1"
+      ],
+      "architecture": "x86_64",
+      "asset_classes": [
+        "cidr",
+        "domain",
+        "ip_address",
+        "wildcard"
+      ],
+      "backend_id": "internal:stdlib-ssl",
+      "binary": "stdlib-ssl",
+      "capability_count": 1,
+      "capability_ids": [
+        "asset-lane:tls-inspection"
+      ],
+      "current_state": "WAITING_FOR_PREREQUISITE",
+      "executor_providers": [
+        "aegis.arsenal.assets.network:tls_inspection"
+      ],
+      "expected_versions": [],
+      "external": false,
+      "fixture_executable_capabilities": [],
+      "fixture_providers": [],
+      "implementation_paths": [
+        "aegis/arsenal/assets/network.py",
+        "src/aegis/arsenal/assets/types.py"
+      ],
+      "installation_source": "Aegis",
+      "prerequisite": "",
+      "runtime": {
+        "binary": "stdlib-ssl",
+        "checked_at": "2026-08-27T20:35:36.063695+00:00",
+        "name": "stdlib-ssl",
+        "reason": "internal adapter; external binary health is not applicable",
+        "resolved_path": "internal-adapter",
+        "sha256": "",
+        "status": "internal",
+        "version": "aegis-internal"
+      },
+      "source_registries": [
+        "ASSET_TECHNIQUE_MAP"
+      ],
+      "tool_names": [
+        "stdlib-ssl"
+      ]
+    }
+  ],
+  "generated_at": "2026-08-27T20:35:36.063719+00:00",
+  "git_sha": "",
+  "metrics": {
+    "canonical_capability_count": 174,
+    "installed_external_backend_count": 17,
+    "unique_backend_count": 100,
+    "unique_external_backend_count": 74,
+    "unique_internal_backend_count": 26
+  },
+  "schema_version": 1
+}

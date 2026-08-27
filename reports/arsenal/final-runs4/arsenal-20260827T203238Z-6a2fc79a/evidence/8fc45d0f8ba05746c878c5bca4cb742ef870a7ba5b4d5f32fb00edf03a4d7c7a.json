@@ -1,0 +1,13 @@
+{
+  "blocking_reason": "backend is present but its deterministic positive/negative fixture provider is not connected to the canonical executor",
+  "capability_id": "asset:checkov/container-image-policy-scan",
+  "coverage_state": "WAITING_FOR_PREREQUISITE",
+  "evidence_digest": "8fc45d0f8ba05746c878c5bca4cb742ef870a7ba5b4d5f32fb00edf03a4d7c7a",
+  "execution_grant_issued": false,
+  "execution_performed": false,
+  "kind": "arsenal_fixture_blocked",
+  "mission_id": "arsenal-blocked-6a2fc79abba76c7a",
+  "mode": "FIXTURE",
+  "run_id": "arsenal-20260827T203238Z-6a2fc79a",
+  "task_id": "arsenal-blocked-6a2fc79abba76c7a-execute"
+}

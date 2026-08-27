@@ -1,0 +1,13 @@
+{
+  "blocking_reason": "binary not found",
+  "capability_id": "asset:angr/binary-control-flow-analysis",
+  "coverage_state": "UNAVAILABLE",
+  "evidence_digest": "0c2ef15f9ee21dfa8b949581eb47f90cb20ebeb60183964f32f828367c138941",
+  "execution_grant_issued": false,
+  "execution_performed": false,
+  "kind": "arsenal_fixture_blocked",
+  "mission_id": "arsenal-blocked-8cf548dfad4cacf7",
+  "mode": "FIXTURE",
+  "run_id": "arsenal-20260827T203234Z-8cf548df",
+  "task_id": "arsenal-blocked-8cf548dfad4cacf7-execute"
+}

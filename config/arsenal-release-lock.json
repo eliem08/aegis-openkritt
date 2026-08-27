@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "releases": [
+    {"name": "bandit", "version": "1.9.4"},
+    {"name": "brakeman", "version": "7.1.1"},
+    {"name": "checkov", "version": "3.3.9"},
+    {"name": "detect-secrets", "version": "1.5.0"},
+    {"name": "gitleaks", "version": "8.21.2"},
+    {"name": "gosec", "version": "2.22.8"},
+    {"name": "grype", "version": "0.116.1"},
+    {"name": "mythril", "version": "0.24.8"},
+    {"name": "njsscan", "version": "0.4.3"},
+    {"name": "osv-scanner", "version": "2.5.1"},
+    {"name": "psalm", "version": "6.16.1"},
+    {"name": "retire.js", "version": "5.4.3"},
+    {"name": "semgrep", "version": "1.172.0"},
+    {"name": "slither", "version": "0.11.6"},
+    {"name": "trivy", "version": "0.73.0"}
+  ]
+}

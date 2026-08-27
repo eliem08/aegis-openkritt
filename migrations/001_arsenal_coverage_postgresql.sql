@@ -31,8 +31,11 @@ CREATE TABLE IF NOT EXISTS arsenal_coverage_records (
   negative_control_status TEXT NOT NULL,
   historical_evidence_invalid BOOLEAN NOT NULL,
   schema_version INTEGER NOT NULL,
+  execution_metadata TEXT NOT NULL DEFAULT '{}',
   payload_digest TEXT NOT NULL
 );
+ALTER TABLE arsenal_coverage_records
+  ADD COLUMN IF NOT EXISTS execution_metadata TEXT NOT NULL DEFAULT '{}';
 CREATE INDEX IF NOT EXISTS idx_arsenal_coverage_capability
   ON arsenal_coverage_records(capability_id,mode,execution_timestamp);
 CREATE INDEX IF NOT EXISTS idx_arsenal_coverage_run

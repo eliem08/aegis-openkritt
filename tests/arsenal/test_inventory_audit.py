@@ -70,12 +70,13 @@ def test_historical_execution_requires_verified_manifest_event_and_evidence(tmp_
         "kind": "arsenal_task_evidence", "capability_id": "tool:semgrep/code",
         "run_id": "run-fixture", "mission_id": "mission-1", "task_id": "task-1",
         "asset": "fixture://local", "policy_snapshot_digest": document_digest(policy),
-        "grant": {"nonce": "grant-1", "constraints": {}},
+        "grant": {"nonce": "grant-1", "constraints": {}}, "execution_performed": True,
     })
     store.append_event(
         "run-fixture", "arsenal_task_completed", RunStatus.COMPLETED,
         {"mission_id": "mission-1", "task_id": "task-1",
-         "evidence_ref": evidence_ref, "evidence_digest": evidence_digest},
+         "evidence_ref": evidence_ref, "evidence_digest": evidence_digest,
+         "result": ArsenalCoverageState.EXECUTED_PASS.value},
     )
 
     report = build_audit(runs_dir=tmp_path, runtime_manager=HealthyRuntime())
@@ -83,6 +84,36 @@ def test_historical_execution_requires_verified_manifest_event_and_evidence(tmp_
     assert len(report.history) == 1
     assert report.history[0].mode is CapabilityMode.FIXTURE
     assert report.history[0].state is ArsenalCoverageState.EXECUTED_PASS
+
+
+def test_failed_fixture_event_is_preserved_but_not_counted_as_execution(tmp_path):
+    store = ImmutableRunStore(tmp_path)
+    signer = Ed25519Signer.generate("operator")
+    now = datetime.now(UTC)
+    policy = {"program": "fixture"}
+    scope = {"selected_assets": ["fixture://local"]}
+    manifest = OperatorRunManifest(
+        1, "run-failed", RunMode.ARSENAL_FIXTURE, now.isoformat(), "operator", "fixture",
+        "local-fixture", ("fixture://local",), None, (), policy,
+        document_digest(policy), scope, document_digest(scope), {},
+        RunBudgets(1, 1.0, 0.0),
+        {"authorization_id": "fixture-auth", "signature": signer.sign({"fixture": True})},
+    )
+    store.create(manifest)
+    evidence_ref, evidence_digest = store.persist_evidence("run-failed", {
+        "kind": "arsenal_task_evidence", "capability_id": "tool:semgrep/code",
+        "run_id": "run-failed", "mission_id": "mission-1", "task_id": "task-1",
+        "execution_performed": True, "summary": {"fixture_detection": False},
+    })
+    store.append_event("run-failed", "arsenal_task_completed", RunStatus.FAILED, {
+        "mission_id": "mission-1", "task_id": "task-1",
+        "evidence_ref": evidence_ref, "evidence_digest": evidence_digest,
+        "result": ArsenalCoverageState.BACKEND_UNHEALTHY.value,
+    })
+
+    report = build_audit(runs_dir=tmp_path, runtime_manager=HealthyRuntime())
+
+    assert report.history == ()
 
 
 def test_corrupt_historical_evidence_is_reported_not_counted(tmp_path):

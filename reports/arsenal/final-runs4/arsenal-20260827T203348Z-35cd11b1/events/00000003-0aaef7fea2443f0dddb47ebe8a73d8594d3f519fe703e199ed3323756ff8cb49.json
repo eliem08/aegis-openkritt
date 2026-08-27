@@ -1,0 +1,13 @@
+{
+  "detail": {
+    "capability_id": "tool:njsscan/code",
+    "mission_id": "arsenal-tool-35cd11b1091a",
+    "task_id": "arsenal-tool-35cd11b1091a-execute"
+  },
+  "digest": "0aaef7fea2443f0dddb47ebe8a73d8594d3f519fe703e199ed3323756ff8cb49",
+  "event_type": "arsenal_task_started",
+  "observed_at": "2026-08-27T20:33:48.427931+00:00",
+  "previous_digest": "068d823b4dd59d3f776fc337092ba9efa10656182eeba3b5fca6270cca95f7cc",
+  "sequence": 3,
+  "status": "running"
+}

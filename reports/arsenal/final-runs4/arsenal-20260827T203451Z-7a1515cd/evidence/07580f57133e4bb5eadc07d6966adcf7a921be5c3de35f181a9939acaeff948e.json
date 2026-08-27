@@ -1,0 +1,138 @@
+{
+  "adapter_version": "tool-bridge/1",
+  "backend_name": "slither",
+  "backend_version": "0.11.6",
+  "binary_path": "/usr/local/bin/slither",
+  "blocking_reason": "",
+  "capability_id": "tool:slither/contract",
+  "capability_ids": [
+    "tool:slither/contract",
+    "asset:slither/solidity-vyper-static-analysis"
+  ],
+  "container_digest_if_applicable": "sha256:3766088055a72f82346bf7318cb0acf9ec6b2e82ddf6df6bcba9558f70e9c40d",
+  "coverage_state": "EXECUTED_PASS",
+  "duration_ms": 868,
+  "evidence_digest": "07580f57133e4bb5eadc07d6966adcf7a921be5c3de35f181a9939acaeff948e",
+  "execution_completed_at": "2026-08-27T20:34:53.087198+00:00",
+  "execution_grant_payload": {
+    "allowed_destinations": [],
+    "allowed_methods": [],
+    "budget": {
+      "max_cost_usd": 0.0,
+      "max_human_minutes": 0.0,
+      "max_requests": 0
+    },
+    "constraints": {
+      "authorization_class": "LOCAL_FIXTURE_ONLY",
+      "capability_id": "tool:slither/contract",
+      "covered_capability_ids": [
+        "tool:slither/contract",
+        "asset:slither/solidity-vyper-static-analysis"
+      ],
+      "fixture_version": "scanner-fixture-v2",
+      "negative_fixture_digest": "ad2b0799492915f1624a3f2530c8eb9042405d68381e8d3411872dffc0b3841a",
+      "positive_fixture_digest": "f8363406f4a0e237270db88e9e65a8e164558e302d3b0cba39ce4e4d48d02ceb"
+    },
+    "decision_fingerprint": "61088d5177f1dc2db5035b03",
+    "expires_at": "2026-08-27T20:49:51.741154+00:00",
+    "external_model_egress_allowed": false,
+    "human_approval": false,
+    "issued_at": "2026-08-27T20:34:51.741154+00:00",
+    "network_allowed": false,
+    "nonce": "74a661f1ef8b9ff4",
+    "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+    "state_change_allowed": false
+  },
+  "execution_performed": true,
+  "execution_started_at": "2026-08-27T20:34:52.219129+00:00",
+  "exit_code": 255,
+  "fixture_version": "scanner-fixture-v2",
+  "kind": "arsenal_tool_fixture_execution",
+  "mission_id": "arsenal-tool-7a1515cd61c8",
+  "mode": "FIXTURE",
+  "negative_control_clean": true,
+  "negative_control_status": "PASSED",
+  "negative_fixture_digest": "ad2b0799492915f1624a3f2530c8eb9042405d68381e8d3411872dffc0b3841a",
+  "parsed_result_digest": "b30bf92ed455e2552017f7cdad6c53f9d471c77fbebf36f97118322f55820ccd",
+  "policy_decision": {
+    "action": "source_analysis",
+    "authorization_id": "fixture:20260827T203451Z",
+    "evaluated_at": "2026-08-27T20:34:51.741078+00:00",
+    "incidents": [],
+    "reasons": [
+      {
+        "code": "ok",
+        "message": "all policy gates passed",
+        "verdict": "allow"
+      }
+    ],
+    "request_id": "arsenal:tool:slither/contract",
+    "required_approvals": [],
+    "target": "127.0.0.1",
+    "tier": "passive",
+    "verdict": "allow"
+  },
+  "positive_control_detected": true,
+  "positive_fixture_digest": "f8363406f4a0e237270db88e9e65a8e164558e302d3b0cba39ce4e4d48d02ceb",
+  "run_id": "arsenal-20260827T203451Z-7a1515cd",
+  "runtime_disposition": "ready",
+  "runtime_reason": "internal hunter capability completed",
+  "stderr_digest": "1b60320976d31a6c8ea434b79341b13eb109dcb76abcdb78ce01376a39a5ce6b",
+  "stdout_digest": "22ffa9e77aebf27bfe0caca6a855db21545ca2ab1ef2ec1025fc1da231a209e2",
+  "summary": {
+    "blocking_reason": "",
+    "covered_capability_ids": [
+      "tool:slither/contract",
+      "asset:slither/solidity-vyper-static-analysis"
+    ],
+    "execution_error_class": null,
+    "fixture_detection": true,
+    "negative": {
+      "duration_ms": 433,
+      "error": "",
+      "execution_completed_at": "2026-08-27T20:34:53.087198+00:00",
+      "execution_started_at": "2026-08-27T20:34:52.654627+00:00",
+      "exit_code": 0,
+      "finding_count": 0,
+      "parsed_result_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "ran": true,
+      "runtime": {
+        "binary": "slither",
+        "checked_at": "2026-08-27T20:34:51.813746+00:00",
+        "name": "slither",
+        "reason": "healthy",
+        "resolved_path": "/usr/local/bin/slither",
+        "sha256": "04fe49c2c65830eef0a6cb2cfb3a165b858c1650d933be62e859dfdf4771b5cf",
+        "status": "ready",
+        "version": "0.11.6"
+      },
+      "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_digest": "6075497f3ba5e1b4cbd5302241e78e7ad61e5b81e371a86ed2bdeff356557046"
+    },
+    "negative_control_passed": true,
+    "positive": {
+      "duration_ms": 435,
+      "error": "",
+      "execution_completed_at": "2026-08-27T20:34:52.654387+00:00",
+      "execution_started_at": "2026-08-27T20:34:52.219129+00:00",
+      "exit_code": 255,
+      "finding_count": 1,
+      "parsed_result_digest": "8d3337eb2536f0c0d85960cd2c64c8d75d855ce549caa52432f370adba4b52ae",
+      "ran": true,
+      "runtime": {
+        "binary": "slither",
+        "checked_at": "2026-08-27T20:34:51.813746+00:00",
+        "name": "slither",
+        "reason": "healthy",
+        "resolved_path": "/usr/local/bin/slither",
+        "sha256": "04fe49c2c65830eef0a6cb2cfb3a165b858c1650d933be62e859dfdf4771b5cf",
+        "status": "ready",
+        "version": "0.11.6"
+      },
+      "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_digest": "fae3c5d62f4e70bbfd0ef03acd648bc6c5ac4dde33fcb4eac3a34e0a6999dd35"
+    },
+    "tool": "slither"
+  },
+  "task_id": "arsenal-tool-7a1515cd61c8-execute"
+}

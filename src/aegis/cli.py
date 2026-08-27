@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import sys
 from pathlib import Path
 
 
@@ -32,6 +33,16 @@ def main(argv: list[str] | None = None) -> int:
     exercise_selection.add_argument("--all-fixture-tools", action="store_true")
     arsenal_exercise.add_argument("--runs-dir", default="reports/operator-runs")
     arsenal_exercise.add_argument("--json", dest="json_path")
+    arsenal_exercise.add_argument("--markdown", dest="markdown_path")
+    arsenal_exercise.add_argument("--backend-inventory-json")
+    arsenal_exercise.add_argument("--backend-inventory-markdown")
+    arsenal_exercise.add_argument("--tool-lock-json")
+    arsenal_exercise.add_argument(
+        "--release-lock", default="secrets/scanner-releases.lock.json",
+    )
+    arsenal_exercise.add_argument(
+        "--image-digest", default=os.environ.get("AEGIS_ARSENAL_IMAGE_DIGEST", ""),
+    )
     arsenal_exercise.add_argument("--coverage-sqlite", help=argparse.SUPPRESS)
     _add_arsenal_hunt_parser(arsenal_commands)
     production = commands.add_parser("production")
@@ -102,10 +113,30 @@ def main(argv: list[str] | None = None) -> int:
             print(json.dumps(report.document(), indent=2, sort_keys=True))
         return 0
     if args.command == "arsenal" and args.arsenal_command == "exercise":
-        from aegis.arsenal.exercise import execute_llm_fixture, write_result
+        from aegis.ai.tool_runtime import ToolRuntimeManager, ToolRuntimeStatus
+        from aegis.arsenal.audit import build_audit
+        from aegis.arsenal.backend_report import (
+            backend_prerequisite,
+            build_backend_inventory,
+            build_full_coverage_report,
+            build_tool_lock,
+            canonical_binary,
+            render_backend_inventory_markdown,
+            render_full_coverage_markdown,
+            write_json,
+        )
+        from aegis.arsenal.exercise import (
+            execute_llm_fixture,
+            record_blocked_fixture,
+            write_result,
+        )
         from aegis.arsenal.inventory import ArsenalInventoryBuilder
         from aegis.arsenal.ledger import SqliteCoverageRepository, repository_from_env
-        from aegis.arsenal.tool_exercise import execute_tool_fixture
+        from aegis.arsenal.models import ArsenalCoverageState
+        from aegis.arsenal.tool_exercise import (
+            equivalent_capability_ids,
+            execute_tool_fixture,
+        )
 
         repository = None
         try:
@@ -120,28 +151,173 @@ def main(argv: list[str] | None = None) -> int:
             # outage explicitly instead of fabricating a successful ledger write.
             repository = None
         try:
-            capabilities = (
-                [item.capability_id for item in ArsenalInventoryBuilder().build()
-                 if item.capability_id.startswith("tool:") and item.fixture_executable]
-                if args.all_fixture_tools else [args.capability]
-            )
-            results = [
-                execute_llm_fixture(runs_dir=args.runs_dir, coverage_repository=repository)
-                if capability == "fixture:ai/llm-security-boundary"
-                else execute_tool_fixture(
-                    capability, runs_dir=args.runs_dir, coverage_repository=repository,
+            definitions = ArsenalInventoryBuilder().build()
+            definition_by_id = {item.capability_id: item for item in definitions}
+            if args.all_fixture_tools:
+                fixture_capabilities = [
+                    item.capability_id for item in definitions if item.fixture_executable
+                ]
+                projected_aliases = {
+                    alias
+                    for capability_id in fixture_capabilities
+                    for alias in equivalent_capability_ids(capability_id)
+                }
+                # An alias covered by an identical real fixture is projected from that
+                # execution. Recording a second WAITING row would contradict the evidence.
+                capabilities = [
+                    capability_id
+                    for capability_id in fixture_capabilities
+                    if capability_id not in projected_aliases
+                ]
+            else:
+                capabilities = [args.capability]
+            manager = ToolRuntimeManager(version_timeout=15.0)
+            results = []
+            for index, capability in enumerate(capabilities, start=1):
+                print(
+                    f"arsenal fixture {index}/{len(capabilities)} START {capability}",
+                    file=sys.stderr, flush=True,
                 )
-                for capability in capabilities
-            ]
+                definition = definition_by_id.get(capability)
+                if definition is None:
+                    raise ValueError(f"unknown arsenal capability: {capability}")
+                if capability == "fixture:ai/llm-security-boundary":
+                    try:
+                        result = execute_llm_fixture(
+                            runs_dir=args.runs_dir, coverage_repository=repository,
+                        )
+                    except Exception as exc:
+                        result = record_blocked_fixture(
+                            capability,
+                            state_value=ArsenalCoverageState.BACKEND_UNHEALTHY,
+                            reason=f"{type(exc).__name__}: {exc}"[:500],
+                            runs_dir=args.runs_dir, coverage_repository=repository,
+                        )
+                    results.append(result)
+                    print(
+                        f"arsenal fixture {index}/{len(capabilities)} "
+                        f"{results[-1].result.value} {capability}",
+                        file=sys.stderr, flush=True,
+                    )
+                    continue
+                if capability.startswith("tool:") and definition.tool_backends:
+                    backend = definition.tool_backends[0]
+                    runtime = manager.inspect(
+                        name=backend.tool_name, binary=backend.binary, refresh=True,
+                    )
+                    if runtime.status is not ToolRuntimeStatus.READY:
+                        results.append(record_blocked_fixture(
+                            capability,
+                            state_value=(
+                                ArsenalCoverageState.BACKEND_UNHEALTHY
+                                if runtime.status in {
+                                    ToolRuntimeStatus.STALE, ToolRuntimeStatus.QUARANTINED,
+                                }
+                                else ArsenalCoverageState.UNAVAILABLE
+                            ),
+                            reason=runtime.reason or f"{backend.binary} is unavailable",
+                            runs_dir=args.runs_dir, coverage_repository=repository,
+                        ))
+                    else:
+                        try:
+                            result = execute_tool_fixture(
+                                capability, runs_dir=args.runs_dir,
+                                coverage_repository=repository,
+                            )
+                        except Exception as exc:
+                            result = record_blocked_fixture(
+                                capability,
+                                state_value=ArsenalCoverageState.BACKEND_UNHEALTHY,
+                                reason=f"{type(exc).__name__}: {exc}"[:500],
+                                runs_dir=args.runs_dir,
+                                coverage_repository=repository,
+                            )
+                        results.append(result)
+                    print(
+                        f"arsenal fixture {index}/{len(capabilities)} "
+                        f"{results[-1].result.value} {capability}",
+                        file=sys.stderr, flush=True,
+                    )
+                    continue
+                backend = definition.tool_backends[0] if definition.tool_backends else None
+                binary = canonical_binary(backend.binary) if backend else ""
+                special_prerequisite = backend_prerequisite(binary)
+                external = bool(binary) and not binary.startswith(("aegis-", "stdlib-"))
+                runtime = manager.inspect(
+                    name=backend.tool_name, binary=binary, refresh=True,
+                ) if backend and external else None
+                if special_prerequisite:
+                    blocked_state = ArsenalCoverageState.WAITING_FOR_PREREQUISITE
+                    prerequisite = special_prerequisite
+                elif runtime and runtime.status is not ToolRuntimeStatus.READY:
+                    blocked_state = (
+                        ArsenalCoverageState.BACKEND_UNHEALTHY
+                        if runtime.status in {
+                            ToolRuntimeStatus.STALE, ToolRuntimeStatus.QUARANTINED,
+                        }
+                        else ArsenalCoverageState.UNAVAILABLE
+                    )
+                    prerequisite = runtime.reason or f"binary {binary!r} is unavailable"
+                elif definition.fixture_provider:
+                    blocked_state = ArsenalCoverageState.WAITING_FOR_PREREQUISITE
+                    prerequisite = (
+                        "backend is present but its deterministic positive/negative fixture "
+                        "provider is not connected to the canonical executor"
+                    )
+                else:
+                    blocked_state = ArsenalCoverageState.NOT_IMPLEMENTED
+                    prerequisite = "no canonical fixture executor is implemented"
+                results.append(record_blocked_fixture(
+                    capability,
+                    state_value=blocked_state,
+                    reason=prerequisite, runs_dir=args.runs_dir,
+                    coverage_repository=repository,
+                ))
+                print(
+                    f"arsenal fixture {index}/{len(capabilities)} "
+                    f"{results[-1].result.value} {capability}",
+                    file=sys.stderr, flush=True,
+                )
         finally:
             if repository is not None:
                 repository.close()
         if args.json_path and len(results) == 1:
             write_result(results[0], args.json_path)
         elif args.json_path:
-            Path(args.json_path).write_text(json.dumps(
-                [item.document() for item in results], indent=2, sort_keys=True,
-            ) + "\n", encoding="utf-8")
+            audit = build_audit(runs_dir=args.runs_dir, release_lock_path=args.release_lock)
+            inventory = build_backend_inventory(audit)
+            report = build_full_coverage_report(
+                audit=audit, inventory=inventory,
+                results=(item.document() for item in results),
+                image_digest=args.image_digest,
+            )
+            write_json(args.json_path, report)
+            if args.markdown_path:
+                Path(args.markdown_path).write_text(
+                    render_full_coverage_markdown(report), encoding="utf-8",
+                )
+            if args.backend_inventory_json:
+                write_json(args.backend_inventory_json, inventory)
+            if args.backend_inventory_markdown:
+                Path(args.backend_inventory_markdown).write_text(
+                    render_backend_inventory_markdown(inventory), encoding="utf-8",
+                )
+            if args.tool_lock_json:
+                write_json(
+                    args.tool_lock_json,
+                    build_tool_lock(inventory, image_digest=args.image_digest),
+                )
+        elif args.markdown_path:
+            audit = build_audit(runs_dir=args.runs_dir, release_lock_path=args.release_lock)
+            inventory = build_backend_inventory(audit)
+            report = build_full_coverage_report(
+                audit=audit, inventory=inventory,
+                results=(item.document() for item in results),
+                image_digest=args.image_digest,
+            )
+            Path(args.markdown_path).write_text(
+                render_full_coverage_markdown(report), encoding="utf-8",
+            )
         else:
             print(json.dumps([item.document() for item in results], indent=2, sort_keys=True))
         return 0 if all(item.result.value == "EXECUTED_PASS" for item in results) else 1

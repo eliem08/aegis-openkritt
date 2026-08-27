@@ -1,0 +1,13 @@
+{
+  "detail": {
+    "capability_id": "tool:trivy/secrets",
+    "mission_id": "arsenal-tool-fb3b79acedf1",
+    "task_id": "arsenal-tool-fb3b79acedf1-execute"
+  },
+  "digest": "fa73d27935222e0ea3693c264a3b8a8b1990db7471de79d16cb731fa7cb79f3b",
+  "event_type": "arsenal_task_started",
+  "observed_at": "2026-08-27T20:34:54.403083+00:00",
+  "previous_digest": "34883dc47b8a2e0918886ac8829d04b0cf3184e5b32ba131da7a454044ec6f37",
+  "sequence": 3,
+  "status": "running"
+}

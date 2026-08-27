@@ -49,3 +49,26 @@ def test_idempotent_concurrent_recording_and_immutable_conflict(tmp_path):
 def test_executed_finding_requires_human_reviewed_finding_reference():
     with pytest.raises(ValueError, match="finding IDs"):
         replace(coverage(), result=ArsenalCoverageState.EXECUTED_FINDING)
+
+
+def test_correction_appends_and_preserves_original_record(tmp_path):
+    repository = SqliteCoverageRepository(tmp_path / "coverage.db")
+    original = coverage()
+    repository.record(original)
+    correction = replace(
+        original,
+        coverage_record_id="coverage-2",
+        idempotency_key="idem-2",
+        supersedes_coverage_record_id=original.coverage_record_id,
+        error_or_block_reason="operator correction",
+    )
+
+    repository.record(correction)
+
+    assert repository.records() == (original, correction)
+    repository.close()
+
+
+def test_schema_v2_pass_requires_complete_positive_and_negative_evidence():
+    with pytest.raises(ValueError, match="complete backend evidence"):
+        replace(coverage(), schema_version=2)

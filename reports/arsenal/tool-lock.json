@@ -1,0 +1,353 @@
+{
+  "arsenal_image_digest": "sha256:3766088055a72f82346bf7318cb0acf9ec6b2e82ddf6df6bcba9558f70e9c40d",
+  "generated_at": "2026-08-27T20:35:36.063719+00:00",
+  "git_sha": "",
+  "schema_version": 1,
+  "tools": [
+    {
+      "adapter_versions": [
+        "asset-lane/1",
+        "deep-asset/1",
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:bandit",
+      "container_digest": "sha256:3766088055a72f82346bf7318cb0acf9ec6b2e82ddf6df6bcba9558f70e9c40d",
+      "executable_path": "/usr/local/bin/bandit",
+      "executable_sha256": "701a6f815afc3903f7676f5a75bbf131efa591b89070970f9449d7683f13dce0",
+      "expected_versions": [
+        "1.9.4"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "bandit 1.9.4",
+      "tool_names": [
+        "Bandit",
+        "bandit"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1",
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:brakeman",
+      "container_digest": "sha256:3766088055a72f82346bf7318cb0acf9ec6b2e82ddf6df6bcba9558f70e9c40d",
+      "executable_path": "/usr/local/bin/brakeman",
+      "executable_sha256": "465aaa233fd9f9655ccac5d8e2931b1ffe6a27803102bc2c7c9dbb9092093070",
+      "expected_versions": [
+        "7.1.1"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "brakeman 7.1.1",
+      "tool_names": [
+        "Brakeman",
+        "brakeman"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1",
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:checkov",
+      "container_digest": "sha256:3766088055a72f82346bf7318cb0acf9ec6b2e82ddf6df6bcba9558f70e9c40d",
+      "executable_path": "/usr/local/bin/checkov",
+      "executable_sha256": "26d2dab23712276430d913195a817ed8b881afe924c876d4b4a1a57f6f02950d",
+      "expected_versions": [
+        "3.3.9"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "3.3.9",
+      "tool_names": [
+        "Checkov",
+        "checkov"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:cloudsplaining",
+      "container_digest": "sha256:3766088055a72f82346bf7318cb0acf9ec6b2e82ddf6df6bcba9558f70e9c40d",
+      "executable_path": "/usr/local/bin/cloudsplaining",
+      "executable_sha256": "3e4fefa0b7d14a7e98707ded87bbf3bd57a94abb24a09646d3530035de0d9ed6",
+      "expected_versions": [],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "cloudsplaining, version 0.7.0",
+      "tool_names": [
+        "Cloudsplaining"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:detect-secrets",
+      "container_digest": "sha256:3766088055a72f82346bf7318cb0acf9ec6b2e82ddf6df6bcba9558f70e9c40d",
+      "executable_path": "/usr/local/bin/detect-secrets",
+      "executable_sha256": "6b3e5f0a76e83cf8f497619d1937e4f96c1bf67e00838caa5911bb24147509e4",
+      "expected_versions": [
+        "1.5.0"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "1.5.47",
+      "tool_names": [
+        "detect-secrets"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "8.30.1",
+        "asset-lane/1",
+        "deep-asset/1",
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:gitleaks",
+      "container_digest": "sha256:3766088055a72f82346bf7318cb0acf9ec6b2e82ddf6df6bcba9558f70e9c40d",
+      "executable_path": "/usr/local/bin/gitleaks",
+      "executable_sha256": "50b742abd7daad8bbddb6301f3017efb680632d9a5b3b4d8f137b3aac250e359",
+      "expected_versions": [
+        "8.21.2",
+        "8.30.1"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "gitleaks version 8.21.2",
+      "tool_names": [
+        "gitleaks"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1",
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:gosec",
+      "container_digest": "sha256:3766088055a72f82346bf7318cb0acf9ec6b2e82ddf6df6bcba9558f70e9c40d",
+      "executable_path": "/root/go/bin/gosec",
+      "executable_sha256": "f7baa2053a48c3c6efdeded9f114533ad13e9eac1677991d2d8313557260834b",
+      "expected_versions": [
+        "2.22.8"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "Version: dev",
+      "tool_names": [
+        "gosec"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1",
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:grype",
+      "container_digest": "sha256:3766088055a72f82346bf7318cb0acf9ec6b2e82ddf6df6bcba9558f70e9c40d",
+      "executable_path": "/usr/local/bin/grype",
+      "executable_sha256": "a8fff88f37a08af6a536e162f37f9902ec94af03df9928ee6295dffe7044dc43",
+      "expected_versions": [
+        "0.116.1"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "grype 0.116.1",
+      "tool_names": [
+        "grype"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:httpx",
+      "container_digest": "sha256:3766088055a72f82346bf7318cb0acf9ec6b2e82ddf6df6bcba9558f70e9c40d",
+      "executable_path": "/usr/local/bin/httpx",
+      "executable_sha256": "87712e740953ec1d804e449d8b619481609c7c8277337004c4b1b2b34a1a3385",
+      "expected_versions": [],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "",
+      "tool_names": [
+        "httpx"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "asset-lane/1",
+        "deep-asset/1",
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:myth",
+      "container_digest": "sha256:3766088055a72f82346bf7318cb0acf9ec6b2e82ddf6df6bcba9558f70e9c40d",
+      "executable_path": "/opt/aegis-tools/mythril/bin/myth",
+      "executable_sha256": "8fe9178fd9157ba015fcc58ddf24699f5c75445556b76cf1b367ffee888240fb",
+      "expected_versions": [
+        "0.24.8"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "Mythril version v0.24.8",
+      "tool_names": [
+        "Mythril",
+        "mythril"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:njsscan",
+      "container_digest": "sha256:3766088055a72f82346bf7318cb0acf9ec6b2e82ddf6df6bcba9558f70e9c40d",
+      "executable_path": "/opt/aegis-tools/njsscan/bin/njsscan",
+      "executable_sha256": "4784e4300260da62238c6fd5922865d8c4f65466abc9e1b76abb6c696999eee7",
+      "expected_versions": [
+        "0.4.3"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "\u001b[34m",
+      "tool_names": [
+        "njsscan"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:npm",
+      "container_digest": "sha256:3766088055a72f82346bf7318cb0acf9ec6b2e82ddf6df6bcba9558f70e9c40d",
+      "executable_path": "/usr/share/nodejs/npm/bin/npm-cli.js",
+      "executable_sha256": "8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7",
+      "expected_versions": [],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "9.2.0",
+      "tool_names": [
+        "npm"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "2.4.0",
+        "deep-asset/1",
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:osv-scanner",
+      "container_digest": "sha256:3766088055a72f82346bf7318cb0acf9ec6b2e82ddf6df6bcba9558f70e9c40d",
+      "executable_path": "/usr/local/bin/osv-scanner",
+      "executable_sha256": "f9f25499a2c8cc367b3af45df2ea7eeca7fbccceab9c35079968f4b3652194be",
+      "expected_versions": [
+        "2.4.0",
+        "2.5.1"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "osv-scanner version: 2.5.1",
+      "tool_names": [
+        "osv-scanner"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:psalm",
+      "container_digest": "sha256:3766088055a72f82346bf7318cb0acf9ec6b2e82ddf6df6bcba9558f70e9c40d",
+      "executable_path": "/root/.composer/vendor/bin/psalm",
+      "executable_sha256": "3f11e55364339adc1b31fcabe8704f69e5192c83f7913d71670695f234c2979b",
+      "expected_versions": [
+        "6.16.1"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "Psalm 6.16.1@f1f5de594dc76faf8784e02d3dc4716c91c6f6ac",
+      "tool_names": [
+        "psalm"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:retire",
+      "container_digest": "sha256:3766088055a72f82346bf7318cb0acf9ec6b2e82ddf6df6bcba9558f70e9c40d",
+      "executable_path": "/usr/local/lib/node_modules/retire/lib/cli.js",
+      "executable_sha256": "fc0cef3213de99d5ee2ac8e074bc1254c2f4014bdfcf9cd427d7566a0337b52e",
+      "expected_versions": [
+        "5.4.3"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "5.4.3",
+      "tool_names": [
+        "retire.js"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "1.164.0",
+        "asset-lane/1",
+        "deep-asset/1",
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:semgrep",
+      "container_digest": "sha256:3766088055a72f82346bf7318cb0acf9ec6b2e82ddf6df6bcba9558f70e9c40d",
+      "executable_path": "/usr/local/bin/semgrep",
+      "executable_sha256": "c7d9046d766bb5c035107e169808e64345abbfe6cddbb25dc3c2c1c994e3b80e",
+      "expected_versions": [
+        "1.164.0",
+        "1.172.0"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "1.172.0",
+      "tool_names": [
+        "semgrep"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "asset-lane/1",
+        "deep-asset/1",
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:slither",
+      "container_digest": "sha256:3766088055a72f82346bf7318cb0acf9ec6b2e82ddf6df6bcba9558f70e9c40d",
+      "executable_path": "/usr/local/bin/slither",
+      "executable_sha256": "04fe49c2c65830eef0a6cb2cfb3a165b858c1650d933be62e859dfdf4771b5cf",
+      "expected_versions": [
+        "0.11.6"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "0.11.6",
+      "tool_names": [
+        "slither"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "asset-lane/1",
+        "deep-asset/1",
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:trivy",
+      "container_digest": "sha256:3766088055a72f82346bf7318cb0acf9ec6b2e82ddf6df6bcba9558f70e9c40d",
+      "executable_path": "/usr/local/bin/trivy",
+      "executable_sha256": "5b3ebab0f98d95196c85efc3a9d31a01520c96fa342e4e611f56db64c516df1d",
+      "expected_versions": [
+        "0.73.0"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "Version: 0.73.0",
+      "tool_names": [
+        "trivy"
+      ]
+    }
+  ]
+}

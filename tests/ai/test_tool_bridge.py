@@ -92,6 +92,20 @@ def test_nonzero_exit_without_parseable_findings_is_unavailable_not_a_clean_run(
     assert "scanner exited 2" in result.error
 
 
+def test_output_limit_is_fail_closed_and_preserves_digests():
+    semgrep = next(t for t in TOOLS if t.name == "semgrep")
+    bridge = ToolBridge(
+        run=lambda _argv, _timeout: ("x" * 2048, "", 0),
+        max_output_bytes=1024,
+    )
+
+    result = bridge.scan("/r", tools=[semgrep])[0]
+
+    assert result.ran is False
+    assert result.error.startswith("OutputLimitExceeded")
+    assert len(result.stdout_digest) == 64
+
+
 def test_nonzero_finding_exit_remains_a_run_when_all_findings_are_noise():
     semgrep = next(t for t in TOOLS if t.name == "semgrep")
     output = json.dumps({"results": [

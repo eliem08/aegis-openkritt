@@ -1,0 +1,13 @@
+{
+  "blocking_reason": "binary not found",
+  "capability_id": "asset:syft/artifact-sbom",
+  "coverage_state": "UNAVAILABLE",
+  "evidence_digest": "43c363918e8f1109efd9d4ab7aeb7b89160703847e3ecca889d7394c2d63f25b",
+  "execution_grant_issued": false,
+  "execution_performed": false,
+  "kind": "arsenal_fixture_blocked",
+  "mission_id": "arsenal-blocked-959342a00daa8cd6",
+  "mode": "FIXTURE",
+  "run_id": "arsenal-20260827T203243Z-959342a0",
+  "task_id": "arsenal-blocked-959342a00daa8cd6-execute"
+}
