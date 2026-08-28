@@ -1405,6 +1405,48 @@ def _parse_ssh_audit(data) -> list[dict]:
     ] if weak_kex else []
 
 
+def _materialize_nuclei(positive: Path, negative: Path) -> None:
+    server = """from http.server import BaseHTTPRequestHandler, HTTPServer
+from pathlib import Path
+class Handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        body = b'AEGIS_NUCLEI_CONTROLLED' if Path('marker').exists() else b'clean fixture'
+        self.send_response(200); self.end_headers(); self.wfile.write(body)
+    def log_message(self, *args): return
+HTTPServer(('127.0.0.1', 48411), Handler).serve_forever()
+"""
+    template = """id: aegis-local-marker
+info:
+  name: Aegis local marker
+  author: aegis
+  severity: low
+  description: controlled local positive fixture
+http:
+  - method: GET
+    path:
+      - '{{BaseURL}}/'
+    matchers:
+      - type: word
+        part: body
+        words:
+          - AEGIS_NUCLEI_CONTROLLED
+"""
+    for root in (positive, negative):
+        _write(root, "server.py", server)
+        _write(root, "template.yaml", template)
+    _write(positive, "marker", "controlled\n")
+
+
+def _parse_nuclei(data) -> list[dict]:
+    if not isinstance(data, dict):
+        return []
+    template_id = str(data.get("template-id") or data.get("templateID") or "")
+    host = str(data.get("host") or data.get("matched-at") or "")
+    return [
+        _row("nuclei", f"Nuclei matched controlled template {template_id}", path=host)
+    ] if template_id == "aegis-local-marker" and "127.0.0.1:48411" in host else []
+
+
 _SPECS = {
     "asset:codeql/cross-file-dataflow": ExternalFixtureSpec(
         "asset:codeql/cross-file-dataflow",
@@ -1572,6 +1614,18 @@ _SPECS = {
             "GPL-3.0", _parse_ssh_audit, "text",
         ),
         "ssh-audit-local-daemon-v1", _materialize_ssh_audit,
+    ),
+    "asset:nuclei/signed-safe-template-validation": ExternalFixtureSpec(
+        "asset:nuclei/signed-safe-template-validation",
+        Tool(
+            "nuclei", "nuclei", ("network",),
+            'cd "{target}" && (python server.py >server.log 2>&1 & server=$!; sleep 1; '
+            'nuclei -silent -jsonl -u http://127.0.0.1:48411 -t template.yaml '
+            '-duc; status=$?; kill "$server" 2>/dev/null || true; '
+            'wait "$server" 2>/dev/null || true; exit "$status" )',
+            "MIT", _parse_nuclei,
+        ),
+        "nuclei-local-signed-safe-template-v1", _materialize_nuclei,
     ),
     "asset:yara/approved-rule-binary-scan": ExternalFixtureSpec(
         "asset:yara/approved-rule-binary-scan",

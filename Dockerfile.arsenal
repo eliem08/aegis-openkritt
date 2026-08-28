@@ -430,6 +430,8 @@ ARG MITMPROXY_VERSION=12.2.3
 ARG SSH_AUDIT_VERSION=3.9.0
 ARG TESTSSL_VERSION=3.2.4
 ARG TESTSSL_SHA256=98528f8a0ac07f1e226efaa8ead438247df8efcb8fee4e056a937ab82a305490
+ARG NUCLEI_VERSION=3.3.0
+ARG NUCLEI_SHA256=235f264d32e47e1ccf58d534e2eb4d0d4eeb47f1cae1ebb30a584b8b52565202
 RUN pip install --no-cache-dir "mitmproxy==${MITMPROXY_VERSION}" "ssh-audit==${SSH_AUDIT_VERSION}" \
     && mitmproxy --version \
     && ssh-audit -h >/dev/null
@@ -444,6 +446,14 @@ RUN curl -fsSL --retry 3 \
     && ln -sf /opt/testssl/testssl.sh /usr/local/bin/testssl.sh \
     && rm /tmp/testssl.tgz \
     && testssl.sh --version | grep -F "3.2.4"
+RUN curl -fsSL --retry 3 \
+      "https://github.com/projectdiscovery/nuclei/releases/download/v${NUCLEI_VERSION}/nuclei_${NUCLEI_VERSION}_linux_amd64.zip" \
+      -o /tmp/nuclei.zip \
+    && echo "${NUCLEI_SHA256}  /tmp/nuclei.zip" | sha256sum -c - \
+    && unzip -qo /tmp/nuclei.zip nuclei -d /usr/local/bin \
+    && chmod 0755 /usr/local/bin/nuclei \
+    && rm /tmp/nuclei.zip \
+    && nuclei -version 2>&1 | grep -F "3.3.0"
 
 # clone the arm's-length skill catalog so the prompt-only runner can read their instructions
 # (never executes a skill's own scripts — only reads SKILL.md and runs it via DeepSeek)

@@ -219,3 +219,7 @@ def test_network_closure_parsers_require_controlled_loopback_observations() -> N
     assert _parse(testssl.tool, "127.0.0.1:48409 TLS 1.3 offered") == []
     assert len(_parse(ssh_audit.tool, "diffie-hellman-group1-sha1")) == 1
     assert _parse(ssh_audit.tool, "curve25519-sha256") == []
+    nuclei = external_fixture_spec("asset:nuclei/signed-safe-template-validation")
+    assert nuclei is not None
+    assert len(_parse(nuclei.tool, '{"template-id":"aegis-local-marker","host":"http://127.0.0.1:48411/"}')) == 1
+    assert _parse(nuclei.tool, '{"template-id":"other","host":"http://127.0.0.1:48411/"}') == []

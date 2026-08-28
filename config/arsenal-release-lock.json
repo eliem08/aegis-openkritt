@@ -52,6 +52,7 @@
     {"name": "mitmproxy", "version": "12.2.3"},
     {"name": "ssh-audit", "version": "3.9.0"},
     {"name": "testssl.sh", "version": "3.2.4"},
+    {"name": "nuclei", "version": "3.3.0"},
     {"name": "dnsx", "version": "1.2.2"},
     {"name": "jsluice", "version": "commit-0ddfab153e060a9eeaded4d8669233f7c071e7e4"},
     {"name": "katana", "version": "1.1.0"}
