@@ -10,6 +10,8 @@
 #   docker run --rm --env-file .env aegis-arsenal \
 #       python -m aegis.ai.hunt_repo owner/repo --files 12 --samples 3
 #
+FROM checkmarx/kics@sha256:b29ec62a21fb97f0b65aee2307fcb29dd334c1e39e2c1f1cfe56102fce1c6be4 AS kics_source
+
 FROM python:3.12-slim-bookworm@sha256:0f5b26b9518d002b6173fd61daad821fa340635ebfec5bba471013f9ca114579
 
 ARG SEMGREP_VERSION=1.172.0
@@ -49,6 +51,19 @@ ARG GRPCURL_VERSION=1.9.3
 ARG GRPCURL_SHA256=a926b62a85787ccf73ef8736b3ae554f1242e39d92bb8767a79d6dd23b11d1d5
 ARG GRPCIO_VERSION=1.76.0
 ARG RETIRE_REPOSITORY_COMMIT=7ddda6314785f7e4dbca442296aa399520e13c13
+ARG KICS_DIGEST=b29ec62a21fb97f0b65aee2307fcb29dd334c1e39e2c1f1cfe56102fce1c6be4
+ARG MODELSCAN_VERSION=0.8.8
+ARG PEFILE_VERSION=2024.8.26
+ARG ANGR_VERSION=9.3.3
+ARG CAPA_VERSION=9.4.0
+ARG SCHEMATHESIS_VERSION=4.25.2
+ARG CAPA_RULES_SHA256=273591b11737181b3bdaac18964f23627cf10c21c2b143fc9be88e4a33217669
+ARG FOUNDRY_VERSION=1.8.0
+ARG FOUNDRY_SHA256=8c8560de380d58d1ee145934427887b107182367600a3c33aa71f16f2ce7ac57
+ARG ECHIDNA_VERSION=2.3.3
+ARG ECHIDNA_SHA256=436d26cb5af34c6c525812b857ac53f218c7f6ad07d69495ef88bc4cdc85c764
+ARG SOLC_VERSION=0.8.36
+ARG SOLC_SHA256=c8d35afdddc3cd2743ee88b8f25e0fecd16e2bdd5f2120f37e52cd9cc45ae0e6
 
 ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
@@ -218,6 +233,50 @@ RUN npm install -g "web-ext@${WEB_EXT_VERSION}"
 RUN pip install \
       "grpcio==${GRPCIO_VERSION}" "grpcio-tools==${GRPCIO_VERSION}" \
       "grpcio-reflection==${GRPCIO_VERSION}"
+
+# --- Additional pinned analysis backends. These run only against local, isolated fixtures. ---
+COPY --from=kics_source /app/bin /opt/kics
+RUN ln -sf /opt/kics/kics /usr/local/bin/kics \
+    && pip install --no-cache-dir "modelscan==${MODELSCAN_VERSION}" "pefile==${PEFILE_VERSION}"
+COPY scripts/arsenal/pefile_cli.py /usr/local/bin/pefile
+RUN chmod 0755 /usr/local/bin/pefile
+RUN apt-get update && apt-get install -y --no-install-recommends skopeo \
+    && rm -rf /var/lib/apt/lists/*
+RUN python -m venv /opt/venvs/angr \
+    && /opt/venvs/angr/bin/pip install --no-cache-dir "angr==${ANGR_VERSION}" \
+    && python -m venv /opt/venvs/capa \
+    && /opt/venvs/capa/bin/pip install --no-cache-dir "flare-capa==${CAPA_VERSION}" \
+    && python -m venv /opt/venvs/schemathesis \
+    && /opt/venvs/schemathesis/bin/pip install --no-cache-dir "schemathesis==${SCHEMATHESIS_VERSION}" \
+    && curl -fsSL --retry 3 \
+        https://github.com/mandiant/capa-rules/archive/refs/tags/v${CAPA_VERSION}.tar.gz \
+        -o /tmp/capa-rules.tar.gz \
+    && echo "${CAPA_RULES_SHA256}  /tmp/capa-rules.tar.gz" | sha256sum -c - \
+    && mkdir -p /opt/capa-rules \
+    && tar -xzf /tmp/capa-rules.tar.gz -C /opt/capa-rules --strip-components=1 \
+    && rm /tmp/capa-rules.tar.gz \
+    && ln -sf /opt/venvs/capa/bin/capa /usr/local/bin/capa \
+    && ln -sf /opt/venvs/schemathesis/bin/schemathesis /usr/local/bin/schemathesis
+COPY scripts/arsenal/angr_cli.py /usr/local/bin/angr
+RUN chmod 0755 /usr/local/bin/angr
+RUN curl -fsSL --retry 3 \
+        https://github.com/foundry-rs/foundry/releases/download/v${FOUNDRY_VERSION}/foundry_v${FOUNDRY_VERSION}_linux_amd64.tar.gz \
+        -o /tmp/foundry.tar.gz \
+    && echo "${FOUNDRY_SHA256}  /tmp/foundry.tar.gz" | sha256sum -c - \
+    && tar -xzf /tmp/foundry.tar.gz -C /usr/local/bin forge cast anvil chisel \
+    && rm /tmp/foundry.tar.gz \
+    && curl -fsSL --retry 3 \
+        https://github.com/crytic/echidna/releases/download/v${ECHIDNA_VERSION}/echidna-${ECHIDNA_VERSION}-x86_64-linux.tar.gz \
+        -o /tmp/echidna.tar.gz \
+    && echo "${ECHIDNA_SHA256}  /tmp/echidna.tar.gz" | sha256sum -c - \
+    && tar -xzf /tmp/echidna.tar.gz -C /usr/local/bin echidna \
+    && ln -sf /usr/local/bin/echidna /usr/local/bin/echidna-test \
+    && rm /tmp/echidna.tar.gz \
+    && curl -fsSL --retry 3 \
+        https://github.com/argotorg/solidity/releases/download/v${SOLC_VERSION}/solc-static-linux \
+        -o /usr/local/bin/solc \
+    && echo "${SOLC_SHA256}  /usr/local/bin/solc" | sha256sum -c - \
+    && chmod 0755 /usr/local/bin/solc
 
 # Dependency databases are baked into the image so fixture runs can use --network none.
 RUN trivy image --download-db-only --no-progress
