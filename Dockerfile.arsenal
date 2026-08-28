@@ -27,6 +27,27 @@ ARG OSV_SCANNER_VERSION=2.5.1
 ARG TRIVY_VERSION=0.73.0
 ARG GRYPE_VERSION=0.116.1
 ARG GITLEAKS_VERSION=8.21.2
+ARG SYFT_VERSION=1.51.1
+ARG SYFT_SHA256=8fcb33017a0dc1058298c923c436d19dfa68ae93968e0b423248542e3afb9fc3
+ARG ZIZMOR_VERSION=1.29.0
+ARG ZIZMOR_SHA256=dd96df044a6e8538d5f423790f453bdd03d49e5b2bcc38214acc41a2f1297839
+ARG SPOTBUGS_VERSION=4.10.4
+ARG SPOTBUGS_SHA256=72bc0d4edd686e462c0f71f42a049b27bf4da6708797ff7b2b56dd202714b4e5
+ARG RUSTSCAN_VERSION=2.4.1
+ARG RUSTSCAN_SHA256=f3a4365d939e3b81f25ba8c37852ce9ac9e938c3cc882c5b3e6fff6152c740be
+ARG APKTOOL_VERSION=3.0.3
+ARG APKTOOL_SHA256=dbf930b076c6b9be08d57c449cacefc3bdd6b71ebd59b3066fc0e1f5b14f9423
+ARG ASAR_VERSION=3.4.1
+ARG WEB_EXT_VERSION=8.10.0
+ARG HTTPX_VERSION=1.10.0
+ARG HTTPX_SHA256=63eac4dcd6e5c9867c94765fdaaf66e7b4eeae3474a1f06e600e266a1c81a53e
+ARG NAABU_VERSION=2.6.1
+ARG NAABU_SHA256=018c4c9884dea971eda860435ede3021d1150732f34cfd245498c6726d8cab90
+ARG WEBSOCAT_VERSION=1.14.1
+ARG WEBSOCAT_SHA256=66f8dd3a0394761556339117f8bb5123bddefd44e087af2a72ec22b0bd08d514
+ARG GRPCURL_VERSION=1.9.3
+ARG GRPCURL_SHA256=a926b62a85787ccf73ef8736b3ae554f1242e39d92bb8767a79d6dd23b11d1d5
+ARG GRPCIO_VERSION=1.76.0
 ARG RETIRE_REPOSITORY_COMMIT=7ddda6314785f7e4dbca442296aa399520e13c13
 
 ENV PYTHONUNBUFFERED=1 \
@@ -68,6 +89,7 @@ ENV PYTHONUNBUFFERED=1 \
 # --- OS packages: language runtimes for the language-specific scanners ---
 RUN apt-get update && apt-get install -y --no-install-recommends \
       git curl ca-certificates unzip xz-utils \
+      default-jdk-headless=2:1.17-74 yara=4.2.3-4 \
       php-cli php-xml php-mbstring composer \
       ruby-full ruby-dev build-essential \
       nodejs npm \
@@ -137,6 +159,65 @@ RUN curl -sfL \
 RUN curl -sfL \
       "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
       | tar -xz -C /usr/local/bin gitleaks
+
+# --- Additional canonical Linux fixture backends. Downloads are version + digest pinned. ---
+RUN curl -fL \
+      "https://github.com/anchore/syft/releases/download/v${SYFT_VERSION}/syft_${SYFT_VERSION}_linux_amd64.tar.gz" \
+      -o /tmp/syft.tgz && echo "${SYFT_SHA256}  /tmp/syft.tgz" | sha256sum -c - && \
+    tar -xzf /tmp/syft.tgz -C /usr/local/bin syft && rm /tmp/syft.tgz
+RUN curl -fL \
+      "https://github.com/zizmorcore/zizmor/releases/download/v${ZIZMOR_VERSION}/zizmor-x86_64-unknown-linux-gnu.tar.gz" \
+      -o /tmp/zizmor.tgz && echo "${ZIZMOR_SHA256}  /tmp/zizmor.tgz" | sha256sum -c - && \
+    tar -xzf /tmp/zizmor.tgz -C /usr/local/bin zizmor && chmod 0755 /usr/local/bin/zizmor && \
+    rm /tmp/zizmor.tgz
+RUN curl -fL \
+      "https://github.com/spotbugs/spotbugs/releases/download/${SPOTBUGS_VERSION}/spotbugs-${SPOTBUGS_VERSION}.tgz" \
+      -o /tmp/spotbugs.tgz && echo "${SPOTBUGS_SHA256}  /tmp/spotbugs.tgz" | sha256sum -c - && \
+    mkdir -p /opt/spotbugs && tar -xzf /tmp/spotbugs.tgz -C /opt/spotbugs --strip-components=1 && \
+    ln -s /opt/spotbugs/bin/spotbugs /usr/local/bin/spotbugs && rm /tmp/spotbugs.tgz
+
+# --- Isolated network-lab clients. The exercise binds only controlled loopback fixtures. ---
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      nmap=7.93+dfsg1-1 binwalk=2.3.4+dfsg1-1 && \
+    rm -rf /var/lib/apt/lists/*
+RUN curl -fL \
+      "https://github.com/bee-san/RustScan/releases/download/${RUSTSCAN_VERSION}/x86_64-linux-rustscan.tar.gz.zip" \
+      -o /tmp/rustscan.zip && echo "${RUSTSCAN_SHA256}  /tmp/rustscan.zip" | sha256sum -c - && \
+    unzip -q /tmp/rustscan.zip -d /tmp/rustscan && \
+    tar -xzf /tmp/rustscan/x86_64-linux-rustscan.tar.gz -C /usr/local/bin rustscan && \
+    chmod 0755 /usr/local/bin/rustscan && rm -rf /tmp/rustscan /tmp/rustscan.zip
+RUN curl -fL \
+      "https://github.com/projectdiscovery/httpx/releases/download/v${HTTPX_VERSION}/httpx_${HTTPX_VERSION}_linux_amd64.zip" \
+      -o /tmp/httpx.zip && echo "${HTTPX_SHA256}  /tmp/httpx.zip" | sha256sum -c - && \
+    unzip -qo /tmp/httpx.zip httpx -d /usr/local/bin && chmod 0755 /usr/local/bin/httpx && \
+    rm /tmp/httpx.zip
+RUN curl -fL \
+      "https://github.com/projectdiscovery/naabu/releases/download/v${NAABU_VERSION}/naabu_${NAABU_VERSION}_linux_amd64.zip" \
+      -o /tmp/naabu.zip && echo "${NAABU_SHA256}  /tmp/naabu.zip" | sha256sum -c - && \
+    unzip -q /tmp/naabu.zip naabu -d /usr/local/bin && chmod 0755 /usr/local/bin/naabu && \
+    rm /tmp/naabu.zip
+RUN curl -fL \
+      "https://github.com/vi/websocat/releases/download/v${WEBSOCAT_VERSION}/websocat.x86_64-unknown-linux-musl" \
+      -o /usr/local/bin/websocat && \
+    echo "${WEBSOCAT_SHA256}  /usr/local/bin/websocat" | sha256sum -c - && \
+    chmod 0755 /usr/local/bin/websocat
+RUN curl -fL \
+      "https://github.com/fullstorydev/grpcurl/releases/download/v${GRPCURL_VERSION}/grpcurl_${GRPCURL_VERSION}_linux_x86_64.tar.gz" \
+      -o /tmp/grpcurl.tgz && echo "${GRPCURL_SHA256}  /tmp/grpcurl.tgz" | sha256sum -c - && \
+    tar -xzf /tmp/grpcurl.tgz -C /usr/local/bin grpcurl && chmod 0755 /usr/local/bin/grpcurl && \
+    rm /tmp/grpcurl.tgz
+
+# --- Static Android/Electron artifact tooling; no emulator or external target is used here. ---
+RUN curl -fL \
+      "https://github.com/iBotPeaches/Apktool/releases/download/v${APKTOOL_VERSION}/apktool_${APKTOOL_VERSION}.jar" \
+      -o /opt/apktool.jar && echo "${APKTOOL_SHA256}  /opt/apktool.jar" | sha256sum -c - && \
+    printf '%s\n' '#!/bin/sh' 'exec java -jar /opt/apktool.jar "$@"' > /usr/local/bin/apktool && \
+    chmod 0755 /usr/local/bin/apktool
+RUN npm install -g "@electron/asar@${ASAR_VERSION}"
+RUN npm install -g "web-ext@${WEB_EXT_VERSION}"
+RUN pip install \
+      "grpcio==${GRPCIO_VERSION}" "grpcio-tools==${GRPCIO_VERSION}" \
+      "grpcio-reflection==${GRPCIO_VERSION}"
 
 # Dependency databases are baked into the image so fixture runs can use --network none.
 RUN trivy image --download-db-only --no-progress

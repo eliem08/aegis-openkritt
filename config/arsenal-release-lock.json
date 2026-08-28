@@ -2,6 +2,16 @@
   "schema_version": 1,
   "releases": [
     {"name": "bandit", "version": "1.9.4"},
+    {"name": "apktool", "version": "3.0.3"},
+    {"name": "electron-asar", "version": "3.4.1"},
+    {"name": "web-ext", "version": "8.10.0"},
+    {"name": "binwalk", "version": "2.3.4"},
+    {"name": "httpx", "version": "1.10.0"},
+    {"name": "naabu", "version": "2.6.1"},
+    {"name": "websocat", "version": "1.14.1"},
+    {"name": "grpcurl", "version": "1.9.3"},
+    {"name": "spotbugs", "version": "4.10.4"},
+    {"name": "yara", "version": "4.2.3"},
     {"name": "brakeman", "version": "7.1.1"},
     {"name": "checkov", "version": "3.3.9"},
     {"name": "detect-secrets", "version": "1.5.0"},
@@ -10,11 +20,19 @@
     {"name": "grype", "version": "0.116.1"},
     {"name": "mythril", "version": "0.24.8"},
     {"name": "njsscan", "version": "0.4.3"},
+    {"name": "nmap", "version": "7.93"},
     {"name": "osv-scanner", "version": "2.5.1"},
     {"name": "psalm", "version": "6.16.1"},
     {"name": "retire.js", "version": "5.4.3"},
+    {"name": "rustscan", "version": "2.4.1"},
     {"name": "semgrep", "version": "1.172.0"},
     {"name": "slither", "version": "0.11.6"},
-    {"name": "trivy", "version": "0.73.0"}
+    {"name": "syft", "version": "1.51.1"},
+    {"name": "trivy", "version": "0.73.0"},
+    {"name": "zizmor", "version": "1.29.0"},
+    {"name": "kics", "version": "2.1.20"},
+    {"name": "modelscan", "version": "0.8.8"},
+    {"name": "npm", "version": "9.2.0"},
+    {"name": "pefile", "version": "2024.8.26"}
   ]
 }

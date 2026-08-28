@@ -280,7 +280,13 @@ class ToolRuntimeManager:
         return record
 
     def _probe_version(self, resolved: str) -> str:
-        for suffix in (("--version",), ("version",), ("-version",)):
+        binary_name = Path(resolved).name.casefold().removesuffix(".exe")
+        extra_probes = {
+            # Binwalk 2.x treats --version as an input filename. Its bounded help
+            # header is the upstream-supported source of version provenance.
+            "binwalk": (("-h",),),
+        }.get(binary_name, ())
+        for suffix in (*extra_probes, ("--version",), ("version",), ("-version",)):
             argv = [resolved, *suffix]
             try:
                 code, stdout, stderr = self._runner(argv, self._timeout)

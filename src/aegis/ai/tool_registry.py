@@ -24,6 +24,7 @@ class Tool:
     cmd: str                    # command template, {target} substituted
     license: str
     parse: Callable[[dict | list], list[dict]]   # native output -> Aegis rows
+    output_format: str = "json"  # json | text | xml (text/xml is wrapped as {"text": ...})
 
 
 def _row(source, vtype, path, line, summary, severity="medium", detail="", *,

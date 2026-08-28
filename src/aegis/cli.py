@@ -60,6 +60,13 @@ def main(argv: list[str] | None = None) -> int:
     arsenal_exercise.add_argument("--tool-lock-json")
     arsenal_exercise.add_argument("--runtime-lock-json")
     arsenal_exercise.add_argument(
+        "--resume", action="store_true",
+        help="reuse only version-compatible coverage whose immutable evidence still verifies",
+    )
+    arsenal_exercise.add_argument(
+        "--force", action="store_true", help="rerun even when --resume evidence is valid",
+    )
+    arsenal_exercise.add_argument(
         "--release-lock", default="config/arsenal-release-lock.json",
     )
     arsenal_exercise.add_argument(
@@ -210,16 +217,20 @@ def main(argv: list[str] | None = None) -> int:
             write_json,
         )
         from aegis.arsenal.exercise import (
+            ExerciseResult,
             execute_llm_fixture,
             record_blocked_fixture,
             write_result,
         )
+        from aegis.arsenal.external_fixtures import external_fixture_spec
         from aegis.arsenal.inventory import ArsenalInventoryBuilder
         from aegis.arsenal.ledger import SqliteCoverageRepository, repository_from_env
         from aegis.arsenal.models import ArsenalCoverageState
+        from aegis.arsenal.resume import resumable_record
         from aegis.arsenal.tool_exercise import (
             equivalent_capability_ids,
             execute_tool_fixture,
+            fixture_version_for_capability,
         )
 
         repository = None
@@ -279,6 +290,11 @@ def main(argv: list[str] | None = None) -> int:
                 capabilities = [args.capability]
             manager = ToolRuntimeManager(version_timeout=15.0)
             results = []
+            audit_for_resume = (
+                build_audit(runs_dir=args.runs_dir, release_lock_path=args.release_lock)
+                if args.resume and repository is not None and not args.force else None
+            )
+            prior_records = repository.records() if audit_for_resume is not None else ()
             for index, capability in enumerate(capabilities, start=1):
                 print(
                     f"arsenal fixture {index}/{len(capabilities)} START {capability}",
@@ -287,6 +303,42 @@ def main(argv: list[str] | None = None) -> int:
                 definition = definition_by_id.get(capability)
                 if definition is None:
                     raise ValueError(f"unknown arsenal capability: {capability}")
+                if (
+                    audit_for_resume is not None
+                    and capability != "fixture:ai/llm-security-boundary"
+                    and definition.tool_backends
+                ):
+                    backend = definition.tool_backends[0]
+                    prior_runtime = manager.inspect(
+                        name=backend.tool_name, binary=canonical_binary(backend.binary),
+                        refresh=True,
+                    )
+                    prior = resumable_record(
+                        prior_records, audit_for_resume.history,
+                        capability_id=capability, tool_version=prior_runtime.version,
+                        adapter_version=backend.adapter_version,
+                        fixture_version=fixture_version_for_capability(capability),
+                    )
+                    if prior is not None:
+                        result = ExerciseResult(
+                            prior.run_id, prior.mission_id, prior.task_id, capability,
+                            prior.result, "", str(prior.evidence_digest), True, False,
+                            {
+                                "resumed": True,
+                                "covered_capability_ids": list(
+                                    prior.capability_ids or (capability,)
+                                ),
+                                "backend_execution_id": prior.backend_execution_id,
+                                "tool_version": prior.tool_version,
+                                "fixture_version": prior.fixture_version,
+                            },
+                        )
+                        results.append(result)
+                        print(
+                            f"arsenal fixture {index}/{len(capabilities)} RESUMED {capability}",
+                            file=sys.stderr, flush=True,
+                        )
+                        continue
                 if capability == "fixture:ai/llm-security-boundary":
                     try:
                         result = execute_llm_fixture(
@@ -306,10 +358,18 @@ def main(argv: list[str] | None = None) -> int:
                         file=sys.stderr, flush=True,
                     )
                     continue
-                if capability.startswith("tool:") and definition.tool_backends:
+                if (
+                    definition.tool_backends
+                    and (
+                        capability.startswith("tool:")
+                        or external_fixture_spec(capability) is not None
+                    )
+                ):
                     backend = definition.tool_backends[0]
                     runtime = manager.inspect(
-                        name=backend.tool_name, binary=backend.binary, refresh=True,
+                        name=backend.tool_name,
+                        binary=canonical_binary(backend.binary),
+                        refresh=True,
                     )
                     if runtime.status is not ToolRuntimeStatus.READY:
                         results.append(record_blocked_fixture(

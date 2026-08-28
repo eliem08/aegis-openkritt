@@ -1,0 +1,19 @@
+FROM checkmarx/kics@sha256:b29ec62a21fb97f0b65aee2307fcb29dd334c1e39e2c1f1cfe56102fce1c6be4 AS kics_source
+
+FROM aegis-arsenal:backend-batch3
+
+USER root
+
+COPY --from=kics_source /app/bin /opt/kics
+RUN ln -sf /opt/kics/kics /usr/local/bin/kics \
+    && python -m pip install --no-cache-dir \
+        modelscan==0.8.8 \
+        pefile==2024.8.26
+
+COPY scripts/arsenal/pefile_cli.py /usr/local/bin/pefile
+RUN chmod 0755 /usr/local/bin/pefile \
+    && kics version \
+    && modelscan scan --version \
+    && pefile --version
+
+WORKDIR /app

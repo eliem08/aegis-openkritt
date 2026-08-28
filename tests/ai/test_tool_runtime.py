@@ -70,6 +70,24 @@ def test_missing_binary_is_unavailable():
     assert record.status is ToolRuntimeStatus.UNAVAILABLE
 
 
+def test_binwalk_uses_bounded_help_header_as_version_probe(tmp_path):
+    path = tmp_path / "binwalk"
+    path.write_bytes(b"fixture")
+    calls = []
+
+    def runner(argv, _timeout):
+        calls.append(tuple(argv[1:]))
+        if argv[1:] == ["-h"]:
+            return 0, "Binwalk v2.3.3\nusage", ""
+        return 3, "", "unsupported"
+
+    manager = ToolRuntimeManager(resolver=lambda _binary: str(path), runner=runner)
+    record = manager.inspect(name="binwalk", binary="binwalk")
+    assert record.status is ToolRuntimeStatus.READY
+    assert record.version == "Binwalk v2.3.3"
+    assert calls == [("-h",)]
+
+
 def test_pin_file_loads_exact_digest_and_version_marker(tmp_path):
     pins_file = tmp_path / "pins.json"
     digest = "a" * 64

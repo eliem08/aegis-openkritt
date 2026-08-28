@@ -356,6 +356,11 @@ def _parse(tool: Tool, stdout: str) -> list[dict]:
     text = (stdout or "").strip()
     if not text:
         return []
+    if getattr(tool, "output_format", "json") in {"text", "xml"}:
+        try:
+            return tool.parse({"text": text})
+        except Exception:
+            return []
     positions = [position for position in (text.find("{"), text.find("[")) if position >= 0]
     if not positions:
         return []

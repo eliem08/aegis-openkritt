@@ -19,6 +19,7 @@ from aegis.ai.jarvis.hunter_techniques import TECHNIQUES
 from aegis.ai.tool_registry import TOOLS
 
 from .assets.types import TECHNIQUE_MAP as ASSET_TECHNIQUE_MAP
+from .external_fixtures import external_fixture_capability_ids
 from .models import (
     CapabilityConflict,
     CapabilityDefinition,
@@ -67,6 +68,7 @@ class ArsenalInventoryBuilder:
 
     def build(self) -> tuple[CapabilityDefinition, ...]:
         versions = _release_versions(self.release_lock_path)
+        executable_external_fixtures = external_fixture_capability_ids()
         definitions: dict[str, CapabilityDefinition] = {}
         for tool in TOOLS:
             for lane in sorted(tool.lanes):
@@ -120,7 +122,10 @@ class ArsenalInventoryBuilder:
                                 method_name, sorted(assets_by_method[key])),
                     _provenance("requirements", "deep_asset_capabilities", method_name,
                                 requirements),
-                ), fixture_executable=bool(getattr(method, "local_only", False)),
+                ), fixture_executable=(
+                    capability_id in executable_external_fixtures
+                    or bool(getattr(method, "local_only", False))
+                ),
             )
 
         for technique, definition in sorted(TECHNIQUES.items(), key=lambda item: item[0].value):

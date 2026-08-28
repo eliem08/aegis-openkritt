@@ -37,6 +37,7 @@ from aegis.production.operator_manifest import (
 )
 
 from .exercise import ExerciseResult
+from .external_fixtures import external_fixture_spec
 from .fixture_authority import (
     LOCAL_FIXTURE_ONLY,
     LocalFixtureSignatureVerifier,
@@ -173,6 +174,7 @@ _FIXTURE_COMMANDS = {
 # A shared binary execution may cover another canonical capability only when this exact
 # positive/negative fixture validates the same semantics. Image/container modes are excluded.
 _EQUIVALENT_CAPABILITIES = {
+    "asset:nmap/bounded-service-fingerprinting": ("asset-lane:service-identification",),
     "tool:bandit/code": ("asset:bandit/python-security-static-analysis",),
     "tool:brakeman/code": ("asset:brakeman/rails-security-static-analysis",),
     "tool:checkov/deps": ("asset:checkov/iac-cicd-and-container-policy-scan",),
@@ -190,6 +192,11 @@ _EQUIVALENT_CAPABILITIES = {
 def equivalent_capability_ids(capability_id: str) -> tuple[str, ...]:
     """Return exact canonical aliases covered by the same fixture execution."""
     return _EQUIVALENT_CAPABILITIES.get(capability_id, ())
+
+
+def fixture_version_for_capability(capability_id: str) -> str:
+    spec = external_fixture_spec(capability_id)
+    return spec.fixture_version if spec else "scanner-fixture-v2"
 
 
 def _materialize_builtin_fixtures() -> tuple[tempfile.TemporaryDirectory, Path]:
@@ -219,18 +226,26 @@ def _directory_digest(path: Path) -> str:
 def _definition(capability_id: str):
     matches = [
         item for item in ArsenalInventoryBuilder().build()
-        if item.capability_id == capability_id and item.capability_id.startswith("tool:")
+        if item.capability_id == capability_id
     ]
-    if len(matches) != 1 or not matches[0].tool_backends:
+    if (
+        len(matches) != 1
+        or not matches[0].tool_backends
+        or not (
+            capability_id.startswith("tool:")
+            or external_fixture_spec(capability_id) is not None
+        )
+    ):
         raise ValueError(f"unknown tool fixture capability: {capability_id}")
     return matches[0]
 
 
 class _ToolFixtureProvider:
-    def __init__(self, *, capability_id: str, tool_name: str, bridge: ToolBridge,
+    def __init__(self, *, capability_id: str, tool, bridge: ToolBridge,
                  positive: Path, negative: Path) -> None:
         self.capability_id = capability_id
-        self.tool_name = tool_name
+        self.tool = tool
+        self.tool_name = tool.name
         self.bridge = bridge
         self.positive = positive
         self.negative = negative
@@ -245,7 +260,7 @@ class _ToolFixtureProvider:
                 or constraints.get("capability_id") != self.capability_id
             ):
                 raise PermissionError("tool fixture grant is missing or bound to another capability")
-            tool = next(item for item in TOOLS if item.name == self.tool_name)
+            tool = self.tool
             lane = self.capability_id.rsplit("/", 1)[-1]
             command = _FIXTURE_COMMANDS.get((tool.name, lane))
             if command:
@@ -291,12 +306,24 @@ def execute_tool_fixture(
 ) -> ExerciseResult:
     definition = _definition(capability_id)
     backend = definition.tool_backends[0]
+    external_spec = external_fixture_spec(capability_id)
     covered_capability_ids = (capability_id, *_EQUIVALENT_CAPABILITIES.get(capability_id, ()))
     temporary = None
     if fixture_root:
         root = Path(fixture_root)
+        fixture_version = external_spec.fixture_version if external_spec else "scanner-fixture-v2"
     else:
-        temporary, root = _materialize_builtin_fixtures()
+        if external_spec:
+            temporary = tempfile.TemporaryDirectory(prefix="aegis-arsenal-external-fixture-")
+            root = Path(temporary.name)
+            positive, negative = root / "positive", root / "negative"
+            positive.mkdir()
+            negative.mkdir()
+            external_spec.materialize(positive, negative)
+            fixture_version = external_spec.fixture_version
+        else:
+            temporary, root = _materialize_builtin_fixtures()
+            fixture_version = "scanner-fixture-v2"
     positive, negative = root / "positive", root / "negative"
     if not positive.is_dir() or not negative.is_dir():
         raise FileNotFoundError("both positive and negative scanner fixture directories are required")
@@ -325,7 +352,7 @@ def execute_tool_fixture(
             "covered_capability_ids": list(covered_capability_ids),
             "positive_fixture_digest": positive_fixture_digest,
             "negative_fixture_digest": negative_fixture_digest,
-            "fixture_version": "scanner-fixture-v2",
+            "fixture_version": fixture_version,
         },
     )
     now = datetime.now(UTC)
@@ -349,11 +376,12 @@ def execute_tool_fixture(
         "capability_id": capability_id, "policy_decision": decision.as_dict(),
         "grant": grant._payload(),
     })
+    asset_kind = definition.supported_asset_classes[0] if definition.supported_asset_classes else "source_code"
     task = MissionTask(
         task_id, "reproduction", "execute_scanner_fixture",
         payload={"authorization_class": LOCAL_FIXTURE_ONLY, "capability_id": capability_id},
-        opportunity_id=f"fixture-opp-{suffix}", asset_id="fixture:source-code",
-        asset_kind="source_code", asset_locator="127.0.0.1",
+        opportunity_id=f"fixture-opp-{suffix}", asset_id=f"fixture:{asset_kind}",
+        asset_kind=asset_kind, asset_locator="127.0.0.1",
         executor_capability=TOOL_FIXTURE_CAPABILITY, risk="offline", expected_cost_usd=0.0,
         evidence_required=("positive_fixture", "negative_control"),
         idempotency_key=f"{mission_id}:{task_id}",
@@ -367,7 +395,11 @@ def execute_tool_fixture(
     state_store = JarvisStateStore(":memory:")
     scheduler = MissionScheduler(state_store)
     provider = _ToolFixtureProvider(
-        capability_id=capability_id, tool_name=backend.tool_name,
+        capability_id=capability_id,
+        tool=(
+            external_spec.tool if external_spec
+            else next(item for item in TOOLS if item.name == backend.tool_name)
+        ),
         bridge=bridge or ToolBridge(
             timeout=max(1, int(os.environ.get("AEGIS_FIXTURE_TOOL_TIMEOUT_SECONDS", "120"))),
             runtime_manager=ToolRuntimeManager(version_timeout=15.0),
@@ -377,7 +409,7 @@ def execute_tool_fixture(
         scheduler, grant_verifier=verifier,
         workers=MissionWorkerRegistry((WorkerCapability(
             TOOL_FIXTURE_CAPABILITY, ExecutionClass.INTERNAL_EXECUTOR,
-            asset_kinds=("source_code",), risk_classes=("offline",),
+            asset_kinds=(asset_kind,), risk_classes=("offline",),
         ),)), executor_providers=(provider,),
     )
     plan = scheduler.create(plan)
@@ -447,7 +479,7 @@ def execute_tool_fixture(
         "container_digest_if_applicable": os.environ.get("AEGIS_ARSENAL_IMAGE_DIGEST", ""),
         "adapter_version": backend.adapter_version,
         "capability_ids": list(covered_capability_ids),
-        "fixture_version": "scanner-fixture-v2",
+        "fixture_version": fixture_version,
         "positive_fixture_digest": positive_fixture_digest,
         "negative_fixture_digest": negative_fixture_digest,
         "execution_started_at": summary.get("positive", {}).get("execution_started_at", ""),
@@ -508,7 +540,7 @@ def execute_tool_fixture(
             container_digest=os.environ.get("AEGIS_ARSENAL_IMAGE_DIGEST", ""),
             adapter_version=backend.adapter_version,
             capability_ids=covered_capability_ids,
-            fixture_version="scanner-fixture-v2",
+            fixture_version=fixture_version,
             positive_fixture_digest=positive_fixture_digest,
             negative_fixture_digest=negative_fixture_digest,
             execution_started_at=str(
@@ -558,4 +590,6 @@ def execute_tool_fixture(
     return result
 
 
-__all__ = ["execute_tool_fixture"]
+__all__ = [
+    "equivalent_capability_ids", "execute_tool_fixture", "fixture_version_for_capability",
+]
