@@ -1,52 +1,6 @@
 {
   "backends": [
     {
-      "backend": "external:angr",
-      "backend_runtime_id": "angr/linux-cli",
-      "binary": "angr",
-      "capability_ids": [
-        "asset:angr/binary-control-flow-analysis"
-      ],
-      "current_status": "UNAVAILABLE",
-      "exact_failure": "binary not found",
-      "expected_version": [],
-      "installed_version": "",
-      "missing_executor": false,
-      "missing_fixture": false,
-      "missing_parser": true,
-      "missing_privilege": false,
-      "missing_runtime": true,
-      "platform": "arsenal-binary",
-      "remediation": [
-        "install and pin runtime",
-        "connect native-output parser"
-      ],
-      "required_runner": "arsenal-binary"
-    },
-    {
-      "backend": "external:apktool",
-      "backend_runtime_id": "apktool/linux-cli",
-      "binary": "apktool",
-      "capability_ids": [
-        "asset:apktool/android-resource-and-manifest-decode"
-      ],
-      "current_status": "UNAVAILABLE",
-      "exact_failure": "binary not found",
-      "expected_version": [],
-      "installed_version": "",
-      "missing_executor": false,
-      "missing_fixture": false,
-      "missing_parser": true,
-      "missing_privilege": false,
-      "missing_runtime": true,
-      "platform": "arsenal-android",
-      "remediation": [
-        "install and pin runtime",
-        "connect native-output parser"
-      ],
-      "required_runner": "arsenal-android"
-    },
-    {
       "backend": "external:azurehound",
       "backend_runtime_id": "azurehound/cloud-lab",
       "binary": "azurehound",
@@ -70,52 +24,6 @@
         "provision arsenal-cloud-lab: local Entra fixture or explicitly supplied controlled tenant"
       ],
       "required_runner": "arsenal-cloud-lab"
-    },
-    {
-      "backend": "external:binwalk",
-      "backend_runtime_id": "binwalk/firmware-lab",
-      "binary": "binwalk",
-      "capability_ids": [
-        "asset:binwalk/firmware-structure-analysis"
-      ],
-      "current_status": "UNAVAILABLE",
-      "exact_failure": "binary not found",
-      "expected_version": [],
-      "installed_version": "",
-      "missing_executor": false,
-      "missing_fixture": false,
-      "missing_parser": true,
-      "missing_privilege": false,
-      "missing_runtime": true,
-      "platform": "arsenal-firmware",
-      "remediation": [
-        "install and pin runtime",
-        "connect native-output parser"
-      ],
-      "required_runner": "arsenal-firmware"
-    },
-    {
-      "backend": "external:capa",
-      "backend_runtime_id": "capa/linux-cli",
-      "binary": "capa",
-      "capability_ids": [
-        "asset:capa/binary-capability-analysis"
-      ],
-      "current_status": "UNAVAILABLE",
-      "exact_failure": "binary not found",
-      "expected_version": [],
-      "installed_version": "",
-      "missing_executor": false,
-      "missing_fixture": false,
-      "missing_parser": true,
-      "missing_privilege": false,
-      "missing_runtime": true,
-      "platform": "arsenal-binary",
-      "remediation": [
-        "install and pin runtime",
-        "connect native-output parser"
-      ],
-      "required_runner": "arsenal-binary"
     },
     {
       "backend": "external:class-dump",
@@ -148,18 +56,17 @@
       "capability_ids": [
         "asset:cloudsplaining/aws-iam-risk-analysis"
       ],
-      "current_status": "UNAVAILABLE",
-      "exact_failure": "binary not found",
+      "current_status": "WAITING_FOR_PREREQUISITE",
+      "exact_failure": "healthy",
       "expected_version": [],
-      "installed_version": "",
+      "installed_version": "cloudsplaining, version 0.7.0",
       "missing_executor": false,
       "missing_fixture": true,
       "missing_parser": true,
       "missing_privilege": false,
-      "missing_runtime": true,
+      "missing_runtime": false,
       "platform": "arsenal-cloud-lab",
       "remediation": [
-        "install and pin runtime",
         "add deterministic positive/negative fixture",
         "connect native-output parser"
       ],
@@ -211,52 +118,6 @@
         "connect native-output parser"
       ],
       "required_runner": "arsenal-network-lab"
-    },
-    {
-      "backend": "external:echidna",
-      "backend_runtime_id": "echidna/contract-cli",
-      "binary": "echidna",
-      "capability_ids": [
-        "asset:echidna/smart-contract-property-fuzzing"
-      ],
-      "current_status": "UNAVAILABLE",
-      "exact_failure": "binary not found",
-      "expected_version": [],
-      "installed_version": "",
-      "missing_executor": false,
-      "missing_fixture": false,
-      "missing_parser": true,
-      "missing_privilege": false,
-      "missing_runtime": true,
-      "platform": "arsenal-smart-contract",
-      "remediation": [
-        "install and pin runtime",
-        "connect native-output parser"
-      ],
-      "required_runner": "arsenal-smart-contract"
-    },
-    {
-      "backend": "external:asar",
-      "backend_runtime_id": "electron-asar/node-cli",
-      "binary": "asar",
-      "capability_ids": [
-        "asset:electron-asar/electron-package-extraction"
-      ],
-      "current_status": "UNAVAILABLE",
-      "exact_failure": "binary not found",
-      "expected_version": [],
-      "installed_version": "",
-      "missing_executor": false,
-      "missing_fixture": false,
-      "missing_parser": true,
-      "missing_privilege": false,
-      "missing_runtime": true,
-      "platform": "arsenal-linux",
-      "remediation": [
-        "install and pin runtime",
-        "connect native-output parser"
-      ],
-      "required_runner": "arsenal-linux"
     },
     {
       "backend": "external:firmadyne",
@@ -328,29 +189,6 @@
         "connect native-output parser"
       ],
       "required_runner": "arsenal-binary"
-    },
-    {
-      "backend": "external:forge",
-      "backend_runtime_id": "foundry/forge",
-      "binary": "forge",
-      "capability_ids": [
-        "asset:foundry/smart-contract-fuzz-and-invariant-tests"
-      ],
-      "current_status": "UNAVAILABLE",
-      "exact_failure": "binary not found",
-      "expected_version": [],
-      "installed_version": "",
-      "missing_executor": false,
-      "missing_fixture": false,
-      "missing_parser": true,
-      "missing_privilege": false,
-      "missing_runtime": true,
-      "platform": "arsenal-smart-contract",
-      "remediation": [
-        "install and pin runtime",
-        "connect native-output parser"
-      ],
-      "required_runner": "arsenal-smart-contract"
     },
     {
       "backend": "external:frida",
@@ -451,30 +289,6 @@
       "required_runner": "arsenal-binary"
     },
     {
-      "backend": "external:grpcurl",
-      "backend_runtime_id": "grpcurl/network-lab",
-      "binary": "grpcurl",
-      "capability_ids": [
-        "asset:grpcurl/grpc-service-introspection"
-      ],
-      "current_status": "UNAVAILABLE",
-      "exact_failure": "binary not found",
-      "expected_version": [],
-      "installed_version": "",
-      "missing_executor": false,
-      "missing_fixture": true,
-      "missing_parser": true,
-      "missing_privilege": false,
-      "missing_runtime": true,
-      "platform": "arsenal-network-lab",
-      "remediation": [
-        "install and pin runtime",
-        "add deterministic positive/negative fixture",
-        "connect native-output parser"
-      ],
-      "required_runner": "arsenal-network-lab"
-    },
-    {
       "backend": "external:http-probe",
       "backend_runtime_id": "http-probe/network-lab",
       "binary": "http-probe",
@@ -486,30 +300,6 @@
       "expected_version": [
         "1.6.9"
       ],
-      "installed_version": "",
-      "missing_executor": false,
-      "missing_fixture": true,
-      "missing_parser": true,
-      "missing_privilege": false,
-      "missing_runtime": true,
-      "platform": "arsenal-network-lab",
-      "remediation": [
-        "install and pin runtime",
-        "add deterministic positive/negative fixture",
-        "connect native-output parser"
-      ],
-      "required_runner": "arsenal-network-lab"
-    },
-    {
-      "backend": "external:httpx",
-      "backend_runtime_id": "httpx/network-lab",
-      "binary": "httpx",
-      "capability_ids": [
-        "asset:httpx/http-service-enrichment"
-      ],
-      "current_status": "UNAVAILABLE",
-      "exact_failure": "binary not found",
-      "expected_version": [],
       "installed_version": "",
       "missing_executor": false,
       "missing_fixture": true,
@@ -601,29 +391,6 @@
       "required_runner": "arsenal-network-lab"
     },
     {
-      "backend": "external:kics",
-      "backend_runtime_id": "kics/linux-cli",
-      "binary": "kics",
-      "capability_ids": [
-        "asset:kics/iac-security-scan"
-      ],
-      "current_status": "UNAVAILABLE",
-      "exact_failure": "binary not found",
-      "expected_version": [],
-      "installed_version": "",
-      "missing_executor": false,
-      "missing_fixture": false,
-      "missing_parser": true,
-      "missing_privilege": false,
-      "missing_runtime": true,
-      "platform": "arsenal-linux",
-      "remediation": [
-        "install and pin runtime",
-        "connect native-output parser"
-      ],
-      "required_runner": "arsenal-linux"
-    },
-    {
       "backend": "external:kubescape",
       "backend_runtime_id": "kubescape/kubernetes-lab",
       "binary": "kubescape",
@@ -694,100 +461,6 @@
         "provision arsenal-android: loopback MobSF service and synthetic APK; readiness: test -n \"$AEGIS_MOBSF_URL\" && curl -fsS \"$AEGIS_MOBSF_URL/api/v1/scans\""
       ],
       "required_runner": "arsenal-android"
-    },
-    {
-      "backend": "external:modelscan",
-      "backend_runtime_id": "modelscan/linux-cli",
-      "binary": "modelscan",
-      "capability_ids": [
-        "asset:modelscan/serialized-model-safety-scan"
-      ],
-      "current_status": "UNAVAILABLE",
-      "exact_failure": "binary not found",
-      "expected_version": [],
-      "installed_version": "",
-      "missing_executor": false,
-      "missing_fixture": false,
-      "missing_parser": true,
-      "missing_privilege": false,
-      "missing_runtime": true,
-      "platform": "arsenal-linux",
-      "remediation": [
-        "install and pin runtime",
-        "connect native-output parser"
-      ],
-      "required_runner": "arsenal-linux"
-    },
-    {
-      "backend": "external:naabu",
-      "backend_runtime_id": "naabu/network-lab",
-      "binary": "naabu",
-      "capability_ids": [
-        "asset:naabu/bounded-port-discovery"
-      ],
-      "current_status": "UNAVAILABLE",
-      "exact_failure": "binary not found",
-      "expected_version": [],
-      "installed_version": "",
-      "missing_executor": false,
-      "missing_fixture": true,
-      "missing_parser": true,
-      "missing_privilege": false,
-      "missing_runtime": true,
-      "platform": "arsenal-network-lab",
-      "remediation": [
-        "install and pin runtime",
-        "add deterministic positive/negative fixture",
-        "connect native-output parser"
-      ],
-      "required_runner": "arsenal-network-lab"
-    },
-    {
-      "backend": "external:nmap",
-      "backend_runtime_id": "nmap/network-lab",
-      "binary": "nmap",
-      "capability_ids": [
-        "asset-lane:service-identification",
-        "asset:nmap/bounded-service-fingerprinting"
-      ],
-      "current_status": "UNAVAILABLE",
-      "exact_failure": "binary not found",
-      "expected_version": [],
-      "installed_version": "",
-      "missing_executor": false,
-      "missing_fixture": true,
-      "missing_parser": true,
-      "missing_privilege": false,
-      "missing_runtime": true,
-      "platform": "arsenal-network-lab",
-      "remediation": [
-        "install and pin runtime",
-        "add deterministic positive/negative fixture",
-        "connect native-output parser"
-      ],
-      "required_runner": "arsenal-network-lab"
-    },
-    {
-      "backend": "external:npm",
-      "backend_runtime_id": "npm/linux-cli",
-      "binary": "npm",
-      "capability_ids": [
-        "asset:npm/npm-dependency-audit"
-      ],
-      "current_status": "WAITING_FOR_PREREQUISITE",
-      "exact_failure": "backend is present but its deterministic positive/negative fixture provider is not connected to the canonical executor",
-      "expected_version": [],
-      "installed_version": "10.9.8",
-      "missing_executor": false,
-      "missing_fixture": false,
-      "missing_parser": true,
-      "missing_privilege": false,
-      "missing_runtime": false,
-      "platform": "arsenal-linux",
-      "remediation": [
-        "connect native-output parser"
-      ],
-      "required_runner": "arsenal-linux"
     },
     {
       "backend": "external:nuclei",
@@ -861,29 +534,6 @@
         "provision arsenal-macos-ios: macOS worker; readiness: command -v otool && uname -s | grep Darwin"
       ],
       "required_runner": "arsenal-macos-ios"
-    },
-    {
-      "backend": "external:pefile",
-      "backend_runtime_id": "pefile/linux-cli",
-      "binary": "pefile",
-      "capability_ids": [
-        "asset:pefile/pe-structure-analysis"
-      ],
-      "current_status": "UNAVAILABLE",
-      "exact_failure": "binary not found",
-      "expected_version": [],
-      "installed_version": "",
-      "missing_executor": false,
-      "missing_fixture": false,
-      "missing_parser": true,
-      "missing_privilege": false,
-      "missing_runtime": true,
-      "platform": "arsenal-binary",
-      "remediation": [
-        "install and pin runtime",
-        "connect native-output parser"
-      ],
-      "required_runner": "arsenal-binary"
     },
     {
       "backend": "external:pip-audit",
@@ -1078,55 +728,6 @@
       "required_runner": "arsenal-cloud-lab"
     },
     {
-      "backend": "external:rustscan",
-      "backend_runtime_id": "rustscan/network-lab",
-      "binary": "rustscan",
-      "capability_ids": [
-        "asset:rustscan/bounded-fast-port-prefilter"
-      ],
-      "current_status": "UNAVAILABLE",
-      "exact_failure": "binary not found",
-      "expected_version": [],
-      "installed_version": "",
-      "missing_executor": false,
-      "missing_fixture": true,
-      "missing_parser": true,
-      "missing_privilege": false,
-      "missing_runtime": true,
-      "platform": "arsenal-network-lab",
-      "remediation": [
-        "install and pin runtime",
-        "add deterministic positive/negative fixture",
-        "connect native-output parser"
-      ],
-      "required_runner": "arsenal-network-lab"
-    },
-    {
-      "backend": "external:schemathesis",
-      "backend_runtime_id": "schemathesis/network-lab",
-      "binary": "schemathesis",
-      "capability_ids": [
-        "asset:schemathesis/graphql-schema-guided-testing",
-        "asset:schemathesis/schema-guided-api-testing"
-      ],
-      "current_status": "UNAVAILABLE",
-      "exact_failure": "binary not found",
-      "expected_version": [],
-      "installed_version": "",
-      "missing_executor": false,
-      "missing_fixture": true,
-      "missing_parser": true,
-      "missing_privilege": false,
-      "missing_runtime": true,
-      "platform": "arsenal-network-lab",
-      "remediation": [
-        "install and pin runtime",
-        "add deterministic positive/negative fixture",
-        "connect native-output parser"
-      ],
-      "required_runner": "arsenal-network-lab"
-    },
-    {
       "backend": "external:scorecard",
       "backend_runtime_id": "scorecard/linux-cli",
       "binary": "scorecard",
@@ -1175,53 +776,6 @@
         "provision arsenal-cloud-lab: local cloud emulator or explicitly supplied controlled cloud account"
       ],
       "required_runner": "arsenal-cloud-lab"
-    },
-    {
-      "backend": "external:skopeo",
-      "backend_runtime_id": "skopeo/linux-cli",
-      "binary": "skopeo",
-      "capability_ids": [
-        "asset:skopeo/container-registry-metadata"
-      ],
-      "current_status": "UNAVAILABLE",
-      "exact_failure": "binary not found",
-      "expected_version": [],
-      "installed_version": "",
-      "missing_executor": false,
-      "missing_fixture": true,
-      "missing_parser": true,
-      "missing_privilege": false,
-      "missing_runtime": true,
-      "platform": "arsenal-linux",
-      "remediation": [
-        "install and pin runtime",
-        "add deterministic positive/negative fixture",
-        "connect native-output parser"
-      ],
-      "required_runner": "arsenal-linux"
-    },
-    {
-      "backend": "external:spotbugs",
-      "backend_runtime_id": "spotbugs/linux-cli",
-      "binary": "spotbugs",
-      "capability_ids": [
-        "asset:spotbugs/java-bytecode-static-analysis"
-      ],
-      "current_status": "UNAVAILABLE",
-      "exact_failure": "binary not found",
-      "expected_version": [],
-      "installed_version": "",
-      "missing_executor": false,
-      "missing_fixture": false,
-      "missing_parser": true,
-      "missing_privilege": false,
-      "missing_runtime": true,
-      "platform": "arsenal-linux",
-      "remediation": [
-        "install and pin runtime",
-        "connect native-output parser"
-      ],
-      "required_runner": "arsenal-linux"
     },
     {
       "backend": "external:ssh-audit",
@@ -1275,31 +829,6 @@
       "required_runner": "arsenal-network-lab"
     },
     {
-      "backend": "external:syft",
-      "backend_runtime_id": "syft/linux-cli",
-      "binary": "syft",
-      "capability_ids": [
-        "asset-lane:dependency-extraction",
-        "asset:syft/artifact-sbom",
-        "asset:syft/container-image-sbom"
-      ],
-      "current_status": "UNAVAILABLE",
-      "exact_failure": "binary not found",
-      "expected_version": [],
-      "installed_version": "",
-      "missing_executor": false,
-      "missing_fixture": false,
-      "missing_parser": true,
-      "missing_privilege": false,
-      "missing_runtime": true,
-      "platform": "arsenal-linux",
-      "remediation": [
-        "install and pin runtime",
-        "connect native-output parser"
-      ],
-      "required_runner": "arsenal-linux"
-    },
-    {
       "backend": "external:testssl.sh",
       "backend_runtime_id": "testssl-sh/linux-cli",
       "binary": "testssl.sh",
@@ -1322,108 +851,15 @@
         "connect native-output parser"
       ],
       "required_runner": "arsenal-network-lab"
-    },
-    {
-      "backend": "external:web-ext",
-      "backend_runtime_id": "web-ext/linux-cli",
-      "binary": "web-ext",
-      "capability_ids": [
-        "asset:web-ext/browser-extension-structure-lint"
-      ],
-      "current_status": "UNAVAILABLE",
-      "exact_failure": "binary not found",
-      "expected_version": [],
-      "installed_version": "",
-      "missing_executor": false,
-      "missing_fixture": false,
-      "missing_parser": true,
-      "missing_privilege": false,
-      "missing_runtime": true,
-      "platform": "arsenal-linux",
-      "remediation": [
-        "install and pin runtime",
-        "connect native-output parser"
-      ],
-      "required_runner": "arsenal-linux"
-    },
-    {
-      "backend": "external:websocat",
-      "backend_runtime_id": "websocat/network-lab",
-      "binary": "websocat",
-      "capability_ids": [
-        "asset:websocat/websocket-protocol-observation"
-      ],
-      "current_status": "UNAVAILABLE",
-      "exact_failure": "binary not found",
-      "expected_version": [],
-      "installed_version": "",
-      "missing_executor": false,
-      "missing_fixture": true,
-      "missing_parser": true,
-      "missing_privilege": false,
-      "missing_runtime": true,
-      "platform": "arsenal-network-lab",
-      "remediation": [
-        "install and pin runtime",
-        "add deterministic positive/negative fixture",
-        "connect native-output parser"
-      ],
-      "required_runner": "arsenal-network-lab"
-    },
-    {
-      "backend": "external:yara",
-      "backend_runtime_id": "yara/linux-cli",
-      "binary": "yara",
-      "capability_ids": [
-        "asset:yara/approved-rule-binary-scan"
-      ],
-      "current_status": "UNAVAILABLE",
-      "exact_failure": "binary not found",
-      "expected_version": [],
-      "installed_version": "",
-      "missing_executor": false,
-      "missing_fixture": false,
-      "missing_parser": true,
-      "missing_privilege": false,
-      "missing_runtime": true,
-      "platform": "arsenal-binary",
-      "remediation": [
-        "install and pin runtime",
-        "connect native-output parser"
-      ],
-      "required_runner": "arsenal-binary"
-    },
-    {
-      "backend": "external:zizmor",
-      "backend_runtime_id": "zizmor/linux-cli",
-      "binary": "zizmor",
-      "capability_ids": [
-        "asset:zizmor/github-actions-security-audit"
-      ],
-      "current_status": "UNAVAILABLE",
-      "exact_failure": "binary not found",
-      "expected_version": [],
-      "installed_version": "",
-      "missing_executor": false,
-      "missing_fixture": false,
-      "missing_parser": true,
-      "missing_privilege": false,
-      "missing_runtime": true,
-      "platform": "arsenal-linux",
-      "remediation": [
-        "install and pin runtime",
-        "connect native-output parser"
-      ],
-      "required_runner": "arsenal-linux"
     }
   ],
-  "generated_at": "2026-08-27T21:37:34.303272+00:00",
+  "generated_at": "2026-08-28T05:23:41.606637+00:00",
   "metrics": {
-    "backlog_count": 59,
+    "backlog_count": 35,
     "missing_executor_count": 0,
-    "missing_fixture_count": 29,
-    "missing_parser_count": 59,
-    "missing_runtime_count": 58
+    "missing_fixture_count": 21,
+    "missing_parser_count": 35,
+    "missing_runtime_count": 34
   },
   "schema_version": 1
 }

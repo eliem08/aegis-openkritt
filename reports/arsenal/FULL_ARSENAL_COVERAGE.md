@@ -2,133 +2,126 @@
 
 Verdict: **FIXTURE ARSENAL PARTIALLY VERIFIED**
 
-Git SHA: `f579ac35a7f4f47f273eca4ad4cf6bd26560a919`  
-Arsenal image: `sha256:3766088055a72f82346bf7318cb0acf9ec6b2e82ddf6df6bcba9558f70e9c40d`
+Git SHA: `e4abae3302ff8277f5601f173ffa51fc3d99b3b0`  
+Arsenal image: `sha256:043e52e4250b93330adb442dcde599695a12d50d9c144dbf9b5e336f6b80b76a`
 
 ## Metrics
 
 - `total_canonical_capabilities`: `174`
 - `unique_backends`: `100`
 - `unique_external_backends`: `74`
-- `healthy_backends`: `17`
-- `backend_executions`: `17`
-- `fixture_executed_backends`: `15`
-- `fixture_executed_capabilities`: `28`
-- `fixture_backend_denominator`: `52`
-- `fixture_capability_denominator`: `71`
-- `fixture_backend_execution_coverage`: `0.28846153846153844`
-- `fixture_capability_execution_coverage`: `0.39436619718309857`
+- `healthy_backends`: `40`
+- `backend_executions`: `41`
+- `fixture_executed_backends`: `39`
+- `fixture_executed_capabilities`: `53`
+- `fixture_backend_denominator`: `60`
+- `fixture_capability_denominator`: `79`
+- `fixture_backend_execution_coverage`: `0.65`
+- `fixture_capability_execution_coverage`: `0.6708860759493671`
 - `authorized_real_execution_coverage`: `None`
 - `authorized_real_executed_capabilities`: `0`
-- `positive_controls_passed`: `17`
-- `negative_controls_passed`: `17`
-- `never_executed_external_backends`: `59`
-- `states`: `{'EXECUTED_PASS': 17, 'EXECUTED_FINDING': 0, 'WAITING_FOR_PREREQUISITE': 20, 'UNAVAILABLE': 23, 'DENIED_BY_POLICY': 0, 'DENIED_POLICY_AMBIGUOUS': 0, 'NOT_IMPLEMENTED': 0, 'BACKEND_UNHEALTHY': 0}`
+- `positive_controls_passed`: `41`
+- `negative_controls_passed`: `41`
+- `never_executed_external_backends`: `35`
+- `states`: `{'EXECUTED_PASS': 41, 'EXECUTED_FINDING': 0, 'WAITING_FOR_PREREQUISITE': 20, 'UNAVAILABLE': 7, 'DENIED_BY_POLICY': 0, 'DENIED_POLICY_AMBIGUOUS': 0, 'NOT_IMPLEMENTED': 0, 'BACKEND_UNHEALTHY': 0}`
 
 ## Executions
 
 | Capability | State | Run | Evidence |
 |---|---|---|---|
-| `asset:aegis-agent-permission-audit/agent-tool-permission-analysis` | WAITING_FOR_PREREQUISITE | `arsenal-20260827T203233Z-d4fc2f01` | `77b9201e348a310f9ae0ab5e652ff01a54600892fffb4335896586d09d052fc5` |
-| `asset:aegis-artifact-diff/authorized-mobile-release-diff` | WAITING_FOR_PREREQUISITE | `arsenal-20260827T203233Z-951a835f` | `f4909ee6ecf7906a2cb74dd8cd6cfb8782dc691d890ea44b7742f865211b2b24` |
-| `asset:aegis-asset-classifier/deterministic-asset-classification` | WAITING_FOR_PREREQUISITE | `arsenal-20260827T203233Z-9a2f9185` | `92970221b71ed985a515d9774eed4f5b13db85b1e884b64b10b6c2b9a8ecd235` |
-| `asset:aegis-firmware-arch/firmware-architecture-detection` | WAITING_FOR_PREREQUISITE | `arsenal-20260827T203233Z-0b3f069d` | `8cc0385d046c3dcebc909d9bbbf123e185cbf897fdeeecd498cc1ffc2630e10c` |
-| `asset:aegis-memory-poisoning/agent-memory-poisoning-regression` | WAITING_FOR_PREREQUISITE | `arsenal-20260827T203233Z-f68fa2e1` | `af0cdb6fd2fc6fbfa0e0bcae9093f78ffeb40690e968bb0cec5eb382ffe8f223` |
-| `asset:aegis-model-provenance/model-provenance-and-hash-ledger` | WAITING_FOR_PREREQUISITE | `arsenal-20260827T203234Z-1d35f9a8` | `fc36d09655b2f3fd27801f63ad72d7761c6afa70465d3b3d548495ca055c843b` |
-| `asset:aegis-rag-boundary/rag-retrieval-trust-analysis` | WAITING_FOR_PREREQUISITE | `arsenal-20260827T203234Z-8c846528` | `966e16ac567928aa59efd0acae31f1e0ff065f0e8ef6c3e05ab620417581c29f` |
-| `asset:angr/binary-control-flow-analysis` | UNAVAILABLE | `arsenal-20260827T203234Z-8cf548df` | `0c2ef15f9ee21dfa8b949581eb47f90cb20ebeb60183964f32f828367c138941` |
-| `asset:apktool/android-resource-and-manifest-decode` | UNAVAILABLE | `arsenal-20260827T203234Z-53625abf` | `66d9951d9548f0cb8903cc13cc9dff7cc268d8fbef0a33452f05f06f91f7cf6b` |
-| `asset:binwalk/firmware-structure-analysis` | UNAVAILABLE | `arsenal-20260827T203234Z-5cad75d3` | `d2c243679147324e4dda83a1230b055e20219c79bccec86ecbe9b2f6fde0109e` |
-| `asset:capa/binary-capability-analysis` | UNAVAILABLE | `arsenal-20260827T203234Z-36acda86` | `f50ca06e136e2fc1f98fddf7faaac123a8ec66f21316b1db527ff7424022b74e` |
-| `asset:checkov/container-image-policy-scan` | WAITING_FOR_PREREQUISITE | `arsenal-20260827T203238Z-6a2fc79a` | `8fc45d0f8ba05746c878c5bca4cb742ef870a7ba5b4d5f32fb00edf03a4d7c7a` |
-| `asset:class-dump/objective-c-interface-recovery` | WAITING_FOR_PREREQUISITE | `arsenal-20260827T203238Z-4da1bdd6` | `49c93535ba1d4ff5f091ac44467eaa4550be91a5795a7b9003bca24893e2b2ff` |
-| `asset:codeql/cross-file-dataflow` | UNAVAILABLE | `arsenal-20260827T203238Z-37d6be1a` | `6424c2b2951b9bb866134cfd960840dea6e9d5c54fa095d8957bf3de3ad33004` |
-| `asset:echidna/smart-contract-property-fuzzing` | UNAVAILABLE | `arsenal-20260827T203238Z-2430a94d` | `a8a17be5d55ce6931a42dd649e3d7edf7f0d28b9c77a913c13d7622f3628eb4c` |
-| `asset:electron-asar/electron-package-extraction` | UNAVAILABLE | `arsenal-20260827T203238Z-e257db15` | `8d819231e1a5b474daa22e1106a9d3c67c97ac85afb50fd79e9363d4046def03` |
-| `asset:firmadyne/firmware-emulation-fallback` | WAITING_FOR_PREREQUISITE | `arsenal-20260827T203238Z-d971cf86` | `3ecb0f1ab2748c60790f1c4a0f2e0de5cbbb96e862290b4bff7e0742b2e8c27f` |
-| `asset:firmae/firmware-emulation` | WAITING_FOR_PREREQUISITE | `arsenal-20260827T203239Z-4c2750b0` | `61b719569a676e1394b90f971f9e198bfc8b62ef16fba4865a64819a3af37109` |
-| `asset:floss/static-string-deobfuscation` | UNAVAILABLE | `arsenal-20260827T203239Z-a6e451ea` | `9cf72912a493532cec19dad042037f29e4f17f605f5a8522bc40af9a6bbe3dd0` |
-| `asset:foundry/smart-contract-fuzz-and-invariant-tests` | UNAVAILABLE | `arsenal-20260827T203239Z-97fba3a5` | `33e5821781e1e5caf643576b1195a12e9e798c73171ff8eaedaaa67eae856a91` |
-| `asset:frida/android-runtime-instrumentation` | WAITING_FOR_PREREQUISITE | `arsenal-20260827T203239Z-1adde36d` | `6e07d17e66fbdaf3726e448351528545e5f43d2c20b11fc5ef406b661d782327` |
-| `asset:frida/ios-runtime-instrumentation` | WAITING_FOR_PREREQUISITE | `arsenal-20260827T203239Z-5ce90755` | `1d655b13d2f73789fcad0e0ef3064baa35cc9e303f1cd8b91d604f16d7a56bfc` |
-| `asset:ghidra/headless-binary-analysis` | UNAVAILABLE | `arsenal-20260827T203239Z-95f6516e` | `678a9a8dda3093a1fce3854f989f1b2345d814b25e93ddc4d0afa185facb0653` |
-| `asset:grype/container-image-vulnerability-scan` | WAITING_FOR_PREREQUISITE | `arsenal-20260827T203240Z-2623dda9` | `42d3a14e73cf6b849e26aee7d14cd38786af0c1923f1503eaee65fb2785155aa` |
-| `asset:jadx/android-decompile` | UNAVAILABLE | `arsenal-20260827T203240Z-82e131ab` | `7667f1376c793dc4b4e1c7993e749d2da09c2ec27eacec9d5c07ac54c8c50cc7` |
-| `asset:kics/iac-security-scan` | UNAVAILABLE | `arsenal-20260827T203240Z-47983ac4` | `ed2af5cb8108caabb93c1791a5f14c726c74ff338f4ee65f210680e203b1b650` |
-| `asset:mobsf/rest-static-analysis` | WAITING_FOR_PREREQUISITE | `arsenal-20260827T203240Z-1b735f85` | `3a1b54b4bdd321587ffa9bb657d2eea5496629e24d8de15c81e0246586bceec5` |
-| `asset:modelscan/serialized-model-safety-scan` | UNAVAILABLE | `arsenal-20260827T203240Z-a966f3d6` | `a8e5cbae561801bb4140d4d7f238127c501b3bf8e0e853d24876d77cc71e6f76` |
-| `asset:npm/npm-dependency-audit` | WAITING_FOR_PREREQUISITE | `arsenal-20260827T203241Z-ad3c1e14` | `a01364d1cdcd0e8c1940c8885d90298d21bed59f8ca8ecc18080290c738e473a` |
-| `asset:objection/android-runtime-exploration` | WAITING_FOR_PREREQUISITE | `arsenal-20260827T203241Z-fbe20b87` | `cdcaf83b9b39ee26f80e5c3d31cfdb3a521aef75cf990783d4cb3a0c37a4f985` |
-| `asset:objection/ios-runtime-exploration` | WAITING_FOR_PREREQUISITE | `arsenal-20260827T203241Z-3b5cdc3a` | `3049934bdc960005acbe6c092520961c96195b0403394f485ee11ea9b5d9f313` |
-| `asset:otool/ios-macos-load-command-analysis` | WAITING_FOR_PREREQUISITE | `arsenal-20260827T203242Z-c8415a43` | `2e7d14ad9f6539db1a31d99a666fb5d01394d3ee4dc683de0caa14c803e7dda7` |
-| `asset:pefile/pe-structure-analysis` | UNAVAILABLE | `arsenal-20260827T203242Z-fcafe51c` | `7bde7aee7be20c37d9b0e6ba2bdf0de43ba31289418e74584646b4d88f98ecc5` |
-| `asset:pip-audit/python-dependency-vulnerability-analysis` | UNAVAILABLE | `arsenal-20260827T203242Z-bc1caae8` | `5a94f64d80f4a1542638e4b3d99f3b2385fd87a940cc22857f56ae1c6e789dda` |
-| `asset:restler/stateful-openapi-sequence-testing` | UNAVAILABLE | `arsenal-20260827T203242Z-4bd81f8a` | `c26ef0b0bc0a1eb0dbf54a82899ae8e61bfb96d561a278889bbbc94d55ce9152` |
-| `asset:rizin/binary-reverse-engineering` | UNAVAILABLE | `arsenal-20260827T203242Z-9098f365` | `ff8a776682630081e02f5cf17856b47393d3504fd99a12f4d5448aaddc4ede3c` |
-| `asset:spotbugs/java-bytecode-static-analysis` | UNAVAILABLE | `arsenal-20260827T203242Z-6519dde8` | `c230e5737cf7fed5692c7cba7b868bc92c010e28e6ef46717f5b3981c627e41c` |
-| `asset:syft/artifact-sbom` | UNAVAILABLE | `arsenal-20260827T203243Z-959342a0` | `43c363918e8f1109efd9d4ab7aeb7b89160703847e3ecca889d7394c2d63f25b` |
-| `asset:syft/container-image-sbom` | UNAVAILABLE | `arsenal-20260827T203243Z-70bd85c8` | `c6b8b698ead436155ad35819ba6af01c1c1177cd2a78ef1a20f0c6a144feb355` |
-| `asset:trivy/container-image-security-scan` | WAITING_FOR_PREREQUISITE | `arsenal-20260827T203243Z-e335c791` | `6dfd908f01b5260c716357d860eea44105dceb7c67ea9541b7041c273c072609` |
-| `asset:web-ext/browser-extension-structure-lint` | UNAVAILABLE | `arsenal-20260827T203243Z-ef268afe` | `f48c50d3b72e46eb09e616405013a3ce06513115caf75aa800225fbbd8891d49` |
-| `asset:yara/approved-rule-binary-scan` | UNAVAILABLE | `arsenal-20260827T203244Z-0b6dd4d4` | `1676f5e945777f000a9341846361f00ac0610b6a21e4f0679ccbfd848fc6e767` |
-| `asset:zizmor/github-actions-security-audit` | UNAVAILABLE | `arsenal-20260827T203244Z-d17bb5a6` | `01122cf1a47b110b63f6c3a08a9ef4bc2fbc52e4ddd476bb7e0181f63c33d529` |
-| `fixture:ai/llm-security-boundary` | EXECUTED_PASS | `arsenal-20260827T203244Z-71e38599` | `1e241c3bf8b224a5651067483f0f9e86a60e32fd79d541c9cb2db8f3bd2f7f36` |
-| `tool:bandit/code` | EXECUTED_PASS | `arsenal-20260827T203245Z-d0bf7531` | `44f814ef2964ba6e5aafa7465b90419c69dbc0f1524972c000116e0770c65142` |
-| `tool:brakeman/code` | EXECUTED_PASS | `arsenal-20260827T203246Z-4beb6ac3` | `d7d6620f95c86bbe2848adf0b8ee94a239add23feace4876044d4c6482505508` |
-| `tool:checkov/deps` | EXECUTED_PASS | `arsenal-20260827T203250Z-a197e48b` | `7aeb895a40415a6bb15e076ef7f50f63f1164f8abc2253ae052a29d5a1cd01ab` |
-| `tool:detect-secrets/secrets` | EXECUTED_PASS | `arsenal-20260827T203259Z-2309945d` | `d22c5998047fe4be3d8c253bfb8332426beefb2f3131c116bc673d9ed2720170` |
-| `tool:gitleaks/secrets` | EXECUTED_PASS | `arsenal-20260827T203300Z-b832d86d` | `e20857a52e7f0947ef0604adb360907dc71d3ceabed3d122b5e874148de8dea0` |
-| `tool:gosec/code` | EXECUTED_PASS | `arsenal-20260827T203301Z-c0b87080` | `93d6d1fc2b6449ee65b3ddf1669441b48ced9988e837db5f28219bb1c3336298` |
-| `tool:grype/deps` | EXECUTED_PASS | `arsenal-20260827T203307Z-d8ef174d` | `f0de750328fc8cfab1d691875e4a714c1fca15719786a4d561aa597e9fd833e1` |
-| `tool:mythril/contract` | EXECUTED_PASS | `arsenal-20260827T203318Z-0d641fa2` | `5e2d001da170c6b7a10663eb343bca49594ed7743a893e2d8c6b84e3e1729fa9` |
-| `tool:njsscan/code` | EXECUTED_PASS | `arsenal-20260827T203348Z-35cd11b1` | `311868d32868ad82e3dd05a9b5cb2a42c08b320d6ef2d225f046238ff71d9776` |
-| `tool:osv-scanner/deps` | EXECUTED_PASS | `arsenal-20260827T203403Z-f6f3f4ae` | `76c0decb263a927e5afc95bc35f3ff8f8263171f28c6f1569b4036063a594d07` |
-| `tool:psalm/code` | EXECUTED_PASS | `arsenal-20260827T203428Z-9844d1d5` | `06e4f6aa05ca66a6f872aa3dc502c39f65aec78d50702639a2facec7cfc90f05` |
-| `tool:retire-js/deps` | EXECUTED_PASS | `arsenal-20260827T203440Z-cb35eaa2` | `d661d64586f974b3454c59b4cb7f83b2b110d2b1eb5cf286cf7d037e81e5ce3a` |
-| `tool:semgrep/code` | EXECUTED_PASS | `arsenal-20260827T203443Z-1da60816` | `b30a3da04299276fa60c33c07c17edd8934e06fb1089ac041d7589c7d67e8cb3` |
-| `tool:slither/contract` | EXECUTED_PASS | `arsenal-20260827T203451Z-7a1515cd` | `07580f57133e4bb5eadc07d6966adcf7a921be5c3de35f181a9939acaeff948e` |
-| `tool:trivy/deps` | EXECUTED_PASS | `arsenal-20260827T203453Z-5f63279c` | `01fc2a8fe538f306291e2c0c365405f1595c3765efec4bb775730f73bbef9f91` |
-| `tool:trivy/secrets` | EXECUTED_PASS | `arsenal-20260827T203454Z-fb3b79ac` | `807cee92beb06153693a60a303e0036793c9fa54a1452bb922daa205b05d7065` |
+| `asset:aegis-agent-permission-audit/agent-tool-permission-analysis` | WAITING_FOR_PREREQUISITE | `arsenal-20260828T051622Z-74237bb1` | `c4c5695dddae135a4a6ae5e4cdc0bc8ee9630bce9a5ce42e4c3ef523d0a118cd` |
+| `asset:aegis-artifact-diff/authorized-mobile-release-diff` | WAITING_FOR_PREREQUISITE | `arsenal-20260828T051622Z-2e0ceab4` | `0c5061d03db90082cc8b8648cbc6e88ef92320ef23ab17a1c2f8cee9cda25027` |
+| `asset:aegis-asset-classifier/deterministic-asset-classification` | WAITING_FOR_PREREQUISITE | `arsenal-20260828T051622Z-5d739adc` | `ae5f4f570aed3eece0b61ea467f9dfb7e19f6a1209919100f72267c475d61f9a` |
+| `asset:aegis-firmware-arch/firmware-architecture-detection` | WAITING_FOR_PREREQUISITE | `arsenal-20260828T051622Z-e97448ae` | `beb74de68d1b27efd9cfd5ad184108830c59cba6d4d097f58b479151e9fd091d` |
+| `asset:aegis-memory-poisoning/agent-memory-poisoning-regression` | WAITING_FOR_PREREQUISITE | `arsenal-20260828T051622Z-946d875a` | `6bca501e9ddfce5c400883543b48348210c9fb87f9a1b13925d005442c0d8ad7` |
+| `asset:aegis-model-provenance/model-provenance-and-hash-ledger` | WAITING_FOR_PREREQUISITE | `arsenal-20260828T051623Z-2700889d` | `85fa72553e42654fececeedfb2bc45813201b67a41d17eccb0898be3a2954c40` |
+| `asset:aegis-rag-boundary/rag-retrieval-trust-analysis` | WAITING_FOR_PREREQUISITE | `arsenal-20260828T051623Z-281850d9` | `cea996c363a4486725d9042cae72b168c8a3d34104f85014fbdc6cf1e47ab674` |
+| `asset:angr/binary-control-flow-analysis` | EXECUTED_PASS | `arsenal-20260828T051624Z-35032d6a` | `a1303ed2f1e42ed94aa095ca4975acee1c1e0255b180a75dfaa43c79efca8856` |
+| `asset:apktool/android-resource-and-manifest-decode` | EXECUTED_PASS | `arsenal-20260828T051628Z-e2f25290` | `72c6101f3863e7d7955e733d3f2176f032a7ca2b8da3893782ebe985cbad0584` |
+| `asset:binwalk/firmware-structure-analysis` | EXECUTED_PASS | `arsenal-20260828T051631Z-70667746` | `6fbe6de02cfea9b579f5617223592876e5f7bcb77f874d806721c100064a2a1d` |
+| `asset:capa/binary-capability-analysis` | EXECUTED_PASS | `arsenal-20260828T051632Z-53739ef3` | `0336e7d313794d90aa17dccdedb351c282a0b5b58dee15f92c07f8ef005f590d` |
+| `asset:checkov/container-image-policy-scan` | WAITING_FOR_PREREQUISITE | `arsenal-20260828T051649Z-34ed08b8` | `44a84c4448e0c2d1fed3acaf322fcfca4e7fcdede45fdcc3afd0fce05681f75a` |
+| `asset:class-dump/objective-c-interface-recovery` | WAITING_FOR_PREREQUISITE | `arsenal-20260828T051649Z-52f1e3cb` | `fdb5e6309f34327e7d3b713d1174022a60e15d9a3a351914bc6b622bb1c2a9e9` |
+| `asset:codeql/cross-file-dataflow` | UNAVAILABLE | `arsenal-20260828T051649Z-c9369b9d` | `fbd85bd589c4e27db8029f2ae399024d292f7186e9e2fa15359612320d6f2e38` |
+| `asset:echidna/smart-contract-property-fuzzing` | EXECUTED_PASS | `arsenal-20260828T051649Z-530969e5` | `a6ebf367da16fede0250103f5b0177825e0d9c97eda4337cdd5ffd688ff51dcc` |
+| `asset:electron-asar/electron-package-extraction` | EXECUTED_PASS | `arsenal-20260828T051651Z-cfcd924f` | `0b68a3cf77049c2cce35c9376ae1126d288545113abf57c0e51fb388f6640b51` |
+| `asset:firmadyne/firmware-emulation-fallback` | WAITING_FOR_PREREQUISITE | `arsenal-20260828T051652Z-43b5cec2` | `0e7347ffb3ddc404b383acb4675e952936624510dc64bf924de14416922dc0f3` |
+| `asset:firmae/firmware-emulation` | WAITING_FOR_PREREQUISITE | `arsenal-20260828T051652Z-49ec5dc6` | `67805c1705029f54fb0fbe37deb6d84218095a29c720c856a9e1d5cb9e897cf6` |
+| `asset:floss/static-string-deobfuscation` | UNAVAILABLE | `arsenal-20260828T051652Z-6754ac0e` | `56f1350c1caf6fd19ea8c6ec12e0ba5fb2be357d8f4f23685a606a38c6fac59d` |
+| `asset:foundry/smart-contract-fuzz-and-invariant-tests` | EXECUTED_PASS | `arsenal-20260828T051652Z-6b4df921` | `392a48a49e43c6ddcba9b64a2a5027e8fa25c96a5c4c0893204773664fb60f13` |
+| `asset:frida/android-runtime-instrumentation` | WAITING_FOR_PREREQUISITE | `arsenal-20260828T051655Z-6d1f73a3` | `d2deb5cf993efed1f4f2d9bd536aa286080dc24368c3e4d10b83fdef98b6a621` |
+| `asset:frida/ios-runtime-instrumentation` | WAITING_FOR_PREREQUISITE | `arsenal-20260828T051655Z-90f27fcb` | `bb7db680987a10493ec198be32343ae50aa74073fa0c9864814f3bf842d3d340` |
+| `asset:ghidra/headless-binary-analysis` | UNAVAILABLE | `arsenal-20260828T051655Z-9b8439fb` | `bfecfc6bd6e2fc232ad16411ea4e637b2abdd9dae962cae78c8f0306d097c9d6` |
+| `asset:grpcurl/grpc-service-introspection` | EXECUTED_PASS | `arsenal-20260828T051655Z-81d7aa8c` | `0ca07330991bb552269dc9630daabb3a12eb923d6aa8f9dd246feda435e1d76f` |
+| `asset:grype/container-image-vulnerability-scan` | WAITING_FOR_PREREQUISITE | `arsenal-20260828T051657Z-a599528e` | `386ae134b4c038b1bdc0f4ad3e3d14232ef37ca38ed1afb714f969e05cad9a90` |
+| `asset:httpx/http-service-enrichment` | EXECUTED_PASS | `arsenal-20260828T051657Z-428d009d` | `b0beaf19ea97199e3a172d1b3c01dbebee9430ec48643eaa7768464c25043e75` |
+| `asset:jadx/android-decompile` | UNAVAILABLE | `arsenal-20260828T051659Z-6fe59503` | `fab12fb81fbbf6817822647b8608d88c5df930209a8714c1e922845d935dd919` |
+| `asset:kics/iac-security-scan` | EXECUTED_PASS | `arsenal-20260828T051700Z-fec1a834` | `e91a147580ee565704eaff039bd5157c8b3b70ad94ebaddcb22970b616bcf750` |
+| `asset:mobsf/rest-static-analysis` | WAITING_FOR_PREREQUISITE | `arsenal-20260828T051701Z-95318903` | `5fbbc18116e099d23d9fc11a00a8825b8422c26d940a93968bfd30798e2167ee` |
+| `asset:modelscan/serialized-model-safety-scan` | EXECUTED_PASS | `arsenal-20260828T051701Z-f269096f` | `b0b11c0cbe1fc71894123d18bf0b9d0f4b9477fb26cedc6bd07d76c48d69b472` |
+| `asset:naabu/bounded-port-discovery` | EXECUTED_PASS | `arsenal-20260828T051703Z-8de747b3` | `2e3d59ee68cf18f449e026b5ce40636c912df281d16d60b0ffe781c6667db62b` |
+| `asset:nmap/bounded-service-fingerprinting` | EXECUTED_PASS | `arsenal-20260828T051710Z-6833eb6c` | `49d402ad40de39ccc85e4dff3792001d1a9808dbff0024795226454181f3e537` |
+| `asset:npm/npm-dependency-audit` | EXECUTED_PASS | `arsenal-20260828T051719Z-43d333e4` | `6a54d840a92bd3e4c81ef336bcdca5296fc2ec3cbd55449c6552a6561799fae1` |
+| `asset:objection/android-runtime-exploration` | WAITING_FOR_PREREQUISITE | `arsenal-20260828T051720Z-e341e1b6` | `312b238fcc1c7c2a18c436864751a378df5d7220ffcc34a29ca658e9c01a1803` |
+| `asset:objection/ios-runtime-exploration` | WAITING_FOR_PREREQUISITE | `arsenal-20260828T051720Z-8a099333` | `7818e3f52f391d9e7ccd2ca32e6c43fca12bc45652d873beedaa480861469502` |
+| `asset:otool/ios-macos-load-command-analysis` | WAITING_FOR_PREREQUISITE | `arsenal-20260828T051720Z-28a1a2db` | `8d05fcfaf31557f4b9da3506a47862148ff1a4022b3ad51a8d1c111c140e04f0` |
+| `asset:pefile/pe-structure-analysis` | EXECUTED_PASS | `arsenal-20260828T051721Z-6f0a0988` | `43af46b42fdb35db6f30444cc763b9911592b2f7e850b5338c9c0dd7668ccfe3` |
+| `asset:pip-audit/python-dependency-vulnerability-analysis` | UNAVAILABLE | `arsenal-20260828T051721Z-38277c84` | `a0219ce08e72ef8141b4a601206f8980847f28198989c71dec75f553082c838e` |
+| `asset:restler/stateful-openapi-sequence-testing` | UNAVAILABLE | `arsenal-20260828T051721Z-a225082e` | `224ffb8216ee822dbd2ef40a074d36b9abd9684dfdca5242e926019a8ca3c0c7` |
+| `asset:rizin/binary-reverse-engineering` | UNAVAILABLE | `arsenal-20260828T051721Z-858e7b70` | `9e58c35c4ade5026eefff4a539a58a630c2ad19d7960e9e9e327b2be4f106bb0` |
+| `asset:rustscan/bounded-fast-port-prefilter` | EXECUTED_PASS | `arsenal-20260828T051721Z-8f7b615f` | `d3a74a04805a964f058da83a097a49c31a8a1bd8f66725e89ba4066de14d6398` |
+| `asset:schemathesis/schema-guided-api-testing` | EXECUTED_PASS | `arsenal-20260828T051723Z-52e9e4f9` | `767119ea16c1a5517d0bca45cb13176e8cf5c951cf5707b828f019a66e484538` |
+| `asset:skopeo/container-registry-metadata` | EXECUTED_PASS | `arsenal-20260828T051726Z-b85c6d29` | `ae5b78b860c0fcb90a0371801fe3e9cf2fd3e36ba8f3e20692b26bd1e432cf9a` |
+| `asset:spotbugs/java-bytecode-static-analysis` | EXECUTED_PASS | `arsenal-20260828T051730Z-ca0883e2` | `57eea191b28edc1029a692fdcccb7a8e7c6088a0a2d74807f8dc80ea6e415fb6` |
+| `asset:syft/artifact-sbom` | EXECUTED_PASS | `arsenal-20260828T051741Z-a757b2eb` | `816c2dd9fd00f85e9c55085008572632cc771ddd5bff5f7c027e9df3b72814dc` |
+| `asset:syft/container-image-sbom` | WAITING_FOR_PREREQUISITE | `arsenal-20260828T051743Z-d957f243` | `76a76832cd4506dd4b30effaa2767220fe6287084d4f2325f2848b1284942f86` |
+| `asset:trivy/container-image-security-scan` | WAITING_FOR_PREREQUISITE | `arsenal-20260828T051743Z-9e9278a2` | `3c49dee248a01cd443e1fbd17c73f0f1781fc3b3a08b2439cf4d4eb02d71587f` |
+| `asset:web-ext/browser-extension-structure-lint` | EXECUTED_PASS | `arsenal-20260828T051744Z-f9c4e289` | `d2ca7bf18752d5204abf1e4a98531b7898ffaa709d2821472ec3b5f483564808` |
+| `asset:websocat/websocket-protocol-observation` | EXECUTED_PASS | `arsenal-20260828T051747Z-d2025076` | `374ad5efbba5b9a785bb2cab103787d1ecd2646184d15e883f48e296dd73b774` |
+| `asset:yara/approved-rule-binary-scan` | EXECUTED_PASS | `arsenal-20260828T051748Z-1fd02623` | `aa995a7d0b1b275e797b47170cec090c9f2e5f42fb4d3dd0d153ddb8484c9a3b` |
+| `asset:zizmor/github-actions-security-audit` | EXECUTED_PASS | `arsenal-20260828T051748Z-1c49a92e` | `a5c0dc4cf77933558c6dd6bf65c598114362cf2974ad5b0d395205659abaeeea` |
+| `fixture:ai/llm-security-boundary` | EXECUTED_PASS | `arsenal-20260828T051749Z-621c57b6` | `0c4e778e7f3349dc12998115da08b14e7c2455118cc8153d6600876f9b414ef7` |
+| `tool:bandit/code` | EXECUTED_PASS | `arsenal-20260828T051749Z-03050d6d` | `6549f91f0a3471ac9403f5eef5e3d3f26acb5874b4f0d2e6f5c048d2b60418a1` |
+| `tool:brakeman/code` | EXECUTED_PASS | `arsenal-20260828T051750Z-c85fb767` | `b23b039eb246d8e19134223c98ae6f67f21792afefb9b38a131b7ccfe9407205` |
+| `tool:checkov/deps` | EXECUTED_PASS | `arsenal-20260828T051754Z-0c51ee0f` | `9df95409a66ee087b1c5839707263b484510d1dcbf9e05ab433f2df9df726b24` |
+| `tool:detect-secrets/secrets` | EXECUTED_PASS | `arsenal-20260828T051802Z-e8032602` | `f328ca8f315ff1b9aabac40d91ffa72a2a246ac0aaa513e333a62e4df9468bce` |
+| `tool:gitleaks/secrets` | EXECUTED_PASS | `arsenal-20260828T051803Z-75413af0` | `877b4e90040039ffa73dd685a488298d6c6cd781d9358d3e97507bca5e2cd5cf` |
+| `tool:gosec/code` | EXECUTED_PASS | `arsenal-20260828T051803Z-8c498a66` | `c517bf8fad2b3910c7a4eef2cb9344afdf5ce7f8af27d6b947e39b1238e37fd8` |
+| `tool:grype/deps` | EXECUTED_PASS | `arsenal-20260828T051810Z-d33430ae` | `25d6b5bbba8f678f251619bc94e1a8bba1d5a905bde3619834c801762fbcde7a` |
+| `tool:mythril/contract` | EXECUTED_PASS | `arsenal-20260828T051819Z-5a664854` | `c84a6007b72e5d2e7afee79a5209e1bd2491cf028c34b277ea314418239cceb0` |
+| `tool:njsscan/code` | EXECUTED_PASS | `arsenal-20260828T051844Z-ec53ba78` | `9788d8463b58d3fa7945a108e7313807ae1521cb542fa722a146b5cb98509d55` |
+| `tool:osv-scanner/deps` | EXECUTED_PASS | `arsenal-20260828T051904Z-0a056ab0` | `5a2edd6d34a085d385032cfad659b15267f3f0d3bc6ffe5cf4b79c2e176f5f49` |
+| `tool:psalm/code` | EXECUTED_PASS | `arsenal-20260828T051925Z-9c75b7fd` | `d7653d0b27fd819969137ea31e8f5271f1ef5122ee0650913d29c8c3457c7c61` |
+| `tool:retire-js/deps` | EXECUTED_PASS | `arsenal-20260828T051935Z-9ebe05a2` | `153193a1fc291eaa7433bcb9f5775ec6c9474bab9257f33cad80851f1c8484d3` |
+| `tool:semgrep/code` | EXECUTED_PASS | `arsenal-20260828T051937Z-9100f8fe` | `8211e46f0ffc2acf43f7c3ddbded4af5246eeb7f7861f791d397a5e13a8ef5d6` |
+| `tool:slither/contract` | EXECUTED_PASS | `arsenal-20260828T051945Z-58744c65` | `2d3f5a3b520140860bc280309598bd320e186de7d45e17e9a0addd7e61a4889b` |
+| `tool:trivy/deps` | EXECUTED_PASS | `arsenal-20260828T051946Z-e51b1ec5` | `13e8bedcbbd512900a6b9481be385034b697a4a4ade734933983a07ad2f29704` |
+| `tool:trivy/secrets` | EXECUTED_PASS | `arsenal-20260828T051947Z-4b85e35b` | `c6ca8a660c89fe25d0e439ada0e76c515d3443282e31e19c67f69d48493e8965` |
 
 ## Never executed external backends
 
 - `external:analyzeHeadless`
-- `external:angr`
-- `external:apktool`
-- `external:asar`
 - `external:azurehound`
-- `external:binwalk`
-- `external:capa`
 - `external:class-dump`
 - `external:cloudsplaining`
 - `external:codeql`
 - `external:dnsx`
-- `external:echidna`
 - `external:firmadyne`
 - `external:firmae`
 - `external:floss`
-- `external:forge`
 - `external:frida`
 - `external:garak`
 - `external:gau`
-- `external:grpcurl`
 - `external:http-probe`
-- `external:httpx`
 - `external:jadx`
 - `external:jsluice`
 - `external:katana`
-- `external:kics`
 - `external:kubescape`
 - `external:mitmproxy`
 - `external:mobsf`
-- `external:modelscan`
-- `external:naabu`
-- `external:nmap`
-- `external:npm`
 - `external:nuclei`
 - `external:objection`
 - `external:otool`
-- `external:pefile`
 - `external:pip-audit`
 - `external:playwright`
 - `external:promptfoo`
@@ -137,17 +130,8 @@ Arsenal image: `sha256:3766088055a72f82346bf7318cb0acf9ec6b2e82ddf6df6bcba9558f7
 - `external:restler`
 - `external:rizin`
 - `external:roadrecon`
-- `external:rustscan`
-- `external:schemathesis`
 - `external:scorecard`
 - `external:scout`
-- `external:skopeo`
-- `external:spotbugs`
 - `external:ssh-audit`
 - `external:subfinder`
-- `external:syft`
 - `external:testssl.sh`
-- `external:web-ext`
-- `external:websocat`
-- `external:yara`
-- `external:zizmor`
