@@ -289,6 +289,9 @@ class ToolRuntimeManager:
             # version subcommand. Its bounded upstream help header is its supported
             # non-target health probe; the executable digest supplies identity.
             "jsluice": (("--help",),),
+            # ssh-audit exposes argparse help but no --version flag.  Keep the
+            # probe bounded and non-targeting; the package version is pinned.
+            "ssh-audit": (("-h",),),
         }.get(binary_name, ())
         for suffix in (*extra_probes, ("--version",), ("version",), ("-version",)):
             argv = [resolved, *suffix]

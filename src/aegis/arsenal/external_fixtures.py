@@ -1304,6 +1304,107 @@ def _parse_katana(data) -> list[dict]:
     ] if "aegis-controlled-admin" in endpoint else []
 
 
+def _materialize_mitmproxy(positive: Path, negative: Path) -> None:
+    server = """from http.server import BaseHTTPRequestHandler, HTTPServer
+class Handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b'controlled local response')
+    def log_message(self, *args):
+        return
+HTTPServer(('127.0.0.1', 48407), Handler).serve_forever()
+"""
+    addon = """from mitmproxy import http
+def request(flow: http.HTTPFlow) -> None:
+    if flow.request.path == '/aegis-controlled-capture':
+        print('AEGIS_MITMPROXY_CONTROLLED', flush=True)
+"""
+    for root in (positive, negative):
+        _write(root, "server.py", server)
+        _write(root, "addon.py", addon)
+    _write(positive, "path", "/aegis-controlled-capture")
+    _write(negative, "path", "/safe-health")
+
+
+def _parse_mitmproxy(data) -> list[dict]:
+    text = str(data.get("text", "")) if isinstance(data, dict) else ""
+    return [
+        _row("mitmproxy", "MITMProxy captured the controlled local request", path="path")
+    ] if "AEGIS_MITMPROXY_CONTROLLED" in text else []
+
+
+def _materialize_testssl(positive: Path, negative: Path) -> None:
+    server = """import ssl
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from pathlib import Path
+class Handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200); self.end_headers(); self.wfile.write(b'local tls fixture')
+    def log_message(self, *args): return
+ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+ctx.load_cert_chain('cert.pem', 'key.pem')
+ctx.minimum_version = ssl.TLSVersion.TLSv1_2 if Path('weak').exists() else ssl.TLSVersion.TLSv1_3
+ctx.maximum_version = ssl.TLSVersion.TLSv1_2 if Path('weak').exists() else ssl.TLSVersion.TLSv1_3
+server = HTTPServer(('127.0.0.1', 48409), Handler)
+server.socket = ctx.wrap_socket(server.socket, server_side=True)
+server.serve_forever()
+"""
+    for root in (positive, negative):
+        _write(root, "server.py", server)
+    _write(positive, "weak", "TLS 1.2-only control\n")
+
+
+def _parse_testssl(data) -> list[dict]:
+    text = str(data.get("text", "")) if isinstance(data, dict) else ""
+    offered_tls12 = any(
+        ("tls 1.2" in line.casefold() or "tlsv1.2" in line.casefold())
+        and "offered" in line.casefold()
+        and "not offered" not in line.casefold()
+        for line in text.splitlines()
+    )
+    return [
+        _row("testssl.sh", "testssl.sh observed the controlled TLS 1.2-only service", path="127.0.0.1:48409")
+    ] if offered_tls12 and "127.0.0.1:48409" in text else []
+
+
+def _materialize_ssh_audit(positive: Path, negative: Path) -> None:
+    config = """Port 48410
+ListenAddress 127.0.0.1
+HostKey {root}/host_rsa
+PidFile {root}/sshd.pid
+UsePAM no
+PasswordAuthentication no
+PermitRootLogin no
+LogLevel QUIET
+{algorithms}
+"""
+    for root in (positive, negative):
+        _write(root, "sshd_config", config.format(
+            root=root,
+            algorithms=(
+                "KexAlgorithms +diffie-hellman-group1-sha1\n"
+                "Ciphers +3des-cbc\n"
+                "HostKeyAlgorithms +ssh-rsa\n"
+            ) if root == positive else (
+                "KexAlgorithms curve25519-sha256,curve25519-sha256@libssh.org\n"
+                "Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com\n"
+                "HostKeyAlgorithms ssh-ed25519,rsa-sha2-512,rsa-sha2-256\n"
+            ),
+        ))
+
+
+def _parse_ssh_audit(data) -> list[dict]:
+    text = str(data.get("text", "")) if isinstance(data, dict) else ""
+    weak_kex = any(token in text.casefold() for token in (
+        "diffie-hellman-group1-sha1", "3des-cbc",
+    ))
+    return [
+        _row("ssh-audit", "ssh-audit observed a deliberately weak local SSH algorithm",
+             path="127.0.0.1:48410")
+    ] if weak_kex else []
+
+
 _SPECS = {
     "asset:codeql/cross-file-dataflow": ExternalFixtureSpec(
         "asset:codeql/cross-file-dataflow",
@@ -1430,6 +1531,47 @@ _SPECS = {
             "MIT", _parse_katana,
         ),
         "katana-loopback-crawl-v1", _materialize_katana,
+    ),
+    "asset:mitmproxy/authorized-http-traffic-capture": ExternalFixtureSpec(
+        "asset:mitmproxy/authorized-http-traffic-capture",
+        Tool(
+            "mitmproxy", "mitmdump", ("network",),
+            'cd "{target}" && (python server.py >server.log 2>&1 & upstream=$!; '
+            'mitmdump --listen-host 127.0.0.1 --listen-port 48408 --set block_global=false '
+            '--set confdir=/tmp/aegis-mitm --quiet -s addon.py >proxy.log 2>&1 & proxy=$!; '
+            'sleep 2; path=$(cat path); http_proxy=http://127.0.0.1:48408 '
+            'curl -fsS "http://127.0.0.1:48407${{path}}" >/dev/null; status=$?; '
+            'sleep 0.5; kill "$proxy" "$upstream" 2>/dev/null || true; '
+            'wait "$proxy" "$upstream" 2>/dev/null || true; cat proxy.log; exit "$status")',
+            "MIT", _parse_mitmproxy, "text",
+        ),
+        "mitmproxy-loopback-capture-v1", _materialize_mitmproxy,
+    ),
+    "asset:testssl-sh/tls-configuration-analysis": ExternalFixtureSpec(
+        "asset:testssl-sh/tls-configuration-analysis",
+        Tool(
+            "testssl.sh", "testssl.sh", ("network",),
+            'cd "{target}" && openssl req -x509 -newkey rsa:2048 -nodes '
+            '-subj /CN=localhost -keyout key.pem -out cert.pem -days 1 >/dev/null 2>&1 && '
+            '(python server.py >server.log 2>&1 & server=$!; sleep 1; '
+            'testssl.sh --quiet --warnings batch --protocols 127.0.0.1:48409; status=$?; '
+            'kill "$server" 2>/dev/null || true; wait "$server" 2>/dev/null || true; exit "$status")',
+            "GPL-2.0", _parse_testssl, "text",
+        ),
+        "testssl-local-tls-version-v1", _materialize_testssl,
+    ),
+    "asset:ssh-audit/ssh-configuration-analysis": ExternalFixtureSpec(
+        "asset:ssh-audit/ssh-configuration-analysis",
+        Tool(
+            "ssh-audit", "ssh-audit", ("network",),
+            'cd "{target}" && mkdir -p /run/sshd && '
+            '[ -f host_rsa ] || ssh-keygen -q -t rsa -b 2048 -N "" -f host_rsa && '
+            '( /usr/sbin/sshd -D -e -f sshd_config >sshd.log 2>&1 & server=$!; sleep 1; '
+            'ssh-audit 127.0.0.1:48410; status=$?; kill "$server" 2>/dev/null || true; '
+            'wait "$server" 2>/dev/null || true; [ "$status" -eq 3 ] && exit 0; exit "$status" )',
+            "GPL-3.0", _parse_ssh_audit, "text",
+        ),
+        "ssh-audit-local-daemon-v1", _materialize_ssh_audit,
     ),
     "asset:yara/approved-rule-binary-scan": ExternalFixtureSpec(
         "asset:yara/approved-rule-binary-scan",

@@ -208,3 +208,14 @@ def test_network_closure_parsers_require_controlled_loopback_observations() -> N
     assert _parse(jsluice.tool, '{"url":"/safe-health"}') == []
     assert len(_parse(katana.tool, '{"request":{"endpoint":"http://127.0.0.1/aegis-controlled-admin"}}')) == 1
     assert _parse(katana.tool, '{"request":{"endpoint":"http://127.0.0.1/safe-health"}}') == []
+
+    mitmproxy = external_fixture_spec("asset:mitmproxy/authorized-http-traffic-capture")
+    testssl = external_fixture_spec("asset:testssl-sh/tls-configuration-analysis")
+    ssh_audit = external_fixture_spec("asset:ssh-audit/ssh-configuration-analysis")
+    assert mitmproxy is not None and testssl is not None and ssh_audit is not None
+    assert len(_parse(mitmproxy.tool, "AEGIS_MITMPROXY_CONTROLLED")) == 1
+    assert _parse(mitmproxy.tool, "safe local capture") == []
+    assert len(_parse(testssl.tool, "127.0.0.1:48409 TLS 1.2 offered")) == 1
+    assert _parse(testssl.tool, "127.0.0.1:48409 TLS 1.3 offered") == []
+    assert len(_parse(ssh_audit.tool, "diffie-hellman-group1-sha1")) == 1
+    assert _parse(ssh_audit.tool, "curve25519-sha256") == []

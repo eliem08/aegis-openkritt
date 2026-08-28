@@ -424,6 +424,27 @@ RUN for tool in dnsx jsluice katana; do \
     && jsluice --help >/dev/null \
     && katana -version
 
+# Network-lab analyzers.  Keep these late in the image so the core scanner layers
+# remain cacheable while the pinned Python and source releases are refreshed.
+ARG MITMPROXY_VERSION=12.2.3
+ARG SSH_AUDIT_VERSION=3.9.0
+ARG TESTSSL_VERSION=3.2.4
+ARG TESTSSL_SHA256=98528f8a0ac07f1e226efaa8ead438247df8efcb8fee4e056a937ab82a305490
+RUN pip install --no-cache-dir "mitmproxy==${MITMPROXY_VERSION}" "ssh-audit==${SSH_AUDIT_VERSION}" \
+    && mitmproxy --version \
+    && ssh-audit -h >/dev/null
+RUN apt-get update && apt-get install -y --no-install-recommends bsdextrautils procps dnsutils openssh-server \
+    && rm -rf /var/lib/apt/lists/*
+RUN curl -fsSL --retry 3 \
+      "https://github.com/testssl/testssl.sh/archive/refs/tags/v${TESTSSL_VERSION}.tar.gz" \
+      -o /tmp/testssl.tgz \
+    && echo "${TESTSSL_SHA256}  /tmp/testssl.tgz" | sha256sum -c - \
+    && tar -xzf /tmp/testssl.tgz -C /opt \
+    && mv "/opt/testssl.sh-${TESTSSL_VERSION}" /opt/testssl \
+    && ln -sf /opt/testssl/testssl.sh /usr/local/bin/testssl.sh \
+    && rm /tmp/testssl.tgz \
+    && testssl.sh --version | grep -F "3.2.4"
+
 # clone the arm's-length skill catalog so the prompt-only runner can read their instructions
 # (never executes a skill's own scripts — only reads SKILL.md and runs it via DeepSeek)
 # NOTE: these are read ARM'S-LENGTH — the prompt-only skill_runner reads a skill's SKILL.md
