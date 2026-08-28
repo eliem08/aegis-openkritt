@@ -13,7 +13,12 @@ from typing import Any, Iterable, Mapping
 
 from aegis.ai.tool_runtime import ToolRuntimeManager, ToolRuntimeStatus
 
-from .models import ArsenalAuditReport, ArsenalCoverageState, CapabilityDefinition
+from .models import (
+    ArsenalAuditReport,
+    ArsenalCoverageState,
+    CapabilityDefinition,
+    ExecutionProofKind,
+)
 from .runners import backend_runtime_id, runner_profile_for_binary
 
 _INTERNAL_PREFIXES = ("aegis-", "stdlib-")
@@ -315,6 +320,8 @@ def build_full_coverage_report(
             ArsenalCoverageState.EXECUTED_PASS.value,
             ArsenalCoverageState.EXECUTED_FINDING.value,
         }
+        and item.get("summary", {}).get("execution_proof_kind")
+        == ExecutionProofKind.REAL_BACKEND.value
     ]
     executed_capabilities = {
         capability_id

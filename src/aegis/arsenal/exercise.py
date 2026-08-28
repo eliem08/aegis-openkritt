@@ -41,7 +41,12 @@ from .fixture_authority import (
 from .inventory import ArsenalInventoryBuilder
 from .ledger import CoverageRepository
 from .llm_lab import lab_summary, run_lab_cases
-from .models import ArsenalCoverageState, CapabilityCoverageRecord, CapabilityMode
+from .models import (
+    ArsenalCoverageState,
+    CapabilityCoverageRecord,
+    CapabilityMode,
+    ExecutionProofKind,
+)
 
 FIXTURE_CAPABILITY = "jarvis:arsenal:llm-security-fixture"
 FIXTURE_POLICY_SNAPSHOT = {
@@ -196,6 +201,7 @@ def execute_llm_fixture(
         availability=CapabilityAvailability(),
     )
     summary = dict(outcome.outcome or {})
+    summary["execution_proof_kind"] = ExecutionProofKind.REAL_BACKEND.value
     passed = (
         outcome.disposition.value == "ready"
         and summary.get("verdict") == "AI/LLM SECURITY VALIDATION PASS"
@@ -240,6 +246,7 @@ def execute_llm_fixture(
             evidence_digest=evidence_digest, result=state_value,
             negative_control_status="PASSED" if passed else "FAILED",
             error_or_block_reason="" if passed else outcome.reason,
+            execution_proof_kind=ExecutionProofKind.REAL_BACKEND,
         )
         try:
             _, coverage_recorded = coverage_repository.record(record)

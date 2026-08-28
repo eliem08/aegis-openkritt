@@ -7,6 +7,7 @@ from aegis.arsenal.models import (
     ArsenalCoverageState,
     CapabilityCoverageRecord,
     CapabilityMode,
+    ExecutionProofKind,
     HistoricalExecution,
 )
 from aegis.arsenal.resume import resumable_record
@@ -42,6 +43,7 @@ def test_resume_requires_matching_versions_fixture_and_verified_evidence() -> No
         execution_completed_at="2026-01-01T00:00:01Z", stdout_digest="c" * 64,
         stderr_digest="d" * 64, parsed_result_digest="e" * 64,
         positive_control_detected=True, negative_control_clean=True,
+        execution_proof_kind=ExecutionProofKind.REAL_BACKEND,
     )
     assert resumable_record(
         (record,), (_history(record),), capability_id=record.capability_id,

@@ -13,6 +13,7 @@ from aegis.arsenal.models import (
     ArsenalCoverageState,
     CapabilityCoverageRecord,
     CapabilityMode,
+    ExecutionProofKind,
 )
 
 
@@ -72,3 +73,26 @@ def test_correction_appends_and_preserves_original_record(tmp_path):
 def test_schema_v2_pass_requires_complete_positive_and_negative_evidence():
     with pytest.raises(ValueError, match="complete backend evidence"):
         replace(coverage(), schema_version=2)
+
+
+def test_schema_v2_rejects_mock_or_simulated_execution_proof():
+    with pytest.raises(ValueError, match="REAL_BACKEND proof"):
+        replace(
+            coverage(),
+            schema_version=2,
+            backend_execution_id="exec-1",
+            binary_path="/bin/tool",
+            adapter_version="v1",
+            capability_ids=("tool:semgrep/code",),
+            fixture_version="fixture-v1",
+            positive_fixture_digest="a" * 64,
+            negative_fixture_digest="b" * 64,
+            execution_started_at="2026-08-28T00:00:00+00:00",
+            execution_completed_at="2026-08-28T00:00:01+00:00",
+            stdout_digest="c" * 64,
+            stderr_digest="d" * 64,
+            parsed_result_digest="e" * 64,
+            positive_control_detected=True,
+            negative_control_clean=True,
+            execution_proof_kind=ExecutionProofKind.UNIT_MOCK,
+        )

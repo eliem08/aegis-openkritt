@@ -45,7 +45,12 @@ from .fixture_authority import (
 )
 from .inventory import ArsenalInventoryBuilder
 from .ledger import CoverageRepository
-from .models import ArsenalCoverageState, CapabilityCoverageRecord, CapabilityMode
+from .models import (
+    ArsenalCoverageState,
+    CapabilityCoverageRecord,
+    CapabilityMode,
+    ExecutionProofKind,
+)
 
 TOOL_FIXTURE_CAPABILITY = "jarvis:arsenal:tool-fixture"
 
@@ -455,6 +460,7 @@ def execute_tool_fixture(
         error_class = None
     summary["blocking_reason"] = blocking_reason
     summary["execution_error_class"] = error_class
+    summary["execution_proof_kind"] = ExecutionProofKind.REAL_BACKEND.value
     runtime_document = dict(summary.get("positive", {}).get("runtime", {}) or {})
     evidence_complete = bool(
         actually_ran
@@ -502,6 +508,7 @@ def execute_tool_fixture(
         "positive_control_detected": positive_detected,
         "negative_control_clean": negative_clean,
         "coverage_state": result_state.value,
+        "execution_proof_kind": ExecutionProofKind.REAL_BACKEND.value,
         "blocking_reason": blocking_reason,
     }
     evidence_ref, evidence_digest = store.persist_evidence(run_id, evidence)
@@ -566,6 +573,7 @@ def execute_tool_fixture(
             ]),
             positive_control_detected=positive_detected,
             negative_control_clean=negative_clean,
+            execution_proof_kind=ExecutionProofKind.REAL_BACKEND,
         )
         try:
             _, recorded = coverage_repository.record(record)

@@ -7,7 +7,7 @@ from aegis.arsenal.backend_report import (
     build_full_coverage_report,
     build_tool_lock,
 )
-from aegis.arsenal.models import ArsenalCoverageState
+from aegis.arsenal.models import ArsenalCoverageState, ExecutionProofKind
 
 
 class HealthyRuntime:
@@ -48,6 +48,7 @@ def test_full_report_keeps_capability_and_backend_denominators_distinct(tmp_path
         "run_id": "run-1",
         "evidence_digest": "b" * 64,
         "summary": {
+            "execution_proof_kind": ExecutionProofKind.REAL_BACKEND.value,
             "execution_performed": True,
             "fixture_detection": True,
             "negative_control_passed": True,
@@ -68,3 +69,25 @@ def test_full_report_keeps_capability_and_backend_denominators_distinct(tmp_path
     assert report["metrics"]["fixture_backend_denominator"] >= 1
     assert report["metrics"]["authorized_real_execution_coverage"] is None
     assert report["verdict"] == "FIXTURE ARSENAL PARTIALLY VERIFIED"
+
+
+def test_full_report_does_not_credit_mock_execution(tmp_path):
+    audit = build_audit(runs_dir=tmp_path, runtime_manager=HealthyRuntime())
+    inventory = build_backend_inventory(audit, runtime_manager=HealthyRuntime())
+    report = build_full_coverage_report(
+        audit=audit,
+        inventory=inventory,
+        results=[{
+            "capability_id": "tool:trivy/deps",
+            "result": ArsenalCoverageState.EXECUTED_PASS.value,
+            "summary": {
+                "execution_proof_kind": ExecutionProofKind.UNIT_MOCK.value,
+                "execution_performed": True,
+                "fixture_detection": True,
+                "negative_control_passed": True,
+            },
+        }],
+    )
+
+    assert report["metrics"]["fixture_executed_backends"] == 0
+    assert report["metrics"]["fixture_executed_capabilities"] == 0

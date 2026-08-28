@@ -73,6 +73,10 @@ def test_backlog_is_derived_from_inventory_and_evidence():
     assert row["backend_runtime_id"] == "example/linux-cli"
     assert row["exact_failure"] == "fixture runner missing"
     assert row["missing_runtime"] is True
+    assert row["estimated_closure_class"] == "A"
+    assert row["installation_required"] is True
+    assert row["fixture_required"] is False
+    assert row["parser_required"] is False
     assert "install and pin runtime" in row["remediation"]
     json.dumps(backlog)
 

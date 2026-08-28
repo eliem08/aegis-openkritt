@@ -11,7 +11,12 @@ from hashlib import sha256
 from pathlib import Path
 from typing import Any, Protocol
 
-from .models import ArsenalCoverageState, CapabilityCoverageRecord, CapabilityMode
+from .models import (
+    ArsenalCoverageState,
+    CapabilityCoverageRecord,
+    CapabilityMode,
+    ExecutionProofKind,
+)
 
 
 class CoverageStorageError(RuntimeError):
@@ -98,6 +103,9 @@ def _record(row: Any) -> CapabilityCoverageRecord:
         positive_control_detected=metadata.get("positive_control_detected"),
         negative_control_clean=metadata.get("negative_control_clean"),
         supersedes_coverage_record_id=metadata.get("supersedes_coverage_record_id"),
+        execution_proof_kind=ExecutionProofKind(
+            metadata.get("execution_proof_kind") or ExecutionProofKind.LEGACY_UNVERIFIED.value
+        ),
     )
 
 

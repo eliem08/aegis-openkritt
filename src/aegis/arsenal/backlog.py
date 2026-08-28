@@ -11,6 +11,20 @@ from .runners import backend_runtime_id, runner_profile_for_binary
 
 _EXECUTED = {"EXECUTED_PASS", "EXECUTED_FINDING"}
 
+_CLOSURE_CLASS_BY_RUNNER = {
+    "arsenal-linux": ("A", "normal Linux software"),
+    "arsenal-network-lab": ("A", "normal Linux software"),
+    "arsenal-binary": ("B", "Linux heavy/toolchain"),
+    "arsenal-smart-contract": ("B", "Linux heavy/toolchain"),
+    "arsenal-android": ("C", "Android"),
+    "arsenal-firmware": ("D", "firmware/QEMU"),
+    "arsenal-kubernetes": ("E", "Kubernetes"),
+    "arsenal-cloud-lab": ("F", "cloud sandbox"),
+    "arsenal-macos-ios": ("G", "macOS/iOS"),
+    "arsenal-core": ("H", "internal fixture/provider gap"),
+    "arsenal-llm": ("H", "internal fixture/provider gap"),
+}
+
 
 def build_never_executed_backlog(
     inventory: Mapping[str, Any], coverage: Mapping[str, Any] | None = None,
@@ -58,6 +72,9 @@ def build_never_executed_backlog(
             for path in backend.get("implementation_paths", ())
         )
         prerequisite = str(backend.get("prerequisite") or "")
+        closure_code, closure_name = _CLOSURE_CLASS_BY_RUNNER.get(
+            profile, ("H", "internal fixture/provider gap")
+        )
         rows.append({
             "backend": backend_id,
             "backend_runtime_id": backend.get("backend_runtime_id") or backend_runtime_id(
@@ -76,6 +93,14 @@ def build_never_executed_backlog(
             "missing_executor": missing_executor,
             "missing_privilege": "privileged" in prerequisite.casefold(),
             "required_runner": profile,
+            "runner_required": profile,
+            "installation_required": not installed,
+            "fixture_required": missing_fixture,
+            "executor_required": missing_executor,
+            "parser_required": missing_parser,
+            "privilege_required": "privileged" in prerequisite.casefold(),
+            "estimated_closure_class": closure_code,
+            "estimated_closure_class_name": closure_name,
             "remediation": _remediation(
                 installed=installed, missing_fixture=missing_fixture,
                 missing_parser=missing_parser, missing_executor=missing_executor,
@@ -83,7 +108,7 @@ def build_never_executed_backlog(
             ),
         })
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "generated_at": datetime.now(UTC).isoformat(),
         "metrics": {
             "backlog_count": len(rows),
@@ -117,12 +142,13 @@ def render_backlog_markdown(document: Mapping[str, Any]) -> str:
     lines = [
         "# Never-executed arsenal backends", "",
         f"Backlog: **{metrics['backlog_count']}**", "",
-        "| Runtime | State | Runner | Version | Failure | Remediation |",
-        "|---|---|---|---|---|---|",
+        "| Class | Runtime | State | Runner | Version | Failure | Remediation |",
+        "|---|---|---|---|---|---|---|",
     ]
     for row in document.get("backends", ()):
         lines.append(
-            f"| `{row['backend_runtime_id']}` | {row['current_status']} | "
+            f"| {row['estimated_closure_class']} | `{row['backend_runtime_id']}` | "
+            f"{row['current_status']} | "
             f"`{row['required_runner']}` | `{row['installed_version']}` | "
             f"{row['exact_failure']} | {'; '.join(row['remediation'])} |"
         )

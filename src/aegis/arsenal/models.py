@@ -23,6 +23,19 @@ class CapabilityMode(str, Enum):
     AUTHORIZED_REAL = "AUTHORIZED_REAL"
 
 
+class ExecutionProofKind(str, Enum):
+    """Provenance class for an execution claim.
+
+    Only ``REAL_BACKEND`` is eligible for fixture-backend coverage. Historical
+    rows remain readable without silently upgrading their evidentiary strength.
+    """
+
+    REAL_BACKEND = "REAL_BACKEND"
+    INTEGRATION_SIMULATION = "INTEGRATION_SIMULATION"
+    UNIT_MOCK = "UNIT_MOCK"
+    LEGACY_UNVERIFIED = "LEGACY_UNVERIFIED"
+
+
 @dataclass(frozen=True, slots=True)
 class CapabilityProvenance:
     field: str
@@ -195,6 +208,7 @@ class CapabilityCoverageRecord:
     positive_control_detected: bool | None = None
     negative_control_clean: bool | None = None
     supersedes_coverage_record_id: str | None = None
+    execution_proof_kind: ExecutionProofKind = ExecutionProofKind.LEGACY_UNVERIFIED
 
     def __post_init__(self) -> None:
         if not all((self.coverage_record_id, self.idempotency_key, self.capability_id)):
@@ -221,6 +235,8 @@ class CapabilityCoverageRecord:
                 self.parsed_result_digest,
             )):
                 raise ValueError("schema-v2 execution coverage requires complete backend evidence")
+            if self.execution_proof_kind is not ExecutionProofKind.REAL_BACKEND:
+                raise ValueError("schema-v2 execution coverage requires REAL_BACKEND proof")
         if self.result is ArsenalCoverageState.EXECUTED_PASS and self.schema_version >= 2:
             if self.positive_control_detected is not True:
                 raise ValueError("EXECUTED_PASS requires a detected positive control")
@@ -253,6 +269,7 @@ class CapabilityCoverageRecord:
             "positive_control_detected": self.positive_control_detected,
             "negative_control_clean": self.negative_control_clean,
             "supersedes_coverage_record_id": self.supersedes_coverage_record_id,
+            "execution_proof_kind": self.execution_proof_kind.value,
         }
 
 
