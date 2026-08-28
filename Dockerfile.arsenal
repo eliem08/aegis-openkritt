@@ -12,6 +12,24 @@
 #
 FROM checkmarx/kics@sha256:b29ec62a21fb97f0b65aee2307fcb29dd334c1e39e2c1f1cfe56102fce1c6be4 AS kics_source
 
+FROM mcr.microsoft.com/dotnet/sdk:8.0.419-bookworm-slim-amd64@sha256:3e7b0cefe1b00a350ffb0e06b4e1271a4e791df6b8ac4239be05f1ae2736fcff AS restler_builder
+ARG RESTLER_VERSION=9.3.1
+ARG RESTLER_SOURCE_SHA256=be3328b251179dcd398385cdb88f648aabd12d9a49b55d03aa2dda1bcd6d4865
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      ca-certificates curl python3 \
+    && rm -rf /var/lib/apt/lists/* \
+    && curl -fsSL --retry 3 \
+      "https://github.com/microsoft/restler-fuzzer/archive/refs/tags/v${RESTLER_VERSION}.tar.gz" \
+      -o /tmp/restler.tar.gz \
+    && echo "${RESTLER_SOURCE_SHA256}  /tmp/restler.tar.gz" | sha256sum -c - \
+    && mkdir -p /tmp/restler-src /opt/restler \
+    && tar -xzf /tmp/restler.tar.gz -C /tmp/restler-src --strip-components=1 \
+    && python3 /tmp/restler-src/build-restler.py --dest_dir /opt/restler \
+    && test -f /opt/restler/restler/Restler.dll \
+    && rm -rf /tmp/restler-src /tmp/restler.tar.gz
+
+FROM eclipse-temurin:21.0.8_9-jdk-jammy@sha256:7db733aadd907ea0a5168163d1f0df57e2f611cfa879836878e0872d4e6476dc AS java21_source
+
 FROM python:3.12-slim-bookworm@sha256:0f5b26b9518d002b6173fd61daad821fa340635ebfec5bba471013f9ca114579
 
 ARG SEMGREP_VERSION=1.172.0
@@ -64,15 +82,30 @@ ARG ECHIDNA_VERSION=2.3.3
 ARG ECHIDNA_SHA256=436d26cb5af34c6c525812b857ac53f218c7f6ad07d69495ef88bc4cdc85c764
 ARG SOLC_VERSION=0.8.36
 ARG SOLC_SHA256=c8d35afdddc3cd2743ee88b8f25e0fecd16e2bdd5f2120f37e52cd9cc45ae0e6
+ARG CODEQL_VERSION=2.26.4
+ARG CODEQL_SHA256=d372d54345e058fe6f7ff8074acd155522fff6770b8d72ee1371ea89deafa193
+ARG FLOSS_VERSION=3.1.1
+ARG FLOSS_SHA256=40c05a869f34f7e2417b17ca290cc54bd3671ee1f0a2d9bd5103284c01a54666
+ARG GHIDRA_VERSION=12.1.3
+ARG GHIDRA_RELEASE_DATE=20260817
+ARG GHIDRA_SHA256=93a5d11a9ad510622acaaf908c556a7b9b764d338e78a7567f3689bf5081fd54
+ARG JADX_VERSION=1.5.6
+ARG JADX_SHA256=545ea2be9c242511bc145755cf4bda2485ade42966e096f8b4d3da2a230e8974
+ARG PIP_AUDIT_VERSION=2.10.1
+ARG RESTLER_VERSION=9.3.1
+ARG RIZIN_VERSION=0.9.1
+ARG RIZIN_SHA256=9102249a9f0b6319c5334a2e5cf8d9cc3f2035e1d3def027c41f6a90f647e8cf
 
 ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     AEGIS_HOST=0.0.0.0 \
     AEGIS_PORT=8000 \
     AEGIS_SCANNER_HOME=/root \
+    JAVA_HOME=/opt/java21 \
+    DOTNET_ROOT=/usr/share/dotnet \
     GRYPE_DB_AUTO_UPDATE=false \
     GRYPE_CHECK_FOR_APP_UPDATE=false \
-    PATH="/root/.composer/vendor/bin:/root/go/bin:/usr/local/go/bin:${PATH}" \
+    PATH="/opt/java21/bin:/usr/share/dotnet:/root/.composer/vendor/bin:/root/go/bin:/usr/local/go/bin:${PATH}" \
     AEGIS_SKILLS_DIR=/root/.aegis/skills \
     AEGIS_SKILL_CMD="{python} -m aegis.ai.skill_runner --skill {source} --target {target}" \
     # Auto-start the hunt on boot: launching the container becomes the whole pipeline
@@ -104,11 +137,23 @@ ENV PYTHONUNBUFFERED=1 \
 # --- OS packages: language runtimes for the language-specific scanners ---
 RUN apt-get update && apt-get install -y --no-install-recommends \
       git curl ca-certificates unzip xz-utils \
+      bubblewrap \
       default-jdk-headless=2:1.17-74 yara=4.2.3-4 \
       php-cli php-xml php-mbstring composer \
-      ruby-full ruby-dev build-essential \
+      ruby-full ruby-dev build-essential gcc-mingw-w64-x86-64 \
       nodejs npm \
     && rm -rf /var/lib/apt/lists/*
+
+COPY --from=java21_source /opt/java/openjdk /opt/java21
+COPY --from=restler_builder /opt/restler /opt/restler
+COPY --from=restler_builder /usr/share/dotnet /usr/share/dotnet
+RUN ln -sf /usr/share/dotnet/dotnet /usr/local/bin/dotnet \
+    && printf '%s\n' '#!/bin/sh' \
+      'if test "${1:-}" = "--version"; then echo "RESTler 9.3.1"; exit 0; fi' \
+      'exec dotnet /opt/restler/restler/Restler.dll "$@"' \
+      > /usr/local/bin/restler \
+    && chmod 0755 /usr/local/bin/restler \
+    && restler --version
 
 # --- Modern Go (Debian's 1.19 is too old). GOTOOLCHAIN=auto (default) lets `go install`
 #     fetch the exact newer toolchain a tool pins (e.g. gosec needs go >= 1.25). ---
@@ -278,9 +323,77 @@ RUN curl -fsSL --retry 3 \
     && echo "${SOLC_SHA256}  /usr/local/bin/solc" | sha256sum -c - \
     && chmod 0755 /usr/local/bin/solc
 
+# --- Final software-unavailable closure: real pinned analyzers, not version shims. ---
+RUN curl -fsSL --retry 3 \
+      "https://github.com/github/codeql-cli-binaries/releases/download/v${CODEQL_VERSION}/codeql-linux64.zip" \
+      -o /tmp/codeql.zip \
+    && echo "${CODEQL_SHA256}  /tmp/codeql.zip" | sha256sum -c - \
+    && unzip -q /tmp/codeql.zip -d /opt \
+    && ln -sf /opt/codeql/codeql /usr/local/bin/codeql \
+    && rm /tmp/codeql.zip \
+    && codeql version --format=terse | grep -F "${CODEQL_VERSION}" \
+    && codeql pack download "codeql/javascript-all@2.10.0"
+RUN curl -fsSL --retry 3 \
+      "https://github.com/mandiant/flare-floss/releases/download/v${FLOSS_VERSION}/floss-v${FLOSS_VERSION}-linux.zip" \
+      -o /tmp/floss.zip \
+    && echo "${FLOSS_SHA256}  /tmp/floss.zip" | sha256sum -c - \
+    && unzip -q /tmp/floss.zip -d /usr/local/bin \
+    && chmod 0755 /usr/local/bin/floss \
+    && rm /tmp/floss.zip \
+    && floss --version | grep -F "${FLOSS_VERSION}"
+RUN curl -fsSL --retry 3 \
+      "https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_${GHIDRA_VERSION}_build/ghidra_${GHIDRA_VERSION}_PUBLIC_${GHIDRA_RELEASE_DATE}.zip" \
+      -o /tmp/ghidra.zip \
+    && echo "${GHIDRA_SHA256}  /tmp/ghidra.zip" | sha256sum -c - \
+    && unzip -q /tmp/ghidra.zip -d /opt \
+    && mv "/opt/ghidra_${GHIDRA_VERSION}_PUBLIC" /opt/ghidra \
+    && rm /tmp/ghidra.zip \
+    && printf '%s\n' '#!/bin/sh' \
+      'if test "${1:-}" = "--version"; then echo "Ghidra 12.1.3"; exit 0; fi' \
+      'exec /opt/ghidra/support/analyzeHeadless "$@"' \
+      > /usr/local/bin/analyzeHeadless \
+    && chmod 0755 /usr/local/bin/analyzeHeadless \
+    && analyzeHeadless --version
+RUN curl -fsSL --retry 3 \
+      "https://github.com/skylot/jadx/releases/download/v${JADX_VERSION}/jadx-${JADX_VERSION}.zip" \
+      -o /tmp/jadx.zip \
+    && echo "${JADX_SHA256}  /tmp/jadx.zip" | sha256sum -c - \
+    && mkdir -p /opt/jadx \
+    && unzip -q /tmp/jadx.zip -d /opt/jadx \
+    && ln -sf /opt/jadx/bin/jadx /usr/local/bin/jadx \
+    && rm /tmp/jadx.zip \
+    && jadx --version | grep -F "${JADX_VERSION}"
+RUN python -m venv /opt/venvs/pip-audit \
+    && /opt/venvs/pip-audit/bin/pip install --no-cache-dir "pip-audit==${PIP_AUDIT_VERSION}" \
+    && ln -sf /opt/venvs/pip-audit/bin/pip-audit /usr/local/bin/pip-audit \
+    && pip-audit --version | grep -F "${PIP_AUDIT_VERSION}"
+RUN curl -fsSL --retry 3 \
+      "https://github.com/rizinorg/rizin/releases/download/v${RIZIN_VERSION}/rizin-v${RIZIN_VERSION}-static-x86_64.tar.xz" \
+      -o /tmp/rizin.tar.xz \
+    && echo "${RIZIN_SHA256}  /tmp/rizin.tar.xz" | sha256sum -c - \
+    && mkdir -p /opt/rizin \
+    && tar -xJf /tmp/rizin.tar.xz -C /opt/rizin \
+    && ln -sf /opt/rizin/bin/rizin /usr/local/bin/rizin \
+    && rm /tmp/rizin.tar.xz \
+    && rizin -v | grep -F "${RIZIN_VERSION}"
+
 # Dependency databases are baked into the image so fixture runs can use --network none.
 RUN trivy image --download-db-only --no-progress
 RUN grype db update
+
+# Resolve and cache the complete CodeQL query-pack dependency graph while the
+# image is built. Runtime fixtures are deliberately executed with --network
+# none, so downloading only javascript-all itself is insufficient: its
+# transitive dataflow/controlflow/type-tracking packs must be present too.
+RUN mkdir -p /tmp/aegis-codeql-pack \
+    && printf '%s\n' \
+      'name: aegis/codeql-runtime-dependencies' \
+      'version: 0.0.1' \
+      'dependencies:' \
+      '  codeql/javascript-all: "2.10.0"' \
+      > /tmp/aegis-codeql-pack/qlpack.yml \
+    && codeql pack install /tmp/aegis-codeql-pack \
+    && rm -rf /tmp/aegis-codeql-pack
 
 # --- Strix (usestrix/strix) — arm's-length autonomous AI pentester, Apache-2.0.
 #     Invoked opt-in (AEGIS_ALLOW_STRIX=1) on local source; drives its own LLM (point

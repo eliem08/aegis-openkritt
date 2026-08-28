@@ -40,6 +40,14 @@
     {"name": "skopeo", "version": "1.9.3"},
     {"name": "foundry", "version": "1.8.0"},
     {"name": "echidna", "version": "2.3.3"},
-    {"name": "solc", "version": "0.8.36"}
+    {"name": "solc", "version": "0.8.36"},
+    {"name": "codeql", "version": "2.26.4"},
+    {"name": "codeql/javascript-all", "version": "2.10.0"},
+    {"name": "floss", "version": "3.1.1"},
+    {"name": "ghidra", "version": "12.1.3"},
+    {"name": "jadx", "version": "1.5.6"},
+    {"name": "pip-audit", "version": "2.10.1"},
+    {"name": "restler", "version": "9.3.1"},
+    {"name": "rizin", "version": "0.9.1"}
   ]
 }

@@ -155,3 +155,42 @@ def test_contract_parsers_require_failed_control_behavior() -> None:
     assert _parse(foundry.tool, '{"AegisInvariantTest":{"invariant_aegis_control":{"status":"Pass"}}}') == []
     assert len(_parse(echidna.tool, '{"status":"falsified","name":"echidna_aegis_control"}')) == 1
     assert _parse(echidna.tool, '{"status":"passed","name":"echidna_aegis_control"}') == []
+
+
+def test_final_software_closure_parsers_require_semantic_controls() -> None:
+    codeql = external_fixture_spec("asset:codeql/cross-file-dataflow")
+    floss = external_fixture_spec("asset:floss/static-string-deobfuscation")
+    ghidra = external_fixture_spec("asset:ghidra/headless-binary-analysis")
+    jadx = external_fixture_spec("asset:jadx/android-decompile")
+    pip_audit = external_fixture_spec(
+        "asset:pip-audit/python-dependency-vulnerability-analysis"
+    )
+    restler = external_fixture_spec("asset:restler/stateful-openapi-sequence-testing")
+    rizin = external_fixture_spec("asset:rizin/binary-reverse-engineering")
+    assert all((codeql, floss, ghidra, jadx, pip_audit, restler, rizin))
+
+    sarif = {
+        "runs": [{"results": [{"message": {
+            "text": "AEGIS_CODEQL_CROSS_FILE_CONTROL",
+        }}]}],
+    }
+    assert len(_parse(codeql.tool, __import__("json").dumps(sarif))) == 1
+    assert _parse(codeql.tool, '{"runs":[{"results":[]}]}') == []
+    assert len(_parse(
+        floss.tool,
+        '{"strings":{"static_strings":[{"string":"AEGIS_FLOSS_SENSITIVE_MARKER_4D91"}]}}',
+    )) == 1
+    assert _parse(floss.tool, '{"strings":{"static_strings":[]}}') == []
+    assert len(_parse(ghidra.tool, "AEGIS_GHIDRA_SENSITIVE_MARKER_FOUND")) == 1
+    assert _parse(ghidra.tool, "ANALYSIS COMPLETE") == []
+    assert len(_parse(jadx.tool, "Marker.java: AEGIS_JADX_SENSITIVE_MARKER")) == 1
+    assert _parse(jadx.tool, "Marker.java: AEGIS_JADX_CLEAN_CONTROL") == []
+    audit = [{"name": "pip", "version": "1.5.4", "vulns": [
+        {"id": "AEGIS-LOCAL-PIP-0001"},
+    ]}]
+    assert len(_parse(pip_audit.tool, __import__("json").dumps(audit))) == 1
+    assert _parse(pip_audit.tool, "[]") == []
+    assert len(_parse(restler.tool, "AEGIS_RESTLER_500_BUCKET")) == 1
+    assert _parse(restler.tool, "RESTler completed without bug buckets") == []
+    assert len(_parse(rizin.tool, "AEGIS_RIZIN_SENSITIVE_MARKER")) == 1
+    assert _parse(rizin.tool, "AEGIS_RIZIN_CLEAN_CONTROL") == []

@@ -882,7 +882,423 @@ def _parse_echidna(data) -> list[dict]:
     return []
 
 
+def _materialize_codeql(positive: Path, negative: Path) -> None:
+    query_pack = """name: aegis/codeql-fixture
+version: 0.0.1
+dependencies:
+  codeql/javascript-all: "2.10.0"
+"""
+    query_pack_lock = """---
+lockVersion: 1.0.0
+dependencies:
+  codeql/concepts:
+    version: 0.0.30
+  codeql/controlflow:
+    version: 2.0.40
+  codeql/dataflow:
+    version: 2.1.12
+  codeql/javascript-all:
+    version: 2.10.0
+  codeql/mad:
+    version: 1.0.56
+  codeql/regex:
+    version: 1.0.56
+  codeql/ssa:
+    version: 2.0.32
+  codeql/threat-models:
+    version: 1.0.56
+  codeql/tutorial:
+    version: 1.0.56
+  codeql/typetracking:
+    version: 2.0.40
+  codeql/util:
+    version: 2.0.43
+  codeql/xml:
+    version: 1.0.56
+  codeql/yaml:
+    version: 1.0.56
+compiled: false
+"""
+    query = """/**
+ * @name Aegis controlled cross-file call
+ * @description Finds the controlled cross-file sink call used by the fixture.
+ * @kind problem
+ * @problem.severity warning
+ * @id aegis/cross-file-call
+ */
+import javascript
+
+from CallExpr call
+where call.getCalleeName() = "aegisDangerousSink"
+select call, "AEGIS_CODEQL_CROSS_FILE_CONTROL"
+"""
+    for root in (positive, negative):
+        _write(root, "queries/qlpack.yml", query_pack)
+        _write(root, "queries/codeql-pack.lock.yml", query_pack_lock)
+        _write(root, "queries/AegisCrossFile.ql", query)
+        _write(
+            root,
+            "src/sink.js",
+            "export function aegisDangerousSink(value) { return eval(value); }\n",
+        )
+    _write(
+        positive,
+        "src/app.js",
+        "import { aegisDangerousSink } from './sink.js';\n"
+        "aegisDangerousSink(process.argv[2]);\n",
+    )
+    _write(
+        negative,
+        "src/app.js",
+        "import { aegisDangerousSink } from './sink.js';\n"
+        "export function safe(value) { return JSON.parse(value); }\n",
+    )
+
+
+def _parse_codeql(data) -> list[dict]:
+    if not isinstance(data, dict):
+        return []
+    rows = []
+    for run in data.get("runs", ()) or ():
+        for result in run.get("results", ()) if isinstance(run, dict) else ():
+            message = result.get("message", {}) if isinstance(result, dict) else {}
+            text = str(message.get("text") or "") if isinstance(message, dict) else ""
+            if "AEGIS_CODEQL_CROSS_FILE_CONTROL" in text:
+                rows.append(_row("codeql", text, path="src/app.js"))
+    return rows
+
+
+def _materialize_floss(positive: Path, negative: Path) -> None:
+    _write(
+        positive,
+        "fixture.c",
+        'const char *marker = "AEGIS_FLOSS_SENSITIVE_MARKER_4D91";\n'
+        "int main(void) { return marker[0] == 0; }\n",
+    )
+    _write(
+        negative,
+        "fixture.c",
+        'const char *marker = "AEGIS_FLOSS_CLEAN_CONTROL";\n'
+        "int main(void) { return marker[0] == 0; }\n",
+    )
+
+
+def _parse_floss(data) -> list[dict]:
+    matches = []
+
+    def walk(value) -> None:
+        if isinstance(value, dict):
+            for child in value.values():
+                walk(child)
+        elif isinstance(value, list):
+            for child in value:
+                walk(child)
+        elif "AEGIS_FLOSS_SENSITIVE_MARKER_4D91" in str(value):
+            matches.append(str(value))
+
+    walk(data)
+    return [
+        _row("floss", "FLOSS extracted the controlled sensitive string", path="fixture.exe")
+    ] if matches else []
+
+
+def _materialize_ghidra(positive: Path, negative: Path) -> None:
+    script = """import ghidra.app.script.GhidraScript;
+import ghidra.program.model.mem.MemoryBlock;
+import java.nio.charset.StandardCharsets;
+
+public class AegisMarker extends GhidraScript {
+    public void run() throws Exception {
+        for (MemoryBlock block : currentProgram.getMemory().getBlocks()) {
+            if (!block.isInitialized()) {
+                continue;
+            }
+            long size = Math.min(block.getSize(), 1048576L);
+            byte[] bytes = new byte[(int) size];
+            int read = block.getBytes(block.getStart(), bytes);
+            if (read > 0) {
+                String value = new String(bytes, 0, read, StandardCharsets.ISO_8859_1);
+                if (value.contains("AEGIS_GHIDRA_SENSITIVE_MARKER")) {
+                    println("AEGIS_GHIDRA_SENSITIVE_MARKER_FOUND");
+                }
+            }
+        }
+    }
+}
+"""
+    for root, marker in (
+        (positive, "AEGIS_GHIDRA_SENSITIVE_MARKER"),
+        (negative, "AEGIS_GHIDRA_CLEAN_CONTROL"),
+    ):
+        _write(root, "AegisMarker.java", script)
+        _write(
+            root,
+            "fixture.c",
+            f'const char *marker = "{marker}";\nint main(void) {{ return marker[0] == 0; }}\n',
+        )
+
+
+def _parse_ghidra(data) -> list[dict]:
+    text = str(data.get("text", "")) if isinstance(data, dict) else ""
+    return [
+        _row("ghidra", "Headless analysis recovered the controlled marker", path="controlled.bin")
+    ] if "AEGIS_GHIDRA_SENSITIVE_MARKER_FOUND" in text else []
+
+
+def _materialize_jadx(positive: Path, negative: Path) -> None:
+    _materialize_apktool(positive, negative)
+    template = """.class public Lorg/aegis/fixture/Marker;
+.super Ljava/lang/Object;
+.field public static final MARKER:Ljava/lang/String; = "%s"
+"""
+    _write(
+        positive,
+        "fixture-src/smali/org/aegis/fixture/Marker.smali",
+        template % "AEGIS_JADX_SENSITIVE_MARKER",
+    )
+    _write(
+        negative,
+        "fixture-src/smali/org/aegis/fixture/Marker.smali",
+        template % "AEGIS_JADX_CLEAN_CONTROL",
+    )
+
+
+def _parse_jadx(data) -> list[dict]:
+    text = str(data.get("text", "")) if isinstance(data, dict) else ""
+    return [
+        _row("jadx", "JADX decompiled the controlled static marker", path="Marker.java")
+    ] if "AEGIS_JADX_SENSITIVE_MARKER" in text else []
+
+
+def _materialize_pip_audit(positive: Path, negative: Path) -> None:
+    server = """import json
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
+class Handler(BaseHTTPRequestHandler):
+    def do_POST(self):
+        length = int(self.headers.get('Content-Length', '0'))
+        request = json.loads(self.rfile.read(length) or b'{}')
+        queries = request.get('queries') or [request]
+        results = []
+        for query in queries:
+            version = str(query.get('version') or '')
+            vulns = []
+            if version == '1.5.4':
+                vulns = [{
+                    'id': 'AEGIS-LOCAL-PIP-0001',
+                    'modified': '2026-01-01T00:00:00Z',
+                    'summary': 'Controlled local advisory',
+                    'affected': [{
+                        'package': {'ecosystem': 'PyPI', 'name': 'pip'},
+                        'ranges': [{'type': 'ECOSYSTEM', 'events': [
+                            {'introduced': '0'}, {'fixed': '2.0'}
+                        ]}],
+                    }],
+                }]
+            results.append({'vulns': vulns})
+        body = json.dumps({'results': results} if request.get('queries') else results[0]).encode()
+        self.send_response(200)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Content-Length', str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+    def log_message(self, *args):
+        return
+
+HTTPServer(('127.0.0.1', 48404), Handler).serve_forever()
+"""
+    for root, version in ((positive, "1.5.4"), (negative, "25.2")):
+        _write(root, "osv_server.py", server)
+        _write(root, "requirements.txt", f"pip=={version} --hash=sha256:{'0' * 64}\n")
+
+
+def _parse_pip_audit(data) -> list[dict]:
+    dependencies = data.get("dependencies", ()) if isinstance(data, dict) else data
+    if not isinstance(dependencies, list):
+        return []
+    return [
+        _row("pip-audit", str(vuln.get("id") or "controlled advisory"), path="requirements.txt")
+        for dependency in dependencies if isinstance(dependency, dict)
+        for vuln in dependency.get("vulns", ()) or () if isinstance(vuln, dict)
+        if str(vuln.get("id") or "").startswith("AEGIS-LOCAL-")
+    ]
+
+
+def _materialize_restler(positive: Path, negative: Path) -> None:
+    schema = {
+        "swagger": "2.0",
+        "info": {"title": "Aegis RESTler fixture", "version": "1.0"},
+        "host": "127.0.0.1:48403",
+        "basePath": "/",
+        "schemes": ["http"],
+        "paths": {
+            "/items": {
+                "post": {
+                    "operationId": "createItem",
+                    "responses": {"201": {"description": "created", "schema": {
+                        "type": "object", "properties": {"id": {"type": "string"}}
+                    }}},
+                },
+            },
+            "/items/{id}": {
+                "get": {
+                    "operationId": "getItem",
+                    "parameters": [{"name": "id", "in": "path", "required": True,
+                                    "type": "string"}],
+                    "responses": {"200": {"description": "ok"},
+                                  "500": {"description": "controlled failure"}},
+                },
+            },
+        },
+    }
+    server = """import json
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from pathlib import Path
+
+FAIL = (Path(__file__).parent / 'fail-control').exists()
+class Handler(BaseHTTPRequestHandler):
+    def do_POST(self):
+        body = b'{"id":"aegis-item"}'
+        self.send_response(201)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Content-Length', str(len(body)))
+        self.end_headers(); self.wfile.write(body)
+    def do_GET(self):
+        body = b'{"status":"controlled"}'
+        self.send_response(500 if FAIL else 200)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Content-Length', str(len(body)))
+        self.end_headers(); self.wfile.write(body)
+    def log_message(self, *args): return
+HTTPServer(('127.0.0.1', 48403), Handler).serve_forever()
+"""
+    for root in (positive, negative):
+        _write(root, "openapi.json", json.dumps(schema, sort_keys=True))
+        _write(root, "server.py", server)
+    _write(positive, "fail-control", "return a controlled 500 after producer execution\n")
+
+
+def _parse_restler(data) -> list[dict]:
+    text = str(data.get("text", "")) if isinstance(data, dict) else ""
+    return [
+        _row("restler", "RESTler produced a controlled 500 bug bucket", path="/items/{id}")
+    ] if "AEGIS_RESTLER_500_BUCKET" in text else []
+
+
+def _materialize_rizin(positive: Path, negative: Path) -> None:
+    _write(
+        positive,
+        "fixture.c",
+        'const char *marker = "AEGIS_RIZIN_SENSITIVE_MARKER";\n'
+        "int main(void) { return marker[0] == 0; }\n",
+    )
+    _write(
+        negative,
+        "fixture.c",
+        'const char *marker = "AEGIS_RIZIN_CLEAN_CONTROL";\n'
+        "int main(void) { return marker[0] == 0; }\n",
+    )
+
+
+def _parse_rizin(data) -> list[dict]:
+    text = str(data.get("text", "")) if isinstance(data, dict) else ""
+    return [
+        _row("rizin", "Rizin recovered the controlled binary marker", path="controlled.elf")
+    ] if "AEGIS_RIZIN_SENSITIVE_MARKER" in text else []
+
+
 _SPECS = {
+    "asset:codeql/cross-file-dataflow": ExternalFixtureSpec(
+        "asset:codeql/cross-file-dataflow",
+        Tool(
+            "CodeQL", "codeql", ("source_code",),
+            'cd "{target}" && rm -rf codeql-db result.sarif && '
+            'codeql database create codeql-db --language=javascript '
+            '--source-root=src --build-mode=none --quiet >/dev/null && '
+            'codeql database analyze codeql-db queries/AegisCrossFile.ql '
+            '--format=sarif-latest --output=result.sarif --rerun --quiet >/dev/null && '
+            'cat result.sarif',
+            "CodeQL", _parse_codeql,
+        ),
+        "codeql-cross-file-call-v1", _materialize_codeql,
+    ),
+    "asset:floss/static-string-deobfuscation": ExternalFixtureSpec(
+        "asset:floss/static-string-deobfuscation",
+        Tool(
+            "FLOSS", "floss", ("executable",),
+            'cd "{target}" && x86_64-w64-mingw32-gcc fixture.c -o fixture.exe && '
+            'floss --json fixture.exe',
+            "Apache-2.0", _parse_floss,
+        ),
+        "floss-controlled-string-v1", _materialize_floss,
+    ),
+    "asset:ghidra/headless-binary-analysis": ExternalFixtureSpec(
+        "asset:ghidra/headless-binary-analysis",
+        Tool(
+            "Ghidra", "analyzeHeadless", ("executable",),
+            'cd "{target}" && rm -rf project && mkdir project && '
+            'gcc -O0 fixture.c -o fixture && '
+            'analyzeHeadless "{target}/project" AegisFixture -import "{target}/fixture" '
+            '-scriptPath "{target}" -postScript AegisMarker.java -readOnly '
+            '-deleteProject -analysisTimeoutPerFile 60 -max-cpu 1 2>&1',
+            "Apache-2.0", _parse_ghidra, "text",
+        ),
+        "ghidra-headless-marker-v1", _materialize_ghidra,
+    ),
+    "asset:jadx/android-decompile": ExternalFixtureSpec(
+        "asset:jadx/android-decompile",
+        Tool(
+            "jadx", "jadx", ("android",),
+            'cd "{target}" && rm -rf fixture.apk decoded && '
+            'apktool b fixture-src -o fixture.apk >/dev/null && '
+            'jadx --no-res -d decoded fixture.apk >/dev/null && '
+            'grep -R "AEGIS_JADX_" decoded || true',
+            "Apache-2.0", _parse_jadx, "text",
+        ),
+        "jadx-static-marker-v1", _materialize_jadx,
+    ),
+    "asset:pip-audit/python-dependency-vulnerability-analysis": ExternalFixtureSpec(
+        "asset:pip-audit/python-dependency-vulnerability-analysis",
+        Tool(
+            "pip-audit", "pip-audit", ("python_package",),
+            'cd "{target}" && (python osv_server.py >server.log 2>&1 & server=$!; '
+            'sleep 0.5; pip-audit --disable-pip --no-deps -r requirements.txt '
+            '--vulnerability-service osv --osv-url http://127.0.0.1:48404 '
+            '--format json >audit.json 2>audit.err || true; '
+            'kill "$server" 2>/dev/null || true; wait "$server" 2>/dev/null || true; '
+            'cat audit.json)',
+            "Apache-2.0", _parse_pip_audit,
+        ),
+        "pip-audit-local-osv-v1", _materialize_pip_audit,
+    ),
+    "asset:restler/stateful-openapi-sequence-testing": ExternalFixtureSpec(
+        "asset:restler/stateful-openapi-sequence-testing",
+        Tool(
+            "RESTler", "restler", ("api",),
+            'cd "{target}" && rm -rf restler-work && mkdir restler-work && '
+            '(python server.py >server.log 2>&1 & server=$!; sleep 0.5; '
+            'cd restler-work && restler compile --api_spec "{target}/openapi.json" '
+            '>compile.log 2>&1 && restler test --grammar_file Compile/grammar.py '
+            '--dictionary_file Compile/dict.json --settings Compile/engine_settings.json '
+            '--no_ssl --target_ip 127.0.0.1 --target_port 48403 '
+            '--host 127.0.0.1:48403 >test.log 2>&1 || true; '
+            'if find . -type f -path "*/bug_buckets/*500*" -print -quit 2>/dev/null '
+            '| grep -q .; then echo AEGIS_RESTLER_500_BUCKET; fi; '
+            'cat compile.log test.log 2>/dev/null; '
+            'kill "$server" 2>/dev/null || true; wait "$server" 2>/dev/null || true)',
+            "MIT", _parse_restler, "text",
+        ),
+        "restler-stateful-500-v1", _materialize_restler,
+    ),
+    "asset:rizin/binary-reverse-engineering": ExternalFixtureSpec(
+        "asset:rizin/binary-reverse-engineering",
+        Tool(
+            "Rizin", "rizin", ("executable",),
+            'cd "{target}" && gcc -O0 fixture.c -o fixture && rizin -2qc "aaa; izj" fixture',
+            "LGPL-3.0", _parse_rizin, "text",
+        ),
+        "rizin-string-analysis-v1", _materialize_rizin,
+    ),
     "asset:yara/approved-rule-binary-scan": ExternalFixtureSpec(
         "asset:yara/approved-rule-binary-scan",
         Tool("YARA", "yara", ("binary",), 'yara "{target}/rules.yar" "{target}/sample.bin"',
