@@ -33,6 +33,10 @@
     {"name": "kics", "version": "2.1.20"},
     {"name": "modelscan", "version": "0.8.8"},
     {"name": "npm", "version": "9.2.0"},
-    {"name": "pefile", "version": "2024.8.26"}
+    {"name": "pefile", "version": "2024.8.26"},
+    {"name": "angr", "version": "9.3.3"},
+    {"name": "capa", "version": "9.4.0"},
+    {"name": "schemathesis", "version": "4.25.2"},
+    {"name": "skopeo", "version": "1.9.3"}
   ]
 }

@@ -120,3 +120,28 @@ def test_extended_linux_parsers_require_the_expected_signal() -> None:
         '"query_name":"Privileged container"}]}',
     )) == 1
     assert _parse(kics.tool, '{"queries":[]}') == []
+
+
+def test_binary_api_and_oci_parsers_require_the_expected_signal() -> None:
+    angr = external_fixture_spec("asset:angr/binary-control-flow-analysis")
+    capa = external_fixture_spec("asset:capa/binary-capability-analysis")
+    schemathesis = external_fixture_spec("asset:schemathesis/schema-guided-api-testing")
+    skopeo = external_fixture_spec("asset:skopeo/container-registry-metadata")
+    assert angr is not None and capa is not None and schemathesis is not None and skopeo is not None
+
+    assert len(_parse(angr.tool, '{"branch_nodes":1,"basic_blocks":3}')) == 1
+    assert _parse(angr.tool, '{"branch_nodes":0,"basic_blocks":1}') == []
+    assert len(_parse(capa.tool, '{"rules":{"create TCP socket":{}}}')) == 1
+    assert _parse(capa.tool, '{"rules":{}}') == []
+    failed_junit = '<testsuites><testsuite tests="1" failures="1" errors="0"/></testsuites>'
+    passed_junit = '<testsuites><testsuite tests="1" failures="0" errors="0"/></testsuites>'
+    assert len(_parse(schemathesis.tool, failed_junit)) == 1
+    assert _parse(schemathesis.tool, passed_junit) == []
+    assert len(_parse(
+        skopeo.tool,
+        '{"Labels":{"org.aegis.fixture.security-control":"missing"}}',
+    )) == 1
+    assert _parse(
+        skopeo.tool,
+        '{"Labels":{"org.aegis.fixture.security-control":"present"}}',
+    ) == []

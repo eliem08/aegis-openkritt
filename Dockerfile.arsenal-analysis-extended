@@ -1,0 +1,33 @@
+FROM aegis-arsenal:backend-batch4
+
+USER root
+
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        skopeo \
+    && rm -rf /var/lib/apt/lists/* \
+    && python -m venv /opt/venvs/angr \
+    && /opt/venvs/angr/bin/pip install --no-cache-dir angr==9.3.3 \
+    && python -m venv /opt/venvs/capa \
+    && /opt/venvs/capa/bin/pip install --no-cache-dir flare-capa==9.4.0 \
+    && python -m venv /opt/venvs/schemathesis \
+    && /opt/venvs/schemathesis/bin/pip install --no-cache-dir schemathesis==4.25.2 \
+    && curl -fsSL --retry 3 \
+        https://github.com/mandiant/capa-rules/archive/refs/tags/v9.4.0.tar.gz \
+        -o /tmp/capa-rules.tar.gz \
+    && echo '273591b11737181b3bdaac18964f23627cf10c21c2b143fc9be88e4a33217669  /tmp/capa-rules.tar.gz' \
+        | sha256sum -c - \
+    && mkdir -p /opt/capa-rules \
+    && tar -xzf /tmp/capa-rules.tar.gz -C /opt/capa-rules --strip-components=1 \
+    && rm /tmp/capa-rules.tar.gz \
+    && ln -sf /opt/venvs/capa/bin/capa /usr/local/bin/capa \
+    && ln -sf /opt/venvs/schemathesis/bin/schemathesis /usr/local/bin/schemathesis
+
+COPY scripts/arsenal/angr_cli.py /usr/local/bin/angr
+RUN chmod 0755 /usr/local/bin/angr \
+    && angr --version \
+    && capa --version \
+    && schemathesis --version \
+    && skopeo --version
+
+WORKDIR /app

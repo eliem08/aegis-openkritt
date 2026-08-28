@@ -13,6 +13,7 @@ import pickle
 import struct
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
+from hashlib import sha256
 from pathlib import Path
 from typing import Callable
 
@@ -630,6 +631,160 @@ def _parse_kics(data) -> list[dict]:
     ]
 
 
+def _materialize_angr(positive: Path, negative: Path) -> None:
+    _write(
+        positive,
+        "fixture.c",
+        """#include <stdio.h>
+int main(int argc, char **argv) {
+  if (argc == 7) { puts(argv[0]); } else { puts("aegis"); }
+  return 0;
+}
+""",
+    )
+    _write(negative, "fixture.c", "int main(void) { return 0; }\n")
+
+
+def _parse_angr(data) -> list[dict]:
+    if not isinstance(data, dict) or int(data.get("branch_nodes") or 0) < 1:
+        return []
+    return [_row("angr", "A branch was recovered in the controlled main CFG", path="sample.elf")]
+
+
+def _materialize_capa(positive: Path, negative: Path) -> None:
+    _write(
+        positive,
+        "fixture.c",
+        """#include <sys/socket.h>
+volatile const char *marker = "AEGIS_CAPA_NETWORK_CONTROL";
+int main(void) { return socket(AF_INET, SOCK_STREAM, 0) < 0; }
+""",
+    )
+    _write(negative, "fixture.c", "int main(void) { return 0; }\n")
+
+
+def _parse_capa(data) -> list[dict]:
+    if not isinstance(data, dict):
+        return []
+    rules = data.get("rules")
+    if not isinstance(rules, dict):
+        meta = data.get("meta") or {}
+        rules = meta.get("rules") if isinstance(meta, dict) else {}
+    if not isinstance(rules, dict):
+        return []
+    matches = [name for name in rules if "socket" in str(name).casefold()]
+    return [_row("capa", str(name), path="sample.elf") for name in matches]
+
+
+def _materialize_schemathesis(positive: Path, negative: Path) -> None:
+    schema = {
+        "openapi": "3.0.3",
+        "info": {"title": "Aegis controlled API", "version": "1.0.0"},
+        "paths": {
+            "/items": {
+                "get": {
+                    "operationId": "getItems",
+                    "responses": {"200": {"description": "OK"}},
+                },
+            },
+        },
+    }
+    server = """import json
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from pathlib import Path
+
+ROOT = Path(__file__).parent
+SCHEMA = (ROOT / 'openapi.json').read_bytes()
+FAIL = (ROOT / 'fail-control').exists()
+
+class Handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == '/openapi.json':
+            body, status = SCHEMA, 200
+        elif self.path.startswith('/items'):
+            body, status = b'{"items":[]}', 500 if FAIL else 200
+        else:
+            body, status = b'{}', 404
+        self.send_response(status)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Content-Length', str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def log_message(self, *args):
+        return
+
+HTTPServer(('127.0.0.1', 48402), Handler).serve_forever()
+"""
+    for root in (positive, negative):
+        _write(root, "openapi.json", json.dumps(schema, sort_keys=True))
+        _write(root, "server.py", server)
+    _write(positive, "fail-control", "return a deterministic server error\n")
+
+
+def _parse_schemathesis(data) -> list[dict]:
+    text = str(data.get("text", "")) if isinstance(data, dict) else ""
+    try:
+        root = ET.fromstring(text)
+    except ET.ParseError:
+        return []
+    failures = sum(int(suite.attrib.get("failures") or 0) for suite in root.iter("testsuite"))
+    errors = sum(int(suite.attrib.get("errors") or 0) for suite in root.iter("testsuite"))
+    return [
+        _row("schemathesis", "Controlled API violates not_a_server_error", path="/items")
+    ] if failures + errors > 0 else []
+
+
+def _oci_descriptor(content: bytes, media_type: str) -> dict:
+    return {
+        "mediaType": media_type,
+        "digest": f"sha256:{sha256(content).hexdigest()}",
+        "size": len(content),
+    }
+
+
+def _materialize_skopeo(positive: Path, negative: Path) -> None:
+    for root, labels in (
+        (positive, {"org.aegis.fixture.security-control": "missing"}),
+        (negative, {"org.aegis.fixture.security-control": "present"}),
+    ):
+        config = json.dumps({
+            "architecture": "amd64",
+            "os": "linux",
+            "config": {"Labels": labels},
+            "rootfs": {"type": "layers", "diff_ids": []},
+            "history": [],
+        }, sort_keys=True, separators=(",", ":")).encode()
+        config_descriptor = _oci_descriptor(
+            config, "application/vnd.oci.image.config.v1+json",
+        )
+        manifest = json.dumps({
+            "schemaVersion": 2,
+            "mediaType": "application/vnd.oci.image.manifest.v1+json",
+            "config": config_descriptor,
+            "layers": [],
+        }, sort_keys=True, separators=(",", ":")).encode()
+        manifest_descriptor = _oci_descriptor(
+            manifest, "application/vnd.oci.image.manifest.v1+json",
+        )
+        manifest_descriptor["annotations"] = {"org.opencontainers.image.ref.name": "latest"}
+        _write(root, "image/oci-layout", '{"imageLayoutVersion":"1.0.0"}')
+        _write(root, "image/index.json", json.dumps({
+            "schemaVersion": 2, "manifests": [manifest_descriptor],
+        }, sort_keys=True))
+        _write(root, f"image/blobs/sha256/{sha256(config).hexdigest()}", config)
+        _write(root, f"image/blobs/sha256/{sha256(manifest).hexdigest()}", manifest)
+
+
+def _parse_skopeo(data) -> list[dict]:
+    if not isinstance(data, dict):
+        return []
+    labels = data.get("Labels") or {}
+    return [
+        _row("skopeo", "Controlled OCI security label is missing", path="image:latest")
+    ] if isinstance(labels, dict) and labels.get("org.aegis.fixture.security-control") == "missing" else []
+
+
 _SPECS = {
     "asset:yara/approved-rule-binary-scan": ExternalFixtureSpec(
         "asset:yara/approved-rule-binary-scan",
@@ -787,6 +942,51 @@ _SPECS = {
             "Apache-2.0", _parse_kics,
         ),
         "kics-kubernetes-policy-v1", _materialize_kics,
+    ),
+    "asset:angr/binary-control-flow-analysis": ExternalFixtureSpec(
+        "asset:angr/binary-control-flow-analysis",
+        Tool(
+            "angr", "angr", ("executable",),
+            'cd "{target}" && gcc -O0 -fno-inline -fno-if-conversion '
+            '-fno-if-conversion2 -fno-pie -no-pie fixture.c -o fixture && angr fixture',
+            "BSD-2-Clause", _parse_angr,
+        ),
+        "angr-main-cfg-branch-v1", _materialize_angr,
+    ),
+    "asset:capa/binary-capability-analysis": ExternalFixtureSpec(
+        "asset:capa/binary-capability-analysis",
+        Tool(
+            "capa", "capa", ("executable",),
+            'cd "{target}" && gcc -O0 fixture.c -o fixture && '
+            'capa -j -r /opt/capa-rules fixture',
+            "Apache-2.0", _parse_capa,
+        ),
+        "capa-network-socket-v1", _materialize_capa,
+    ),
+    "asset:schemathesis/schema-guided-api-testing": ExternalFixtureSpec(
+        "asset:schemathesis/schema-guided-api-testing",
+        Tool(
+            "Schemathesis", "schemathesis", ("api",),
+            'cd "{target}" && (python server.py & server=$!; sleep 0.4; '
+            'schemathesis run openapi.json --url http://127.0.0.1:48402 '
+            '--checks not_a_server_error --phases fuzzing -n 1 --seed 1 '
+            '--generation-deterministic --workers 1 '
+            '--rate-limit 5/s --request-timeout 1 --report junit '
+            '--report-junit-path result.xml --no-color >/dev/null 2>&1 || true; '
+            'kill "$server" 2>/dev/null || true; wait "$server" 2>/dev/null || true; '
+            'cat result.xml)',
+            "MIT", _parse_schemathesis, "xml",
+        ),
+        "schemathesis-openapi-500-v1", _materialize_schemathesis,
+    ),
+    "asset:skopeo/container-registry-metadata": ExternalFixtureSpec(
+        "asset:skopeo/container-registry-metadata",
+        Tool(
+            "skopeo", "skopeo", ("docker_registry",),
+            'skopeo inspect "oci:{target}/image:latest"',
+            "Apache-2.0", _parse_skopeo,
+        ),
+        "skopeo-local-oci-label-v1", _materialize_skopeo,
     ),
 }
 
