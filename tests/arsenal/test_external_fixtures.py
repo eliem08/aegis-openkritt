@@ -145,3 +145,13 @@ def test_binary_api_and_oci_parsers_require_the_expected_signal() -> None:
         skopeo.tool,
         '{"Labels":{"org.aegis.fixture.security-control":"present"}}',
     ) == []
+
+
+def test_contract_parsers_require_failed_control_behavior() -> None:
+    foundry = external_fixture_spec("asset:foundry/smart-contract-fuzz-and-invariant-tests")
+    echidna = external_fixture_spec("asset:echidna/smart-contract-property-fuzzing")
+    assert foundry is not None and echidna is not None
+    assert len(_parse(foundry.tool, '{"AegisInvariantTest":{"invariant_aegis_control":{"status":"Fail"}}}')) == 1
+    assert _parse(foundry.tool, '{"AegisInvariantTest":{"invariant_aegis_control":{"status":"Pass"}}}') == []
+    assert len(_parse(echidna.tool, '{"status":"falsified","name":"echidna_aegis_control"}')) == 1
+    assert _parse(echidna.tool, '{"status":"passed","name":"echidna_aegis_control"}') == []

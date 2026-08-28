@@ -37,6 +37,9 @@
     {"name": "angr", "version": "9.3.3"},
     {"name": "capa", "version": "9.4.0"},
     {"name": "schemathesis", "version": "4.25.2"},
-    {"name": "skopeo", "version": "1.9.3"}
+    {"name": "skopeo", "version": "1.9.3"},
+    {"name": "foundry", "version": "1.8.0"},
+    {"name": "echidna", "version": "2.3.3"},
+    {"name": "solc", "version": "0.8.36"}
   ]
 }

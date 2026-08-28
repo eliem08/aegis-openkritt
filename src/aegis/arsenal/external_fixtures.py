@@ -785,6 +785,103 @@ def _parse_skopeo(data) -> list[dict]:
     ] if isinstance(labels, dict) and labels.get("org.aegis.fixture.security-control") == "missing" else []
 
 
+def _materialize_foundry(positive: Path, negative: Path) -> None:
+    contract = """pragma solidity ^0.8.0;
+contract AegisInvariantFixture {
+    uint256 public value;
+    function mutate() public { value += 1; }
+}
+"""
+    test_positive = """pragma solidity ^0.8.0;
+import "../src/Fixture.sol";
+contract AegisInvariantTest {
+    AegisInvariantFixture fixture;
+    function setUp() public { fixture = new AegisInvariantFixture(); }
+    function invariant_aegis_control() public view { require(fixture.value() == 0, "AEGIS_INVARIANT_FAIL"); }
+}
+"""
+    test_negative = test_positive.replace(
+        'require(fixture.value() == 0, "AEGIS_INVARIANT_FAIL");',
+        'require(fixture.value() >= 0, "AEGIS_INVARIANT_OK");',
+    )
+    config = """[profile.default]
+src = "src"
+test = "test"
+out = "out"
+libs = []
+solc = "/usr/local/bin/solc"
+offline = true
+"""
+    for root, test in ((positive, test_positive), (negative, test_negative)):
+        _write(root, "foundry.toml", config)
+        _write(root, "src/control.sol", contract)
+        _write(root, "test/control.t.sol", test.replace("../src/Fixture.sol", "../src/control.sol"))
+
+
+def _parse_foundry(data) -> list[dict]:
+    if not isinstance(data, dict):
+        return []
+    failures = []
+    def walk(value, path=""):
+        if isinstance(value, dict):
+            if str(value.get("status") or "").casefold() in {"fail", "failed", "failure"}:
+                failures.append(path)
+            for key, child in value.items():
+                walk(child, f"{path}/{key}")
+        elif isinstance(value, list):
+            for index, child in enumerate(value):
+                walk(child, f"{path}/{index}")
+    walk(data)
+    return [_row("foundry", "Invariant/property test failed in controlled Solidity fixture", path="contracts/invariant.sol")] if failures else []
+
+
+def _materialize_echidna(positive: Path, negative: Path) -> None:
+    template = """pragma solidity ^0.8.0;
+contract AegisEchidnaFixture {
+    function echidna_aegis_control() public pure returns (bool) { return %s; }
+}
+"""
+    _write(positive, "contracts/control.sol", template % "false")
+    _write(negative, "contracts/control.sol", template % "true")
+
+
+def _parse_echidna(data) -> list[dict]:
+    text = str(data.get("text", "")) if isinstance(data, dict) else ""
+    if "echidna_aegis_control falsified" in text.casefold():
+        return [_row("echidna", "Controlled invariant was falsified", path="contracts/control.sol")]
+    candidates = []
+    for line in text.splitlines():
+        try:
+            candidates.append(json.loads(line))
+        except json.JSONDecodeError:
+            continue
+    decoder = json.JSONDecoder()
+    for position, char in enumerate(text):
+        if char != "{":
+            continue
+        try:
+            item, _ = decoder.raw_decode(text[position:])
+        except json.JSONDecodeError:
+            continue
+        candidates.append(item)
+
+    def failed(value) -> bool:
+        if isinstance(value, dict):
+            status = str(value.get("status") or "").casefold()
+            if status in {"failed", "falsified", "failure"}:
+                return True
+            if value.get("name") == "echidna_aegis_control" and value.get("success") is False:
+                return True
+            return any(failed(child) for child in value.values())
+        if isinstance(value, list):
+            return any(failed(child) for child in value)
+        return False
+
+    if any(failed(item) for item in candidates):
+        return [_row("echidna", "Controlled invariant was falsified", path="contracts/control.sol")]
+    return []
+
+
 _SPECS = {
     "asset:yara/approved-rule-binary-scan": ExternalFixtureSpec(
         "asset:yara/approved-rule-binary-scan",
@@ -987,6 +1084,25 @@ _SPECS = {
             "Apache-2.0", _parse_skopeo,
         ),
         "skopeo-local-oci-label-v1", _materialize_skopeo,
+    ),
+    "asset:foundry/smart-contract-fuzz-and-invariant-tests": ExternalFixtureSpec(
+        "asset:foundry/smart-contract-fuzz-and-invariant-tests",
+        Tool(
+            "Foundry", "forge", ("smart_contract",),
+            'cd "{target}" && forge test --offline --json 2>/dev/null || true',
+            "Apache-2.0", _parse_foundry,
+        ),
+        "foundry-invariant-v1", _materialize_foundry,
+    ),
+    "asset:echidna/smart-contract-property-fuzzing": ExternalFixtureSpec(
+        "asset:echidna/smart-contract-property-fuzzing",
+        Tool(
+            "Echidna", "echidna", ("smart_contract",),
+            'cd "{target}" && echidna-test contracts/control.sol --contract AegisEchidnaFixture '
+            '--format json --test-limit 5 --seq-len 1 --timeout 10 2>/dev/null || true',
+            "AGPL-3.0", _parse_echidna, "text",
+        ),
+        "echidna-invariant-v1", _materialize_echidna,
     ),
 }
 
