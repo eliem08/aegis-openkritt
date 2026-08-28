@@ -88,6 +88,24 @@ def test_binwalk_uses_bounded_help_header_as_version_probe(tmp_path):
     assert calls == [("-h",)]
 
 
+def test_jsluice_uses_bounded_upstream_help_header_as_health_probe(tmp_path):
+    path = tmp_path / "jsluice"
+    path.write_bytes(b"fixture")
+    calls = []
+
+    def runner(argv, _timeout):
+        calls.append(tuple(argv[1:]))
+        if argv[1:] == ["--help"]:
+            return 0, "jsluice - Extract URLs, paths, and secrets from JavaScript files\n", ""
+        return 3, "", "unsupported"
+
+    manager = ToolRuntimeManager(resolver=lambda _binary: str(path), runner=runner)
+    record = manager.inspect(name="jsluice", binary="jsluice")
+    assert record.status is ToolRuntimeStatus.READY
+    assert record.version.startswith("jsluice - Extract URLs")
+    assert calls == [("--help",)]
+
+
 def test_pin_file_loads_exact_digest_and_version_marker(tmp_path):
     pins_file = tmp_path / "pins.json"
     digest = "a" * 64

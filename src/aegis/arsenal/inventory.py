@@ -199,10 +199,17 @@ class ArsenalInventoryBuilder:
                 capability_id, 1, (),
                 (ToolBackend(f"adapter:{manifest.name}", manifest.name, manifest.name,
                              manifest.version, manifest.version),),
-                (), f"adapter:{manifest.name}", None, ("adapter_manifests",),
+                (), f"adapter:{manifest.name}",
+                (
+                    f"fixture:adapter:{manifest.name}"
+                    if capability_id in executable_external_fixtures else None
+                ),
+                ("adapter_manifests",),
                 ("src/aegis/adapters",),
                 (_provenance("tool_backends", "adapter_manifests", manifest.name,
-                             manifest.version),), fixture_executable=False,
+                             manifest.version),), fixture_executable=(
+                    capability_id in executable_external_fixtures
+                ),
             )
             if capability_id not in definitions:
                 definitions[capability_id] = candidate

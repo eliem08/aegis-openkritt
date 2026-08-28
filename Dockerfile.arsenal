@@ -95,6 +95,9 @@ ARG PIP_AUDIT_VERSION=2.10.1
 ARG RESTLER_VERSION=9.3.1
 ARG RIZIN_VERSION=0.9.1
 ARG RIZIN_SHA256=9102249a9f0b6319c5334a2e5cf8d9cc3f2035e1d3def027c41f6a90f647e8cf
+ARG DNSX_VERSION=v1.2.2
+ARG JSLUICE_COMMIT=0ddfab153e060a9eeaded4d8669233f7c071e7e4
+ARG KATANA_VERSION=v1.1.0
 
 ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
@@ -158,6 +161,12 @@ RUN ln -sf /usr/share/dotnet/dotnet /usr/local/bin/dotnet \
 # --- Modern Go (Debian's 1.19 is too old). GOTOOLCHAIN=auto (default) lets `go install`
 #     fetch the exact newer toolchain a tool pins (e.g. gosec needs go >= 1.25). ---
 RUN curl -sfL https://go.dev/dl/go1.22.5.linux-amd64.tar.gz | tar -C /usr/local -xz
+RUN go install "github.com/projectdiscovery/dnsx/cmd/dnsx@${DNSX_VERSION}" \
+    && go install "github.com/BishopFox/jsluice/cmd/jsluice@${JSLUICE_COMMIT}" \
+    && go install "github.com/projectdiscovery/katana/cmd/katana@${KATANA_VERSION}" \
+    && dnsx -version \
+    && jsluice --help >/dev/null \
+    && katana -version
 
 # --- Python scanners. Every production binary is version-pinned; build failures are fatal. ---
 RUN pip install --upgrade "pip==25.2" "setuptools<81" && \
@@ -404,6 +413,16 @@ COPY pyproject.toml README.md ./
 COPY src ./src
 RUN pip install -e ".[api,postgres]"
 COPY . .
+
+# Canonical fixture execution runs commands through a sanitized non-login shell.
+# Expose Go-installed tools on the system path instead of relying on /root/go/bin
+# from the interactive image environment.
+RUN for tool in dnsx jsluice katana; do \
+      ln -sf "/root/go/bin/${tool}" "/usr/local/bin/${tool}"; \
+    done \
+    && dnsx -version \
+    && jsluice --help >/dev/null \
+    && katana -version
 
 # clone the arm's-length skill catalog so the prompt-only runner can read their instructions
 # (never executes a skill's own scripts — only reads SKILL.md and runs it via DeepSeek)

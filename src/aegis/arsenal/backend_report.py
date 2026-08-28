@@ -26,6 +26,7 @@ _BINARY_ALIASES = {
     "electron-asar": "asar",
     "foundry": "forge",
     "ghidra": "analyzeHeadless",
+    "http-probe": "httpx",
     "mythril": "myth",
     "roadtools": "roadrecon",
     "scoutsuite": "scout",

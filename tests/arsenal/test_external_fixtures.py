@@ -194,3 +194,17 @@ def test_final_software_closure_parsers_require_semantic_controls() -> None:
     assert _parse(restler.tool, "RESTler completed without bug buckets") == []
     assert len(_parse(rizin.tool, "AEGIS_RIZIN_SENSITIVE_MARKER")) == 1
     assert _parse(rizin.tool, "AEGIS_RIZIN_CLEAN_CONTROL") == []
+
+
+def test_network_closure_parsers_require_controlled_loopback_observations() -> None:
+    dnsx = external_fixture_spec("asset:dnsx/dns-resolution-and-wildcard-filtering")
+    jsluice = external_fixture_spec("adapter:jsluice/passive-discovery")
+    katana = external_fixture_spec("asset:katana/scoped-endpoint-crawl")
+    assert dnsx is not None and jsluice is not None and katana is not None
+
+    assert len(_parse(dnsx.tool, '{"host":"controlled.aegis.invalid","a":["127.0.0.42"]}')) == 1
+    assert _parse(dnsx.tool, '{"host":"clean.aegis.invalid","a":[]}') == []
+    assert len(_parse(jsluice.tool, '{"url":"/aegis-controlled-admin?scope=local"}')) == 1
+    assert _parse(jsluice.tool, '{"url":"/safe-health"}') == []
+    assert len(_parse(katana.tool, '{"request":{"endpoint":"http://127.0.0.1/aegis-controlled-admin"}}')) == 1
+    assert _parse(katana.tool, '{"request":{"endpoint":"http://127.0.0.1/safe-health"}}') == []

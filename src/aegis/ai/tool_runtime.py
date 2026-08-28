@@ -285,6 +285,10 @@ class ToolRuntimeManager:
             # Binwalk 2.x treats --version as an input filename. Its bounded help
             # header is the upstream-supported source of version provenance.
             "binwalk": (("-h",),),
+            # jsluice is pinned by immutable source commit and intentionally has no
+            # version subcommand. Its bounded upstream help header is its supported
+            # non-target health probe; the executable digest supplies identity.
+            "jsluice": (("--help",),),
         }.get(binary_name, ())
         for suffix in (*extra_probes, ("--version",), ("version",), ("-version",)):
             argv = [resolved, *suffix]

@@ -1207,6 +1207,103 @@ def _parse_rizin(data) -> list[dict]:
     ] if "AEGIS_RIZIN_SENSITIVE_MARKER" in text else []
 
 
+def _materialize_dnsx(positive: Path, negative: Path) -> None:
+    server = """import socket
+import struct
+
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+sock.bind(('127.0.0.1', 48405))
+while True:
+    packet, peer = sock.recvfrom(4096)
+    offset = 12
+    labels = []
+    while packet[offset]:
+        size = packet[offset]
+        offset += 1
+        labels.append(packet[offset:offset + size].decode('ascii'))
+        offset += size
+    question_end = offset + 5
+    question = packet[12:question_end]
+    name = '.'.join(labels).lower()
+    if name == 'controlled.aegis.invalid':
+        header = struct.pack('!HHHHHH', struct.unpack('!H', packet[:2])[0], 0x8180, 1, 1, 0, 0)
+        answer = b'\\xc0\\x0c' + struct.pack('!HHIH', 1, 1, 60, 4) + bytes((127, 0, 0, 42))
+        response = header + question + answer
+    else:
+        header = struct.pack('!HHHHHH', struct.unpack('!H', packet[:2])[0], 0x8183, 1, 0, 0, 0)
+        response = header + question
+    sock.sendto(response, peer)
+"""
+    for root in (positive, negative):
+        _write(root, "dns_server.py", server)
+    _write(positive, "names.txt", "controlled.aegis.invalid\n")
+    _write(negative, "names.txt", "clean.aegis.invalid\n")
+
+
+def _parse_dnsx(data) -> list[dict]:
+    if not isinstance(data, dict):
+        return []
+    addresses = data.get("a") or data.get("answers") or ()
+    if isinstance(addresses, str):
+        addresses = (addresses,)
+    return [
+        _row("dnsx", "DNSx resolved the controlled local A record", path="names.txt")
+    ] if "127.0.0.42" in {str(item) for item in addresses} else []
+
+
+def _materialize_jsluice(positive: Path, negative: Path) -> None:
+    _write(
+        positive,
+        "app.js",
+        "fetch('/aegis-controlled-admin?scope=local', {method: 'GET'});\n",
+    )
+    _write(negative, "app.js", "fetch('/safe-health', {method: 'GET'});\n")
+
+
+def _parse_jsluice(data) -> list[dict]:
+    url = str(data.get("url") or "") if isinstance(data, dict) else ""
+    return [
+        _row("jsluice", "Jsluice extracted the controlled AST-backed endpoint", path="app.js")
+    ] if "aegis-controlled-admin" in url else []
+
+
+def _materialize_katana(positive: Path, negative: Path) -> None:
+    server = """from http.server import BaseHTTPRequestHandler, HTTPServer
+from pathlib import Path
+
+CONTROL = (Path(__file__).parent / 'controlled').exists()
+class Handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == '/':
+            link = '/aegis-controlled-admin?scope=local' if CONTROL else '/safe-health'
+            body = ('<html><a href="' + link + '">next</a></html>').encode()
+        else:
+            body = b'local fixture response'
+        self.send_response(200)
+        self.send_header('Content-Type', 'text/html')
+        self.send_header('Content-Length', str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+    def log_message(self, *args):
+        return
+
+HTTPServer(('127.0.0.1', 48406), Handler).serve_forever()
+"""
+    for root in (positive, negative):
+        _write(root, "server.py", server)
+    _write(positive, "controlled", "serve the controlled crawl edge\n")
+
+
+def _parse_katana(data) -> list[dict]:
+    if not isinstance(data, dict):
+        return []
+    request = data.get("request") if isinstance(data.get("request"), dict) else {}
+    endpoint = str(request.get("endpoint") or data.get("url") or "")
+    return [
+        _row("katana", "Katana crawled the controlled local endpoint", path="crawl.jsonl")
+    ] if "aegis-controlled-admin" in endpoint else []
+
+
 _SPECS = {
     "asset:codeql/cross-file-dataflow": ExternalFixtureSpec(
         "asset:codeql/cross-file-dataflow",
@@ -1298,6 +1395,41 @@ _SPECS = {
             "LGPL-3.0", _parse_rizin, "text",
         ),
         "rizin-string-analysis-v1", _materialize_rizin,
+    ),
+    "asset:dnsx/dns-resolution-and-wildcard-filtering": ExternalFixtureSpec(
+        "asset:dnsx/dns-resolution-and-wildcard-filtering",
+        Tool(
+            "dnsx", "dnsx", ("network",),
+            'cd "{target}" && (python dns_server.py >server.log 2>&1 & server=$!; '
+            'sleep 0.3; dnsx -l names.txt -r 127.0.0.1:48405 -silent -json '
+            '-retry 1 -t 1 -rl 1 -duc; status=$?; kill "$server" 2>/dev/null || true; '
+            'wait "$server" 2>/dev/null || true; exit "$status")',
+            "MIT", _parse_dnsx,
+        ),
+        "dnsx-loopback-authoritative-a-v1", _materialize_dnsx,
+    ),
+    "adapter:jsluice/passive-discovery": ExternalFixtureSpec(
+        "adapter:jsluice/passive-discovery",
+        Tool(
+            "jsluice", "jsluice", ("source_code",),
+            'cd "{target}" && jsluice urls "{target}/app.js" | '
+            'grep "aegis-controlled-admin" | head -1 || true',
+            "MIT", _parse_jsluice,
+        ),
+        "jsluice-controlled-ast-url-v1", _materialize_jsluice,
+    ),
+    "asset:katana/scoped-endpoint-crawl": ExternalFixtureSpec(
+        "asset:katana/scoped-endpoint-crawl",
+        Tool(
+            "katana", "katana", ("network",),
+            'cd "{target}" && (python server.py >server.log 2>&1 & server=$!; '
+            'sleep 0.3; katana -u http://127.0.0.1:48406 -jsonl -silent -d 1 '
+            '| grep \'"endpoint":"http://127.0.0.1:48406/aegis-controlled-admin\' '
+            '| head -1 || true; '
+            'kill "$server" 2>/dev/null || true; wait "$server" 2>/dev/null || true)',
+            "MIT", _parse_katana,
+        ),
+        "katana-loopback-crawl-v1", _materialize_katana,
     ),
     "asset:yara/approved-rule-binary-scan": ExternalFixtureSpec(
         "asset:yara/approved-rule-binary-scan",
