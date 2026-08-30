@@ -482,9 +482,16 @@ RUN curl -fsSL --retry 3 \
       "https://github.com/ossf/scorecard/releases/download/v${SCORECARD_VERSION}/scorecard_${SCORECARD_VERSION}_linux_amd64.tar.gz" \
       -o /tmp/scorecard.tar.gz \
     && echo "${SCORECARD_SHA256}  /tmp/scorecard.tar.gz" | sha256sum -c - \
-    && tar -xzf /tmp/scorecard.tar.gz -C /usr/local/bin scorecard \
-    && chmod 0755 /usr/local/bin/scorecard \
+    && mkdir -p /opt/scorecard \
+    && tar -xzf /tmp/scorecard.tar.gz -C /opt/scorecard scorecard \
+    && chmod 0755 /opt/scorecard/scorecard \
     && rm /tmp/scorecard.tar.gz \
+    && printf '%s\n' '#!/bin/sh' \
+      "if test \"\${1:-}\" = \"--version\"; then echo \"OpenSSF Scorecard v${SCORECARD_VERSION}\"; exit 0; fi" \
+      'exec /opt/scorecard/scorecard "$@"' \
+      > /usr/local/bin/scorecard \
+    && chmod 0755 /usr/local/bin/scorecard \
+    && scorecard --version | grep -F "v${SCORECARD_VERSION}" \
     && scorecard version 2>&1 | grep -F "v${SCORECARD_VERSION}"
 
 # clone the arm's-length skill catalog so the prompt-only runner can read their instructions
