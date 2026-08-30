@@ -210,7 +210,8 @@ RUN mkdir -p /opt/aegis-data/retire && curl -fL \
       -o /opt/aegis-data/retire/jsrepository.json
 
 # --- Go-based scanners: gosec + osv-scanner via modern Go's go install ---
-RUN go install "github.com/securego/gosec/v2/cmd/gosec@${GOSEC_VERSION}"
+RUN go install "github.com/securego/gosec/v2/cmd/gosec@${GOSEC_VERSION}" \
+    && rm -rf /root/.cache/go-build /root/go/pkg/mod
 RUN curl -fL \
       "https://github.com/google/osv-scanner/releases/download/v${OSV_SCANNER_VERSION}/osv-scanner_linux_amd64" \
       -o /usr/local/bin/osv-scanner && chmod 0755 /usr/local/bin/osv-scanner
@@ -432,6 +433,12 @@ ARG TESTSSL_VERSION=3.2.4
 ARG TESTSSL_SHA256=98528f8a0ac07f1e226efaa8ead438247df8efcb8fee4e056a937ab82a305490
 ARG NUCLEI_VERSION=3.3.0
 ARG NUCLEI_SHA256=235f264d32e47e1ccf58d534e2eb4d0d4eeb47f1cae1ebb30a584b8b52565202
+ARG PLAYWRIGHT_VERSION=1.60.0
+ARG PROMPTFOO_VERSION=0.122.2
+ARG NODE_VERSION=22.22.0
+ARG NODE_SHA256=9aa8e9d2298ab68c600bd6fb86a6c13bce11a4eca1ba9b39d79fa021755d7c37
+ARG SCORECARD_VERSION=5.5.0
+ARG SCORECARD_SHA256=83b90a05c1540ef1390db1cd5711e5fd04be9c1d8537fb84d39d02092d6a8dff
 RUN pip install --no-cache-dir "mitmproxy==${MITMPROXY_VERSION}" "ssh-audit==${SSH_AUDIT_VERSION}" \
     && mitmproxy --version \
     && ssh-audit -h >/dev/null
@@ -454,6 +461,31 @@ RUN curl -fsSL --retry 3 \
     && chmod 0755 /usr/local/bin/nuclei \
     && rm /tmp/nuclei.zip \
     && nuclei -version 2>&1 | grep -F "3.3.0"
+RUN curl -fsSL --retry 3 \
+      "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" \
+      -o /tmp/node.tar.xz \
+    && echo "${NODE_SHA256}  /tmp/node.tar.xz" | sha256sum -c - \
+    && tar -xJf /tmp/node.tar.xz -C /usr/local --strip-components=1 \
+    && rm /tmp/node.tar.xz \
+    && node --version | grep -F "v${NODE_VERSION}"
+RUN npm install -g \
+      "@playwright/test@${PLAYWRIGHT_VERSION}" \
+      "promptfoo@${PROMPTFOO_VERSION}" \
+    && playwright install --with-deps chromium \
+    && playwright --version | grep -F "${PLAYWRIGHT_VERSION}" \
+    && promptfoo --version | grep -F "${PROMPTFOO_VERSION}" \
+    && npm cache clean --force \
+    && find /root/.cache/ms-playwright -mindepth 1 -maxdepth 1 -type d \
+      ! -name chromium-1223 ! -name chromium_headless_shell-1223 \
+      -exec rm -rf '{}' +
+RUN curl -fsSL --retry 3 \
+      "https://github.com/ossf/scorecard/releases/download/v${SCORECARD_VERSION}/scorecard_${SCORECARD_VERSION}_linux_amd64.tar.gz" \
+      -o /tmp/scorecard.tar.gz \
+    && echo "${SCORECARD_SHA256}  /tmp/scorecard.tar.gz" | sha256sum -c - \
+    && tar -xzf /tmp/scorecard.tar.gz -C /usr/local/bin scorecard \
+    && chmod 0755 /usr/local/bin/scorecard \
+    && rm /tmp/scorecard.tar.gz \
+    && scorecard version 2>&1 | grep -F "v${SCORECARD_VERSION}"
 
 # clone the arm's-length skill catalog so the prompt-only runner can read their instructions
 # (never executes a skill's own scripts — only reads SKILL.md and runs it via DeepSeek)

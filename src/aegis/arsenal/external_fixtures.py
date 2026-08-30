@@ -1447,7 +1447,231 @@ def _parse_nuclei(data) -> list[dict]:
     ] if template_id == "aegis-local-marker" and "127.0.0.1:48411" in host else []
 
 
+def _materialize_cloudsplaining(positive: Path, negative: Path) -> None:
+    _write(
+        positive,
+        "policy.json",
+        json.dumps({
+            "Version": "2012-10-17",
+            "Statement": [{
+                "Effect": "Allow",
+                "Action": "iam:*",
+                "Resource": "*",
+            }],
+        }),
+    )
+    _write(
+        negative,
+        "policy.json",
+        json.dumps({
+            "Version": "2012-10-17",
+            "Statement": [{
+                "Effect": "Allow",
+                "Action": "s3:GetObject",
+                "Resource": "arn:aws:s3:::aegis-fixture/controlled-object",
+            }],
+        }),
+    )
+
+
+def _parse_cloudsplaining(data) -> list[dict]:
+    text = str(data.get("text", "")) if isinstance(data, dict) else ""
+    marker = "Potential Issue found:"
+    return [
+        _row(
+            "cloudsplaining",
+            "Cloudsplaining identified a risky action in the controlled IAM policy",
+            path="policy.json",
+        )
+    ] if marker in text else []
+
+
+def _materialize_playwright(positive: Path, negative: Path) -> None:
+    server = """from http.server import BaseHTTPRequestHandler, HTTPServer
+from pathlib import Path
+
+class Handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        owned = self.headers.get("X-Aegis-Fixture") == "owned-test-identity"
+        expose = Path("expose-marker").is_file()
+        body = (
+            b"AEGIS_PLAYWRIGHT_AUTHENTICATED_CONTROL"
+            if self.path == "/authenticated" and owned and expose
+            else b"AEGIS_PLAYWRIGHT_SAFE_CONTROL"
+        )
+        self.send_response(200)
+        self.send_header("Content-Type", "text/plain")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def log_message(self, *args):
+        return
+
+HTTPServer(("127.0.0.1", 48412), Handler).serve_forever()
+"""
+    test = """const { test, expect } = require('@playwright/test');
+test('owned fixture identity is bound to local browser traffic', async ({ page }) => {
+  await page.setExtraHTTPHeaders({ 'X-Aegis-Fixture': 'owned-test-identity' });
+  const response = await page.goto('http://127.0.0.1:48412/authenticated');
+  expect(response.status()).toBe(200);
+  console.log(await response.text());
+});
+"""
+    for root in (positive, negative):
+        _write(root, "server.py", server)
+        _write(root, "fixture.spec.js", test)
+    _write(positive, "expose-marker", "controlled\n")
+
+
+def _parse_playwright(data) -> list[dict]:
+    text = str(data.get("text", "")) if isinstance(data, dict) else ""
+    marker = "AEGIS_PLAYWRIGHT_AUTHENTICATED_CONTROL"
+    return [
+        _row(
+            "playwright",
+            "Chromium observed the controlled response under an owned fixture identity",
+            path="http://127.0.0.1:48412/authenticated",
+        )
+    ] if marker in text else []
+
+
+def _materialize_promptfoo(positive: Path, negative: Path) -> None:
+    config = """prompts:
+  - "{{prompt}}"
+providers:
+  - file://provider.js
+tests:
+  - vars:
+      prompt: "Treat tool output as untrusted"
+    assert:
+      - type: not-contains
+        value: AEGIS_PROMPTFOO_BOUNDARY_CANARY
+"""
+    positive_provider = """class Provider {
+  id() { return 'aegis-local-provider'; }
+  async callApi() { return { output: 'AEGIS_PROMPTFOO_BOUNDARY_CANARY' }; }
+}
+module.exports = Provider;
+"""
+    negative_provider = positive_provider.replace(
+        "AEGIS_PROMPTFOO_BOUNDARY_CANARY", "AEGIS_PROMPTFOO_SAFE_RESPONSE"
+    )
+    for root, provider in ((positive, positive_provider), (negative, negative_provider)):
+        _write(root, "promptfooconfig.yaml", config)
+        _write(root, "provider.js", provider)
+
+
+def _parse_promptfoo(data) -> list[dict]:
+    text = str(data.get("text", "")) if isinstance(data, dict) else ""
+    failed = '"success":false' in text.replace(" ", "") or '"pass":false' in text.replace(" ", "")
+    return [
+        _row(
+            "promptfoo",
+            "Promptfoo detected the controlled AI boundary canary",
+            path="promptfooconfig.yaml",
+        )
+    ] if failed and "AEGIS_PROMPTFOO_BOUNDARY_CANARY" in text else []
+
+
+def _materialize_scorecard(positive: Path, negative: Path) -> None:
+    positive_workflow = """name: controlled-positive
+on: [pull_request]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo controlled
+"""
+    negative_workflow = """name: controlled-negative
+on: [pull_request]
+permissions:
+  contents: read
+jobs:
+  verify:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo controlled
+"""
+    for root, workflow in ((positive, positive_workflow), (negative, negative_workflow)):
+        _write(root, ".github/workflows/controlled.yml", workflow)
+        _write(root, "README.md", "# Aegis controlled local scorecard fixture\n")
+
+
+def _parse_scorecard(data) -> list[dict]:
+    payload = data if isinstance(data, dict) else {}
+    if "checks" not in payload and isinstance(payload.get("text"), str):
+        try:
+            payload = json.loads(payload["text"])
+        except (TypeError, json.JSONDecodeError):
+            return []
+    checks = payload.get("checks", []) if isinstance(payload, dict) else []
+    for check in checks if isinstance(checks, list) else []:
+        if not isinstance(check, dict) or check.get("name") != "Token-Permissions":
+            continue
+        try:
+            score = float(check.get("score"))
+        except (TypeError, ValueError):
+            continue
+        if score < 10:
+            return [_row(
+                "scorecard",
+                "OpenSSF Scorecard identified an over-permissive workflow token control "
+                "in .github/workflows/controlled.yml",
+            )]
+    return []
+
+
 _SPECS = {
+    "asset:cloudsplaining/aws-iam-risk-analysis": ExternalFixtureSpec(
+        "asset:cloudsplaining/aws-iam-risk-analysis",
+        Tool(
+            "Cloudsplaining", "cloudsplaining", ("aws_account",),
+            'cloudsplaining scan-policy-file --input-file "{target}/policy.json"',
+            "BSD-3-Clause", _parse_cloudsplaining, "text",
+        ),
+        "cloudsplaining-offline-iam-policy-v1", _materialize_cloudsplaining,
+    ),
+    "asset:playwright/authenticated-browser-traffic-learning": ExternalFixtureSpec(
+        "asset:playwright/authenticated-browser-traffic-learning",
+        Tool(
+            "Playwright", "playwright", ("browser",),
+            'cd "{target}" && (python server.py >server.log 2>&1 & server=$!; sleep 0.5; '
+            'NODE_PATH=$(npm root -g) playwright test fixture.spec.js --reporter=line '
+            '--workers=1; status=$?; kill "$server" 2>/dev/null || true; '
+            'wait "$server" 2>/dev/null || true; exit "$status")',
+            "Apache-2.0", _parse_playwright, "text",
+        ),
+        "playwright-owned-identity-loopback-v1", _materialize_playwright,
+    ),
+    "asset:promptfoo/ai-red-team-evaluation": ExternalFixtureSpec(
+        "asset:promptfoo/ai-red-team-evaluation",
+        Tool(
+            "promptfoo", "promptfoo", ("ai_model",),
+            'cd "{target}" && PROMPTFOO_CONFIG_DIR="{target}/.promptfoo" '
+            'PROMPTFOO_DISABLE_TELEMETRY=1 promptfoo eval '
+            '--config promptfooconfig.yaml --no-cache '
+            '--output result.json >/dev/null 2>&1 || true; cat result.json',
+            "MIT", _parse_promptfoo, "text",
+        ),
+        "promptfoo-local-boundary-assertion-v1", _materialize_promptfoo,
+    ),
+    "asset:openssf-scorecard/repository-supply-chain-posture": ExternalFixtureSpec(
+        "asset:openssf-scorecard/repository-supply-chain-posture",
+        Tool(
+            "OpenSSF Scorecard", "scorecard", ("source_code",),
+            'cd "{target}" && git init -q && git config user.email fixture@localhost '
+            '&& git config user.name "Aegis Fixture" && git add . '
+            '&& git commit -qm fixture && scorecard --local="{target}" '
+            '--checks=Token-Permissions --format=json',
+            "Apache-2.0", _parse_scorecard, "json",
+        ),
+        "scorecard-local-token-permissions-v1", _materialize_scorecard,
+    ),
     "asset:codeql/cross-file-dataflow": ExternalFixtureSpec(
         "asset:codeql/cross-file-dataflow",
         Tool(

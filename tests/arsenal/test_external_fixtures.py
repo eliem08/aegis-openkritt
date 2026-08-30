@@ -223,3 +223,46 @@ def test_network_closure_parsers_require_controlled_loopback_observations() -> N
     assert nuclei is not None
     assert len(_parse(nuclei.tool, '{"template-id":"aegis-local-marker","host":"http://127.0.0.1:48411/"}')) == 1
     assert _parse(nuclei.tool, '{"template-id":"other","host":"http://127.0.0.1:48411/"}') == []
+
+
+def test_cloudsplaining_parser_requires_a_real_policy_finding() -> None:
+    cloudsplaining = external_fixture_spec("asset:cloudsplaining/aws-iam-risk-analysis")
+    assert cloudsplaining is not None
+    assert len(_parse(
+        cloudsplaining.tool,
+        "Potential Issue found: Policy allows ALL Actions from a service (like service:*)",
+    )) == 1
+    assert _parse(cloudsplaining.tool, "There were no results found.") == []
+
+
+def test_browser_and_ai_fixture_parsers_require_semantic_controls() -> None:
+    playwright = external_fixture_spec(
+        "asset:playwright/authenticated-browser-traffic-learning"
+    )
+    promptfoo = external_fixture_spec("asset:promptfoo/ai-red-team-evaluation")
+    assert playwright is not None and promptfoo is not None
+    assert len(_parse(playwright.tool, "AEGIS_PLAYWRIGHT_AUTHENTICATED_CONTROL")) == 1
+    assert _parse(playwright.tool, "AEGIS_PLAYWRIGHT_SAFE_CONTROL") == []
+    promptfoo_failure = (
+        '{"success":false,"output":"AEGIS_PROMPTFOO_BOUNDARY_CANARY"}'
+    )
+    assert len(_parse(promptfoo.tool, promptfoo_failure)) == 1
+    assert _parse(
+        promptfoo.tool,
+        '{"success":true,"output":"AEGIS_PROMPTFOO_SAFE_RESPONSE"}',
+    ) == []
+
+
+def test_scorecard_parser_requires_a_low_token_permissions_score() -> None:
+    scorecard = external_fixture_spec(
+        "asset:openssf-scorecard/repository-supply-chain-posture"
+    )
+    assert scorecard is not None
+    assert len(_parse(
+        scorecard.tool,
+        '{"checks":[{"name":"Token-Permissions","score":0}]}',
+    )) == 1
+    assert _parse(
+        scorecard.tool,
+        '{"checks":[{"name":"Token-Permissions","score":10}]}',
+    ) == []
