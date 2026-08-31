@@ -30,7 +30,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 FROM eclipse-temurin:21.0.8_9-jdk-jammy@sha256:7db733aadd907ea0a5168163d1f0df57e2f611cfa879836878e0872d4e6476dc AS java21_source
 
-FROM python:3.12-slim-bookworm@sha256:0f5b26b9518d002b6173fd61daad821fa340635ebfec5bba471013f9ca114579
+FROM python:3.12-slim-bookworm@sha256:0f5b26b9518d002b6173fd61daad821fa340635ebfec5bba471013f9ca114579 AS arsenal_runtime
 
 ARG SEMGREP_VERSION=1.172.0
 ARG BANDIT_VERSION=1.9.4
@@ -413,7 +413,6 @@ WORKDIR /app
 COPY pyproject.toml README.md ./
 COPY src ./src
 RUN pip install -e ".[api,postgres]"
-COPY . .
 
 # Canonical fixture execution runs commands through a sanitized non-login shell.
 # Expose Go-installed tools on the system path instead of relying on /root/go/bin
@@ -502,6 +501,7 @@ RUN curl -fsSL --retry 3 \
 # Gabson0x/bountyforge is unlicensed, so it is invoke-only here (read, never vendored).
 # Fail packaging if a required scanner is absent. This is not execution credit: only the
 # signed fixture path can produce an EXECUTED_* coverage record.
+COPY . .
 RUN python -c "from aegis.ai.tool_registry import TOOLS; from aegis.ai.tool_bridge import available_tools; \
 expected={t.name for t in TOOLS}; actual={t.name for t in available_tools()}; \
 assert expected == actual, f'missing packaged scanners: {sorted(expected-actual)}'; \
@@ -509,3 +509,38 @@ print('PACKAGED SCANNERS:', sorted(actual))"
 
 EXPOSE 8000
 CMD ["python", "-m", "aegis.api"]
+
+# Hosted CI must prove the real pinned runtime without exporting its 20+ GB image
+# through the ephemeral runner image store. Execute the canonical fixture suite in
+# that exact runtime, with external networking disabled, then expose only its small
+# immutable evidence bundle as a BuildKit local-output target. This stage does not
+# award coverage itself: the existing exercise command, signed manifests, controls,
+# parsers, and coverage ledger remain the only sources of EXECUTED_* records.
+FROM arsenal_runtime AS arsenal_fixture_runner
+ARG AEGIS_BUILD_GIT_SHA=""
+ENV AEGIS_SCANNER_HOME=/root \
+    AEGIS_FIXTURE_TOOL_TIMEOUT_SECONDS=120 \
+    AEGIS_GIT_SHA=${AEGIS_BUILD_GIT_SHA}
+WORKDIR /app
+RUN --network=none mkdir -p reports/arsenal/ci-runs \
+    && set +e \
+    && python -m aegis.cli arsenal exercise --all-fixture-tools \
+      --coverage-sqlite reports/arsenal/ci-coverage.db \
+      --runs-dir reports/arsenal/ci-runs \
+      --release-lock config/arsenal-release-lock.json \
+      --json reports/arsenal/ci-full-fixture.json \
+      --markdown reports/arsenal/ci-full-fixture.md \
+      --backend-inventory-json reports/arsenal/ci-backend-inventory.json \
+      --backend-inventory-markdown reports/arsenal/ci-backend-inventory.md \
+      --tool-lock-json reports/arsenal/ci-tool-lock.json \
+    ; exercise_exit=$? \
+    ; set -e \
+    ; echo "fixture command exit: ${exercise_exit} (partial coverage is evaluated from evidence)" \
+    ; test -s reports/arsenal/ci-full-fixture.json
+
+FROM scratch AS arsenal_fixture_evidence
+COPY --from=arsenal_fixture_runner /app/reports/arsenal/ /reports/arsenal/
+
+# Preserve the historical default build result: callers that do not select a
+# target still receive the runnable arsenal image, never the evidence-only stage.
+FROM arsenal_runtime AS arsenal

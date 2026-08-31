@@ -57,55 +57,43 @@ jobs:
           docker system prune --all --force
           after=$(df -BG / | tail -1 | awk '{print $4}')
           echo "runner free space: ${before} -> ${after}"
-      - name: Build pinned Linux arsenal image
+      - name: Build pinned runtime and execute real fixtures without external network
         timeout-minutes: 45
-        # The full pinned arsenal is intentionally large. Exporting every newly built
-        # layer through Docker's default gzip image exporter repeatedly exceeded the
-        # ephemeral runner's command window after all build checks had passed. Store
-        # the same image in the local worker image store with uncompressed new layers;
-        # fixture execution remains byte-for-byte tied to the resulting image ID.
-        run: >-
-          docker buildx build --pull --provenance=false
-          --output type=image,name=aegis-arsenal:${{ github.sha }},compression=uncompressed
-          -f Dockerfile.arsenal .
-      - name: Resolve immutable image digest
-        id: image
-        run: echo "digest=$(docker image inspect aegis-arsenal:${{ github.sha }} --format '{{.Id}}')" >> "$GITHUB_OUTPUT"
-      - name: Execute real fixtures without external network
         run: |
-          mkdir -p reports/arsenal/ci-runs
-          set +e
-          docker run --rm --network none --cpus 4 --memory 6g --pids-limit 512 \
-            -e AEGIS_ARSENAL_IMAGE_DIGEST='${{ steps.image.outputs.digest }}' \
-            -e AEGIS_SCANNER_HOME=/root \
-            -e AEGIS_FIXTURE_TOOL_TIMEOUT_SECONDS=120 \
-            -v "$PWD:/workspace" -w /workspace \
-            aegis-arsenal:${{ github.sha }} \
-            python -m aegis.cli arsenal exercise --all-fixture-tools \
-              --coverage-sqlite reports/arsenal/ci-coverage.db \
-              --runs-dir reports/arsenal/ci-runs \
-              --image-digest '${{ steps.image.outputs.digest }}' \
-              --release-lock config/arsenal-release-lock.json \
-              --json reports/arsenal/ci-full-fixture.json \
-              --markdown reports/arsenal/ci-full-fixture.md \
-              --backend-inventory-json reports/arsenal/ci-backend-inventory.json \
-              --backend-inventory-markdown reports/arsenal/ci-backend-inventory.md \
-              --tool-lock-json reports/arsenal/ci-tool-lock.json
-          exercise_exit=$?
-          set -e
-          echo "fixture command exit: $exercise_exit (partial coverage is evaluated from evidence)"
+          evidence_dir="$RUNNER_TEMP/arsenal-evidence"
+          rm -rf "$evidence_dir"
+          docker buildx build --pull --provenance=false \
+            --target arsenal_fixture_evidence \
+            --build-arg AEGIS_BUILD_GIT_SHA='${{ github.sha }}' \
+            --output "type=local,dest=$evidence_dir" \
+            -f Dockerfile.arsenal .
+          mkdir -p reports/arsenal
+          cp -R "$evidence_dir/reports/arsenal/." reports/arsenal/
           test -s reports/arsenal/ci-full-fixture.json
-          # The isolated image runs as root and writes the mounted evidence tree.
-          # Return ownership to the runner before artifact packaging.
-          sudo chown -R "$(id -u):$(id -g)" reports/arsenal
       - name: Verify evidence-backed partial-or-full result
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
           report = json.loads(Path("reports/arsenal/ci-full-fixture.json").read_text())
-          assert report["metrics"]["fixture_executed_backends"] > 0
+          metrics = report["metrics"]
+          assert report["git_sha"] == "${{ github.sha }}"
+          assert report["evidence_integrity_verified"] is True
+          assert not report["historical_evidence_errors"]
+          assert metrics["fixture_executed_backends"] > 0
+          assert metrics["backend_executions"] == metrics["positive_controls_passed"]
+          assert metrics["backend_executions"] == metrics["negative_controls_passed"]
+          assert metrics["states"]["BACKEND_UNHEALTHY"] == 0
           assert not report["p0_defects"]
+          scorecard = next(
+              execution for execution in report["executions"]
+              if execution["capability_id"]
+              == "asset:openssf-scorecard/repository-supply-chain-posture"
+          )
+          assert scorecard["result"] == "EXECUTED_PASS"
+          assert scorecard["summary"]["execution_proof_kind"] == "REAL_BACKEND"
+          assert scorecard["summary"]["positive"]["ran"] is True
+          assert scorecard["summary"]["negative_control_passed"] is True
           assert report["verdict"] in {
               "FULL FIXTURE ARSENAL VERIFIED",
               "FIXTURE ARSENAL PARTIALLY VERIFIED",
