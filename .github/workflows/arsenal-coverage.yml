@@ -58,7 +58,16 @@ jobs:
           after=$(df -BG / | tail -1 | awk '{print $4}')
           echo "runner free space: ${before} -> ${after}"
       - name: Build pinned Linux arsenal image
-        run: docker build --pull -f Dockerfile.arsenal -t aegis-arsenal:${{ github.sha }} .
+        timeout-minutes: 45
+        # The full pinned arsenal is intentionally large. Exporting every newly built
+        # layer through Docker's default gzip image exporter repeatedly exceeded the
+        # ephemeral runner's command window after all build checks had passed. Store
+        # the same image in the local worker image store with uncompressed new layers;
+        # fixture execution remains byte-for-byte tied to the resulting image ID.
+        run: >-
+          docker buildx build --pull --provenance=false
+          --output type=image,name=aegis-arsenal:${{ github.sha }},compression=uncompressed
+          -f Dockerfile.arsenal .
       - name: Resolve immutable image digest
         id: image
         run: echo "digest=$(docker image inspect aegis-arsenal:${{ github.sha }} --format '{{.Id}}')" >> "$GITHUB_OUTPUT"
