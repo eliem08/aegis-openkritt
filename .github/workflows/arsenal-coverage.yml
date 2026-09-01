@@ -47,8 +47,12 @@ jobs:
   arsenal-linux:
     runs-on: ubuntu-24.04
     timeout-minutes: 90
+    env:
+      AEGIS_CHECKOUT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.AEGIS_CHECKOUT_SHA }}
       - name: Reclaim ephemeral runner disk for the pinned arsenal image
         run: |
           before=$(df -BG / | tail -1 | awk '{print $4}')
@@ -64,7 +68,7 @@ jobs:
           rm -rf "$evidence_dir"
           docker buildx build --pull --provenance=false \
             --target arsenal_fixture_evidence \
-            --build-arg AEGIS_BUILD_GIT_SHA='${{ github.sha }}' \
+            --build-arg AEGIS_BUILD_GIT_SHA='${{ env.AEGIS_CHECKOUT_SHA }}' \
             --output "type=local,dest=$evidence_dir" \
             -f Dockerfile.arsenal .
           mkdir -p reports/arsenal
@@ -77,7 +81,7 @@ jobs:
           from pathlib import Path
           report = json.loads(Path("reports/arsenal/ci-full-fixture.json").read_text())
           metrics = report["metrics"]
-          assert report["git_sha"] == "${{ github.sha }}"
+          assert report["git_sha"] == "${{ env.AEGIS_CHECKOUT_SHA }}"
           assert report["evidence_integrity_verified"] is True
           assert not report["historical_evidence_errors"]
           assert metrics["fixture_executed_backends"] > 0
@@ -102,7 +106,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: arsenal-linux-${{ github.sha }}
+          name: arsenal-linux-${{ env.AEGIS_CHECKOUT_SHA }}
           path: |
             reports/arsenal/ci-*.json
             reports/arsenal/ci-*.md
