@@ -443,6 +443,8 @@ ARG KUBESCAPE_SHA256=707aec6c708b7e90c1aeba71d9f7ce8050a03a84c6c146227d8c050e815
 ARG KUBESCAPE_NSA_SHA256=1a8b06dec9f75c1beb80d3a062fb81ea3ccbfc7fc09bdf1b5061bc96f05f493e
 ARG KUBESCAPE_EXCEPTIONS_SHA256=bf44e01e6b212c8e8c0ca0686d1bd84488e3f9ce5375cd36511c8faef3a44e7b
 ARG KUBESCAPE_DEFAULT_INPUTS_SHA256=df4e2431e8f560961ce56aa06e022caf9b2f82f98752de78df1cd0706b42cf3a
+ARG GARAK_VERSION=0.16.0
+ARG GARAK_SHA256=871100d78e2bc5a7ee6de58ff8301bdd3de3a41236032690d1a6da21a05e9f06
 RUN pip install --no-cache-dir "mitmproxy==${MITMPROXY_VERSION}" "ssh-audit==${SSH_AUDIT_VERSION}" \
     && mitmproxy --version \
     && ssh-audit -h >/dev/null
@@ -520,6 +522,23 @@ RUN curl -fsSL --retry 3 \
     && echo "${KUBESCAPE_DEFAULT_INPUTS_SHA256}  /tmp/kubescape-default-inputs.json" | sha256sum -c - \
     && python -c "import json; from pathlib import Path; source=json.loads(Path('/tmp/kubescape-default-inputs.json').read_text()); Path('/opt/kubescape-policies/controls-inputs.json').write_text(json.dumps(source['settings']['postureControlInputs'], sort_keys=True, separators=(',', ':')))" \
     && rm /tmp/kubescape-default-inputs.json
+# Garak's controlled fixture uses its real PromptInject probe/detector with built-in local
+# generators. Provider-specific plugins remain separately prerequisite-bound.
+RUN curl -fsSL --retry 3 \
+      "https://files.pythonhosted.org/packages/58/72/cd5da6217006113497fe070edf2748e20b08ffb05762369c52f8255af8b2/garak-${GARAK_VERSION}-py3-none-any.whl" \
+      -o "/tmp/garak-${GARAK_VERSION}-py3-none-any.whl" \
+    && echo "${GARAK_SHA256}  /tmp/garak-${GARAK_VERSION}-py3-none-any.whl" | sha256sum -c - \
+    && python -m venv /opt/venvs/garak --system-site-packages \
+    && /opt/venvs/garak/bin/pip install --no-deps "/tmp/garak-${GARAK_VERSION}-py3-none-any.whl" \
+    && /opt/venvs/garak/bin/pip install \
+      "xdg-base-dirs==6.0.2" "lorem==0.1.1" "colorama==0.4.6" \
+      "nltk==3.10.0" "langdetect==1.0.9" \
+    && rm "/tmp/garak-${GARAK_VERSION}-py3-none-any.whl" \
+    && printf '%s\n' '#!/bin/sh' \
+      'exec /opt/venvs/garak/bin/python -m garak "$@"' \
+      > /usr/local/bin/garak \
+    && chmod 0755 /usr/local/bin/garak \
+    && garak --version | grep -F "v${GARAK_VERSION}"
 
 # clone the arm's-length skill catalog so the prompt-only runner can read their instructions
 # (never executes a skill's own scripts — only reads SKILL.md and runs it via DeepSeek)

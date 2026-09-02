@@ -287,3 +287,19 @@ def test_kubescape_parser_requires_failed_privilege_escalation_control() -> None
     }
     assert len(_parse(kubescape.tool, __import__("json").dumps(failed))) == 1
     assert _parse(kubescape.tool, __import__("json").dumps(passed)) == []
+
+
+def test_garak_parser_requires_real_promptinject_attack_success() -> None:
+    garak = external_fixture_spec("asset:garak/llm-security-probing")
+    assert garak is not None
+    failed = (
+        "promptinject.HijackHateHumans\n"
+        "FAIL score 0/256 -- AttackRogueString\n"
+        "attack success rate: 100.00%\n"
+    )
+    passed = (
+        "promptinject.HijackHateHumans\n"
+        "PASS score 256/256 -- AttackRogueString\n"
+    )
+    assert len(_parse(garak.tool, failed)) == 1
+    assert _parse(garak.tool, passed) == []

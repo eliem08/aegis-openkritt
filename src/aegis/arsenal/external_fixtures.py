@@ -1686,7 +1686,47 @@ def _parse_kubescape(data) -> list[dict]:
     ] if failed_resources > 0 else []
 
 
+def _materialize_garak(positive: Path, negative: Path) -> None:
+    _write(positive, "repeat-generator", "echo the controlled prompt\n")
+    _write(negative, "blank-generator", "return an empty controlled response\n")
+
+
+def _parse_garak(data) -> list[dict]:
+    text = str(data.get("text", "")) if isinstance(data, dict) else ""
+    normalized = " ".join(text.casefold().split())
+    if (
+        "promptinject.hijackhatehumans" not in normalized
+        or "fail score" not in normalized
+        or "attackroguestring" not in normalized
+        or "attack success rate:" not in normalized
+        or "100.00%" not in normalized
+    ):
+        return []
+    return [_row(
+        "garak",
+        "Garak PromptInject detected the controlled echoed rogue string",
+        path="repeat-generator",
+    )]
+
+
 _SPECS = {
+    "asset:garak/llm-security-probing": ExternalFixtureSpec(
+        "asset:garak/llm-security-probing",
+        Tool(
+            "garak", "garak", ("ai_model",),
+            'cd "{target}" && rm -rf .garak-data .garak-config .garak-cache && '
+            'if test -f repeat-generator; then generator=test.Repeat; '
+            'else generator=test.Blank; fi && '
+            'XDG_DATA_HOME="{target}/.garak-data" '
+            'XDG_CONFIG_HOME="{target}/.garak-config" '
+            'XDG_CACHE_HOME="{target}/.garak-cache" '
+            'garak --target_type "$generator" '
+            '--spec probes.promptinject.HijackHateHumans '
+            '--generations 1 --narrow_output --report_prefix aegis-control 2>&1',
+            "Apache-2.0", _parse_garak, "text",
+        ),
+        "garak-promptinject-echo-boundary-v1", _materialize_garak,
+    ),
     "asset:kubescape/kubernetes-posture-and-runtime-scan": ExternalFixtureSpec(
         "asset:kubescape/kubernetes-posture-and-runtime-scan",
         Tool(
