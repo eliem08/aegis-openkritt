@@ -22,7 +22,7 @@ Dockerfile
 .dockerignore
 # ephemeral hunt artifacts — gigabytes of clones + scan outputs, never needed in the image
 reports/
-.tmp-arsenal-evidence-*
+.tmp-*
 !reports/autohunt_targets.json
 !reports/autohunt_targets_full.json
 !reports/contract_corpus_0xsimao.jsonl

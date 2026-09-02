@@ -438,6 +438,11 @@ ARG NODE_VERSION=22.22.0
 ARG NODE_SHA256=9aa8e9d2298ab68c600bd6fb86a6c13bce11a4eca1ba9b39d79fa021755d7c37
 ARG SCORECARD_VERSION=5.5.0
 ARG SCORECARD_SHA256=83b90a05c1540ef1390db1cd5711e5fd04be9c1d8537fb84d39d02092d6a8dff
+ARG KUBESCAPE_VERSION=4.0.12
+ARG KUBESCAPE_SHA256=707aec6c708b7e90c1aeba71d9f7ce8050a03a84c6c146227d8c050e8155a7bc
+ARG KUBESCAPE_NSA_SHA256=1a8b06dec9f75c1beb80d3a062fb81ea3ccbfc7fc09bdf1b5061bc96f05f493e
+ARG KUBESCAPE_EXCEPTIONS_SHA256=bf44e01e6b212c8e8c0ca0686d1bd84488e3f9ce5375cd36511c8faef3a44e7b
+ARG KUBESCAPE_DEFAULT_INPUTS_SHA256=df4e2431e8f560961ce56aa06e022caf9b2f82f98752de78df1cd0706b42cf3a
 RUN pip install --no-cache-dir "mitmproxy==${MITMPROXY_VERSION}" "ssh-audit==${SSH_AUDIT_VERSION}" \
     && mitmproxy --version \
     && ssh-audit -h >/dev/null
@@ -492,6 +497,29 @@ RUN curl -fsSL --retry 3 \
     && chmod 0755 /usr/local/bin/scorecard \
     && scorecard --version | grep -F "v${SCORECARD_VERSION}" \
     && scorecard version 2>&1 | grep -F "v${SCORECARD_VERSION}"
+RUN curl -fsSL --retry 3 \
+      "https://github.com/kubescape/kubescape/releases/download/v${KUBESCAPE_VERSION}/kubescape_${KUBESCAPE_VERSION}_linux_amd64.tar.gz" \
+      -o /tmp/kubescape.tar.gz \
+    && echo "${KUBESCAPE_SHA256}  /tmp/kubescape.tar.gz" | sha256sum -c - \
+    && tar -xzf /tmp/kubescape.tar.gz -C /usr/local/bin kubescape \
+    && chmod 0755 /usr/local/bin/kubescape \
+    && rm /tmp/kubescape.tar.gz \
+    && kubescape version | grep -F "v${KUBESCAPE_VERSION}" \
+    && mkdir -p /opt/kubescape-policies \
+    && curl -fsSL --retry 3 \
+      "https://github.com/kubescape/regolibrary/releases/download/v2/nsa" \
+      -o /opt/kubescape-policies/nsa.json \
+    && echo "${KUBESCAPE_NSA_SHA256}  /opt/kubescape-policies/nsa.json" | sha256sum -c - \
+    && curl -fsSL --retry 3 \
+      "https://github.com/kubescape/regolibrary/releases/download/v2/exceptions" \
+      -o /opt/kubescape-policies/exceptions.json \
+    && echo "${KUBESCAPE_EXCEPTIONS_SHA256}  /opt/kubescape-policies/exceptions.json" | sha256sum -c - \
+    && curl -fsSL --retry 3 \
+      "https://github.com/kubescape/regolibrary/releases/download/v2/default_config_inputs" \
+      -o /tmp/kubescape-default-inputs.json \
+    && echo "${KUBESCAPE_DEFAULT_INPUTS_SHA256}  /tmp/kubescape-default-inputs.json" | sha256sum -c - \
+    && python -c "import json; from pathlib import Path; source=json.loads(Path('/tmp/kubescape-default-inputs.json').read_text()); Path('/opt/kubescape-policies/controls-inputs.json').write_text(json.dumps(source['settings']['postureControlInputs'], sort_keys=True, separators=(',', ':')))" \
+    && rm /tmp/kubescape-default-inputs.json
 
 # clone the arm's-length skill catalog so the prompt-only runner can read their instructions
 # (never executes a skill's own scripts — only reads SKILL.md and runs it via DeepSeek)

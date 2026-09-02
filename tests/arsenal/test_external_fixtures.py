@@ -266,3 +266,24 @@ def test_scorecard_parser_requires_a_low_token_permissions_score() -> None:
         scorecard.tool,
         '{"checks":[{"name":"Token-Permissions","score":10}]}',
     ) == []
+
+
+def test_kubescape_parser_requires_failed_privilege_escalation_control() -> None:
+    kubescape = external_fixture_spec(
+        "asset:kubescape/kubernetes-posture-and-runtime-scan"
+    )
+    assert kubescape is not None
+    failed = {
+        "summaryDetails": {"controls": {"C-0016": {
+            "status": "failed",
+            "ResourceCounters": {"failedResources": 1},
+        }}},
+    }
+    passed = {
+        "summaryDetails": {"controls": {"C-0016": {
+            "status": "passed",
+            "ResourceCounters": {"failedResources": 0},
+        }}},
+    }
+    assert len(_parse(kubescape.tool, __import__("json").dumps(failed))) == 1
+    assert _parse(kubescape.tool, __import__("json").dumps(passed)) == []

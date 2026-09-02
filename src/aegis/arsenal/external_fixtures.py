@@ -1626,7 +1626,83 @@ def _parse_scorecard(data) -> list[dict]:
     return []
 
 
+def _materialize_kubescape(positive: Path, negative: Path) -> None:
+    positive_manifest = """apiVersion: v1
+kind: Pod
+metadata:
+  name: aegis-kubescape-positive
+spec:
+  hostNetwork: true
+  containers:
+    - name: fixture
+      image: registry.k8s.io/pause:3.10
+      securityContext:
+        privileged: true
+        runAsUser: 0
+"""
+    negative_manifest = """apiVersion: v1
+kind: Pod
+metadata:
+  name: aegis-kubescape-negative
+spec:
+  automountServiceAccountToken: false
+  securityContext:
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: fixture
+      image: registry.k8s.io/pause:3.10
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: ["ALL"]
+        readOnlyRootFilesystem: true
+        runAsNonRoot: true
+        runAsUser: 65532
+"""
+    _write(positive, "manifest.yaml", positive_manifest)
+    _write(negative, "manifest.yaml", negative_manifest)
+
+
+def _parse_kubescape(data) -> list[dict]:
+    payload = data if isinstance(data, dict) else {}
+    controls = (payload.get("summaryDetails") or {}).get("controls") or {}
+    control = controls.get("C-0016") if isinstance(controls, dict) else None
+    if not isinstance(control, dict) or control.get("status") != "failed":
+        return []
+    counters = control.get("ResourceCounters") or {}
+    try:
+        failed_resources = int(counters.get("failedResources") or 0)
+    except (TypeError, ValueError):
+        return []
+    return [
+        _row(
+            "kubescape",
+            "Kubescape NSA control C-0016 detected privilege escalation in the "
+            "controlled Kubernetes manifest",
+            path="manifest.yaml",
+        )
+    ] if failed_resources > 0 else []
+
+
 _SPECS = {
+    "asset:kubescape/kubernetes-posture-and-runtime-scan": ExternalFixtureSpec(
+        "asset:kubescape/kubernetes-posture-and-runtime-scan",
+        Tool(
+            "Kubescape", "kubescape", ("kubernetes",),
+            'cd "{target}" && rm -f result.json && '
+            'kubescape scan framework nsa manifest.yaml '
+            '--use-from /opt/kubescape-policies/nsa.json '
+            '--controls-config /opt/kubescape-policies/controls-inputs.json '
+            '--exceptions /opt/kubescape-policies/exceptions.json '
+            '--keep-local --format json --output result.json '
+            '--scan-images=false --host-scan=false --fail-on-degraded-config '
+            '>/dev/null && cat result.json',
+            "Apache-2.0", _parse_kubescape, "json",
+        ),
+        "kubescape-nsa-privilege-escalation-v1", _materialize_kubescape,
+    ),
     "asset:cloudsplaining/aws-iam-risk-analysis": ExternalFixtureSpec(
         "asset:cloudsplaining/aws-iam-risk-analysis",
         Tool(
