@@ -445,6 +445,8 @@ ARG KUBESCAPE_EXCEPTIONS_SHA256=bf44e01e6b212c8e8c0ca0686d1bd84488e3f9ce5375cd36
 ARG KUBESCAPE_DEFAULT_INPUTS_SHA256=df4e2431e8f560961ce56aa06e022caf9b2f82f98752de78df1cd0706b42cf3a
 ARG GARAK_VERSION=0.16.0
 ARG GARAK_SHA256=871100d78e2bc5a7ee6de58ff8301bdd3de3a41236032690d1a6da21a05e9f06
+ARG PYRIT_VERSION=1.0.1
+ARG PYRIT_SHA256=de3a73f38a4ddbe1930724f0f6c19924ddc87c2bee0e8209c4f67c70b4e7db03
 RUN pip install --no-cache-dir "mitmproxy==${MITMPROXY_VERSION}" "ssh-audit==${SSH_AUDIT_VERSION}" \
     && mitmproxy --version \
     && ssh-audit -h >/dev/null
@@ -539,6 +541,23 @@ RUN curl -fsSL --retry 3 \
       > /usr/local/bin/garak \
     && chmod 0755 /usr/local/bin/garak \
     && garak --version | grep -F "v${GARAK_VERSION}"
+# PyRIT runs a deterministic, local PromptSendingAttack and scorer. The isolated
+# environment prevents its provider dependencies from changing Aegis's runtime.
+RUN curl -fsSL --retry 3 \
+      "https://files.pythonhosted.org/packages/53/80/5ae92fdee8829798ff73b87001ccfaa6d7b71c0d03afdfd9164865079568/pyrit-${PYRIT_VERSION}-py3-none-any.whl" \
+      -o "/tmp/pyrit-${PYRIT_VERSION}-py3-none-any.whl" \
+    && echo "${PYRIT_SHA256}  /tmp/pyrit-${PYRIT_VERSION}-py3-none-any.whl" | sha256sum -c - \
+    && python -m venv /opt/venvs/pyrit \
+    && /opt/venvs/pyrit/bin/pip install "/tmp/pyrit-${PYRIT_VERSION}-py3-none-any.whl" \
+    && rm "/tmp/pyrit-${PYRIT_VERSION}-py3-none-any.whl" \
+    && printf '%s\n' '#!/bin/sh' \
+      'if [ "$1" = "--version" ]; then' \
+      '  exec /opt/venvs/pyrit/bin/python -c "from importlib.metadata import version; print(version('"'"'pyrit'"'"'))"' \
+      'fi' \
+      'exec /opt/venvs/pyrit/bin/pyrit_scan "$@"' \
+      > /usr/local/bin/pyrit \
+    && chmod 0755 /usr/local/bin/pyrit \
+    && test "$(pyrit --version)" = "${PYRIT_VERSION}"
 
 # clone the arm's-length skill catalog so the prompt-only runner can read their instructions
 # (never executes a skill's own scripts — only reads SKILL.md and runs it via DeepSeek)

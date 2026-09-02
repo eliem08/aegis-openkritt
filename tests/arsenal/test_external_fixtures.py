@@ -303,3 +303,18 @@ def test_garak_parser_requires_real_promptinject_attack_success() -> None:
     )
     assert len(_parse(garak.tool, failed)) == 1
     assert _parse(garak.tool, passed) == []
+
+
+def test_pyrit_parser_requires_real_attack_success_and_canary() -> None:
+    pyrit = external_fixture_spec("asset:pyrit/generative-ai-risk-identification")
+    assert pyrit is not None
+    success = {
+        "backend": "pyrit",
+        "attack": "PromptSendingAttack",
+        "outcome": "success",
+        "response": "CONTROLLED_SECRET_CANARY",
+        "score": True,
+    }
+    failure = {**success, "outcome": "failure", "score": False}
+    assert len(_parse(pyrit.tool, __import__("json").dumps(success))) == 1
+    assert _parse(pyrit.tool, __import__("json").dumps(failure)) == []
