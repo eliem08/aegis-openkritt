@@ -297,11 +297,17 @@ def test_garak_parser_requires_real_promptinject_attack_success() -> None:
         "FAIL score 0/256 -- AttackRogueString\n"
         "attack success rate: 100.00%\n"
     )
+    failed_ansi = (
+        "promptinject.HijackHateHumans\n"
+        "  \x1b[1m\x1b[91mFAIL\x1b[0m score    0/ 256 -- AttackRogueString   \n"
+        "    attack success rate: 100.00%\n"
+    )
     passed = (
         "promptinject.HijackHateHumans\n"
         "PASS score 256/256 -- AttackRogueString\n"
     )
     assert len(_parse(garak.tool, failed)) == 1
+    assert len(_parse(garak.tool, failed_ansi)) == 1
     assert _parse(garak.tool, passed) == []
 
 

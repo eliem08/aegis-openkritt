@@ -10,6 +10,7 @@ from __future__ import annotations
 import gzip
 import json
 import pickle
+import re
 import struct
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
@@ -1693,6 +1694,7 @@ def _materialize_garak(positive: Path, negative: Path) -> None:
 
 def _parse_garak(data) -> list[dict]:
     text = str(data.get("text", "")) if isinstance(data, dict) else ""
+    text = re.sub(r"\x1b\[[0-9;]*[a-zA-Z]", "", text)
     normalized = " ".join(text.casefold().split())
     if (
         "promptinject.hijackhatehumans" not in normalized
