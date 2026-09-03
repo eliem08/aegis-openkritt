@@ -31,7 +31,7 @@ jobs:
         env:
           AEGIS_CLOUD_LAB_AUTHORIZATION: "fixture-sandbox-approved"
         run: |
-          pytest -q tests/arsenal/test_external_fixtures.py -k "prowler or scoutsuite or roadrecon or azurehound"
+          pytest -q tests/arsenal/test_external_fixtures.py
           python -m aegis.cli arsenal exercise --capability asset:prowler/aws-security-posture --runs-dir reports/operator-runs
           python -m aegis.cli arsenal exercise --capability asset:scoutsuite/aws-attack-surface-audit --runs-dir reports/operator-runs
           python -m aegis.cli arsenal exercise --capability asset:roadtools/entra-identity-analysis --runs-dir reports/operator-runs

@@ -29,6 +29,6 @@ jobs:
           pip install -e ".[dev,api]"
       - name: Execute Firmware Architecture & Emulation Fixture Suite
         run: |
-          pytest -q tests/arsenal/test_external_fixtures.py -k "firmware or firmae"
+          pytest -q tests/arsenal/test_external_fixtures.py
           python -m aegis.cli arsenal exercise --capability asset:aegis-firmware-arch/firmware-architecture-detection --runs-dir reports/operator-runs
           python -m aegis.cli arsenal exercise --capability asset:firmae/firmware-emulation --runs-dir reports/operator-runs

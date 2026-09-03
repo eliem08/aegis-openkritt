@@ -47,6 +47,6 @@ jobs:
           PY
       - name: Execute Darwin otool fixture suite
         run: |
-          pytest -q tests/arsenal/test_external_fixtures.py -k "otool or class_dump"
+          pytest -q tests/arsenal/test_external_fixtures.py
           python -m aegis.cli arsenal exercise --capability asset:otool/ios-macos-load-command-analysis --runs-dir reports/operator-runs
           python -m aegis.cli arsenal exercise --capability asset:class-dump/objective-c-interface-recovery --runs-dir reports/operator-runs

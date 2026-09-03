@@ -30,7 +30,7 @@ jobs:
           pip install frida-tools objection
       - name: Execute Android synthetic fixture suite (Frida, Objection, MobSF)
         run: |
-          pytest -q tests/arsenal/test_external_fixtures.py -k "frida or objection or mobsf"
+          pytest -q tests/arsenal/test_external_fixtures.py
           python -m aegis.cli arsenal exercise --capability asset:frida/android-runtime-instrumentation --runs-dir reports/operator-runs
           python -m aegis.cli arsenal exercise --capability asset:objection/android-runtime-exploration --runs-dir reports/operator-runs
           python -m aegis.cli arsenal exercise --capability asset:mobsf/rest-static-analysis --runs-dir reports/operator-runs
