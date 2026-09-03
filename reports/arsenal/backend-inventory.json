@@ -18,11 +18,13 @@
       "capability_ids": [
         "asset:ghidra/headless-binary-analysis"
       ],
-      "current_state": "UNAVAILABLE",
+      "current_state": "WAITING_FOR_PREREQUISITE",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
-      "expected_versions": [],
+      "expected_versions": [
+        "12.1.3"
+      ],
       "external": true,
       "fixture_executable_capabilities": [
         "asset:ghidra/headless-binary-analysis"
@@ -38,13 +40,13 @@
       "runner_profile": "arsenal-binary",
       "runtime": {
         "binary": "analyzeHeadless",
-        "checked_at": "2026-08-28T05:20:20.558450+00:00",
+        "checked_at": "2026-09-03T14:17:07.839524+00:00",
         "name": "Ghidra",
-        "reason": "binary not found",
-        "resolved_path": "",
-        "sha256": "",
-        "status": "unavailable",
-        "version": ""
+        "reason": "healthy",
+        "resolved_path": "/usr/local/bin/analyzeHeadless",
+        "sha256": "87f8ddc220cdbb2267de5c9af834cd9a2f86d87de0f5dfa1ab7cbbd44e563817",
+        "status": "ready",
+        "version": "Ghidra 12.1.3"
       },
       "source_registries": [
         "deep_asset_capabilities"
@@ -90,7 +92,7 @@
       "runner_profile": "arsenal-binary",
       "runtime": {
         "binary": "angr",
-        "checked_at": "2026-08-28T05:20:20.558703+00:00",
+        "checked_at": "2026-09-03T14:17:07.841379+00:00",
         "name": "angr",
         "reason": "healthy",
         "resolved_path": "/usr/local/bin/angr",
@@ -143,7 +145,7 @@
       "runner_profile": "arsenal-android",
       "runtime": {
         "binary": "apktool",
-        "checked_at": "2026-08-28T05:20:21.764599+00:00",
+        "checked_at": "2026-09-03T14:17:09.184534+00:00",
         "name": "apktool",
         "reason": "healthy",
         "resolved_path": "/usr/local/bin/apktool",
@@ -193,7 +195,7 @@
       "runner_profile": "arsenal-linux",
       "runtime": {
         "binary": "asar",
-        "checked_at": "2026-08-28T05:20:21.811745+00:00",
+        "checked_at": "2026-09-03T14:17:09.251829+00:00",
         "name": "@electron/asar",
         "reason": "healthy",
         "resolved_path": "/usr/local/lib/node_modules/@electron/asar/bin/asar.js",
@@ -241,7 +243,7 @@
       "runner_profile": "arsenal-cloud-lab",
       "runtime": {
         "binary": "azurehound",
-        "checked_at": "2026-08-28T05:20:21.932139+00:00",
+        "checked_at": "2026-09-03T14:17:09.301303+00:00",
         "name": "AzureHound",
         "reason": "binary not found",
         "resolved_path": "",
@@ -305,7 +307,7 @@
       "runner_profile": "arsenal-linux",
       "runtime": {
         "binary": "bandit",
-        "checked_at": "2026-08-28T05:20:21.932339+00:00",
+        "checked_at": "2026-09-03T14:17:09.301563+00:00",
         "name": "Bandit",
         "reason": "healthy",
         "resolved_path": "/usr/local/bin/bandit",
@@ -360,7 +362,7 @@
       "runner_profile": "arsenal-firmware",
       "runtime": {
         "binary": "binwalk",
-        "checked_at": "2026-08-28T05:20:22.166052+00:00",
+        "checked_at": "2026-09-03T14:17:09.477965+00:00",
         "name": "binwalk",
         "reason": "healthy",
         "resolved_path": "/usr/bin/binwalk",
@@ -419,7 +421,7 @@
       "runner_profile": "arsenal-linux",
       "runtime": {
         "binary": "brakeman",
-        "checked_at": "2026-08-28T05:20:22.295783+00:00",
+        "checked_at": "2026-09-03T14:17:09.567482+00:00",
         "name": "Brakeman",
         "reason": "healthy",
         "resolved_path": "/usr/local/bin/brakeman",
@@ -474,7 +476,7 @@
       "runner_profile": "arsenal-binary",
       "runtime": {
         "binary": "capa",
-        "checked_at": "2026-08-28T05:20:22.371614+00:00",
+        "checked_at": "2026-09-03T14:17:09.666518+00:00",
         "name": "capa",
         "reason": "healthy",
         "resolved_path": "/opt/venvs/capa/bin/capa",
@@ -541,7 +543,7 @@
       "runner_profile": "arsenal-linux",
       "runtime": {
         "binary": "checkov",
-        "checked_at": "2026-08-28T05:20:22.746298+00:00",
+        "checked_at": "2026-09-03T14:17:09.982891+00:00",
         "name": "Checkov",
         "reason": "healthy",
         "resolved_path": "/usr/local/bin/checkov",
@@ -595,7 +597,7 @@
       "runner_profile": "arsenal-macos-ios",
       "runtime": {
         "binary": "class-dump",
-        "checked_at": "2026-08-28T05:20:25.047206+00:00",
+        "checked_at": "2026-09-03T14:17:12.410330+00:00",
         "name": "class-dump",
         "reason": "binary not found",
         "resolved_path": "",
@@ -629,9 +631,13 @@
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
-      "expected_versions": [],
+      "expected_versions": [
+        "0.7.0"
+      ],
       "external": true,
-      "fixture_executable_capabilities": [],
+      "fixture_executable_capabilities": [
+        "asset:cloudsplaining/aws-iam-risk-analysis"
+      ],
       "fixture_providers": [
         "fixture:asset:cloudsplaining:aws-iam-risk-analysis"
       ],
@@ -643,7 +649,7 @@
       "runner_profile": "arsenal-cloud-lab",
       "runtime": {
         "binary": "cloudsplaining",
-        "checked_at": "2026-08-28T05:20:25.047408+00:00",
+        "checked_at": "2026-09-03T14:17:12.410587+00:00",
         "name": "Cloudsplaining",
         "reason": "healthy",
         "resolved_path": "/usr/local/bin/cloudsplaining",
@@ -673,11 +679,13 @@
       "capability_ids": [
         "asset:codeql/cross-file-dataflow"
       ],
-      "current_state": "UNAVAILABLE",
+      "current_state": "WAITING_FOR_PREREQUISITE",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
-      "expected_versions": [],
+      "expected_versions": [
+        "2.26.4"
+      ],
       "external": true,
       "fixture_executable_capabilities": [
         "asset:codeql/cross-file-dataflow"
@@ -693,13 +701,13 @@
       "runner_profile": "arsenal-linux",
       "runtime": {
         "binary": "codeql",
-        "checked_at": "2026-08-28T05:20:25.648914+00:00",
+        "checked_at": "2026-09-03T14:17:12.961580+00:00",
         "name": "CodeQL",
-        "reason": "binary not found",
-        "resolved_path": "",
-        "sha256": "",
-        "status": "unavailable",
-        "version": ""
+        "reason": "healthy",
+        "resolved_path": "/opt/codeql/codeql",
+        "sha256": "5c905275695b4efcaa02ea380f6e60b01310fa3dff0fa8c442bf0638bb46055a",
+        "status": "ready",
+        "version": "CodeQL command-line toolchain release 2.26.4."
       },
       "source_registries": [
         "deep_asset_capabilities"
@@ -746,7 +754,7 @@
       "runner_profile": "arsenal-linux",
       "runtime": {
         "binary": "detect-secrets",
-        "checked_at": "2026-08-28T05:20:25.649143+00:00",
+        "checked_at": "2026-09-03T14:17:14.008835+00:00",
         "name": "detect-secrets",
         "reason": "healthy",
         "resolved_path": "/usr/local/bin/detect-secrets",
@@ -777,13 +785,17 @@
       "capability_ids": [
         "asset:dnsx/dns-resolution-and-wildcard-filtering"
       ],
-      "current_state": "UNAVAILABLE",
+      "current_state": "WAITING_FOR_PREREQUISITE",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
-      "expected_versions": [],
+      "expected_versions": [
+        "1.2.2"
+      ],
       "external": true,
-      "fixture_executable_capabilities": [],
+      "fixture_executable_capabilities": [
+        "asset:dnsx/dns-resolution-and-wildcard-filtering"
+      ],
       "fixture_providers": [
         "fixture:asset:dnsx:dns-resolution-and-wildcard-filtering"
       ],
@@ -795,13 +807,13 @@
       "runner_profile": "arsenal-network-lab",
       "runtime": {
         "binary": "dnsx",
-        "checked_at": "2026-08-28T05:20:25.888751+00:00",
+        "checked_at": "2026-09-03T14:17:14.204937+00:00",
         "name": "dnsx",
-        "reason": "binary not found",
-        "resolved_path": "",
-        "sha256": "",
-        "status": "unavailable",
-        "version": ""
+        "reason": "healthy",
+        "resolved_path": "/root/go/bin/dnsx",
+        "sha256": "c1f63a09fc034a6ca370908f563a37f4ed2f5209f4525ed957df8df4cc0f45a8",
+        "status": "ready",
+        "version": "_             __  __"
       },
       "source_registries": [
         "deep_asset_capabilities"
@@ -847,7 +859,7 @@
       "runner_profile": "arsenal-smart-contract",
       "runtime": {
         "binary": "echidna",
-        "checked_at": "2026-08-28T05:20:25.888939+00:00",
+        "checked_at": "2026-09-03T14:17:14.264258+00:00",
         "name": "Echidna",
         "reason": "healthy",
         "resolved_path": "/usr/local/bin/echidna",
@@ -897,7 +909,7 @@
       "runner_profile": "arsenal-firmware",
       "runtime": {
         "binary": "firmadyne",
-        "checked_at": "2026-08-28T05:20:25.923929+00:00",
+        "checked_at": "2026-09-03T14:17:14.300298+00:00",
         "name": "Firmadyne",
         "reason": "binary not found",
         "resolved_path": "",
@@ -947,7 +959,7 @@
       "runner_profile": "arsenal-firmware",
       "runtime": {
         "binary": "firmae",
-        "checked_at": "2026-08-28T05:20:25.924208+00:00",
+        "checked_at": "2026-09-03T14:17:14.300566+00:00",
         "name": "FirmAE",
         "reason": "binary not found",
         "resolved_path": "",
@@ -979,11 +991,13 @@
       "capability_ids": [
         "asset:floss/static-string-deobfuscation"
       ],
-      "current_state": "UNAVAILABLE",
+      "current_state": "WAITING_FOR_PREREQUISITE",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
-      "expected_versions": [],
+      "expected_versions": [
+        "3.1.1"
+      ],
       "external": true,
       "fixture_executable_capabilities": [
         "asset:floss/static-string-deobfuscation"
@@ -999,13 +1013,13 @@
       "runner_profile": "arsenal-binary",
       "runtime": {
         "binary": "floss",
-        "checked_at": "2026-08-28T05:20:25.924327+00:00",
+        "checked_at": "2026-09-03T14:17:14.300788+00:00",
         "name": "FLOSS",
-        "reason": "binary not found",
-        "resolved_path": "",
-        "sha256": "",
-        "status": "unavailable",
-        "version": ""
+        "reason": "healthy",
+        "resolved_path": "/usr/local/bin/floss",
+        "sha256": "d71b9ea4fe3b2de974dc1ae3c5d0f67569921bc118dcb02ed72e905a662411cb",
+        "status": "ready",
+        "version": "floss v3.1.1-0-g3cd3ee6"
       },
       "source_registries": [
         "deep_asset_capabilities"
@@ -1051,7 +1065,7 @@
       "runner_profile": "arsenal-smart-contract",
       "runtime": {
         "binary": "forge",
-        "checked_at": "2026-08-28T05:20:25.924437+00:00",
+        "checked_at": "2026-09-03T14:17:15.115676+00:00",
         "name": "Foundry",
         "reason": "healthy",
         "resolved_path": "/usr/local/bin/forge",
@@ -1108,7 +1122,7 @@
       "runner_profile": "arsenal-android",
       "runtime": {
         "binary": "frida",
-        "checked_at": "2026-08-28T05:20:26.019258+00:00",
+        "checked_at": "2026-09-03T14:17:15.195682+00:00",
         "name": "Frida",
         "reason": "binary not found",
         "resolved_path": "",
@@ -1138,13 +1152,15 @@
       "capability_ids": [
         "asset:garak/llm-security-probing"
       ],
-      "current_state": "UNAVAILABLE",
+      "current_state": "WAITING_FOR_PREREQUISITE",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
       "expected_versions": [],
       "external": true,
-      "fixture_executable_capabilities": [],
+      "fixture_executable_capabilities": [
+        "asset:garak/llm-security-probing"
+      ],
       "fixture_providers": [
         "fixture:asset:garak:llm-security-probing"
       ],
@@ -1156,13 +1172,13 @@
       "runner_profile": "arsenal-linux",
       "runtime": {
         "binary": "garak",
-        "checked_at": "2026-08-28T05:20:26.019554+00:00",
+        "checked_at": "2026-09-03T14:17:15.195972+00:00",
         "name": "garak",
-        "reason": "binary not found",
-        "resolved_path": "",
-        "sha256": "",
-        "status": "unavailable",
-        "version": ""
+        "reason": "healthy",
+        "resolved_path": "/usr/local/bin/garak",
+        "sha256": "2dda1ca177505427e1404426625ac96a9a52588f962ab3e9494879dc16880f87",
+        "status": "ready",
+        "version": "garak LLM vulnerability scanner v0.16.0 ( https://github.com/NVIDIA/garak ) at 2026-09-03T14:17:15.264182"
       },
       "source_registries": [
         "deep_asset_capabilities"
@@ -1202,7 +1218,7 @@
       "runner_profile": "arsenal-network-lab",
       "runtime": {
         "binary": "gau",
-        "checked_at": "2026-08-28T05:20:26.019705+00:00",
+        "checked_at": "2026-09-03T14:17:15.707867+00:00",
         "name": "gau",
         "reason": "binary not found",
         "resolved_path": "",
@@ -1271,7 +1287,7 @@
       "runner_profile": "arsenal-linux",
       "runtime": {
         "binary": "gitleaks",
-        "checked_at": "2026-08-28T05:20:26.019875+00:00",
+        "checked_at": "2026-09-03T14:17:15.708120+00:00",
         "name": "gitleaks",
         "reason": "healthy",
         "resolved_path": "/usr/local/bin/gitleaks",
@@ -1333,11 +1349,11 @@
       "runner_profile": "arsenal-linux",
       "runtime": {
         "binary": "gosec",
-        "checked_at": "2026-08-28T05:20:26.031541+00:00",
+        "checked_at": "2026-09-03T14:17:15.720314+00:00",
         "name": "gosec",
         "reason": "healthy",
         "resolved_path": "/root/go/bin/gosec",
-        "sha256": "f7baa2053a48c3c6efdeded9f114533ad13e9eac1677991d2d8313557260834b",
+        "sha256": "940e888a7cdcfaa58876795ca907773458e72a78e7e2c7cbfc111140126fc26f",
         "status": "ready",
         "version": "Version: dev"
       },
@@ -1386,7 +1402,7 @@
       "runner_profile": "arsenal-network-lab",
       "runtime": {
         "binary": "grpcurl",
-        "checked_at": "2026-08-28T05:20:26.112367+00:00",
+        "checked_at": "2026-09-03T14:17:15.790798+00:00",
         "name": "grpcurl",
         "reason": "healthy",
         "resolved_path": "/usr/local/bin/grpcurl",
@@ -1452,7 +1468,7 @@
       "runner_profile": "arsenal-linux",
       "runtime": {
         "binary": "grype",
-        "checked_at": "2026-08-28T05:20:26.139709+00:00",
+        "checked_at": "2026-09-03T14:17:15.816422+00:00",
         "name": "grype",
         "reason": "healthy",
         "resolved_path": "/usr/local/bin/grype",
@@ -1470,52 +1486,7 @@
     },
     {
       "adapter_versions": [
-        "1.6.9"
-      ],
-      "architecture": "x86_64",
-      "asset_classes": [],
-      "backend_id": "external:http-probe",
-      "backend_runtime_id": "http-probe/network-lab",
-      "binary": "http-probe",
-      "capability_count": 1,
-      "capability_ids": [
-        "adapter:http-probe/passive-discovery"
-      ],
-      "current_state": "UNAVAILABLE",
-      "executor_providers": [
-        "adapter:http-probe"
-      ],
-      "expected_versions": [
-        "1.6.9"
-      ],
-      "external": true,
-      "fixture_executable_capabilities": [],
-      "fixture_providers": [],
-      "implementation_paths": [
-        "src/aegis/adapters"
-      ],
-      "installation_source": "resolved executable/runtime probe",
-      "prerequisite": "",
-      "runner_profile": "arsenal-network-lab",
-      "runtime": {
-        "binary": "http-probe",
-        "checked_at": "2026-08-28T05:20:26.239827+00:00",
-        "name": "http-probe",
-        "reason": "binary not found",
-        "resolved_path": "",
-        "sha256": "",
-        "status": "unavailable",
-        "version": ""
-      },
-      "source_registries": [
-        "adapter_manifests"
-      ],
-      "tool_names": [
-        "http-probe"
-      ]
-    },
-    {
-      "adapter_versions": [
+        "1.6.9",
         "deep-asset/1"
       ],
       "architecture": "x86_64",
@@ -1529,16 +1500,19 @@
       "backend_id": "external:httpx",
       "backend_runtime_id": "httpx/network-lab",
       "binary": "httpx",
-      "capability_count": 1,
+      "capability_count": 2,
       "capability_ids": [
+        "adapter:http-probe/passive-discovery",
         "asset:httpx/http-service-enrichment"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
       "executor_providers": [
+        "adapter:http-probe",
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
       "expected_versions": [
-        "1.10.0"
+        "1.10.0",
+        "1.6.9"
       ],
       "external": true,
       "fixture_executable_capabilities": [
@@ -1548,6 +1522,7 @@
         "fixture:asset:httpx:http-service-enrichment"
       ],
       "implementation_paths": [
+        "src/aegis/adapters",
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
@@ -1555,8 +1530,8 @@
       "runner_profile": "arsenal-network-lab",
       "runtime": {
         "binary": "httpx",
-        "checked_at": "2026-08-28T05:20:26.240024+00:00",
-        "name": "httpx",
+        "checked_at": "2026-09-03T14:17:15.910663+00:00",
+        "name": "http-probe",
         "reason": "healthy",
         "resolved_path": "/usr/local/bin/httpx",
         "sha256": "8af0465bcb45283815fde9f9dd46c1590b42462e0c4480671bcc1d24e5f68951",
@@ -1564,9 +1539,11 @@
         "version": "__    __  __       _  __"
       },
       "source_registries": [
+        "adapter_manifests",
         "deep_asset_capabilities"
       ],
       "tool_names": [
+        "http-probe",
         "httpx"
       ]
     },
@@ -1586,11 +1563,13 @@
       "capability_ids": [
         "asset:jadx/android-decompile"
       ],
-      "current_state": "UNAVAILABLE",
+      "current_state": "WAITING_FOR_PREREQUISITE",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
-      "expected_versions": [],
+      "expected_versions": [
+        "1.5.6"
+      ],
       "external": true,
       "fixture_executable_capabilities": [
         "asset:jadx/android-decompile"
@@ -1606,13 +1585,13 @@
       "runner_profile": "arsenal-android",
       "runtime": {
         "binary": "jadx",
-        "checked_at": "2026-08-28T05:20:26.358426+00:00",
+        "checked_at": "2026-09-03T14:17:16.031967+00:00",
         "name": "jadx",
-        "reason": "binary not found",
-        "resolved_path": "",
-        "sha256": "",
-        "status": "unavailable",
-        "version": ""
+        "reason": "healthy",
+        "resolved_path": "/opt/jadx/bin/jadx",
+        "sha256": "6b732b576bf8dc554278beb94ce006f9549ac898eff975d83548f87244961f13",
+        "status": "ready",
+        "version": "1.5.6"
       },
       "source_registries": [
         "deep_asset_capabilities"
@@ -1634,7 +1613,7 @@
       "capability_ids": [
         "adapter:jsluice/passive-discovery"
       ],
-      "current_state": "UNAVAILABLE",
+      "current_state": "WAITING_FOR_PREREQUISITE",
       "executor_providers": [
         "adapter:jsluice"
       ],
@@ -1642,8 +1621,12 @@
         "0.0.3"
       ],
       "external": true,
-      "fixture_executable_capabilities": [],
-      "fixture_providers": [],
+      "fixture_executable_capabilities": [
+        "adapter:jsluice/passive-discovery"
+      ],
+      "fixture_providers": [
+        "fixture:adapter:jsluice"
+      ],
       "implementation_paths": [
         "src/aegis/adapters"
       ],
@@ -1652,13 +1635,13 @@
       "runner_profile": "arsenal-linux",
       "runtime": {
         "binary": "jsluice",
-        "checked_at": "2026-08-28T05:20:26.358636+00:00",
+        "checked_at": "2026-09-03T14:17:16.445430+00:00",
         "name": "jsluice",
-        "reason": "binary not found",
-        "resolved_path": "",
-        "sha256": "",
-        "status": "unavailable",
-        "version": ""
+        "reason": "healthy",
+        "resolved_path": "/root/go/bin/jsluice",
+        "sha256": "8333c2076fffe77c54bda7647202970d11430bcb29c7eaf0b33a916d18298aeb",
+        "status": "ready",
+        "version": "jsluice - Extract URLs, paths, and secrets from JavaScript files"
       },
       "source_registries": [
         "adapter_manifests"
@@ -1686,7 +1669,7 @@
         "adapter:katana/passive-discovery",
         "asset:katana/scoped-endpoint-crawl"
       ],
-      "current_state": "UNAVAILABLE",
+      "current_state": "WAITING_FOR_PREREQUISITE",
       "executor_providers": [
         "adapter:katana",
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
@@ -1695,7 +1678,9 @@
         "1.1.0"
       ],
       "external": true,
-      "fixture_executable_capabilities": [],
+      "fixture_executable_capabilities": [
+        "asset:katana/scoped-endpoint-crawl"
+      ],
       "fixture_providers": [
         "fixture:asset:katana:scoped-endpoint-crawl"
       ],
@@ -1708,13 +1693,13 @@
       "runner_profile": "arsenal-network-lab",
       "runtime": {
         "binary": "katana",
-        "checked_at": "2026-08-28T05:20:26.358752+00:00",
+        "checked_at": "2026-09-03T14:17:16.457675+00:00",
         "name": "katana",
-        "reason": "binary not found",
-        "resolved_path": "",
-        "sha256": "",
-        "status": "unavailable",
-        "version": ""
+        "reason": "healthy",
+        "resolved_path": "/root/go/bin/katana",
+        "sha256": "dc06bac76b6976dcf800c57ddb0a0bab4ee66fcf9940df5f35239511dd3aaa62",
+        "status": "ready",
+        "version": "__        __                "
       },
       "source_registries": [
         "adapter_manifests",
@@ -1765,7 +1750,7 @@
       "runner_profile": "arsenal-linux",
       "runtime": {
         "binary": "kics",
-        "checked_at": "2026-08-28T05:20:26.358863+00:00",
+        "checked_at": "2026-09-03T14:17:16.522783+00:00",
         "name": "KICS",
         "reason": "healthy",
         "resolved_path": "/opt/kics/kics",
@@ -1795,13 +1780,15 @@
       "capability_ids": [
         "asset:kubescape/kubernetes-posture-and-runtime-scan"
       ],
-      "current_state": "UNAVAILABLE",
+      "current_state": "WAITING_FOR_PREREQUISITE",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
       "expected_versions": [],
       "external": true,
-      "fixture_executable_capabilities": [],
+      "fixture_executable_capabilities": [
+        "asset:kubescape/kubernetes-posture-and-runtime-scan"
+      ],
       "fixture_providers": [
         "fixture:asset:kubescape:kubernetes-posture-and-runtime-scan"
       ],
@@ -1813,13 +1800,13 @@
       "runner_profile": "arsenal-kubernetes",
       "runtime": {
         "binary": "kubescape",
-        "checked_at": "2026-08-28T05:20:26.503560+00:00",
+        "checked_at": "2026-09-03T14:17:16.661307+00:00",
         "name": "Kubescape",
-        "reason": "binary not found",
-        "resolved_path": "",
-        "sha256": "",
-        "status": "unavailable",
-        "version": ""
+        "reason": "healthy",
+        "resolved_path": "/usr/local/bin/kubescape",
+        "sha256": "58e9840d26a3d37fc86dd1b9ee41b085ec7d3e67a56833b66d2a716792af61fa",
+        "status": "ready",
+        "version": "Your current version is: v4.0.12"
       },
       "source_registries": [
         "deep_asset_capabilities"
@@ -1846,13 +1833,17 @@
       "capability_ids": [
         "asset:mitmproxy/authorized-http-traffic-capture"
       ],
-      "current_state": "UNAVAILABLE",
+      "current_state": "WAITING_FOR_PREREQUISITE",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
-      "expected_versions": [],
+      "expected_versions": [
+        "12.2.3"
+      ],
       "external": true,
-      "fixture_executable_capabilities": [],
+      "fixture_executable_capabilities": [
+        "asset:mitmproxy/authorized-http-traffic-capture"
+      ],
       "fixture_providers": [
         "fixture:asset:mitmproxy:authorized-http-traffic-capture"
       ],
@@ -1864,13 +1855,13 @@
       "runner_profile": "arsenal-network-lab",
       "runtime": {
         "binary": "mitmproxy",
-        "checked_at": "2026-08-28T05:20:26.503751+00:00",
+        "checked_at": "2026-09-03T14:17:16.963072+00:00",
         "name": "mitmproxy",
-        "reason": "binary not found",
-        "resolved_path": "",
-        "sha256": "",
-        "status": "unavailable",
-        "version": ""
+        "reason": "healthy",
+        "resolved_path": "/opt/venvs/mitmproxy/bin/mitmproxy",
+        "sha256": "80bef1ff69a79eeeda773258b212b1b5b5995ef977c6f298e2c06fa45e3cf1d0",
+        "status": "ready",
+        "version": "Mitmproxy: 12.2.3"
       },
       "source_registries": [
         "deep_asset_capabilities"
@@ -1919,7 +1910,7 @@
       "runner_profile": "arsenal-android",
       "runtime": {
         "binary": "mobsf",
-        "checked_at": "2026-08-28T05:20:26.503861+00:00",
+        "checked_at": "2026-09-03T14:17:17.756717+00:00",
         "name": "MobSF",
         "reason": "binary not found",
         "resolved_path": "",
@@ -1971,7 +1962,7 @@
       "runner_profile": "arsenal-linux",
       "runtime": {
         "binary": "modelscan",
-        "checked_at": "2026-08-28T05:20:26.503968+00:00",
+        "checked_at": "2026-09-03T14:17:17.757008+00:00",
         "name": "ModelScan",
         "reason": "healthy",
         "resolved_path": "/usr/local/bin/modelscan",
@@ -2036,7 +2027,7 @@
       "runner_profile": "arsenal-smart-contract",
       "runtime": {
         "binary": "myth",
-        "checked_at": "2026-08-28T05:20:26.801116+00:00",
+        "checked_at": "2026-09-03T14:17:17.920421+00:00",
         "name": "Mythril",
         "reason": "healthy",
         "resolved_path": "/opt/aegis-tools/mythril/bin/myth",
@@ -2092,7 +2083,7 @@
       "runner_profile": "arsenal-network-lab",
       "runtime": {
         "binary": "naabu",
-        "checked_at": "2026-08-28T05:20:32.231633+00:00",
+        "checked_at": "2026-09-03T14:17:23.734529+00:00",
         "name": "naabu",
         "reason": "healthy",
         "resolved_path": "/usr/local/bin/naabu",
@@ -2145,7 +2136,7 @@
       "runner_profile": "arsenal-linux",
       "runtime": {
         "binary": "njsscan",
-        "checked_at": "2026-08-28T05:20:32.951282+00:00",
+        "checked_at": "2026-09-03T14:17:23.877152+00:00",
         "name": "njsscan",
         "reason": "healthy",
         "resolved_path": "/opt/aegis-tools/njsscan/bin/njsscan",
@@ -2205,7 +2196,7 @@
       "runner_profile": "arsenal-network-lab",
       "runtime": {
         "binary": "nmap",
-        "checked_at": "2026-08-28T05:20:33.280627+00:00",
+        "checked_at": "2026-09-03T14:17:24.123868+00:00",
         "name": "nmap",
         "reason": "healthy",
         "resolved_path": "/usr/bin/nmap",
@@ -2258,13 +2249,13 @@
       "runner_profile": "arsenal-linux",
       "runtime": {
         "binary": "npm",
-        "checked_at": "2026-08-28T05:20:33.286668+00:00",
+        "checked_at": "2026-09-03T14:17:24.132917+00:00",
         "name": "npm",
         "reason": "healthy",
-        "resolved_path": "/usr/share/nodejs/npm/bin/npm-cli.js",
+        "resolved_path": "/usr/local/lib/node_modules/npm/bin/npm-cli.js",
         "sha256": "8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7",
         "status": "ready",
-        "version": "9.2.0"
+        "version": "10.9.4"
       },
       "source_registries": [
         "deep_asset_capabilities"
@@ -2292,13 +2283,17 @@
       "capability_ids": [
         "asset:nuclei/signed-safe-template-validation"
       ],
-      "current_state": "UNAVAILABLE",
+      "current_state": "WAITING_FOR_PREREQUISITE",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
-      "expected_versions": [],
+      "expected_versions": [
+        "3.3.0"
+      ],
       "external": true,
-      "fixture_executable_capabilities": [],
+      "fixture_executable_capabilities": [
+        "asset:nuclei/signed-safe-template-validation"
+      ],
       "fixture_providers": [
         "fixture:asset:nuclei:signed-safe-template-validation"
       ],
@@ -2310,13 +2305,13 @@
       "runner_profile": "arsenal-network-lab",
       "runtime": {
         "binary": "nuclei",
-        "checked_at": "2026-08-28T05:20:33.605602+00:00",
+        "checked_at": "2026-09-03T14:17:24.217987+00:00",
         "name": "nuclei",
-        "reason": "binary not found",
-        "resolved_path": "",
-        "sha256": "",
-        "status": "unavailable",
-        "version": ""
+        "reason": "healthy",
+        "resolved_path": "/usr/local/bin/nuclei",
+        "sha256": "b22286190c5458f3f2e9d173d81d7f82884d5d15067efb5fb60a2176b55f4058",
+        "status": "ready",
+        "version": "[\u001b[34mINF\u001b[0m] Nuclei Engine Version: v3.3.0[\u001b[34mINF\u001b[0m] Nuclei Config Directory: /root/.config/nuclei[\u001b[34mINF\u001b[0m] Nuclei Cache Directory: /root/.cache/nuclei[\u001b[34mINF\u001b[0m] PDCP Directory: /root/.pdcp"
       },
       "source_registries": [
         "deep_asset_capabilities"
@@ -2367,7 +2362,7 @@
       "runner_profile": "arsenal-android",
       "runtime": {
         "binary": "objection",
-        "checked_at": "2026-08-28T05:20:33.605778+00:00",
+        "checked_at": "2026-09-03T14:17:24.324449+00:00",
         "name": "objection",
         "reason": "binary not found",
         "resolved_path": "",
@@ -2434,7 +2429,7 @@
       "runner_profile": "arsenal-linux",
       "runtime": {
         "binary": "osv-scanner",
-        "checked_at": "2026-08-28T05:20:33.605903+00:00",
+        "checked_at": "2026-09-03T14:17:24.324707+00:00",
         "name": "osv-scanner",
         "reason": "healthy",
         "resolved_path": "/usr/local/bin/osv-scanner",
@@ -2488,7 +2483,7 @@
       "runner_profile": "arsenal-macos-ios",
       "runtime": {
         "binary": "otool",
-        "checked_at": "2026-08-28T05:20:33.705209+00:00",
+        "checked_at": "2026-09-03T14:17:24.430015+00:00",
         "name": "otool",
         "reason": "binary not found",
         "resolved_path": "",
@@ -2541,7 +2536,7 @@
       "runner_profile": "arsenal-binary",
       "runtime": {
         "binary": "pefile",
-        "checked_at": "2026-08-28T05:20:33.705400+00:00",
+        "checked_at": "2026-09-03T14:17:24.430267+00:00",
         "name": "pefile",
         "reason": "healthy",
         "resolved_path": "/usr/local/bin/pefile",
@@ -2571,11 +2566,13 @@
       "capability_ids": [
         "asset:pip-audit/python-dependency-vulnerability-analysis"
       ],
-      "current_state": "UNAVAILABLE",
+      "current_state": "WAITING_FOR_PREREQUISITE",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
-      "expected_versions": [],
+      "expected_versions": [
+        "2.10.1"
+      ],
       "external": true,
       "fixture_executable_capabilities": [
         "asset:pip-audit/python-dependency-vulnerability-analysis"
@@ -2591,13 +2588,13 @@
       "runner_profile": "arsenal-linux",
       "runtime": {
         "binary": "pip-audit",
-        "checked_at": "2026-08-28T05:20:33.762384+00:00",
+        "checked_at": "2026-09-03T14:17:24.473614+00:00",
         "name": "pip-audit",
-        "reason": "binary not found",
-        "resolved_path": "",
-        "sha256": "",
-        "status": "unavailable",
-        "version": ""
+        "reason": "healthy",
+        "resolved_path": "/opt/venvs/pip-audit/bin/pip-audit",
+        "sha256": "4fe2b7c2c97b987786a1bb877721ba156a8623c89db492d989cc838373974166",
+        "status": "ready",
+        "version": "pip-audit 2.10.1"
       },
       "source_registries": [
         "deep_asset_capabilities"
@@ -2625,13 +2622,17 @@
       "capability_ids": [
         "asset:playwright/authenticated-browser-traffic-learning"
       ],
-      "current_state": "UNAVAILABLE",
+      "current_state": "WAITING_FOR_PREREQUISITE",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
-      "expected_versions": [],
+      "expected_versions": [
+        "1.60.0"
+      ],
       "external": true,
-      "fixture_executable_capabilities": [],
+      "fixture_executable_capabilities": [
+        "asset:playwright/authenticated-browser-traffic-learning"
+      ],
       "fixture_providers": [
         "fixture:asset:playwright:authenticated-browser-traffic-learning"
       ],
@@ -2643,13 +2644,13 @@
       "runner_profile": "arsenal-linux",
       "runtime": {
         "binary": "playwright",
-        "checked_at": "2026-08-28T05:20:33.762569+00:00",
+        "checked_at": "2026-09-03T14:17:25.043531+00:00",
         "name": "Playwright",
-        "reason": "binary not found",
-        "resolved_path": "",
-        "sha256": "",
-        "status": "unavailable",
-        "version": ""
+        "reason": "healthy",
+        "resolved_path": "/usr/local/lib/node_modules/@playwright/test/cli.js",
+        "sha256": "79e23e6a249176295b8490567daa7717448a75866d6ea6f6b296ff3d23305c69",
+        "status": "ready",
+        "version": "Version 1.60.0"
       },
       "source_registries": [
         "deep_asset_capabilities"
@@ -2673,13 +2674,17 @@
       "capability_ids": [
         "asset:promptfoo/ai-red-team-evaluation"
       ],
-      "current_state": "UNAVAILABLE",
+      "current_state": "WAITING_FOR_PREREQUISITE",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
-      "expected_versions": [],
+      "expected_versions": [
+        "0.122.2"
+      ],
       "external": true,
-      "fixture_executable_capabilities": [],
+      "fixture_executable_capabilities": [
+        "asset:promptfoo/ai-red-team-evaluation"
+      ],
       "fixture_providers": [
         "fixture:asset:promptfoo:ai-red-team-evaluation"
       ],
@@ -2691,13 +2696,13 @@
       "runner_profile": "arsenal-linux",
       "runtime": {
         "binary": "promptfoo",
-        "checked_at": "2026-08-28T05:20:33.762684+00:00",
+        "checked_at": "2026-09-03T14:17:25.579689+00:00",
         "name": "promptfoo",
-        "reason": "binary not found",
-        "resolved_path": "",
-        "sha256": "",
-        "status": "unavailable",
-        "version": ""
+        "reason": "healthy",
+        "resolved_path": "/usr/local/lib/node_modules/promptfoo/dist/src/entrypoint.js",
+        "sha256": "b1f2d2cbe07ef2308d6e3eea067789d86c4e97d664636f3d1250f74a8ac04003",
+        "status": "ready",
+        "version": "0.122.2"
       },
       "source_registries": [
         "deep_asset_capabilities"
@@ -2742,7 +2747,7 @@
       "runner_profile": "arsenal-cloud-lab",
       "runtime": {
         "binary": "prowler",
-        "checked_at": "2026-08-28T05:20:33.762901+00:00",
+        "checked_at": "2026-09-03T14:17:27.339989+00:00",
         "name": "Prowler",
         "reason": "binary not found",
         "resolved_path": "",
@@ -2795,7 +2800,7 @@
       "runner_profile": "arsenal-linux",
       "runtime": {
         "binary": "psalm",
-        "checked_at": "2026-08-28T05:20:33.763008+00:00",
+        "checked_at": "2026-09-03T14:17:27.340249+00:00",
         "name": "psalm",
         "reason": "healthy",
         "resolved_path": "/root/.composer/vendor/bin/psalm",
@@ -2826,13 +2831,15 @@
       "capability_ids": [
         "asset:pyrit/generative-ai-risk-identification"
       ],
-      "current_state": "UNAVAILABLE",
+      "current_state": "WAITING_FOR_PREREQUISITE",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
       "expected_versions": [],
       "external": true,
-      "fixture_executable_capabilities": [],
+      "fixture_executable_capabilities": [
+        "asset:pyrit/generative-ai-risk-identification"
+      ],
       "fixture_providers": [
         "fixture:asset:pyrit:generative-ai-risk-identification"
       ],
@@ -2844,13 +2851,13 @@
       "runner_profile": "arsenal-linux",
       "runtime": {
         "binary": "pyrit",
-        "checked_at": "2026-08-28T05:20:33.781061+00:00",
+        "checked_at": "2026-09-03T14:17:27.370007+00:00",
         "name": "PyRIT",
-        "reason": "binary not found",
-        "resolved_path": "",
-        "sha256": "",
-        "status": "unavailable",
-        "version": ""
+        "reason": "healthy",
+        "resolved_path": "/usr/local/bin/pyrit",
+        "sha256": "dcb9a675cbd036a7f82f67f3769e5e1936d56e43ebbd33d02e6860afa0a2d2d4",
+        "status": "ready",
+        "version": "1.0.1"
       },
       "source_registries": [
         "deep_asset_capabilities"
@@ -2874,11 +2881,13 @@
       "capability_ids": [
         "asset:restler/stateful-openapi-sequence-testing"
       ],
-      "current_state": "UNAVAILABLE",
+      "current_state": "WAITING_FOR_PREREQUISITE",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
-      "expected_versions": [],
+      "expected_versions": [
+        "9.3.1"
+      ],
       "external": true,
       "fixture_executable_capabilities": [
         "asset:restler/stateful-openapi-sequence-testing"
@@ -2894,13 +2903,13 @@
       "runner_profile": "arsenal-network-lab",
       "runtime": {
         "binary": "restler",
-        "checked_at": "2026-08-28T05:20:33.781291+00:00",
+        "checked_at": "2026-09-03T14:17:27.446168+00:00",
         "name": "RESTler",
-        "reason": "binary not found",
-        "resolved_path": "",
-        "sha256": "",
-        "status": "unavailable",
-        "version": ""
+        "reason": "healthy",
+        "resolved_path": "/usr/local/bin/restler",
+        "sha256": "44b8004b82c8898d4dbcb7af612ef25cdce85a03741d49d6d278c379749d8ed5",
+        "status": "ready",
+        "version": "RESTler 9.3.1"
       },
       "source_registries": [
         "deep_asset_capabilities"
@@ -2947,7 +2956,7 @@
       "runner_profile": "arsenal-linux",
       "runtime": {
         "binary": "retire",
-        "checked_at": "2026-08-28T05:20:33.781391+00:00",
+        "checked_at": "2026-09-03T14:17:27.447984+00:00",
         "name": "retire.js",
         "reason": "healthy",
         "resolved_path": "/usr/local/lib/node_modules/retire/lib/cli.js",
@@ -2977,11 +2986,13 @@
       "capability_ids": [
         "asset:rizin/binary-reverse-engineering"
       ],
-      "current_state": "UNAVAILABLE",
+      "current_state": "WAITING_FOR_PREREQUISITE",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
-      "expected_versions": [],
+      "expected_versions": [
+        "0.9.1"
+      ],
       "external": true,
       "fixture_executable_capabilities": [
         "asset:rizin/binary-reverse-engineering"
@@ -2997,13 +3008,13 @@
       "runner_profile": "arsenal-binary",
       "runtime": {
         "binary": "rizin",
-        "checked_at": "2026-08-28T05:20:33.932421+00:00",
+        "checked_at": "2026-09-03T14:17:27.529014+00:00",
         "name": "Rizin",
-        "reason": "binary not found",
-        "resolved_path": "",
-        "sha256": "",
-        "status": "unavailable",
-        "version": ""
+        "reason": "healthy",
+        "resolved_path": "/opt/rizin/bin/rizin",
+        "sha256": "ab5614cf137608cffc5a3f4f471a91c995cfa7c0c35465bfb73876e5b95561ba",
+        "status": "ready",
+        "version": "-- Assemble opcodes with the 'a' and 'A' keys in visual mode, which are bindings to the 'wa' and 'wA' commands"
       },
       "source_registries": [
         "deep_asset_capabilities"
@@ -3045,7 +3056,7 @@
       "runner_profile": "arsenal-cloud-lab",
       "runtime": {
         "binary": "roadrecon",
-        "checked_at": "2026-08-28T05:20:33.932593+00:00",
+        "checked_at": "2026-09-03T14:17:27.614959+00:00",
         "name": "ROADtools",
         "reason": "binary not found",
         "resolved_path": "",
@@ -3100,7 +3111,7 @@
       "runner_profile": "arsenal-network-lab",
       "runtime": {
         "binary": "rustscan",
-        "checked_at": "2026-08-28T05:20:33.932754+00:00",
+        "checked_at": "2026-09-03T14:17:27.615788+00:00",
         "name": "RustScan",
         "reason": "healthy",
         "resolved_path": "/usr/local/bin/rustscan",
@@ -3156,7 +3167,7 @@
       "runner_profile": "arsenal-network-lab",
       "runtime": {
         "binary": "schemathesis",
-        "checked_at": "2026-08-28T05:20:33.937592+00:00",
+        "checked_at": "2026-09-03T14:17:27.629698+00:00",
         "name": "Schemathesis",
         "reason": "healthy",
         "resolved_path": "/opt/venvs/schemathesis/bin/schemathesis",
@@ -3186,13 +3197,15 @@
       "capability_ids": [
         "asset:openssf-scorecard/repository-supply-chain-posture"
       ],
-      "current_state": "UNAVAILABLE",
+      "current_state": "WAITING_FOR_PREREQUISITE",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
       "expected_versions": [],
       "external": true,
-      "fixture_executable_capabilities": [],
+      "fixture_executable_capabilities": [
+        "asset:openssf-scorecard/repository-supply-chain-posture"
+      ],
       "fixture_providers": [
         "fixture:asset:openssf-scorecard:repository-supply-chain-posture"
       ],
@@ -3204,13 +3217,13 @@
       "runner_profile": "arsenal-linux",
       "runtime": {
         "binary": "scorecard",
-        "checked_at": "2026-08-28T05:20:34.435177+00:00",
+        "checked_at": "2026-09-03T14:17:28.126045+00:00",
         "name": "OpenSSF Scorecard",
-        "reason": "binary not found",
-        "resolved_path": "",
-        "sha256": "",
-        "status": "unavailable",
-        "version": ""
+        "reason": "healthy",
+        "resolved_path": "/usr/local/bin/scorecard",
+        "sha256": "7db97dd0ab75863614ae5a86c9fb414418a2c0ff00f4a6b33b8806c7ed09efce",
+        "status": "ready",
+        "version": "OpenSSF Scorecard v5.5.0"
       },
       "source_registries": [
         "deep_asset_capabilities"
@@ -3255,7 +3268,7 @@
       "runner_profile": "arsenal-cloud-lab",
       "runtime": {
         "binary": "scout",
-        "checked_at": "2026-08-28T05:20:34.435446+00:00",
+        "checked_at": "2026-09-03T14:17:28.127868+00:00",
         "name": "ScoutSuite",
         "reason": "binary not found",
         "resolved_path": "",
@@ -3324,7 +3337,7 @@
       "runner_profile": "arsenal-linux",
       "runtime": {
         "binary": "semgrep",
-        "checked_at": "2026-08-28T05:20:34.435716+00:00",
+        "checked_at": "2026-09-03T14:17:28.128577+00:00",
         "name": "semgrep",
         "reason": "healthy",
         "resolved_path": "/usr/local/bin/semgrep",
@@ -3379,7 +3392,7 @@
       "runner_profile": "arsenal-linux",
       "runtime": {
         "binary": "skopeo",
-        "checked_at": "2026-08-28T05:20:36.017615+00:00",
+        "checked_at": "2026-09-03T14:17:29.659278+00:00",
         "name": "skopeo",
         "reason": "healthy",
         "resolved_path": "/usr/bin/skopeo",
@@ -3444,7 +3457,7 @@
       "runner_profile": "arsenal-smart-contract",
       "runtime": {
         "binary": "slither",
-        "checked_at": "2026-08-28T05:20:36.041215+00:00",
+        "checked_at": "2026-09-03T14:17:29.683275+00:00",
         "name": "slither",
         "reason": "healthy",
         "resolved_path": "/usr/local/bin/slither",
@@ -3498,7 +3511,7 @@
       "runner_profile": "arsenal-linux",
       "runtime": {
         "binary": "spotbugs",
-        "checked_at": "2026-08-28T05:20:36.460029+00:00",
+        "checked_at": "2026-09-03T14:17:30.058831+00:00",
         "name": "SpotBugs",
         "reason": "healthy",
         "resolved_path": "/opt/spotbugs/bin/spotbugs",
@@ -3531,13 +3544,17 @@
       "capability_ids": [
         "asset:ssh-audit/ssh-configuration-analysis"
       ],
-      "current_state": "UNAVAILABLE",
+      "current_state": "WAITING_FOR_PREREQUISITE",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
-      "expected_versions": [],
+      "expected_versions": [
+        "3.9.0"
+      ],
       "external": true,
-      "fixture_executable_capabilities": [],
+      "fixture_executable_capabilities": [
+        "asset:ssh-audit/ssh-configuration-analysis"
+      ],
       "fixture_providers": [
         "fixture:asset:ssh-audit:ssh-configuration-analysis"
       ],
@@ -3549,13 +3566,13 @@
       "runner_profile": "arsenal-network-lab",
       "runtime": {
         "binary": "ssh-audit",
-        "checked_at": "2026-08-28T05:20:40.758536+00:00",
+        "checked_at": "2026-09-03T14:17:33.904420+00:00",
         "name": "ssh-audit",
-        "reason": "binary not found",
-        "resolved_path": "",
-        "sha256": "",
-        "status": "unavailable",
-        "version": ""
+        "reason": "healthy",
+        "resolved_path": "/usr/local/bin/ssh-audit",
+        "sha256": "add7e0caf6366d8fcc8fb9d032a9022ef2bb84bc8cff65d337470475d74f4e84",
+        "status": "ready",
+        "version": "usage: ssh-audit [-h] [-4] [-6] [-b] [-c] [-d]"
       },
       "source_registries": [
         "deep_asset_capabilities"
@@ -3604,7 +3621,7 @@
       "runner_profile": "arsenal-network-lab",
       "runtime": {
         "binary": "subfinder",
-        "checked_at": "2026-08-28T05:20:40.758823+00:00",
+        "checked_at": "2026-09-03T14:17:33.985213+00:00",
         "name": "subfinder",
         "reason": "binary not found",
         "resolved_path": "",
@@ -3668,7 +3685,7 @@
       "runner_profile": "arsenal-linux",
       "runtime": {
         "binary": "syft",
-        "checked_at": "2026-08-28T05:20:40.758989+00:00",
+        "checked_at": "2026-09-03T14:17:33.985476+00:00",
         "name": "syft",
         "reason": "healthy",
         "resolved_path": "/usr/local/bin/syft",
@@ -3702,13 +3719,17 @@
       "capability_ids": [
         "asset:testssl-sh/tls-configuration-analysis"
       ],
-      "current_state": "UNAVAILABLE",
+      "current_state": "WAITING_FOR_PREREQUISITE",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
-      "expected_versions": [],
+      "expected_versions": [
+        "3.2.4"
+      ],
       "external": true,
-      "fixture_executable_capabilities": [],
+      "fixture_executable_capabilities": [
+        "asset:testssl-sh/tls-configuration-analysis"
+      ],
       "fixture_providers": [
         "fixture:asset:testssl-sh:tls-configuration-analysis"
       ],
@@ -3720,13 +3741,13 @@
       "runner_profile": "arsenal-network-lab",
       "runtime": {
         "binary": "testssl.sh",
-        "checked_at": "2026-08-28T05:20:40.908596+00:00",
+        "checked_at": "2026-09-03T14:17:34.095278+00:00",
         "name": "testssl.sh",
-        "reason": "binary not found",
-        "resolved_path": "",
-        "sha256": "",
-        "status": "unavailable",
-        "version": ""
+        "reason": "healthy",
+        "resolved_path": "/opt/testssl/testssl.sh",
+        "sha256": "9a42b203edaf8cfdd19cdca7c3cf16c78668bdc88cd656cf2cae0ec6e43129e4",
+        "status": "ready",
+        "version": "\u001b[1m"
       },
       "source_registries": [
         "deep_asset_capabilities"
@@ -3791,7 +3812,7 @@
       "runner_profile": "arsenal-linux",
       "runtime": {
         "binary": "trivy",
-        "checked_at": "2026-08-28T05:20:40.908889+00:00",
+        "checked_at": "2026-09-03T14:17:34.549872+00:00",
         "name": "trivy",
         "reason": "healthy",
         "resolved_path": "/usr/local/bin/trivy",
@@ -3845,7 +3866,7 @@
       "runner_profile": "arsenal-linux",
       "runtime": {
         "binary": "web-ext",
-        "checked_at": "2026-08-28T05:20:41.119869+00:00",
+        "checked_at": "2026-09-03T14:17:34.738776+00:00",
         "name": "web-ext",
         "reason": "healthy",
         "resolved_path": "/usr/local/lib/node_modules/web-ext/bin/web-ext.js",
@@ -3897,7 +3918,7 @@
       "runner_profile": "arsenal-network-lab",
       "runtime": {
         "binary": "websocat",
-        "checked_at": "2026-08-28T05:20:41.450511+00:00",
+        "checked_at": "2026-09-03T14:17:34.964968+00:00",
         "name": "websocat",
         "reason": "healthy",
         "resolved_path": "/usr/local/bin/websocat",
@@ -3951,7 +3972,7 @@
       "runner_profile": "arsenal-binary",
       "runtime": {
         "binary": "yara",
-        "checked_at": "2026-08-28T05:20:41.459009+00:00",
+        "checked_at": "2026-09-03T14:17:34.974293+00:00",
         "name": "YARA",
         "reason": "healthy",
         "resolved_path": "/usr/bin/yara",
@@ -4005,7 +4026,7 @@
       "runner_profile": "arsenal-linux",
       "runtime": {
         "binary": "zizmor",
-        "checked_at": "2026-08-28T05:20:41.461220+00:00",
+        "checked_at": "2026-09-03T14:17:34.977383+00:00",
         "name": "zizmor",
         "reason": "healthy",
         "resolved_path": "/usr/local/bin/zizmor",
@@ -4056,7 +4077,7 @@
       "runner_profile": "arsenal-core",
       "runtime": {
         "binary": "aegis-agent-permission-audit",
-        "checked_at": "2026-08-28T05:20:41.486037+00:00",
+        "checked_at": "2026-09-03T14:17:35.002690+00:00",
         "name": "aegis-agent-permission-audit",
         "reason": "internal adapter; external binary health is not applicable",
         "resolved_path": "internal-adapter",
@@ -4109,7 +4130,7 @@
       "runner_profile": "arsenal-core",
       "runtime": {
         "binary": "aegis-artifact-diff",
-        "checked_at": "2026-08-28T05:20:41.486065+00:00",
+        "checked_at": "2026-09-03T14:17:35.002727+00:00",
         "name": "aegis-artifact-diff",
         "reason": "internal adapter; external binary health is not applicable",
         "resolved_path": "internal-adapter",
@@ -4156,7 +4177,7 @@
       "runner_profile": "arsenal-core",
       "runtime": {
         "binary": "aegis-asar",
-        "checked_at": "2026-08-28T05:20:41.486079+00:00",
+        "checked_at": "2026-09-03T14:17:35.002742+00:00",
         "name": "aegis-asar",
         "reason": "internal adapter; external binary health is not applicable",
         "resolved_path": "internal-adapter",
@@ -4206,7 +4227,7 @@
       "runner_profile": "arsenal-core",
       "runtime": {
         "binary": "aegis-asset-classifier",
-        "checked_at": "2026-08-28T05:20:41.486091+00:00",
+        "checked_at": "2026-09-03T14:17:35.002791+00:00",
         "name": "aegis-asset-classifier",
         "reason": "internal adapter; external binary health is not applicable",
         "resolved_path": "internal-adapter",
@@ -4253,7 +4274,7 @@
       "runner_profile": "arsenal-core",
       "runtime": {
         "binary": "aegis-asset-triage",
-        "checked_at": "2026-08-28T05:20:41.486102+00:00",
+        "checked_at": "2026-09-03T14:17:35.002808+00:00",
         "name": "aegis-asset-triage",
         "reason": "internal adapter; external binary health is not applicable",
         "resolved_path": "internal-adapter",
@@ -4300,7 +4321,7 @@
       "runner_profile": "arsenal-core",
       "runtime": {
         "binary": "aegis-authz-matrix",
-        "checked_at": "2026-08-28T05:20:41.486113+00:00",
+        "checked_at": "2026-09-03T14:17:35.002822+00:00",
         "name": "aegis-authz-matrix",
         "reason": "internal adapter; external binary health is not applicable",
         "resolved_path": "internal-adapter",
@@ -4347,7 +4368,7 @@
       "runner_profile": "arsenal-core",
       "runtime": {
         "binary": "aegis-binary-triage",
-        "checked_at": "2026-08-28T05:20:41.486126+00:00",
+        "checked_at": "2026-09-03T14:17:35.002836+00:00",
         "name": "aegis-binary-triage",
         "reason": "internal adapter; external binary health is not applicable",
         "resolved_path": "internal-adapter",
@@ -4394,7 +4415,7 @@
       "runner_profile": "arsenal-core",
       "runtime": {
         "binary": "aegis-bola-probe",
-        "checked_at": "2026-08-28T05:20:41.486136+00:00",
+        "checked_at": "2026-09-03T14:17:35.002849+00:00",
         "name": "aegis-bola-probe",
         "reason": "internal adapter; external binary health is not applicable",
         "resolved_path": "internal-adapter",
@@ -4441,7 +4462,7 @@
       "runner_profile": "arsenal-core",
       "runtime": {
         "binary": "aegis-contract-patterns",
-        "checked_at": "2026-08-28T05:20:41.486147+00:00",
+        "checked_at": "2026-09-03T14:17:35.002861+00:00",
         "name": "aegis-contract-patterns",
         "reason": "internal adapter; external binary health is not applicable",
         "resolved_path": "internal-adapter",
@@ -4491,7 +4512,7 @@
       "runner_profile": "arsenal-core",
       "runtime": {
         "binary": "aegis-firmware-arch",
-        "checked_at": "2026-08-28T05:20:41.486158+00:00",
+        "checked_at": "2026-09-03T14:17:35.002874+00:00",
         "name": "aegis-firmware-arch",
         "reason": "internal adapter; external binary health is not applicable",
         "resolved_path": "internal-adapter",
@@ -4541,7 +4562,7 @@
       "runner_profile": "arsenal-core",
       "runtime": {
         "binary": "aegis-github-org",
-        "checked_at": "2026-08-28T05:20:41.486168+00:00",
+        "checked_at": "2026-09-03T14:17:35.002886+00:00",
         "name": "aegis-github-org",
         "reason": "internal adapter; external binary health is not applicable",
         "resolved_path": "internal-adapter",
@@ -4591,7 +4612,7 @@
       "runner_profile": "arsenal-core",
       "runtime": {
         "binary": "aegis-gitlab-group",
-        "checked_at": "2026-08-28T05:20:41.486181+00:00",
+        "checked_at": "2026-09-03T14:17:35.002900+00:00",
         "name": "aegis-gitlab-group",
         "reason": "internal adapter; external binary health is not applicable",
         "resolved_path": "internal-adapter",
@@ -4642,7 +4663,7 @@
       "runner_profile": "arsenal-core",
       "runtime": {
         "binary": "aegis-llm-lab",
-        "checked_at": "2026-08-28T05:20:41.486235+00:00",
+        "checked_at": "2026-09-03T14:17:35.002916+00:00",
         "name": "aegis-llm-lab",
         "reason": "internal adapter; external binary health is not applicable",
         "resolved_path": "internal-adapter",
@@ -4693,7 +4714,7 @@
       "runner_profile": "arsenal-core",
       "runtime": {
         "binary": "aegis-memory-poisoning",
-        "checked_at": "2026-08-28T05:20:41.486271+00:00",
+        "checked_at": "2026-09-03T14:17:35.002932+00:00",
         "name": "aegis-memory-poisoning",
         "reason": "internal adapter; external binary health is not applicable",
         "resolved_path": "internal-adapter",
@@ -4743,7 +4764,7 @@
       "runner_profile": "arsenal-core",
       "runtime": {
         "binary": "aegis-model-provenance",
-        "checked_at": "2026-08-28T05:20:41.486286+00:00",
+        "checked_at": "2026-09-03T14:17:35.002944+00:00",
         "name": "aegis-model-provenance",
         "reason": "internal adapter; external binary health is not applicable",
         "resolved_path": "internal-adapter",
@@ -4792,7 +4813,7 @@
       "runner_profile": "arsenal-core",
       "runtime": {
         "binary": "aegis-openapi-parser",
-        "checked_at": "2026-08-28T05:20:41.486300+00:00",
+        "checked_at": "2026-09-03T14:17:35.002956+00:00",
         "name": "aegis-openapi-parser",
         "reason": "internal adapter; external binary health is not applicable",
         "resolved_path": "internal-adapter",
@@ -4839,7 +4860,7 @@
       "runner_profile": "arsenal-core",
       "runtime": {
         "binary": "aegis-output-oracle",
-        "checked_at": "2026-08-28T05:20:41.486317+00:00",
+        "checked_at": "2026-09-03T14:17:35.002969+00:00",
         "name": "aegis-output-oracle",
         "reason": "internal adapter; external binary health is not applicable",
         "resolved_path": "internal-adapter",
@@ -4889,7 +4910,7 @@
       "runner_profile": "arsenal-core",
       "runtime": {
         "binary": "aegis-package-registry",
-        "checked_at": "2026-08-28T05:20:41.486332+00:00",
+        "checked_at": "2026-09-03T14:17:35.002981+00:00",
         "name": "aegis-package-registry",
         "reason": "internal adapter; external binary health is not applicable",
         "resolved_path": "internal-adapter",
@@ -4937,7 +4958,7 @@
       "runner_profile": "arsenal-core",
       "runtime": {
         "binary": "aegis-policy-parser",
-        "checked_at": "2026-08-28T05:20:41.486346+00:00",
+        "checked_at": "2026-09-03T14:17:35.002994+00:00",
         "name": "aegis-policy-parser",
         "reason": "internal adapter; external binary health is not applicable",
         "resolved_path": "internal-adapter",
@@ -4988,7 +5009,7 @@
       "runner_profile": "arsenal-core",
       "runtime": {
         "binary": "aegis-rag-boundary",
-        "checked_at": "2026-08-28T05:20:41.486359+00:00",
+        "checked_at": "2026-09-03T14:17:35.003006+00:00",
         "name": "aegis-rag-boundary",
         "reason": "internal adapter; external binary health is not applicable",
         "resolved_path": "internal-adapter",
@@ -5039,7 +5060,7 @@
       "runner_profile": "arsenal-core",
       "runtime": {
         "binary": "aegis-store-metadata",
-        "checked_at": "2026-08-28T05:20:41.486369+00:00",
+        "checked_at": "2026-09-03T14:17:35.003017+00:00",
         "name": "aegis-store-metadata",
         "reason": "internal adapter; external binary health is not applicable",
         "resolved_path": "internal-adapter",
@@ -5088,7 +5109,7 @@
       "runner_profile": "arsenal-core",
       "runtime": {
         "binary": "aegis-strings",
-        "checked_at": "2026-08-28T05:20:41.486381+00:00",
+        "checked_at": "2026-09-03T14:17:35.003030+00:00",
         "name": "aegis-strings",
         "reason": "internal adapter; external binary health is not applicable",
         "resolved_path": "internal-adapter",
@@ -5138,7 +5159,7 @@
       "runner_profile": "arsenal-core",
       "runtime": {
         "binary": "crt.sh",
-        "checked_at": "2026-08-28T05:20:41.486395+00:00",
+        "checked_at": "2026-09-03T14:17:35.003043+00:00",
         "name": "crt.sh",
         "reason": "internal adapter; external binary health is not applicable",
         "resolved_path": "internal-adapter",
@@ -5203,7 +5224,7 @@
       "runner_profile": "arsenal-core",
       "runtime": {
         "binary": "stdlib-http",
-        "checked_at": "2026-08-28T05:20:41.486408+00:00",
+        "checked_at": "2026-09-03T14:17:35.003057+00:00",
         "name": "stdlib-http",
         "reason": "internal adapter; external binary health is not applicable",
         "resolved_path": "internal-adapter",
@@ -5255,7 +5276,7 @@
       "runner_profile": "arsenal-core",
       "runtime": {
         "binary": "stdlib-resolver",
-        "checked_at": "2026-08-28T05:20:41.486426+00:00",
+        "checked_at": "2026-09-03T14:17:35.003079+00:00",
         "name": "stdlib-resolver",
         "reason": "internal adapter; external binary health is not applicable",
         "resolved_path": "internal-adapter",
@@ -5305,7 +5326,7 @@
       "runner_profile": "arsenal-core",
       "runtime": {
         "binary": "stdlib-ssl",
-        "checked_at": "2026-08-28T05:20:41.486437+00:00",
+        "checked_at": "2026-09-03T14:17:35.003094+00:00",
         "name": "stdlib-ssl",
         "reason": "internal adapter; external binary health is not applicable",
         "resolved_path": "internal-adapter",
@@ -5321,15 +5342,15 @@
       ]
     }
   ],
-  "generated_at": "2026-08-28T05:20:41.486502+00:00",
-  "git_sha": "e4abae3302ff8277f5601f173ffa51fc3d99b3b0",
+  "generated_at": "2026-09-03T14:17:35.003189+00:00",
+  "git_sha": "61c0d100020008e6653ea66a9867a5440a6fbfca",
   "metrics": {
     "canonical_capability_count": 174,
-    "installed_external_backend_count": 40,
+    "installed_external_backend_count": 60,
     "logical_backend_count": 146,
-    "unique_backend_count": 100,
-    "unique_external_backend_count": 74,
-    "unique_external_executable_runtime_count": 74,
+    "unique_backend_count": 99,
+    "unique_external_backend_count": 73,
+    "unique_external_executable_runtime_count": 73,
     "unique_internal_backend_count": 26
   },
   "schema_version": 1

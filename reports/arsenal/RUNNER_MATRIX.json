@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-08-28T05:24:21.101522+00:00",
+  "generated_at": "2026-09-03T14:22:05.492391+00:00",
   "host": {
-    "architecture": "x86_64",
-    "os": "linux"
+    "architecture": "AMD64",
+    "os": "windows"
   },
   "profiles": [
     {
@@ -26,23 +26,31 @@
       "status": "READY"
     },
     {
-      "available": false,
+      "available": true,
       "backend_runtimes_currently_executable": [
         "bandit/linux-cli",
         "brakeman/linux-cli",
         "checkov/linux-cli",
+        "codeql/linux-cli",
         "detect-secrets/linux-cli",
         "electron-asar/node-cli",
+        "garak/linux-cli",
         "gitleaks/linux-cli",
         "gosec/linux-cli",
         "grype/linux-cli",
+        "jsluice/linux-cli",
         "kics/linux-cli",
         "modelscan/linux-cli",
         "njsscan/linux-cli",
         "npm/linux-cli",
         "osv-scanner/linux-cli",
+        "pip-audit/linux-cli",
+        "playwright/linux-cli",
+        "promptfoo/linux-cli",
         "psalm/linux-cli",
+        "pyrit/linux-cli",
         "retire-js/node-cli",
+        "scorecard/linux-cli",
         "semgrep/linux-cli",
         "skopeo/linux-cli",
         "spotbugs/linux-cli",
@@ -51,16 +59,7 @@
         "web-ext/linux-cli",
         "zizmor/linux-cli"
       ],
-      "backend_runtimes_not_yet_executed": [
-        "codeql/linux-cli",
-        "garak/linux-cli",
-        "jsluice/linux-cli",
-        "pip-audit/linux-cli",
-        "playwright/linux-cli",
-        "promptfoo/linux-cli",
-        "pyrit/linux-cli",
-        "scorecard/linux-cli"
-      ],
+      "backend_runtimes_not_yet_executed": [],
       "backend_runtimes_supported": [
         "bandit/linux-cli",
         "brakeman/linux-cli",
@@ -97,10 +96,7 @@
       "description": "Pinned Linux CLI/static-analysis image",
       "docker": true,
       "kvm": "not-required",
-      "missing_prerequisites": [
-        "command:docker",
-        "unverified-runtimes:8"
-      ],
+      "missing_prerequisites": [],
       "network_mode": "none",
       "os": "linux",
       "privileged": false,
@@ -110,37 +106,35 @@
       ],
       "required_environment": [],
       "runner_profile": "arsenal-linux",
-      "runtime_execution_coverage": 0.7333333333333333,
-      "status": "WAITING_FOR_PREREQUISITE"
+      "runtime_execution_coverage": 1.0,
+      "status": "READY"
     },
     {
       "available": false,
       "backend_runtimes_currently_executable": [
+        "dnsx/network-lab",
         "grpcurl/network-lab",
         "httpx/network-lab",
+        "katana/network-lab",
+        "mitmproxy/network-lab",
         "naabu/network-lab",
         "nmap/network-lab",
+        "nuclei/network-lab",
+        "restler/network-lab",
         "rustscan/network-lab",
         "schemathesis/network-lab",
+        "ssh-audit/network-lab",
+        "testssl-sh/linux-cli",
         "websocat/network-lab"
       ],
       "backend_runtimes_not_yet_executed": [
-        "dnsx/network-lab",
         "gau/network-lab",
-        "http-probe/network-lab",
-        "katana/network-lab",
-        "mitmproxy/network-lab",
-        "nuclei/network-lab",
-        "restler/network-lab",
-        "ssh-audit/network-lab",
-        "subfinder/network-lab",
-        "testssl-sh/linux-cli"
+        "subfinder/network-lab"
       ],
       "backend_runtimes_supported": [
         "dnsx/network-lab",
         "gau/network-lab",
         "grpcurl/network-lab",
-        "http-probe/network-lab",
         "httpx/network-lab",
         "katana/network-lab",
         "mitmproxy/network-lab",
@@ -160,8 +154,7 @@
       "docker": true,
       "kvm": "not-required",
       "missing_prerequisites": [
-        "command:docker",
-        "unverified-runtimes:10"
+        "unverified-runtimes:2"
       ],
       "network_mode": "isolated",
       "os": "linux",
@@ -172,17 +165,17 @@
       ],
       "required_environment": [],
       "runner_profile": "arsenal-network-lab",
-      "runtime_execution_coverage": 0.4117647058823529,
+      "runtime_execution_coverage": 0.875,
       "status": "WAITING_FOR_PREREQUISITE"
     },
     {
       "available": false,
       "backend_runtimes_currently_executable": [
-        "apktool/linux-cli"
+        "apktool/linux-cli",
+        "jadx/android-lab"
       ],
       "backend_runtimes_not_yet_executed": [
         "frida/device-cli",
-        "jadx/android-lab",
         "mobsf/container",
         "objection/android-lab"
       ],
@@ -198,10 +191,8 @@
       "docker": true,
       "kvm": "not-required",
       "missing_prerequisites": [
-        "command:adb",
-        "command:emulator",
         "environment:ANDROID_HOME",
-        "unverified-runtimes:4"
+        "unverified-runtimes:3"
       ],
       "network_mode": "isolated",
       "os": "linux",
@@ -215,7 +206,7 @@
         "ANDROID_HOME"
       ],
       "runner_profile": "arsenal-android",
-      "runtime_execution_coverage": 0.2,
+      "runtime_execution_coverage": 0.4,
       "status": "WAITING_FOR_PREREQUISITE"
     },
     {
@@ -237,8 +228,6 @@
       "docker": true,
       "kvm": "optional",
       "missing_prerequisites": [
-        "command:docker",
-        "command:qemu-system-x86_64",
         "privileged-runner-approval",
         "unverified-runtimes:2"
       ],
@@ -257,18 +246,17 @@
       "status": "WAITING_FOR_PREREQUISITE"
     },
     {
-      "available": false,
+      "available": true,
       "backend_runtimes_currently_executable": [
         "angr/linux-cli",
         "capa/linux-cli",
-        "pefile/linux-cli",
-        "yara/linux-cli"
-      ],
-      "backend_runtimes_not_yet_executed": [
         "floss/linux-cli",
         "ghidra/headless",
-        "rizin/linux-cli"
+        "pefile/linux-cli",
+        "rizin/linux-cli",
+        "yara/linux-cli"
       ],
+      "backend_runtimes_not_yet_executed": [],
       "backend_runtimes_supported": [
         "angr/linux-cli",
         "capa/linux-cli",
@@ -282,10 +270,7 @@
       "description": "Deterministic ELF/PE analysis fixtures",
       "docker": true,
       "kvm": "not-required",
-      "missing_prerequisites": [
-        "command:file",
-        "unverified-runtimes:3"
-      ],
+      "missing_prerequisites": [],
       "network_mode": "none",
       "os": "linux",
       "privileged": false,
@@ -296,8 +281,8 @@
       ],
       "required_environment": [],
       "runner_profile": "arsenal-binary",
-      "runtime_execution_coverage": 0.5714285714285714,
-      "status": "WAITING_FOR_PREREQUISITE"
+      "runtime_execution_coverage": 1.0,
+      "status": "READY"
     },
     {
       "available": true,
@@ -332,11 +317,11 @@
       "status": "READY"
     },
     {
-      "available": false,
-      "backend_runtimes_currently_executable": [],
-      "backend_runtimes_not_yet_executed": [
+      "available": true,
+      "backend_runtimes_currently_executable": [
         "kubescape/kubernetes-lab"
       ],
+      "backend_runtimes_not_yet_executed": [],
       "backend_runtimes_supported": [
         "kubescape/kubernetes-lab"
       ],
@@ -344,12 +329,7 @@
       "description": "Disposable local Kubernetes cluster",
       "docker": true,
       "kvm": "not-required",
-      "missing_prerequisites": [
-        "command:docker",
-        "command:kubectl",
-        "command:kind",
-        "unverified-runtimes:1"
-      ],
+      "missing_prerequisites": [],
       "network_mode": "isolated",
       "os": "linux",
       "privileged": false,
@@ -361,15 +341,16 @@
       ],
       "required_environment": [],
       "runner_profile": "arsenal-kubernetes",
-      "runtime_execution_coverage": 0.0,
-      "status": "WAITING_FOR_PREREQUISITE"
+      "runtime_execution_coverage": 1.0,
+      "status": "READY"
     },
     {
       "available": false,
-      "backend_runtimes_currently_executable": [],
+      "backend_runtimes_currently_executable": [
+        "cloudsplaining/cloud-lab"
+      ],
       "backend_runtimes_not_yet_executed": [
         "azurehound/cloud-lab",
-        "cloudsplaining/cloud-lab",
         "prowler/cloud-lab",
         "roadrecon/cloud-lab",
         "scoutsuite/cloud-cli"
@@ -387,7 +368,7 @@
       "kvm": "not-required",
       "missing_prerequisites": [
         "environment:AEGIS_CLOUD_LAB_AUTHORIZATION",
-        "unverified-runtimes:5"
+        "unverified-runtimes:4"
       ],
       "network_mode": "allowlisted",
       "os": "linux",
@@ -398,7 +379,7 @@
         "AEGIS_CLOUD_LAB_AUTHORIZATION"
       ],
       "runner_profile": "arsenal-cloud-lab",
-      "runtime_execution_coverage": 0.0,
+      "runtime_execution_coverage": 0.2,
       "status": "WAITING_FOR_PREREQUISITE"
     },
     {

@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-08-28T05:24:21.090874+00:00",
-  "git_sha": "e4abae3302ff8277f5601f173ffa51fc3d99b3b0",
+  "generated_at": "2026-09-03T14:17:35.003189+00:00",
+  "git_sha": "61c0d100020008e6653ea66a9867a5440a6fbfca",
   "runtimes": [
     {
       "backend_runtime_id": "angr/linux-cli",
@@ -365,7 +365,7 @@
         "codeql",
         "--version"
       ],
-      "installation_method": "UNRESOLVED",
+      "installation_method": "pinned-container-image",
       "name": "CodeQL",
       "network_policy": "none",
       "platforms": [
@@ -380,10 +380,10 @@
         "wall_clock_seconds": 1200
       },
       "runner_profile": "arsenal-linux",
-      "sha256": "",
+      "sha256": "5c905275695b4efcaa02ea380f6e60b01310fa3dff0fa8c442bf0638bb46055a",
       "source": "resolved executable/runtime probe",
-      "status": "unavailable",
-      "version": "UNRESOLVED"
+      "status": "ready",
+      "version": "CodeQL command-line toolchain release 2.26.4."
     },
     {
       "backend_runtime_id": "detect-secrets/linux-cli",
@@ -433,7 +433,7 @@
         "dnsx",
         "--version"
       ],
-      "installation_method": "UNRESOLVED",
+      "installation_method": "pinned-container-image",
       "name": "dnsx",
       "network_policy": "isolated-fixture-network",
       "platforms": [
@@ -448,10 +448,10 @@
         "wall_clock_seconds": 1200
       },
       "runner_profile": "arsenal-network-lab",
-      "sha256": "",
+      "sha256": "c1f63a09fc034a6ca370908f563a37f4ed2f5209f4525ed957df8df4cc0f45a8",
       "source": "resolved executable/runtime probe",
-      "status": "unavailable",
-      "version": "UNRESOLVED"
+      "status": "ready",
+      "version": "_             __  __"
     },
     {
       "backend_runtime_id": "echidna/contract-cli",
@@ -603,7 +603,7 @@
         "floss",
         "--version"
       ],
-      "installation_method": "UNRESOLVED",
+      "installation_method": "pinned-container-image",
       "name": "FLOSS",
       "network_policy": "none",
       "platforms": [
@@ -618,10 +618,10 @@
         "wall_clock_seconds": 1200
       },
       "runner_profile": "arsenal-binary",
-      "sha256": "",
+      "sha256": "d71b9ea4fe3b2de974dc1ae3c5d0f67569921bc118dcb02ed72e905a662411cb",
       "source": "resolved executable/runtime probe",
-      "status": "unavailable",
-      "version": "UNRESOLVED"
+      "status": "ready",
+      "version": "floss v3.1.1-0-g3cd3ee6"
     },
     {
       "backend_runtime_id": "foundry/forge",
@@ -707,7 +707,7 @@
         "garak",
         "--version"
       ],
-      "installation_method": "UNRESOLVED",
+      "installation_method": "pinned-container-image",
       "name": "garak",
       "network_policy": "none",
       "platforms": [
@@ -722,10 +722,10 @@
         "wall_clock_seconds": 1200
       },
       "runner_profile": "arsenal-linux",
-      "sha256": "",
+      "sha256": "2dda1ca177505427e1404426625ac96a9a52588f962ab3e9494879dc16880f87",
       "source": "resolved executable/runtime probe",
-      "status": "unavailable",
-      "version": "UNRESOLVED"
+      "status": "ready",
+      "version": "garak LLM vulnerability scanner v0.16.0 ( https://github.com/NVIDIA/garak ) at 2026-09-03T14:17:15.264182"
     },
     {
       "backend_runtime_id": "gau/network-lab",
@@ -773,7 +773,7 @@
         "analyzeHeadless",
         "--version"
       ],
-      "installation_method": "UNRESOLVED",
+      "installation_method": "pinned-container-image",
       "name": "Ghidra",
       "network_policy": "none",
       "platforms": [
@@ -788,10 +788,10 @@
         "wall_clock_seconds": 1200
       },
       "runner_profile": "arsenal-binary",
-      "sha256": "",
+      "sha256": "87f8ddc220cdbb2267de5c9af834cd9a2f86d87de0f5dfa1ab7cbbd44e563817",
       "source": "resolved executable/runtime probe",
-      "status": "unavailable",
-      "version": "UNRESOLVED"
+      "status": "ready",
+      "version": "Ghidra 12.1.3"
     },
     {
       "backend_runtime_id": "gitleaks/linux-cli",
@@ -862,7 +862,7 @@
         "wall_clock_seconds": 1200
       },
       "runner_profile": "arsenal-linux",
-      "sha256": "f7baa2053a48c3c6efdeded9f114533ad13e9eac1677991d2d8313557260834b",
+      "sha256": "940e888a7cdcfaa58876795ca907773458e72a78e7e2c7cbfc111140126fc26f",
       "source": "resolved executable/runtime probe",
       "status": "ready",
       "version": "Version: dev"
@@ -940,41 +940,10 @@
       "version": "grype 0.116.1"
     },
     {
-      "backend_runtime_id": "http-probe/network-lab",
-      "binary": "http-probe",
-      "capability_ids": [
-        "adapter:http-probe/passive-discovery"
-      ],
-      "container_digest": "",
-      "fixture_provider": [],
-      "health_probe": [
-        "http-probe",
-        "--version"
-      ],
-      "installation_method": "UNRESOLVED",
-      "name": "http-probe",
-      "network_policy": "isolated-fixture-network",
-      "platforms": [
-        "arsenal-network-lab"
-      ],
-      "resource_limits": {
-        "concurrency": 1,
-        "cpu": 4,
-        "output_bytes": 8388608,
-        "process_count": 512,
-        "ram_mb": 6144,
-        "wall_clock_seconds": 1200
-      },
-      "runner_profile": "arsenal-network-lab",
-      "sha256": "",
-      "source": "resolved executable/runtime probe",
-      "status": "unavailable",
-      "version": "1.6.9"
-    },
-    {
       "backend_runtime_id": "httpx/network-lab",
       "binary": "httpx",
       "capability_ids": [
+        "adapter:http-probe/passive-discovery",
         "asset:httpx/http-service-enrichment"
       ],
       "container_digest": "",
@@ -986,7 +955,7 @@
         "--version"
       ],
       "installation_method": "pinned-container-image",
-      "name": "httpx",
+      "name": "http-probe,httpx",
       "network_policy": "isolated-fixture-network",
       "platforms": [
         "arsenal-network-lab"
@@ -1019,7 +988,7 @@
         "jadx",
         "--version"
       ],
-      "installation_method": "UNRESOLVED",
+      "installation_method": "pinned-container-image",
       "name": "jadx",
       "network_policy": "isolated-fixture-network",
       "platforms": [
@@ -1034,10 +1003,10 @@
         "wall_clock_seconds": 1200
       },
       "runner_profile": "arsenal-android",
-      "sha256": "",
+      "sha256": "6b732b576bf8dc554278beb94ce006f9549ac898eff975d83548f87244961f13",
       "source": "resolved executable/runtime probe",
-      "status": "unavailable",
-      "version": "UNRESOLVED"
+      "status": "ready",
+      "version": "1.5.6"
     },
     {
       "backend_runtime_id": "jsluice/linux-cli",
@@ -1046,12 +1015,14 @@
         "adapter:jsluice/passive-discovery"
       ],
       "container_digest": "",
-      "fixture_provider": [],
+      "fixture_provider": [
+        "fixture:adapter:jsluice"
+      ],
       "health_probe": [
         "jsluice",
         "--version"
       ],
-      "installation_method": "UNRESOLVED",
+      "installation_method": "pinned-container-image",
       "name": "jsluice",
       "network_policy": "none",
       "platforms": [
@@ -1066,10 +1037,10 @@
         "wall_clock_seconds": 1200
       },
       "runner_profile": "arsenal-linux",
-      "sha256": "",
+      "sha256": "8333c2076fffe77c54bda7647202970d11430bcb29c7eaf0b33a916d18298aeb",
       "source": "resolved executable/runtime probe",
-      "status": "unavailable",
-      "version": "0.0.3"
+      "status": "ready",
+      "version": "jsluice - Extract URLs, paths, and secrets from JavaScript files"
     },
     {
       "backend_runtime_id": "katana/network-lab",
@@ -1086,7 +1057,7 @@
         "katana",
         "--version"
       ],
-      "installation_method": "UNRESOLVED",
+      "installation_method": "pinned-container-image",
       "name": "katana",
       "network_policy": "isolated-fixture-network",
       "platforms": [
@@ -1101,10 +1072,10 @@
         "wall_clock_seconds": 1200
       },
       "runner_profile": "arsenal-network-lab",
-      "sha256": "",
+      "sha256": "dc06bac76b6976dcf800c57ddb0a0bab4ee66fcf9940df5f35239511dd3aaa62",
       "source": "resolved executable/runtime probe",
-      "status": "unavailable",
-      "version": "1.1.0"
+      "status": "ready",
+      "version": "__        __                "
     },
     {
       "backend_runtime_id": "kics/linux-cli",
@@ -1154,7 +1125,7 @@
         "kubescape",
         "--version"
       ],
-      "installation_method": "UNRESOLVED",
+      "installation_method": "pinned-container-image",
       "name": "Kubescape",
       "network_policy": "isolated-fixture-network",
       "platforms": [
@@ -1169,10 +1140,10 @@
         "wall_clock_seconds": 1200
       },
       "runner_profile": "arsenal-kubernetes",
-      "sha256": "",
+      "sha256": "58e9840d26a3d37fc86dd1b9ee41b085ec7d3e67a56833b66d2a716792af61fa",
       "source": "resolved executable/runtime probe",
-      "status": "unavailable",
-      "version": "UNRESOLVED"
+      "status": "ready",
+      "version": "Your current version is: v4.0.12"
     },
     {
       "backend_runtime_id": "mitmproxy/network-lab",
@@ -1188,7 +1159,7 @@
         "mitmproxy",
         "--version"
       ],
-      "installation_method": "UNRESOLVED",
+      "installation_method": "pinned-container-image",
       "name": "mitmproxy",
       "network_policy": "isolated-fixture-network",
       "platforms": [
@@ -1203,10 +1174,10 @@
         "wall_clock_seconds": 1200
       },
       "runner_profile": "arsenal-network-lab",
-      "sha256": "",
+      "sha256": "80bef1ff69a79eeeda773258b212b1b5b5995ef977c6f298e2c06fa45e3cf1d0",
       "source": "resolved executable/runtime probe",
-      "status": "unavailable",
-      "version": "UNRESOLVED"
+      "status": "ready",
+      "version": "Mitmproxy: 12.2.3"
     },
     {
       "backend_runtime_id": "mobsf/container",
@@ -1448,7 +1419,7 @@
       "sha256": "8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7",
       "source": "resolved executable/runtime probe",
       "status": "ready",
-      "version": "9.2.0"
+      "version": "10.9.4"
     },
     {
       "backend_runtime_id": "nuclei/network-lab",
@@ -1464,7 +1435,7 @@
         "nuclei",
         "--version"
       ],
-      "installation_method": "UNRESOLVED",
+      "installation_method": "pinned-container-image",
       "name": "nuclei",
       "network_policy": "isolated-fixture-network",
       "platforms": [
@@ -1479,10 +1450,10 @@
         "wall_clock_seconds": 1200
       },
       "runner_profile": "arsenal-network-lab",
-      "sha256": "",
+      "sha256": "b22286190c5458f3f2e9d173d81d7f82884d5d15067efb5fb60a2176b55f4058",
       "source": "resolved executable/runtime probe",
-      "status": "unavailable",
-      "version": "UNRESOLVED"
+      "status": "ready",
+      "version": "[\u001b[34mINF\u001b[0m] Nuclei Engine Version: v3.3.0[\u001b[34mINF\u001b[0m] Nuclei Config Directory: /root/.config/nuclei[\u001b[34mINF\u001b[0m] Nuclei Cache Directory: /root/.cache/nuclei[\u001b[34mINF\u001b[0m] PDCP Directory: /root/.pdcp"
     },
     {
       "backend_runtime_id": "objection/android-lab",
@@ -1639,7 +1610,7 @@
         "pip-audit",
         "--version"
       ],
-      "installation_method": "UNRESOLVED",
+      "installation_method": "pinned-container-image",
       "name": "pip-audit",
       "network_policy": "none",
       "platforms": [
@@ -1654,10 +1625,10 @@
         "wall_clock_seconds": 1200
       },
       "runner_profile": "arsenal-linux",
-      "sha256": "",
+      "sha256": "4fe2b7c2c97b987786a1bb877721ba156a8623c89db492d989cc838373974166",
       "source": "resolved executable/runtime probe",
-      "status": "unavailable",
-      "version": "UNRESOLVED"
+      "status": "ready",
+      "version": "pip-audit 2.10.1"
     },
     {
       "backend_runtime_id": "playwright/linux-cli",
@@ -1673,7 +1644,7 @@
         "playwright",
         "--version"
       ],
-      "installation_method": "UNRESOLVED",
+      "installation_method": "pinned-container-image",
       "name": "Playwright",
       "network_policy": "none",
       "platforms": [
@@ -1688,10 +1659,10 @@
         "wall_clock_seconds": 1200
       },
       "runner_profile": "arsenal-linux",
-      "sha256": "",
+      "sha256": "79e23e6a249176295b8490567daa7717448a75866d6ea6f6b296ff3d23305c69",
       "source": "resolved executable/runtime probe",
-      "status": "unavailable",
-      "version": "UNRESOLVED"
+      "status": "ready",
+      "version": "Version 1.60.0"
     },
     {
       "backend_runtime_id": "promptfoo/linux-cli",
@@ -1707,7 +1678,7 @@
         "promptfoo",
         "--version"
       ],
-      "installation_method": "UNRESOLVED",
+      "installation_method": "pinned-container-image",
       "name": "promptfoo",
       "network_policy": "none",
       "platforms": [
@@ -1722,10 +1693,10 @@
         "wall_clock_seconds": 1200
       },
       "runner_profile": "arsenal-linux",
-      "sha256": "",
+      "sha256": "b1f2d2cbe07ef2308d6e3eea067789d86c4e97d664636f3d1250f74a8ac04003",
       "source": "resolved executable/runtime probe",
-      "status": "unavailable",
-      "version": "UNRESOLVED"
+      "status": "ready",
+      "version": "0.122.2"
     },
     {
       "backend_runtime_id": "prowler/cloud-lab",
@@ -1811,7 +1782,7 @@
         "pyrit",
         "--version"
       ],
-      "installation_method": "UNRESOLVED",
+      "installation_method": "pinned-container-image",
       "name": "PyRIT",
       "network_policy": "none",
       "platforms": [
@@ -1826,10 +1797,10 @@
         "wall_clock_seconds": 1200
       },
       "runner_profile": "arsenal-linux",
-      "sha256": "",
+      "sha256": "dcb9a675cbd036a7f82f67f3769e5e1936d56e43ebbd33d02e6860afa0a2d2d4",
       "source": "resolved executable/runtime probe",
-      "status": "unavailable",
-      "version": "UNRESOLVED"
+      "status": "ready",
+      "version": "1.0.1"
     },
     {
       "backend_runtime_id": "restler/network-lab",
@@ -1845,7 +1816,7 @@
         "restler",
         "--version"
       ],
-      "installation_method": "UNRESOLVED",
+      "installation_method": "pinned-container-image",
       "name": "RESTler",
       "network_policy": "isolated-fixture-network",
       "platforms": [
@@ -1860,10 +1831,10 @@
         "wall_clock_seconds": 1200
       },
       "runner_profile": "arsenal-network-lab",
-      "sha256": "",
+      "sha256": "44b8004b82c8898d4dbcb7af612ef25cdce85a03741d49d6d278c379749d8ed5",
       "source": "resolved executable/runtime probe",
-      "status": "unavailable",
-      "version": "UNRESOLVED"
+      "status": "ready",
+      "version": "RESTler 9.3.1"
     },
     {
       "backend_runtime_id": "retire-js/node-cli",
@@ -1913,7 +1884,7 @@
         "rizin",
         "--version"
       ],
-      "installation_method": "UNRESOLVED",
+      "installation_method": "pinned-container-image",
       "name": "Rizin",
       "network_policy": "none",
       "platforms": [
@@ -1928,10 +1899,10 @@
         "wall_clock_seconds": 1200
       },
       "runner_profile": "arsenal-binary",
-      "sha256": "",
+      "sha256": "ab5614cf137608cffc5a3f4f471a91c995cfa7c0c35465bfb73876e5b95561ba",
       "source": "resolved executable/runtime probe",
-      "status": "unavailable",
-      "version": "UNRESOLVED"
+      "status": "ready",
+      "version": "-- Assemble opcodes with the 'a' and 'A' keys in visual mode, which are bindings to the 'wa' and 'wA' commands"
     },
     {
       "backend_runtime_id": "roadrecon/cloud-lab",
@@ -2051,7 +2022,7 @@
         "scorecard",
         "--version"
       ],
-      "installation_method": "UNRESOLVED",
+      "installation_method": "pinned-container-image",
       "name": "OpenSSF Scorecard",
       "network_policy": "none",
       "platforms": [
@@ -2066,10 +2037,10 @@
         "wall_clock_seconds": 1200
       },
       "runner_profile": "arsenal-linux",
-      "sha256": "",
+      "sha256": "7db97dd0ab75863614ae5a86c9fb414418a2c0ff00f4a6b33b8806c7ed09efce",
       "source": "resolved executable/runtime probe",
-      "status": "unavailable",
-      "version": "UNRESOLVED"
+      "status": "ready",
+      "version": "OpenSSF Scorecard v5.5.0"
     },
     {
       "backend_runtime_id": "scoutsuite/cloud-cli",
@@ -2264,7 +2235,7 @@
         "ssh-audit",
         "--version"
       ],
-      "installation_method": "UNRESOLVED",
+      "installation_method": "pinned-container-image",
       "name": "ssh-audit",
       "network_policy": "isolated-fixture-network",
       "platforms": [
@@ -2279,10 +2250,10 @@
         "wall_clock_seconds": 1200
       },
       "runner_profile": "arsenal-network-lab",
-      "sha256": "",
+      "sha256": "add7e0caf6366d8fcc8fb9d032a9022ef2bb84bc8cff65d337470475d74f4e84",
       "source": "resolved executable/runtime probe",
-      "status": "unavailable",
-      "version": "UNRESOLVED"
+      "status": "ready",
+      "version": "usage: ssh-audit [-h] [-4] [-6] [-b] [-c] [-d]"
     },
     {
       "backend_runtime_id": "subfinder/network-lab",
@@ -2370,7 +2341,7 @@
         "testssl.sh",
         "--version"
       ],
-      "installation_method": "UNRESOLVED",
+      "installation_method": "pinned-container-image",
       "name": "testssl.sh",
       "network_policy": "isolated-fixture-network",
       "platforms": [
@@ -2385,10 +2356,10 @@
         "wall_clock_seconds": 1200
       },
       "runner_profile": "arsenal-network-lab",
-      "sha256": "",
+      "sha256": "9a42b203edaf8cfdd19cdca7c3cf16c78668bdc88cd656cf2cae0ec6e43129e4",
       "source": "resolved executable/runtime probe",
-      "status": "unavailable",
-      "version": "UNRESOLVED"
+      "status": "ready",
+      "version": "\u001b[1m"
     },
     {
       "backend_runtime_id": "trivy/linux-cli",
