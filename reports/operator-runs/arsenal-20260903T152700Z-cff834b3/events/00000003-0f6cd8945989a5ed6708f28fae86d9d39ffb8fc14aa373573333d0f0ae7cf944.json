@@ -1,0 +1,13 @@
+{
+  "detail": {
+    "capability_id": "asset:aegis-model-provenance/model-provenance-and-hash-ledger",
+    "mission_id": "arsenal-tool-cff834b35457",
+    "task_id": "arsenal-tool-cff834b35457-execute"
+  },
+  "digest": "0f6cd8945989a5ed6708f28fae86d9d39ffb8fc14aa373573333d0f0ae7cf944",
+  "event_type": "arsenal_task_started",
+  "observed_at": "2026-09-03T15:27:00.457131+00:00",
+  "previous_digest": "85dfc3f480bf88a222f15f31e9a24aa6a57da135398acf58b356c2c63d8abd13",
+  "sequence": 3,
+  "status": "running"
+}

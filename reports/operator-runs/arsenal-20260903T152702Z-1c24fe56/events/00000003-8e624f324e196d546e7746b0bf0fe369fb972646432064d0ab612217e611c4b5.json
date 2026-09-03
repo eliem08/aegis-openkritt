@@ -1,0 +1,13 @@
+{
+  "detail": {
+    "capability_id": "asset:prowler/aws-security-posture",
+    "mission_id": "arsenal-tool-1c24fe5668c3",
+    "task_id": "arsenal-tool-1c24fe5668c3-execute"
+  },
+  "digest": "8e624f324e196d546e7746b0bf0fe369fb972646432064d0ab612217e611c4b5",
+  "event_type": "arsenal_task_started",
+  "observed_at": "2026-09-03T15:27:02.517159+00:00",
+  "previous_digest": "3c28c044138a06db0048bbc14ea194350f1417d6105b2ef9862984864a6b1f1b",
+  "sequence": 3,
+  "status": "running"
+}

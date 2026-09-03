@@ -1,0 +1,13 @@
+{
+  "detail": {
+    "capability_id": "asset:aegis-rag-boundary/rag-retrieval-trust-analysis",
+    "mission_id": "arsenal-tool-69845317ea76",
+    "task_id": "arsenal-tool-69845317ea76-execute"
+  },
+  "digest": "3110cc9c3e016125c3f9ca24241af2a6335769047ccd17cda85bc501589e2b2d",
+  "event_type": "arsenal_task_started",
+  "observed_at": "2026-09-03T15:27:01.053554+00:00",
+  "previous_digest": "70778ea607817036a5c9ba642bc068eca8e4607a85d8f6f985e7b4cee50c14fb",
+  "sequence": 3,
+  "status": "running"
+}

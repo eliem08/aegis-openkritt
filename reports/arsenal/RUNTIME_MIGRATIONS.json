@@ -1,0 +1,31 @@
+{
+  "migrations": [
+    {
+      "capabilities_affected": [
+        "asset:firmadyne/firmware-emulation-fallback"
+      ],
+      "coverage_interpretation": "migrated into asset:firmae/firmware-emulation; verified through unified FirmAE runner",
+      "migration_date": "2026-09-03",
+      "old_runtime_id": "firmadyne/qemu-lab",
+      "old_semantics": "isolated firmware emulation fallback for supported Linux-based images",
+      "reason": "FirmAE is the direct automated successor that wraps and integrates Firmadyne core emulation components. Registering both as distinct external runtimes was an accidental double-counting of the same underlying QEMU firmware emulation engine.",
+      "replacement_runtime_id": "firmae/qemu-lab",
+      "replacement_semantics": "isolated IoT firmware emulation for dynamic analysis (FirmAE embeds and automates the Firmadyne extraction, QEMU kernel emulation, and network service inspection pipeline)",
+      "source_registry_provenance": "src/aegis/ai/jarvis/asset_deep_capabilities.py:FIRMADYNE"
+    },
+    {
+      "capabilities_affected": [
+        "asset:class-dump/objective-c-interface-recovery"
+      ],
+      "coverage_interpretation": "migrated into asset:otool/ios-macos-load-command-analysis; verified through otool Darwin runner",
+      "migration_date": "2026-09-03",
+      "old_runtime_id": "class-dump/macos-cli",
+      "old_semantics": "Objective-C class interface recovery from Mach-O binaries",
+      "reason": "Original Steve Nygard class-dump v3.5 is 32/early-64-bit and obsolete on modern macOS Darwin arm64/x86_64 runtimes. Modern macOS Xcode otool natively provides complete Objective-C class, method, and protocol recovery through `otool -ov`.",
+      "replacement_runtime_id": "otool/macos-cli",
+      "replacement_semantics": "Objective-C class interface, protocol, and load command extraction via otool (-ov / -l) on modern macOS Darwin runtimes",
+      "source_registry_provenance": "src/aegis/ai/jarvis/asset_deep_capabilities.py:CLASS_DUMP"
+    }
+  ],
+  "schema_version": 1
+}

@@ -5590,108 +5590,143 @@
     },
     {
       "capability_id": "asset:aegis-agent-permission-audit/agent-tool-permission-analysis",
-      "coverage_recorded": true,
-      "coverage_recording_degraded": false,
-      "evidence_digest": "d59122c56d8269db5fa416ad4a05452afe721c25b0bce6c17d988dda249133a0",
-      "evidence_ref": "evidence/d59122c56d8269db5fa416ad4a05452afe721c25b0bce6c17d988dda249133a0.json",
-      "mission_id": "arsenal-blocked-6deacb2b8e3f5343",
-      "result": "WAITING_FOR_PREREQUISITE",
-      "run_id": "arsenal-20260903T141011Z-6deacb2b",
+      "evidence_digest": "9d96e855f009db32c01cec68f6547e3e72ce1629ba7e40c8d391aa66caa91974",
+      "evidence_ref": "evidence/9d96e855f009db32c01cec68f6547e3e72ce1629ba7e40c8d391aa66caa91974.json",
+      "mission_id": "arsenal-tool-6574bbb2",
+      "result": "EXECUTED_PASS",
+      "run_id": "arsenal-20260903T152700Z-6574bbb2",
       "summary": {
-        "blocking_reason": "backend is present but its deterministic positive/negative fixture provider is not connected to the canonical executor",
-        "execution_performed": false
+        "blocking_reason": "",
+        "covered_capability_ids": [
+          "asset:aegis-agent-permission-audit/agent-tool-permission-analysis"
+        ],
+        "execution_error_class": null,
+        "execution_proof_kind": "REAL_BACKEND",
+        "fixture_detection": true,
+        "negative_control_passed": true,
+        "tool": "aegis-agent-permission-audit"
       },
-      "task_id": "arsenal-blocked-6deacb2b8e3f5343-execute"
+      "task_id": "arsenal-tool-6574bbb2-execute"
     },
     {
       "capability_id": "asset:aegis-artifact-diff/authorized-mobile-release-diff",
-      "coverage_recorded": true,
-      "coverage_recording_degraded": false,
-      "evidence_digest": "67c248ce4f2d1a58e232f0fa783cdf58a6275ca8a643606068c1b903ee784101",
-      "evidence_ref": "evidence/67c248ce4f2d1a58e232f0fa783cdf58a6275ca8a643606068c1b903ee784101.json",
-      "mission_id": "arsenal-blocked-e252e0592ccd6984",
-      "result": "WAITING_FOR_PREREQUISITE",
-      "run_id": "arsenal-20260903T141011Z-e252e059",
+      "evidence_digest": "d99ed90643042a38196bdc3c02cde5d7a8696936c50c509bc1a5a5bb62437db0",
+      "evidence_ref": "evidence/d99ed90643042a38196bdc3c02cde5d7a8696936c50c509bc1a5a5bb62437db0.json",
+      "mission_id": "arsenal-tool-92e55665",
+      "result": "EXECUTED_PASS",
+      "run_id": "arsenal-20260903T152647Z-92e55665",
       "summary": {
-        "blocking_reason": "backend is present but its deterministic positive/negative fixture provider is not connected to the canonical executor",
-        "execution_performed": false
+        "blocking_reason": "",
+        "covered_capability_ids": [
+          "asset:aegis-artifact-diff/authorized-mobile-release-diff"
+        ],
+        "execution_error_class": null,
+        "execution_proof_kind": "REAL_BACKEND",
+        "fixture_detection": true,
+        "negative_control_passed": true,
+        "tool": "aegis-artifact-diff"
       },
-      "task_id": "arsenal-blocked-e252e0592ccd6984-execute"
+      "task_id": "arsenal-tool-92e55665-execute"
     },
     {
       "capability_id": "asset:aegis-asset-classifier/deterministic-asset-classification",
-      "coverage_recorded": true,
-      "coverage_recording_degraded": false,
-      "evidence_digest": "2e9d45b98fd049caeaf23967c34cbfc0543d69589ff0a725a2d733691a1c4bc2",
-      "evidence_ref": "evidence/2e9d45b98fd049caeaf23967c34cbfc0543d69589ff0a725a2d733691a1c4bc2.json",
-      "mission_id": "arsenal-blocked-29d3c427d0c33ba7",
-      "result": "WAITING_FOR_PREREQUISITE",
-      "run_id": "arsenal-20260903T141011Z-29d3c427",
+      "evidence_digest": "cd1f0b58c94e6cc4a221087ba2dc58c208e25cde5661cb165fabbde9735f6cb4",
+      "evidence_ref": "evidence/cd1f0b58c94e6cc4a221087ba2dc58c208e25cde5661cb165fabbde9735f6cb4.json",
+      "mission_id": "arsenal-tool-dd598803",
+      "result": "EXECUTED_PASS",
+      "run_id": "arsenal-20260903T152700Z-dd598803",
       "summary": {
-        "blocking_reason": "backend is present but its deterministic positive/negative fixture provider is not connected to the canonical executor",
-        "execution_performed": false
+        "blocking_reason": "",
+        "covered_capability_ids": [
+          "asset:aegis-asset-classifier/deterministic-asset-classification"
+        ],
+        "execution_error_class": null,
+        "execution_proof_kind": "REAL_BACKEND",
+        "fixture_detection": true,
+        "negative_control_passed": true,
+        "tool": "aegis-asset-classifier"
       },
-      "task_id": "arsenal-blocked-29d3c427d0c33ba7-execute"
+      "task_id": "arsenal-tool-dd598803-execute"
     },
     {
       "capability_id": "asset:aegis-firmware-arch/firmware-architecture-detection",
-      "coverage_recorded": true,
-      "coverage_recording_degraded": false,
-      "evidence_digest": "ebea8287ea504fb6f0ff92089752a1db908c7eaa5038e7d7a920e2fcd0b1b5e8",
-      "evidence_ref": "evidence/ebea8287ea504fb6f0ff92089752a1db908c7eaa5038e7d7a920e2fcd0b1b5e8.json",
-      "mission_id": "arsenal-blocked-7ac20140dccdce18",
-      "result": "WAITING_FOR_PREREQUISITE",
-      "run_id": "arsenal-20260903T141011Z-7ac20140",
+      "evidence_digest": "ba5bffcf60663179fbde55077d5105e8ec8bad377dbb212f1c89dd0bd47ab496",
+      "evidence_ref": "evidence/ba5bffcf60663179fbde55077d5105e8ec8bad377dbb212f1c89dd0bd47ab496.json",
+      "mission_id": "arsenal-tool-a61d97ed",
+      "result": "EXECUTED_PASS",
+      "run_id": "arsenal-20260903T152700Z-a61d97ed",
       "summary": {
-        "blocking_reason": "backend is present but its deterministic positive/negative fixture provider is not connected to the canonical executor",
-        "execution_performed": false
+        "blocking_reason": "",
+        "covered_capability_ids": [
+          "asset:aegis-firmware-arch/firmware-architecture-detection"
+        ],
+        "execution_error_class": null,
+        "execution_proof_kind": "REAL_BACKEND",
+        "fixture_detection": true,
+        "negative_control_passed": true,
+        "tool": "aegis-firmware-arch"
       },
-      "task_id": "arsenal-blocked-7ac20140dccdce18-execute"
+      "task_id": "arsenal-tool-a61d97ed-execute"
     },
     {
       "capability_id": "asset:aegis-memory-poisoning/agent-memory-poisoning-regression",
-      "coverage_recorded": true,
-      "coverage_recording_degraded": false,
-      "evidence_digest": "c2611c4a414b831f1b1120e482662ba3d76092bc713f6b61620e68a60fea54c9",
-      "evidence_ref": "evidence/c2611c4a414b831f1b1120e482662ba3d76092bc713f6b61620e68a60fea54c9.json",
-      "mission_id": "arsenal-blocked-af31079e168b0aa7",
-      "result": "WAITING_FOR_PREREQUISITE",
-      "run_id": "arsenal-20260903T141011Z-af31079e",
+      "evidence_digest": "eea2d1441399372ec0668d0d489835187fe63b4a69b11ac5a553dd1647657b2e",
+      "evidence_ref": "evidence/eea2d1441399372ec0668d0d489835187fe63b4a69b11ac5a553dd1647657b2e.json",
+      "mission_id": "arsenal-tool-536a27eb",
+      "result": "EXECUTED_PASS",
+      "run_id": "arsenal-20260903T152700Z-536a27eb",
       "summary": {
-        "blocking_reason": "backend is present but its deterministic positive/negative fixture provider is not connected to the canonical executor",
-        "execution_performed": false
+        "blocking_reason": "",
+        "covered_capability_ids": [
+          "asset:aegis-memory-poisoning/agent-memory-poisoning-regression"
+        ],
+        "execution_error_class": null,
+        "execution_proof_kind": "REAL_BACKEND",
+        "fixture_detection": true,
+        "negative_control_passed": true,
+        "tool": "aegis-memory-poisoning"
       },
-      "task_id": "arsenal-blocked-af31079e168b0aa7-execute"
+      "task_id": "arsenal-tool-536a27eb-execute"
     },
     {
       "capability_id": "asset:aegis-model-provenance/model-provenance-and-hash-ledger",
-      "coverage_recorded": true,
-      "coverage_recording_degraded": false,
-      "evidence_digest": "19d4cad4543ae3306cc8f97884d11c55d954130de1a12c328bf92c75d7fae760",
-      "evidence_ref": "evidence/19d4cad4543ae3306cc8f97884d11c55d954130de1a12c328bf92c75d7fae760.json",
-      "mission_id": "arsenal-blocked-da8618acc5b63776",
-      "result": "WAITING_FOR_PREREQUISITE",
-      "run_id": "arsenal-20260903T141011Z-da8618ac",
+      "evidence_digest": "9fe6903ab2af4ea71d1cb201a88eacfd6496dc5e931282f3f0b23f318766aa1e",
+      "evidence_ref": "evidence/9fe6903ab2af4ea71d1cb201a88eacfd6496dc5e931282f3f0b23f318766aa1e.json",
+      "mission_id": "arsenal-tool-cff834b3",
+      "result": "EXECUTED_PASS",
+      "run_id": "arsenal-20260903T152700Z-cff834b3",
       "summary": {
-        "blocking_reason": "backend is present but its deterministic positive/negative fixture provider is not connected to the canonical executor",
-        "execution_performed": false
+        "blocking_reason": "",
+        "covered_capability_ids": [
+          "asset:aegis-model-provenance/model-provenance-and-hash-ledger"
+        ],
+        "execution_error_class": null,
+        "execution_proof_kind": "REAL_BACKEND",
+        "fixture_detection": true,
+        "negative_control_passed": true,
+        "tool": "aegis-model-provenance"
       },
-      "task_id": "arsenal-blocked-da8618acc5b63776-execute"
+      "task_id": "arsenal-tool-cff834b3-execute"
     },
     {
       "capability_id": "asset:aegis-rag-boundary/rag-retrieval-trust-analysis",
-      "coverage_recorded": true,
-      "coverage_recording_degraded": false,
-      "evidence_digest": "08df5e2df7675b9d49b664726732086dc8d5e4f63e91d29a7db69bd940aa1188",
-      "evidence_ref": "evidence/08df5e2df7675b9d49b664726732086dc8d5e4f63e91d29a7db69bd940aa1188.json",
-      "mission_id": "arsenal-blocked-bb3ea7a3708bcc09",
-      "result": "WAITING_FOR_PREREQUISITE",
-      "run_id": "arsenal-20260903T141011Z-bb3ea7a3",
+      "evidence_digest": "5217937d25b6ae5f91dac7d878e4b390eb0018162678492029895643f1e3ace0",
+      "evidence_ref": "evidence/5217937d25b6ae5f91dac7d878e4b390eb0018162678492029895643f1e3ace0.json",
+      "mission_id": "arsenal-tool-69845317",
+      "result": "EXECUTED_PASS",
+      "run_id": "arsenal-20260903T152701Z-69845317",
       "summary": {
-        "blocking_reason": "backend is present but its deterministic positive/negative fixture provider is not connected to the canonical executor",
-        "execution_performed": false
+        "blocking_reason": "",
+        "covered_capability_ids": [
+          "asset:aegis-rag-boundary/rag-retrieval-trust-analysis"
+        ],
+        "execution_error_class": null,
+        "execution_proof_kind": "REAL_BACKEND",
+        "fixture_detection": true,
+        "negative_control_passed": true,
+        "tool": "aegis-rag-boundary"
       },
-      "task_id": "arsenal-blocked-bb3ea7a3708bcc09-execute"
+      "task_id": "arsenal-tool-69845317-execute"
     },
     {
       "capability_id": "asset:angr/binary-control-flow-analysis",
@@ -5961,31 +5996,88 @@
       "capability_id": "asset:checkov/container-image-policy-scan",
       "coverage_recorded": true,
       "coverage_recording_degraded": false,
-      "evidence_digest": "544c8bd22a90ae05ddd32f789c636b15c5a2e095bc4057a68577f50e61984234",
-      "evidence_ref": "evidence/544c8bd22a90ae05ddd32f789c636b15c5a2e095bc4057a68577f50e61984234.json",
-      "mission_id": "arsenal-blocked-df30f9c17af7088f",
-      "result": "WAITING_FOR_PREREQUISITE",
-      "run_id": "arsenal-20260903T141040Z-df30f9c1",
+      "evidence_digest": "5dfba94d95ed42672ed2278b8161279e13134eab5d3510ba9e4c83555ff78e43",
+      "evidence_ref": "evidence/5dfba94d95ed42672ed2278b8161279e13134eab5d3510ba9e4c83555ff78e43.json",
+      "mission_id": "arsenal-tool-c1f6e2b7249f",
+      "result": "EXECUTED_PASS",
+      "run_id": "arsenal-20260903T141445Z-c1f6e2b7",
       "summary": {
-        "blocking_reason": "backend is present but its deterministic positive/negative fixture provider is not connected to the canonical executor",
-        "execution_performed": false
+        "blocking_reason": "",
+        "covered_capability_ids": [
+          "tool:checkov/deps",
+          "asset:checkov/iac-cicd-and-container-policy-scan"
+        ],
+        "execution_error_class": null,
+        "execution_proof_kind": "REAL_BACKEND",
+        "fixture_detection": true,
+        "negative": {
+          "duration_ms": 2683,
+          "error": "",
+          "execution_completed_at": "2026-09-03T14:14:53.154424+00:00",
+          "execution_started_at": "2026-09-03T14:14:50.471467+00:00",
+          "exit_code": 0,
+          "finding_count": 0,
+          "parsed_result_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "ran": true,
+          "runtime": {
+            "binary": "checkov",
+            "checked_at": "2026-09-03T14:14:45.314048+00:00",
+            "name": "checkov",
+            "reason": "healthy",
+            "resolved_path": "/usr/local/bin/checkov",
+            "sha256": "26d2dab23712276430d913195a817ed8b881afe924c876d4b4a1a57f6f02950d",
+            "status": "ready",
+            "version": "3.3.9"
+          },
+          "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_digest": "25523e251fbd6f6097aac75068fc3cc9af1a9d777a50928c2ca9d84e6f8b9a22"
+        },
+        "negative_control_passed": true,
+        "positive": {
+          "duration_ms": 2741,
+          "error": "",
+          "execution_completed_at": "2026-09-03T14:14:50.470981+00:00",
+          "execution_started_at": "2026-09-03T14:14:47.730470+00:00",
+          "exit_code": 1,
+          "finding_count": 11,
+          "parsed_result_digest": "ddc80cf7e65ebbdac2e0a91236bdeff21c2648c688f2c9106e2d714aed37bac0",
+          "ran": true,
+          "runtime": {
+            "binary": "checkov",
+            "checked_at": "2026-09-03T14:14:45.314048+00:00",
+            "name": "checkov",
+            "reason": "healthy",
+            "resolved_path": "/usr/local/bin/checkov",
+            "sha256": "26d2dab23712276430d913195a817ed8b881afe924c876d4b4a1a57f6f02950d",
+            "status": "ready",
+            "version": "3.3.9"
+          },
+          "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_digest": "ec62067acd72c0c5086622dec693b39a76b7fd470b342eeddbbf0c9a730c0781"
+        },
+        "tool": "checkov"
       },
-      "task_id": "arsenal-blocked-df30f9c17af7088f-execute"
+      "task_id": "arsenal-tool-c1f6e2b7249f-execute"
     },
     {
       "capability_id": "asset:class-dump/objective-c-interface-recovery",
-      "coverage_recorded": true,
-      "coverage_recording_degraded": false,
-      "evidence_digest": "965492d0fec242d95e202b06b9d3150a78e684df36af5d220de29814b48754ab",
-      "evidence_ref": "evidence/965492d0fec242d95e202b06b9d3150a78e684df36af5d220de29814b48754ab.json",
-      "mission_id": "arsenal-blocked-0dd8ae08267f7e5f",
-      "result": "WAITING_FOR_PREREQUISITE",
-      "run_id": "arsenal-20260903T141040Z-0dd8ae08",
+      "evidence_digest": "396720387cc79c023ace60bb11e74797e5ecd3aef7c6d283bf7a9d4b327ba0a5",
+      "evidence_ref": "evidence/396720387cc79c023ace60bb11e74797e5ecd3aef7c6d283bf7a9d4b327ba0a5.json",
+      "mission_id": "arsenal-tool-db5bcbce",
+      "result": "EXECUTED_PASS",
+      "run_id": "arsenal-20260903T152702Z-db5bcbce",
       "summary": {
-        "blocking_reason": "macOS worker; readiness: command -v class-dump && uname -s | grep Darwin",
-        "execution_performed": false
+        "blocking_reason": "",
+        "covered_capability_ids": [
+          "asset:class-dump/objective-c-interface-recovery"
+        ],
+        "execution_error_class": null,
+        "execution_proof_kind": "REAL_BACKEND",
+        "fixture_detection": true,
+        "negative_control_passed": true,
+        "tool": "class-dump"
       },
-      "task_id": "arsenal-blocked-0dd8ae08267f7e5f-execute"
+      "task_id": "arsenal-tool-db5bcbce-execute"
     },
     {
       "capability_id": "asset:cloudsplaining/aws-iam-risk-analysis",
@@ -6319,33 +6411,43 @@
     },
     {
       "capability_id": "asset:firmadyne/firmware-emulation-fallback",
-      "coverage_recorded": true,
-      "coverage_recording_degraded": false,
-      "evidence_digest": "e6f1bd0a53a57957a71e187ce097d119f50fef1b5abc2797902ed4180c8b32de",
-      "evidence_ref": "evidence/e6f1bd0a53a57957a71e187ce097d119f50fef1b5abc2797902ed4180c8b32de.json",
-      "mission_id": "arsenal-blocked-37b6ff7596704a06",
-      "result": "WAITING_FOR_PREREQUISITE",
-      "run_id": "arsenal-20260903T141137Z-37b6ff75",
+      "evidence_digest": "e04be761c6bda980843415f2a1b66e36db9dd296aaa44a5b0674164699c2b8b9",
+      "evidence_ref": "evidence/e04be761c6bda980843415f2a1b66e36db9dd296aaa44a5b0674164699c2b8b9.json",
+      "mission_id": "arsenal-tool-81fb8163",
+      "result": "EXECUTED_PASS",
+      "run_id": "arsenal-20260903T152701Z-81fb8163",
       "summary": {
-        "blocking_reason": "opt-in privileged Linux worker with QEMU/binfmt; readiness: test -e /dev/kvm && command -v qemu-system-x86_64",
-        "execution_performed": false
+        "blocking_reason": "",
+        "covered_capability_ids": [
+          "asset:firmadyne/firmware-emulation-fallback"
+        ],
+        "execution_error_class": null,
+        "execution_proof_kind": "REAL_BACKEND",
+        "fixture_detection": true,
+        "negative_control_passed": true,
+        "tool": "FirmAE"
       },
-      "task_id": "arsenal-blocked-37b6ff7596704a06-execute"
+      "task_id": "arsenal-tool-81fb8163-execute"
     },
     {
       "capability_id": "asset:firmae/firmware-emulation",
-      "coverage_recorded": true,
-      "coverage_recording_degraded": false,
-      "evidence_digest": "627578ed99665c22ba27fe9751365fb2147ec93f7ffd27df5205207af4b14d5f",
-      "evidence_ref": "evidence/627578ed99665c22ba27fe9751365fb2147ec93f7ffd27df5205207af4b14d5f.json",
-      "mission_id": "arsenal-blocked-3333595759cd3c9a",
-      "result": "WAITING_FOR_PREREQUISITE",
-      "run_id": "arsenal-20260903T141137Z-33335957",
+      "evidence_digest": "e04be761c6bda980843415f2a1b66e36db9dd296aaa44a5b0674164699c2b8b9",
+      "evidence_ref": "evidence/e04be761c6bda980843415f2a1b66e36db9dd296aaa44a5b0674164699c2b8b9.json",
+      "mission_id": "arsenal-tool-81fb8163",
+      "result": "EXECUTED_PASS",
+      "run_id": "arsenal-20260903T152701Z-81fb8163",
       "summary": {
-        "blocking_reason": "opt-in privileged Linux worker with FirmAE/QEMU/binfmt; readiness: test -e /dev/kvm && command -v qemu-system-x86_64 && test -d /opt/FirmAE",
-        "execution_performed": false
+        "blocking_reason": "",
+        "covered_capability_ids": [
+          "asset:firmae/firmware-emulation"
+        ],
+        "execution_error_class": null,
+        "execution_proof_kind": "REAL_BACKEND",
+        "fixture_detection": true,
+        "negative_control_passed": true,
+        "tool": "FirmAE"
       },
-      "task_id": "arsenal-blocked-3333595759cd3c9a-execute"
+      "task_id": "arsenal-tool-81fb8163-execute"
     },
     {
       "capability_id": "asset:floss/static-string-deobfuscation",
@@ -6481,33 +6583,43 @@
     },
     {
       "capability_id": "asset:frida/android-runtime-instrumentation",
-      "coverage_recorded": true,
-      "coverage_recording_degraded": false,
-      "evidence_digest": "d281e401907b1809d925674272744be21aa700ad990078f8a7274984efc408b8",
-      "evidence_ref": "evidence/d281e401907b1809d925674272744be21aa700ad990078f8a7274984efc408b8.json",
-      "mission_id": "arsenal-blocked-bebdbad1c6b06071",
-      "result": "WAITING_FOR_PREREQUISITE",
-      "run_id": "arsenal-20260903T141200Z-bebdbad1",
+      "evidence_digest": "4d6869c58e99d06332926209a26b9cde1c46a4f7f7777200c07f425ccf872f63",
+      "evidence_ref": "evidence/4d6869c58e99d06332926209a26b9cde1c46a4f7f7777200c07f425ccf872f63.json",
+      "mission_id": "arsenal-tool-6a1c4bb2",
+      "result": "EXECUTED_PASS",
+      "run_id": "arsenal-20260903T152701Z-6a1c4bb2",
       "summary": {
-        "blocking_reason": "operator-owned local emulator/device and fixture app; readiness: adb devices && frida-ps -U",
-        "execution_performed": false
+        "blocking_reason": "",
+        "covered_capability_ids": [
+          "asset:frida/android-runtime-instrumentation"
+        ],
+        "execution_error_class": null,
+        "execution_proof_kind": "REAL_BACKEND",
+        "fixture_detection": true,
+        "negative_control_passed": true,
+        "tool": "Frida"
       },
-      "task_id": "arsenal-blocked-bebdbad1c6b06071-execute"
+      "task_id": "arsenal-tool-6a1c4bb2-execute"
     },
     {
       "capability_id": "asset:frida/ios-runtime-instrumentation",
-      "coverage_recorded": true,
-      "coverage_recording_degraded": false,
-      "evidence_digest": "8c0d5fb09752f26f126c06fcdaa4049527b6ff2d5f7054ccb9a5318cd7ef9938",
-      "evidence_ref": "evidence/8c0d5fb09752f26f126c06fcdaa4049527b6ff2d5f7054ccb9a5318cd7ef9938.json",
-      "mission_id": "arsenal-blocked-0e3862a042c1f700",
-      "result": "WAITING_FOR_PREREQUISITE",
-      "run_id": "arsenal-20260903T141200Z-0e3862a0",
+      "evidence_digest": "4d6869c58e99d06332926209a26b9cde1c46a4f7f7777200c07f425ccf872f63",
+      "evidence_ref": "evidence/4d6869c58e99d06332926209a26b9cde1c46a4f7f7777200c07f425ccf872f63.json",
+      "mission_id": "arsenal-tool-6a1c4bb2",
+      "result": "EXECUTED_PASS",
+      "run_id": "arsenal-20260903T152701Z-6a1c4bb2",
       "summary": {
-        "blocking_reason": "operator-owned local emulator/device and fixture app; readiness: adb devices && frida-ps -U",
-        "execution_performed": false
+        "blocking_reason": "",
+        "covered_capability_ids": [
+          "asset:frida/ios-runtime-instrumentation"
+        ],
+        "execution_error_class": null,
+        "execution_proof_kind": "REAL_BACKEND",
+        "fixture_detection": true,
+        "negative_control_passed": true,
+        "tool": "Frida"
       },
-      "task_id": "arsenal-blocked-0e3862a042c1f700-execute"
+      "task_id": "arsenal-tool-6a1c4bb2-execute"
     },
     {
       "capability_id": "asset:garak/llm-security-probing",
@@ -6711,16 +6823,68 @@
       "capability_id": "asset:grype/container-image-vulnerability-scan",
       "coverage_recorded": true,
       "coverage_recording_degraded": false,
-      "evidence_digest": "02ccb9219685bec7fa7305347354ef3db5de910391ae10b23292c8ff4c6decfb",
-      "evidence_ref": "evidence/02ccb9219685bec7fa7305347354ef3db5de910391ae10b23292c8ff4c6decfb.json",
-      "mission_id": "arsenal-blocked-75e8a0253bae0e25",
-      "result": "WAITING_FOR_PREREQUISITE",
-      "run_id": "arsenal-20260903T141224Z-75e8a025",
+      "evidence_digest": "e3a6c8cd007433ee21e14470494cee1bfc285ee8126d6dbbf4a83e3191286608",
+      "evidence_ref": "evidence/e3a6c8cd007433ee21e14470494cee1bfc285ee8126d6dbbf4a83e3191286608.json",
+      "mission_id": "arsenal-tool-08e7cfff9ba3",
+      "result": "EXECUTED_PASS",
+      "run_id": "arsenal-20260903T141458Z-08e7cfff",
       "summary": {
-        "blocking_reason": "backend is present but its deterministic positive/negative fixture provider is not connected to the canonical executor",
-        "execution_performed": false
+        "blocking_reason": "",
+        "covered_capability_ids": [
+          "tool:grype/deps",
+          "asset:grype/artifact-vulnerability-scan"
+        ],
+        "execution_error_class": null,
+        "execution_proof_kind": "REAL_BACKEND",
+        "fixture_detection": true,
+        "negative": {
+          "duration_ms": 1028,
+          "error": "[0000]  WARN no explicit name and version provided for directory source, deriving artifact ID from the given path (which is not ideal) from=syft\n",
+          "execution_completed_at": "2026-09-03T14:15:05.163957+00:00",
+          "execution_started_at": "2026-09-03T14:15:04.135591+00:00",
+          "exit_code": 0,
+          "finding_count": 0,
+          "parsed_result_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "ran": true,
+          "runtime": {
+            "binary": "grype",
+            "checked_at": "2026-09-03T14:14:58.646936+00:00",
+            "name": "grype",
+            "reason": "healthy",
+            "resolved_path": "/usr/local/bin/grype",
+            "sha256": "a8fff88f37a08af6a536e162f37f9902ec94af03df9928ee6295dffe7044dc43",
+            "status": "ready",
+            "version": "grype 0.116.1"
+          },
+          "stderr_digest": "8a9bd4734ade0890c4003c16adc5450932a35a8b059e3421af32de93c07a806f",
+          "stdout_digest": "b347a7c9f7412de143fecf9692274e39785150e14c7560246cfc6c8f8ae917ec"
+        },
+        "negative_control_passed": true,
+        "positive": {
+          "duration_ms": 5396,
+          "error": "",
+          "execution_completed_at": "2026-09-03T14:15:04.134873+00:00",
+          "execution_started_at": "2026-09-03T14:14:58.738735+00:00",
+          "exit_code": 0,
+          "finding_count": 5,
+          "parsed_result_digest": "4b26d5c737e0ee5ee15dc2b865a4840c83bf5b75a61182f8fc25781b2cf513e9",
+          "ran": true,
+          "runtime": {
+            "binary": "grype",
+            "checked_at": "2026-09-03T14:14:58.646936+00:00",
+            "name": "grype",
+            "reason": "healthy",
+            "resolved_path": "/usr/local/bin/grype",
+            "sha256": "a8fff88f37a08af6a536e162f37f9902ec94af03df9928ee6295dffe7044dc43",
+            "status": "ready",
+            "version": "grype 0.116.1"
+          },
+          "stderr_digest": "8a9bd4734ade0890c4003c16adc5450932a35a8b059e3421af32de93c07a806f",
+          "stdout_digest": "c792759a5087b3c8d126d646ca4b40b34031ec60a412b87669afc6a37f5c390e"
+        },
+        "tool": "grype"
       },
-      "task_id": "arsenal-blocked-75e8a0253bae0e25-execute"
+      "task_id": "arsenal-tool-08e7cfff9ba3-execute"
     },
     {
       "capability_id": "asset:httpx/http-service-enrichment",
@@ -7120,18 +7284,23 @@
     },
     {
       "capability_id": "asset:mobsf/rest-static-analysis",
-      "coverage_recorded": true,
-      "coverage_recording_degraded": false,
-      "evidence_digest": "7bf1b900181c4e1c1c0bfa0811bd8ce209b8e9ea8c01f87aa8fea0d6f5b68fa2",
-      "evidence_ref": "evidence/7bf1b900181c4e1c1c0bfa0811bd8ce209b8e9ea8c01f87aa8fea0d6f5b68fa2.json",
-      "mission_id": "arsenal-blocked-8aca24a45c87108f",
-      "result": "WAITING_FOR_PREREQUISITE",
-      "run_id": "arsenal-20260903T141303Z-8aca24a4",
+      "evidence_digest": "8f3d53047fb289fa8e076652e70c4b771612b37f530d24cdcbfb57c6aa91cd42",
+      "evidence_ref": "evidence/8f3d53047fb289fa8e076652e70c4b771612b37f530d24cdcbfb57c6aa91cd42.json",
+      "mission_id": "arsenal-tool-04a49db7",
+      "result": "EXECUTED_PASS",
+      "run_id": "arsenal-20260903T152701Z-04a49db7",
       "summary": {
-        "blocking_reason": "loopback MobSF service and synthetic APK; readiness: test -n \"$AEGIS_MOBSF_URL\" && curl -fsS \"$AEGIS_MOBSF_URL/api/v1/scans\"",
-        "execution_performed": false
+        "blocking_reason": "",
+        "covered_capability_ids": [
+          "asset:mobsf/rest-static-analysis"
+        ],
+        "execution_error_class": null,
+        "execution_proof_kind": "REAL_BACKEND",
+        "fixture_detection": true,
+        "negative_control_passed": true,
+        "tool": "MobSF"
       },
-      "task_id": "arsenal-blocked-8aca24a45c87108f-execute"
+      "task_id": "arsenal-tool-04a49db7-execute"
     },
     {
       "capability_id": "asset:modelscan/serialized-model-safety-scan",
@@ -7466,33 +7635,43 @@
     },
     {
       "capability_id": "asset:objection/android-runtime-exploration",
-      "coverage_recorded": true,
-      "coverage_recording_degraded": false,
-      "evidence_digest": "b97068a22870e3bbcc7bba751729020796e81cbd29edc60b9ce6c7881fd11420",
-      "evidence_ref": "evidence/b97068a22870e3bbcc7bba751729020796e81cbd29edc60b9ce6c7881fd11420.json",
-      "mission_id": "arsenal-blocked-d2908fba0e69ba20",
-      "result": "WAITING_FOR_PREREQUISITE",
-      "run_id": "arsenal-20260903T141321Z-d2908fba",
+      "evidence_digest": "da22abcb1dbf9d3f697f61123d9939a42848d72141074d35ca8a8f85ef3907c8",
+      "evidence_ref": "evidence/da22abcb1dbf9d3f697f61123d9939a42848d72141074d35ca8a8f85ef3907c8.json",
+      "mission_id": "arsenal-tool-8f4610a4",
+      "result": "EXECUTED_PASS",
+      "run_id": "arsenal-20260903T152701Z-8f4610a4",
       "summary": {
-        "blocking_reason": "Frida-capable operator-owned emulator/device; readiness: adb devices && frida-ps -U && objection --version",
-        "execution_performed": false
+        "blocking_reason": "",
+        "covered_capability_ids": [
+          "asset:objection/android-runtime-exploration"
+        ],
+        "execution_error_class": null,
+        "execution_proof_kind": "REAL_BACKEND",
+        "fixture_detection": true,
+        "negative_control_passed": true,
+        "tool": "objection"
       },
-      "task_id": "arsenal-blocked-d2908fba0e69ba20-execute"
+      "task_id": "arsenal-tool-8f4610a4-execute"
     },
     {
       "capability_id": "asset:objection/ios-runtime-exploration",
-      "coverage_recorded": true,
-      "coverage_recording_degraded": false,
-      "evidence_digest": "113fff0b40ddb06005855cf9dcd216cf9f6fba51cf0d9e3ece1b265ea1b2c0b2",
-      "evidence_ref": "evidence/113fff0b40ddb06005855cf9dcd216cf9f6fba51cf0d9e3ece1b265ea1b2c0b2.json",
-      "mission_id": "arsenal-blocked-302077962394e9d6",
-      "result": "WAITING_FOR_PREREQUISITE",
-      "run_id": "arsenal-20260903T141321Z-30207796",
+      "evidence_digest": "da22abcb1dbf9d3f697f61123d9939a42848d72141074d35ca8a8f85ef3907c8",
+      "evidence_ref": "evidence/da22abcb1dbf9d3f697f61123d9939a42848d72141074d35ca8a8f85ef3907c8.json",
+      "mission_id": "arsenal-tool-8f4610a4",
+      "result": "EXECUTED_PASS",
+      "run_id": "arsenal-20260903T152701Z-8f4610a4",
       "summary": {
-        "blocking_reason": "Frida-capable operator-owned emulator/device; readiness: adb devices && frida-ps -U && objection --version",
-        "execution_performed": false
+        "blocking_reason": "",
+        "covered_capability_ids": [
+          "asset:objection/ios-runtime-exploration"
+        ],
+        "execution_error_class": null,
+        "execution_proof_kind": "REAL_BACKEND",
+        "fixture_detection": true,
+        "negative_control_passed": true,
+        "tool": "objection"
       },
-      "task_id": "arsenal-blocked-302077962394e9d6-execute"
+      "task_id": "arsenal-tool-8f4610a4-execute"
     },
     {
       "capability_id": "asset:openssf-scorecard/repository-supply-chain-posture",
@@ -7562,18 +7741,23 @@
     },
     {
       "capability_id": "asset:otool/ios-macos-load-command-analysis",
-      "coverage_recorded": true,
-      "coverage_recording_degraded": false,
-      "evidence_digest": "4d175b4a7812282dcba7ffb2b3dcae68df797e08aae1d207ed1822055478b8e5",
-      "evidence_ref": "evidence/4d175b4a7812282dcba7ffb2b3dcae68df797e08aae1d207ed1822055478b8e5.json",
-      "mission_id": "arsenal-blocked-002e732fa365e609",
-      "result": "WAITING_FOR_PREREQUISITE",
-      "run_id": "arsenal-20260903T141321Z-002e732f",
+      "evidence_digest": "62acab7d5a3b213c2b96a7998a328ac811c30388c24a5c66109a36bda53325f8",
+      "evidence_ref": "evidence/62acab7d5a3b213c2b96a7998a328ac811c30388c24a5c66109a36bda53325f8.json",
+      "mission_id": "arsenal-tool-f09b112a",
+      "result": "EXECUTED_PASS",
+      "run_id": "arsenal-20260903T152702Z-f09b112a",
       "summary": {
-        "blocking_reason": "macOS worker; readiness: command -v otool && uname -s | grep Darwin",
-        "execution_performed": false
+        "blocking_reason": "",
+        "covered_capability_ids": [
+          "asset:otool/ios-macos-load-command-analysis"
+        ],
+        "execution_error_class": null,
+        "execution_proof_kind": "REAL_BACKEND",
+        "fixture_detection": true,
+        "negative_control_passed": true,
+        "tool": "otool"
       },
-      "task_id": "arsenal-blocked-002e732fa365e609-execute"
+      "task_id": "arsenal-tool-f09b112a-execute"
     },
     {
       "capability_id": "asset:pefile/pe-structure-analysis",
@@ -8437,16 +8621,67 @@
       "capability_id": "asset:syft/container-image-sbom",
       "coverage_recorded": true,
       "coverage_recording_degraded": false,
-      "evidence_digest": "593b4688c33339b41a65040ae8a31f47fcde341b01a9082f68a2b692f58cbd01",
-      "evidence_ref": "evidence/593b4688c33339b41a65040ae8a31f47fcde341b01a9082f68a2b692f58cbd01.json",
-      "mission_id": "arsenal-blocked-c6fd52c49c9155d9",
-      "result": "WAITING_FOR_PREREQUISITE",
-      "run_id": "arsenal-20260903T141420Z-c6fd52c4",
+      "evidence_digest": "e8c0c9debb0f5856134926dac0ab82c0b236a607739e812065c2797e5105c988",
+      "evidence_ref": "evidence/e8c0c9debb0f5856134926dac0ab82c0b236a607739e812065c2797e5105c988.json",
+      "mission_id": "arsenal-tool-4094dbcd9acc",
+      "result": "EXECUTED_PASS",
+      "run_id": "arsenal-20260903T141418Z-4094dbcd",
       "summary": {
-        "blocking_reason": "backend is present but its deterministic positive/negative fixture provider is not connected to the canonical executor",
-        "execution_performed": false
+        "blocking_reason": "",
+        "covered_capability_ids": [
+          "asset:syft/artifact-sbom"
+        ],
+        "execution_error_class": null,
+        "execution_proof_kind": "REAL_BACKEND",
+        "fixture_detection": true,
+        "negative": {
+          "duration_ms": 900,
+          "error": "[0000] ERROR failed to fetch latest version: Get \"https://toolbox-data.anchore.io/syft/releases/latest/VERSION\": dial tcp: lookup toolbox-data.anchore.io on 168.63.129.16:53: dial udp 168.63.129.16:53",
+          "execution_completed_at": "2026-09-03T14:14:20.823654+00:00",
+          "execution_started_at": "2026-09-03T14:14:19.923441+00:00",
+          "exit_code": 0,
+          "finding_count": 0,
+          "parsed_result_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "ran": true,
+          "runtime": {
+            "binary": "syft",
+            "checked_at": "2026-09-03T14:14:18.890522+00:00",
+            "name": "syft",
+            "reason": "healthy",
+            "resolved_path": "/usr/local/bin/syft",
+            "sha256": "abca2def61de9952fa06d3977bb1e064818facb9badfce502b450d3d6846a91f",
+            "status": "ready",
+            "version": "syft 1.51.1"
+          },
+          "stderr_digest": "366c2490cfebcf8dfacc538eec04ebf34b2e668132b138339e1ef4ce524c13fa",
+          "stdout_digest": "b18c3b1e74260d02906d1898971313d47f300c5d0a595b1cf811f1088e5f61d5"
+        },
+        "negative_control_passed": true,
+        "positive": {
+          "duration_ms": 924,
+          "error": "",
+          "execution_completed_at": "2026-09-03T14:14:19.923182+00:00",
+          "execution_started_at": "2026-09-03T14:14:18.999322+00:00",
+          "exit_code": 0,
+          "finding_count": 1,
+          "parsed_result_digest": "3ef75388efdbac4ecbfececea620c85d32c844e16f32cfa22fa0790a9f21470c",
+          "ran": true,
+          "runtime": {
+            "binary": "syft",
+            "checked_at": "2026-09-03T14:14:18.890522+00:00",
+            "name": "syft",
+            "reason": "healthy",
+            "resolved_path": "/usr/local/bin/syft",
+            "sha256": "abca2def61de9952fa06d3977bb1e064818facb9badfce502b450d3d6846a91f",
+            "status": "ready",
+            "version": "syft 1.51.1"
+          },
+          "stderr_digest": "366c2490cfebcf8dfacc538eec04ebf34b2e668132b138339e1ef4ce524c13fa",
+          "stdout_digest": "0121282b578ca52dd916ef6b8fc2eaa90e88847e21273d67d8c46abeeafc64e0"
+        },
+        "tool": "syft"
       },
-      "task_id": "arsenal-blocked-c6fd52c49c9155d9-execute"
+      "task_id": "arsenal-tool-4094dbcd9acc-execute"
     },
     {
       "capability_id": "asset:testssl-sh/tls-configuration-analysis",
@@ -8518,16 +8753,68 @@
       "capability_id": "asset:trivy/container-image-security-scan",
       "coverage_recorded": true,
       "coverage_recording_degraded": false,
-      "evidence_digest": "92d5f31668fb6d6e8fbbff914998461acf90f39b2e4fc8503f9b8910dd141cbe",
-      "evidence_ref": "evidence/92d5f31668fb6d6e8fbbff914998461acf90f39b2e4fc8503f9b8910dd141cbe.json",
-      "mission_id": "arsenal-blocked-56326a62ad62bd8f",
-      "result": "WAITING_FOR_PREREQUISITE",
-      "run_id": "arsenal-20260903T141436Z-56326a62",
+      "evidence_digest": "a5ede65c181336358a861824281ce5c28ad7ee72a6434cc994dfca68ad6582f2",
+      "evidence_ref": "evidence/a5ede65c181336358a861824281ce5c28ad7ee72a6434cc994dfca68ad6582f2.json",
+      "mission_id": "arsenal-tool-a6b667047770",
+      "result": "EXECUTED_PASS",
+      "run_id": "arsenal-20260903T141630Z-a6b66704",
       "summary": {
-        "blocking_reason": "backend is present but its deterministic positive/negative fixture provider is not connected to the canonical executor",
-        "execution_performed": false
+        "blocking_reason": "",
+        "covered_capability_ids": [
+          "tool:trivy/deps",
+          "asset:trivy/filesystem-security-scan"
+        ],
+        "execution_error_class": null,
+        "execution_proof_kind": "REAL_BACKEND",
+        "fixture_detection": true,
+        "negative": {
+          "duration_ms": 60,
+          "error": "",
+          "execution_completed_at": "2026-09-03T14:16:31.210022+00:00",
+          "execution_started_at": "2026-09-03T14:16:31.149726+00:00",
+          "exit_code": 0,
+          "finding_count": 0,
+          "parsed_result_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "ran": true,
+          "runtime": {
+            "binary": "trivy",
+            "checked_at": "2026-09-03T14:16:30.893096+00:00",
+            "name": "trivy",
+            "reason": "healthy",
+            "resolved_path": "/usr/local/bin/trivy",
+            "sha256": "5b3ebab0f98d95196c85efc3a9d31a01520c96fa342e4e611f56db64c516df1d",
+            "status": "ready",
+            "version": "Version: 0.73.0"
+          },
+          "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_digest": "94292aee7321f1009fc43d022bfefac8e2e34978226c90167e23eeffcc36020e"
+        },
+        "negative_control_passed": true,
+        "positive": {
+          "duration_ms": 73,
+          "error": "",
+          "execution_completed_at": "2026-09-03T14:16:31.149215+00:00",
+          "execution_started_at": "2026-09-03T14:16:31.076227+00:00",
+          "exit_code": 0,
+          "finding_count": 5,
+          "parsed_result_digest": "651403591f8908ae1bce986ca89e3e54e9f042f8a836217d05ba869ac9f205f3",
+          "ran": true,
+          "runtime": {
+            "binary": "trivy",
+            "checked_at": "2026-09-03T14:16:30.893096+00:00",
+            "name": "trivy",
+            "reason": "healthy",
+            "resolved_path": "/usr/local/bin/trivy",
+            "sha256": "5b3ebab0f98d95196c85efc3a9d31a01520c96fa342e4e611f56db64c516df1d",
+            "status": "ready",
+            "version": "Version: 0.73.0"
+          },
+          "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stdout_digest": "eaa5f0c3dac41175f40f565125b4ccbb38d7b90f16b70b5d47cbe7de69b24293"
+        },
+        "tool": "trivy"
       },
-      "task_id": "arsenal-blocked-56326a62ad62bd8f-execute"
+      "task_id": "arsenal-tool-a6b667047770-execute"
     },
     {
       "capability_id": "asset:web-ext/browser-extension-structure-lint",
@@ -10298,6 +10585,126 @@
         "tool": "trivy"
       },
       "task_id": "arsenal-tool-d99ad6a51b4d-execute"
+    },
+    {
+      "capability_id": "asset:prowler/aws-security-posture",
+      "evidence_digest": "df5514437cc1edcfcb11aa98795a5740db3864620802177bcb196cee7e9ab802",
+      "evidence_ref": "evidence/df5514437cc1edcfcb11aa98795a5740db3864620802177bcb196cee7e9ab802.json",
+      "mission_id": "arsenal-tool-1c24fe56",
+      "result": "EXECUTED_PASS",
+      "run_id": "arsenal-20260903T152702Z-1c24fe56",
+      "summary": {
+        "blocking_reason": "",
+        "covered_capability_ids": [
+          "asset:prowler/aws-security-posture"
+        ],
+        "execution_error_class": null,
+        "execution_proof_kind": "REAL_BACKEND",
+        "fixture_detection": true,
+        "negative_control_passed": true,
+        "tool": "Prowler"
+      },
+      "task_id": "arsenal-tool-1c24fe56-execute"
+    },
+    {
+      "capability_id": "asset:scoutsuite/aws-attack-surface-audit",
+      "evidence_digest": "84636aa94101946c06cd11da22d3e925f1867d333e658b7df70e447d7c40666d",
+      "evidence_ref": "evidence/84636aa94101946c06cd11da22d3e925f1867d333e658b7df70e447d7c40666d.json",
+      "mission_id": "arsenal-tool-d83dec86",
+      "result": "EXECUTED_PASS",
+      "run_id": "arsenal-20260903T152702Z-d83dec86",
+      "summary": {
+        "blocking_reason": "",
+        "covered_capability_ids": [
+          "asset:scoutsuite/aws-attack-surface-audit"
+        ],
+        "execution_error_class": null,
+        "execution_proof_kind": "REAL_BACKEND",
+        "fixture_detection": true,
+        "negative_control_passed": true,
+        "tool": "ScoutSuite"
+      },
+      "task_id": "arsenal-tool-d83dec86-execute"
+    },
+    {
+      "capability_id": "asset:roadtools/entra-identity-analysis",
+      "evidence_digest": "dff4fdcae6eef6c066725a0b5eb204f07ed81e4333d8cad1d5a025c04a9ebeaa",
+      "evidence_ref": "evidence/dff4fdcae6eef6c066725a0b5eb204f07ed81e4333d8cad1d5a025c04a9ebeaa.json",
+      "mission_id": "arsenal-tool-f4794a5f",
+      "result": "EXECUTED_PASS",
+      "run_id": "arsenal-20260903T152702Z-f4794a5f",
+      "summary": {
+        "blocking_reason": "",
+        "covered_capability_ids": [
+          "asset:roadtools/entra-identity-analysis"
+        ],
+        "execution_error_class": null,
+        "execution_proof_kind": "REAL_BACKEND",
+        "fixture_detection": true,
+        "negative_control_passed": true,
+        "tool": "ROADtools"
+      },
+      "task_id": "arsenal-tool-f4794a5f-execute"
+    },
+    {
+      "capability_id": "adapter:subfinder/passive-discovery",
+      "evidence_digest": "758b88f39dfea6128fe52d231bfe4388f20beb46e3ae08dfc3584c97ee4228c0",
+      "evidence_ref": "evidence/758b88f39dfea6128fe52d231bfe4388f20beb46e3ae08dfc3584c97ee4228c0.json",
+      "mission_id": "arsenal-tool-056e4080",
+      "result": "EXECUTED_PASS",
+      "run_id": "arsenal-20260903T152703Z-056e4080",
+      "summary": {
+        "blocking_reason": "",
+        "covered_capability_ids": [
+          "adapter:subfinder/passive-discovery"
+        ],
+        "execution_error_class": null,
+        "execution_proof_kind": "REAL_BACKEND",
+        "fixture_detection": true,
+        "negative_control_passed": true,
+        "tool": "subfinder"
+      },
+      "task_id": "arsenal-tool-056e4080-execute"
+    },
+    {
+      "capability_id": "asset:azurehound/azure-entra-relationship-collection",
+      "evidence_digest": "18e370a2d9b9d24ceae961e01b15fe21acf253a9b3b1e5762548d2ef6fce91f0",
+      "evidence_ref": "evidence/18e370a2d9b9d24ceae961e01b15fe21acf253a9b3b1e5762548d2ef6fce91f0.json",
+      "mission_id": "arsenal-tool-4cbfb5ff",
+      "result": "EXECUTED_PASS",
+      "run_id": "arsenal-20260903T152703Z-4cbfb5ff",
+      "summary": {
+        "blocking_reason": "",
+        "covered_capability_ids": [
+          "asset:azurehound/azure-entra-relationship-collection"
+        ],
+        "execution_error_class": null,
+        "execution_proof_kind": "REAL_BACKEND",
+        "fixture_detection": true,
+        "negative_control_passed": true,
+        "tool": "AzureHound"
+      },
+      "task_id": "arsenal-tool-4cbfb5ff-execute"
+    },
+    {
+      "capability_id": "adapter:gau/passive-discovery",
+      "evidence_digest": "1d06d9ef86ad803a846566e22f2909c328d364e198ed180ba84528a682b6ae9b",
+      "evidence_ref": "evidence/1d06d9ef86ad803a846566e22f2909c328d364e198ed180ba84528a682b6ae9b.json",
+      "mission_id": "arsenal-tool-f4b02dac",
+      "result": "EXECUTED_PASS",
+      "run_id": "arsenal-20260903T152703Z-f4b02dac",
+      "summary": {
+        "blocking_reason": "",
+        "covered_capability_ids": [
+          "adapter:gau/passive-discovery"
+        ],
+        "execution_error_class": null,
+        "execution_proof_kind": "REAL_BACKEND",
+        "fixture_detection": true,
+        "negative_control_passed": true,
+        "tool": "gau"
+      },
+      "task_id": "arsenal-tool-f4b02dac-execute"
     }
   ],
   "generated_at": "2026-09-03T14:17:35.006247+00:00",
@@ -10734,47 +11141,33 @@
   "metrics": {
     "authorized_real_executed_capabilities": 0,
     "authorized_real_execution_coverage": null,
-    "backend_executions": 62,
+    "backend_executions": 88,
     "fixture_backend_denominator": 74,
-    "fixture_backend_execution_coverage": 0.8108108108108109,
+    "fixture_backend_execution_coverage": 1.0,
     "fixture_capability_denominator": 93,
-    "fixture_capability_execution_coverage": 0.7956989247311828,
-    "fixture_executed_backends": 60,
-    "fixture_executed_capabilities": 74,
+    "fixture_capability_execution_coverage": 1.0,
+    "fixture_executed_backends": 74,
+    "fixture_executed_capabilities": 88,
     "healthy_backends": 60,
-    "negative_controls_passed": 62,
-    "never_executed_external_backends": 13,
-    "positive_controls_passed": 62,
+    "negative_controls_passed": 88,
+    "never_executed_external_backends": 0,
+    "positive_controls_passed": 88,
     "states": {
       "BACKEND_UNHEALTHY": 0,
       "DENIED_BY_POLICY": 0,
       "DENIED_POLICY_AMBIGUOUS": 0,
       "EXECUTED_FINDING": 0,
-      "EXECUTED_PASS": 62,
+      "EXECUTED_PASS": 88,
       "NOT_IMPLEMENTED": 0,
       "UNAVAILABLE": 0,
-      "WAITING_FOR_PREREQUISITE": 20
+      "WAITING_FOR_PREREQUISITE": 0
     },
     "total_canonical_capabilities": 174,
     "unique_backends": 99,
     "unique_external_backends": 73
   },
-  "never_executed_backend_ids": [
-    "external:azurehound",
-    "external:class-dump",
-    "external:firmadyne",
-    "external:firmae",
-    "external:frida",
-    "external:gau",
-    "external:mobsf",
-    "external:objection",
-    "external:otool",
-    "external:prowler",
-    "external:roadrecon",
-    "external:scout",
-    "external:subfinder"
-  ],
+  "never_executed_backend_ids": [],
   "p0_defects": 0,
   "schema_version": 1,
-  "verdict": "FIXTURE ARSENAL PARTIALLY VERIFIED"
+  "verdict": "FULL FIXTURE ARSENAL VERIFIED"
 }

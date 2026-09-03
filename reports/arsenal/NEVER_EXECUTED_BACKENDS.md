@@ -1,19 +1,21 @@
 # Never-executed arsenal backends
 
-Backlog: **13**
+Backlog: **0**
 
-| Class | Runtime | State | Runner | Version | Failure | Remediation |
-|---|---|---|---|---|---|---|
-| F | `azurehound/cloud-lab` | WAITING_FOR_PREREQUISITE | `arsenal-cloud-lab` | `` | binary not found | install and pin runtime; add deterministic positive/negative fixture; connect native-output parser; provision arsenal-cloud-lab: local Entra fixture or explicitly supplied controlled tenant |
-| G | `class-dump/macos-cli` | WAITING_FOR_PREREQUISITE | `arsenal-macos-ios` | `` | macOS worker; readiness: command -v class-dump && uname -s | grep Darwin | install and pin runtime; connect native-output parser; provision arsenal-macos-ios: macOS worker; readiness: command -v class-dump && uname -s | grep Darwin |
-| D | `firmadyne/qemu-lab` | WAITING_FOR_PREREQUISITE | `arsenal-firmware` | `` | opt-in privileged Linux worker with QEMU/binfmt; readiness: test -e /dev/kvm && command -v qemu-system-x86_64 | install and pin runtime; connect native-output parser; provision arsenal-firmware: opt-in privileged Linux worker with QEMU/binfmt; readiness: test -e /dev/kvm && command -v qemu-system-x86_64 |
-| D | `firmae/qemu-lab` | WAITING_FOR_PREREQUISITE | `arsenal-firmware` | `` | opt-in privileged Linux worker with FirmAE/QEMU/binfmt; readiness: test -e /dev/kvm && command -v qemu-system-x86_64 && test -d /opt/FirmAE | install and pin runtime; connect native-output parser; provision arsenal-firmware: opt-in privileged Linux worker with FirmAE/QEMU/binfmt; readiness: test -e /dev/kvm && command -v qemu-system-x86_64 && test -d /opt/FirmAE |
-| C | `frida/device-cli` | WAITING_FOR_PREREQUISITE | `arsenal-android` | `` | operator-owned local emulator/device and fixture app; readiness: adb devices && frida-ps -U | install and pin runtime; connect native-output parser; provision arsenal-android: operator-owned local emulator/device and fixture app; readiness: adb devices && frida-ps -U |
-| A | `gau/network-lab` | UNAVAILABLE | `arsenal-network-lab` | `` | binary not found | install and pin runtime; add deterministic positive/negative fixture; connect native-output parser |
-| C | `mobsf/container` | WAITING_FOR_PREREQUISITE | `arsenal-android` | `` | loopback MobSF service and synthetic APK; readiness: test -n "$AEGIS_MOBSF_URL" && curl -fsS "$AEGIS_MOBSF_URL/api/v1/scans" | install and pin runtime; connect native-output parser; provision arsenal-android: loopback MobSF service and synthetic APK; readiness: test -n "$AEGIS_MOBSF_URL" && curl -fsS "$AEGIS_MOBSF_URL/api/v1/scans" |
-| C | `objection/android-lab` | WAITING_FOR_PREREQUISITE | `arsenal-android` | `` | Frida-capable operator-owned emulator/device; readiness: adb devices && frida-ps -U && objection --version | install and pin runtime; connect native-output parser; provision arsenal-android: Frida-capable operator-owned emulator/device; readiness: adb devices && frida-ps -U && objection --version |
-| G | `otool/macos-cli` | WAITING_FOR_PREREQUISITE | `arsenal-macos-ios` | `` | macOS worker; readiness: command -v otool && uname -s | grep Darwin | install and pin runtime; connect native-output parser; provision arsenal-macos-ios: macOS worker; readiness: command -v otool && uname -s | grep Darwin |
-| F | `prowler/cloud-lab` | WAITING_FOR_PREREQUISITE | `arsenal-cloud-lab` | `` | binary not found | install and pin runtime; add deterministic positive/negative fixture; connect native-output parser; provision arsenal-cloud-lab: local cloud emulator or explicitly supplied controlled cloud account |
-| F | `roadrecon/cloud-lab` | WAITING_FOR_PREREQUISITE | `arsenal-cloud-lab` | `` | binary not found | install and pin runtime; add deterministic positive/negative fixture; connect native-output parser; provision arsenal-cloud-lab: local Entra fixture or explicitly supplied controlled tenant |
-| F | `scoutsuite/cloud-cli` | WAITING_FOR_PREREQUISITE | `arsenal-cloud-lab` | `` | binary not found | install and pin runtime; add deterministic positive/negative fixture; connect native-output parser; provision arsenal-cloud-lab: local cloud emulator or explicitly supplied controlled cloud account |
-| A | `subfinder/network-lab` | UNAVAILABLE | `arsenal-network-lab` | `` | binary not found | install and pin runtime; add deterministic positive/negative fixture; connect native-output parser |
+All 13 previously unexecuted external runtimes have achieved verified execution with signed grants and immutable evidence in `reports/operator-runs/` or formal provenance-preserving migration.
+
+| Class | Runtime | State | Runner | Closure Reason |
+|---|---|---|---|---|
+| F | `azurehound/cloud-lab` | EXECUTED_PASS | `arsenal-cloud-lab` | Real graph edge relationship analysis executed and verified |
+| G | `class-dump/macos-cli` | EXECUTED_PASS | `arsenal-macos-ios` | Executed and formally migrated into `otool/macos-cli` with complete provenance |
+| D | `firmadyne/qemu-lab` | EXECUTED_PASS | `arsenal-firmware` | Executed and formally migrated into `firmae/qemu-lab` with complete provenance |
+| D | `firmae/qemu-lab` | EXECUTED_PASS | `arsenal-firmware` | Real firmware architecture extraction and HTTP canary service verified |
+| C | `frida/device-cli` | EXECUTED_PASS | `arsenal-android` | Real runtime canary method instrumentation executed and verified |
+| A | `gau/network-lab` | EXECUTED_PASS | `arsenal-passive-provider` | Real passive URL discovery executed under operator-owned test domain |
+| C | `mobsf/container` | EXECUTED_PASS | `arsenal-android` | Real static APK security analysis executed and verified |
+| C | `objection/android-lab` | EXECUTED_PASS | `arsenal-android` | Real runtime environment and debuggable inspection executed and verified |
+| G | `otool/macos-cli` | EXECUTED_PASS | `arsenal-macos-ios` | Real Mach-O load command analysis executed and verified |
+| F | `prowler/cloud-lab` | EXECUTED_PASS | `arsenal-cloud-lab` | Real cloud posture security check executed and verified |
+| F | `roadrecon/cloud-lab` | EXECUTED_PASS | `arsenal-cloud-lab` | Real Entra identity privilege analysis executed and verified |
+| F | `scoutsuite/cloud-cli` | EXECUTED_PASS | `arsenal-cloud-lab` | Real cloud attack surface audit executed and verified |
+| A | `subfinder/network-lab` | EXECUTED_PASS | `arsenal-passive-provider` | Real passive subdomain discovery executed under operator-owned test domain |

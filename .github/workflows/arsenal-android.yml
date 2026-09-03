@@ -1,0 +1,36 @@
+name: Arsenal Android
+
+on:
+  workflow_dispatch:
+    inputs:
+      full_emulator:
+        description: "Launch hardware emulator"
+        required: false
+        default: false
+        type: boolean
+  schedule:
+    - cron: "0 2 * * 0"
+
+permissions:
+  contents: read
+
+jobs:
+  arsenal-android:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Android and CLI tools
+        run: |
+          sudo apt-get update && sudo apt-get install -y adb openjdk-17-jdk
+          pip install -e ".[dev]"
+          pip install frida-tools objection
+      - name: Execute Android synthetic fixture suite (Frida, Objection, MobSF)
+        run: |
+          pytest -q tests/arsenal/test_external_fixtures.py -k "frida or objection or mobsf"
+          python -m aegis.cli arsenal exercise --capability asset:frida/android-runtime-instrumentation --runs-dir reports/operator-runs
+          python -m aegis.cli arsenal exercise --capability asset:objection/android-runtime-exploration --runs-dir reports/operator-runs
+          python -m aegis.cli arsenal exercise --capability asset:mobsf/rest-static-analysis --runs-dir reports/operator-runs

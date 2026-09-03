@@ -1,0 +1,13 @@
+{
+  "detail": {
+    "capability_id": "adapter:gau/passive-discovery",
+    "mission_id": "arsenal-tool-f4b02dac5ae7",
+    "task_id": "arsenal-tool-f4b02dac5ae7-execute"
+  },
+  "digest": "e52adf4cef1cf4a62a729b3127538560dea48898af78c55a2db69f73f1c100c1",
+  "event_type": "arsenal_task_started",
+  "observed_at": "2026-09-03T15:27:03.296252+00:00",
+  "previous_digest": "4e417ef7b4b0f8db3a3438c539b799479d4e73daa511ecd8a00ff3003c80e911",
+  "sequence": 3,
+  "status": "running"
+}

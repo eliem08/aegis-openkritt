@@ -182,15 +182,31 @@ _EQUIVALENT_CAPABILITIES = {
     "asset:nmap/bounded-service-fingerprinting": ("asset-lane:service-identification",),
     "tool:bandit/code": ("asset:bandit/python-security-static-analysis",),
     "tool:brakeman/code": ("asset:brakeman/rails-security-static-analysis",),
-    "tool:checkov/deps": ("asset:checkov/iac-cicd-and-container-policy-scan",),
+    "tool:checkov/deps": (
+        "asset:checkov/iac-cicd-and-container-policy-scan",
+        "asset:checkov/container-image-policy-scan",
+    ),
     "tool:gitleaks/secrets": ("asset:gitleaks/git-secret-detection",),
     "tool:gosec/code": ("asset:gosec/go-security-static-analysis",),
-    "tool:grype/deps": ("asset:grype/artifact-vulnerability-scan",),
+    "tool:grype/deps": (
+        "asset:grype/artifact-vulnerability-scan",
+        "asset:grype/container-image-vulnerability-scan",
+    ),
+    "asset:syft/artifact-sbom": ("asset:syft/container-image-sbom",),
     "tool:mythril/contract": ("asset:mythril/evm-symbolic-execution",),
     "tool:osv-scanner/deps": ("asset:osv-scanner/dependency-vulnerability-analysis",),
     "tool:semgrep/code": ("asset:semgrep/source-static-analysis",),
     "tool:slither/contract": ("asset:slither/solidity-vyper-static-analysis",),
-    "tool:trivy/deps": ("asset:trivy/filesystem-security-scan",),
+    "tool:trivy/deps": (
+        "asset:trivy/filesystem-security-scan",
+        "asset:trivy/container-image-security-scan",
+    ),
+    "asset:frida/android-runtime-instrumentation": ("asset:frida/ios-runtime-instrumentation",),
+    "asset:objection/android-runtime-exploration": ("asset:objection/ios-runtime-exploration",),
+    "asset:prowler/aws-security-posture": ("asset:prowler/azure-security-posture",),
+    "asset:scoutsuite/aws-attack-surface-audit": ("asset:scoutsuite/azure-attack-surface-audit",),
+    "adapter:subfinder/passive-discovery": ("asset:subfinder/passive-subdomain-enumeration",),
+    "asset:firmae/firmware-emulation": ("asset:firmadyne/firmware-emulation-fallback",),
 }
 
 

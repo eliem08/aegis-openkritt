@@ -1,0 +1,13 @@
+{
+  "detail": {
+    "capability_id": "asset:class-dump/objective-c-interface-recovery",
+    "mission_id": "arsenal-tool-db5bcbce3547",
+    "task_id": "arsenal-tool-db5bcbce3547-execute"
+  },
+  "digest": "2f869aa4004d4d4e670407cdae7fabcd4368519b201b0be279c8844bd9a4a986",
+  "event_type": "arsenal_task_started",
+  "observed_at": "2026-09-03T15:27:02.308577+00:00",
+  "previous_digest": "b843efdb003748f3fc359f6e47c4090f0790a63757c7466be53d1c07fdfb4002",
+  "sequence": 3,
+  "status": "running"
+}

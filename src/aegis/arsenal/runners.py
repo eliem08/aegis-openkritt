@@ -80,6 +80,10 @@ RUNNER_PROFILES: tuple[RunnerProfile, ...] = (
                   required_environment=("AEGIS_ARSENAL_COVERAGE_DB_URL",), description=(
                       "Authoritative PostgreSQL coverage projection"
                   )),
+    RunnerProfile("arsenal-passive-provider", "any", False, False, "allowlisted",
+                  required_environment=("AEGIS_PASSIVE_PROVIDER_AUTHORIZATION",), description=(
+                      "Operator-owned test domain with explicitly approved passive provider endpoints"
+                  )),
 )
 
 _PROFILE_BY_BINARY = {
@@ -98,14 +102,14 @@ _PROFILE_BY_BINARY = {
     "azurehound": "arsenal-cloud-lab", "cloudsplaining": "arsenal-cloud-lab",
     "prowler": "arsenal-cloud-lab", "roadrecon": "arsenal-cloud-lab",
     "scout": "arsenal-cloud-lab",
-    "dnsx": "arsenal-network-lab", "gau": "arsenal-network-lab",
+    "dnsx": "arsenal-network-lab", "gau": "arsenal-passive-provider",
     "grpcurl": "arsenal-network-lab", "http-probe": "arsenal-network-lab",
     "httpx": "arsenal-network-lab", "katana": "arsenal-network-lab",
     "mitmproxy": "arsenal-network-lab", "naabu": "arsenal-network-lab",
     "nmap": "arsenal-network-lab", "nuclei": "arsenal-network-lab",
     "restler": "arsenal-network-lab", "rustscan": "arsenal-network-lab",
     "schemathesis": "arsenal-network-lab", "ssh-audit": "arsenal-network-lab",
-    "subfinder": "arsenal-network-lab", "testssl.sh": "arsenal-network-lab",
+    "subfinder": "arsenal-passive-provider", "testssl.sh": "arsenal-network-lab",
     "websocat": "arsenal-network-lab",
 }
 
@@ -134,6 +138,7 @@ def backend_runtime_id(binary: str, *, runner_profile: str | None = None) -> str
         "arsenal-android": "android-lab",
         "arsenal-firmware": "firmware-lab",
         "arsenal-network-lab": "network-lab",
+        "arsenal-passive-provider": "network-lab",
         "arsenal-cloud-lab": "cloud-lab",
         "arsenal-kubernetes": "kubernetes-lab",
         "arsenal-smart-contract": "contract-cli",

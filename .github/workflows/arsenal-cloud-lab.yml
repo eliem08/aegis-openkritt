@@ -1,0 +1,38 @@
+name: Arsenal Cloud Lab
+
+on:
+  workflow_dispatch:
+    inputs:
+      sandbox_provider:
+        description: "Target cloud sandbox provider (aws/azure/localstack)"
+        required: false
+        default: "localstack"
+        type: string
+  schedule:
+    - cron: "0 1 * * 0"
+
+permissions:
+  contents: read
+
+jobs:
+  arsenal-cloud-lab:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install cloud assessment tools
+        run: |
+          pip install -e ".[dev]"
+          pip install prowler scoutsuite roadrecon
+      - name: Execute Cloud Sandbox Fixture Suite
+        env:
+          AEGIS_CLOUD_LAB_AUTHORIZATION: "fixture-sandbox-approved"
+        run: |
+          pytest -q tests/arsenal/test_external_fixtures.py -k "prowler or scoutsuite or roadrecon or azurehound"
+          python -m aegis.cli arsenal exercise --capability asset:prowler/aws-security-posture --runs-dir reports/operator-runs
+          python -m aegis.cli arsenal exercise --capability asset:scoutsuite/aws-attack-surface-audit --runs-dir reports/operator-runs
+          python -m aegis.cli arsenal exercise --capability asset:roadtools/entra-identity-analysis --runs-dir reports/operator-runs
+          python -m aegis.cli arsenal exercise --capability asset:azurehound/azure-entra-relationship-collection --runs-dir reports/operator-runs

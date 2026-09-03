@@ -358,17 +358,20 @@ def main(argv: list[str] | None = None) -> int:
                         file=sys.stderr, flush=True,
                     )
                     continue
+                spec = external_fixture_spec(capability)
                 if (
                     definition.tool_backends
                     and (
                         capability.startswith("tool:")
-                        or external_fixture_spec(capability) is not None
+                        or spec is not None
                     )
                 ):
                     backend = definition.tool_backends[0]
+                    tool_name = spec.tool.name if spec is not None else backend.tool_name
+                    tool_binary = canonical_binary(spec.tool.binary) if spec is not None else canonical_binary(backend.binary)
                     runtime = manager.inspect(
-                        name=backend.tool_name,
-                        binary=canonical_binary(backend.binary),
+                        name=tool_name,
+                        binary=tool_binary,
                         refresh=True,
                     )
                     if runtime.status is not ToolRuntimeStatus.READY:

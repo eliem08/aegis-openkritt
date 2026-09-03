@@ -224,7 +224,7 @@
         "capability_ids": [
             "asset:azurehound/azure-entra-relationship-collection"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
         ],
@@ -576,7 +576,7 @@
         "capability_ids": [
             "asset:class-dump/objective-c-interface-recovery"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
         ],
@@ -888,7 +888,7 @@
         "capability_ids": [
             "asset:firmadyne/firmware-emulation-fallback"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
         ],
@@ -938,7 +938,7 @@
         "capability_ids": [
             "asset:firmae/firmware-emulation"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
         ],
@@ -1099,7 +1099,7 @@
             "asset:frida/android-runtime-instrumentation",
             "asset:frida/ios-runtime-instrumentation"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
         ],
@@ -1199,7 +1199,7 @@
         "capability_ids": [
             "adapter:gau/passive-discovery"
         ],
-        "current_state": "UNAVAILABLE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "adapter:gau"
         ],
@@ -1889,7 +1889,7 @@
         "capability_ids": [
             "asset:mobsf/rest-static-analysis"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
         ],
@@ -2339,7 +2339,7 @@
             "asset:objection/android-runtime-exploration",
             "asset:objection/ios-runtime-exploration"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
         ],
@@ -2462,7 +2462,7 @@
         "capability_ids": [
             "asset:otool/ios-macos-load-command-analysis"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
         ],
@@ -2727,7 +2727,7 @@
             "asset:prowler/aws-security-posture",
             "asset:prowler/azure-security-posture"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
         ],
@@ -3037,7 +3037,7 @@
         "capability_ids": [
             "asset:roadtools/entra-identity-analysis"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
         ],
@@ -3248,7 +3248,7 @@
             "asset:scoutsuite/aws-attack-surface-audit",
             "asset:scoutsuite/azure-attack-surface-audit"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
         ],
@@ -3598,7 +3598,7 @@
             "adapter:subfinder/passive-discovery",
             "asset:subfinder/passive-subdomain-enumeration"
         ],
-        "current_state": "UNAVAILABLE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "adapter:subfinder",
             "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
@@ -4056,7 +4056,7 @@
         "capability_ids": [
             "asset:aegis-agent-permission-audit/agent-tool-permission-analysis"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
         ],
@@ -4109,7 +4109,7 @@
         "capability_ids": [
             "asset:aegis-artifact-diff/authorized-mobile-release-diff"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
         ],
@@ -4159,7 +4159,7 @@
         "capability_ids": [
             "asset-lane:bundle-unpack"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.arsenal.assets.executable:bundle_unpack"
         ],
@@ -4206,7 +4206,7 @@
         "capability_ids": [
             "asset:aegis-asset-classifier/deterministic-asset-classification"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
         ],
@@ -4256,7 +4256,7 @@
         "capability_ids": [
             "asset-lane:asset-triage"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.arsenal.assets.other:asset_triage"
         ],
@@ -4303,7 +4303,7 @@
         "capability_ids": [
             "asset-lane:authorization-matrix"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.arsenal.assets.api_surface:authorization_matrix"
         ],
@@ -4350,7 +4350,7 @@
         "capability_ids": [
             "asset-lane:binary-triage"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.arsenal.assets.executable:binary_triage"
         ],
@@ -4397,7 +4397,7 @@
         "capability_ids": [
             "asset-lane:object-reference-probe"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.arsenal.assets.api_surface:object_reference_probe"
         ],
@@ -4444,7 +4444,7 @@
         "capability_ids": [
             "asset-lane:contract-pattern-review"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.arsenal.assets.contract:pattern_review"
         ],
@@ -4491,7 +4491,7 @@
         "capability_ids": [
             "asset:aegis-firmware-arch/firmware-architecture-detection"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
         ],
@@ -4542,7 +4542,7 @@
             "asset:aegis-github-org/github-org-authorized-inventory",
             "asset:aegis-github-org/github-org-public-inventory"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
         ],
@@ -4592,7 +4592,7 @@
             "asset:aegis-gitlab-group/gitlab-group-authorized-inventory",
             "asset:aegis-gitlab-group/gitlab-group-public-inventory"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
         ],
@@ -4643,7 +4643,7 @@
             "asset-lane:system-prompt-extraction",
             "asset-lane:tool-abuse-chain"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.arsenal.assets.ai_model:prompt_injection_suite",
             "aegis.arsenal.assets.ai_model:system_prompt_extraction",
@@ -4693,7 +4693,7 @@
         "capability_ids": [
             "asset:aegis-memory-poisoning/agent-memory-poisoning-regression"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
         ],
@@ -4743,7 +4743,7 @@
         "capability_ids": [
             "asset:aegis-model-provenance/model-provenance-and-hash-ledger"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
         ],
@@ -4794,7 +4794,7 @@
             "asset-lane:mass-assignment",
             "asset-lane:openapi-ingest"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.arsenal.assets.api_surface:ingest_specification",
             "aegis.arsenal.assets.api_surface:mass_assignment"
@@ -4842,7 +4842,7 @@
         "capability_ids": [
             "asset-lane:output-handling-review"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.arsenal.assets.ai_model:output_handling_review"
         ],
@@ -4891,7 +4891,7 @@
         "capability_ids": [
             "asset:aegis-package-registry/public-package-metadata"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
         ],
@@ -4940,7 +4940,7 @@
         "capability_ids": [
             "asset-lane:iam-policy-review"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.arsenal.assets.cloud:iam_policy_review"
         ],
@@ -4988,7 +4988,7 @@
         "capability_ids": [
             "asset:aegis-rag-boundary/rag-retrieval-trust-analysis"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
         ],
@@ -5041,7 +5041,7 @@
         "capability_ids": [
             "asset:aegis-store-metadata/public-listing-metadata"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
         ],
@@ -5090,7 +5090,7 @@
             "asset-lane:dependency-extraction",
             "asset-lane:embedded-secret-scan"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.arsenal.assets.executable:dependency_extraction",
             "aegis.arsenal.assets.executable:embedded_secret_scan"
@@ -5141,7 +5141,7 @@
         "capability_ids": [
             "asset-lane:passive-certificate-transparency"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.arsenal.assets.network:certificate_transparency"
         ],
@@ -5199,7 +5199,7 @@
             "asset-lane:security-headers",
             "asset-lane:virtual-host-discovery"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.arsenal.assets.api_surface:rate_limit_check",
             "aegis.arsenal.assets.cloud:metadata_endpoint_exposure",
@@ -5257,7 +5257,7 @@
             "asset-lane:dns-enumeration",
             "asset-lane:subdomain-takeover"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.arsenal.assets.network:dns_enumeration",
             "aegis.arsenal.assets.network:subdomain_takeover"
@@ -5308,7 +5308,7 @@
         "capability_ids": [
             "asset-lane:tls-inspection"
         ],
-        "current_state": "WAITING_FOR_PREREQUISITE",
+        "current_state": "EXECUTED_PASS",
         "executor_providers": [
             "aegis.arsenal.assets.network:tls_inspection"
         ],

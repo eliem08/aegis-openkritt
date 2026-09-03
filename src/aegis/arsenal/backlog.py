@@ -23,6 +23,7 @@ _CLOSURE_CLASS_BY_RUNNER = {
     "arsenal-macos-ios": ("G", "macOS/iOS"),
     "arsenal-core": ("H", "internal fixture/provider gap"),
     "arsenal-llm": ("H", "internal fixture/provider gap"),
+    "arsenal-passive-provider": ("A", "passive provider"),
 }
 
 

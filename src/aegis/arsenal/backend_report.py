@@ -60,6 +60,8 @@ _PREREQUISITES = {
     "scout": "local cloud emulator or explicitly supplied controlled cloud account",
     "scoutsuite": "local cloud emulator or explicitly supplied controlled cloud account",
     "azurehound": "local Entra fixture or explicitly supplied controlled tenant",
+    "gau": "operator-owned domain fixture with explicitly approved passive-provider endpoints; readiness: test -n \"$AEGIS_PASSIVE_PROVIDER_AUTHORIZATION\"",
+    "subfinder": "operator-owned domain fixture with explicitly approved passive-provider endpoints; readiness: test -n \"$AEGIS_PASSIVE_PROVIDER_AUTHORIZATION\"",
 }
 
 
