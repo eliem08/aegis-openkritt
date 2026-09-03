@@ -445,9 +445,14 @@ ARG KUBESCAPE_EXCEPTIONS_SHA256=bf44e01e6b212c8e8c0ca0686d1bd84488e3f9ce5375cd36
 ARG KUBESCAPE_DEFAULT_INPUTS_SHA256=df4e2431e8f560961ce56aa06e022caf9b2f82f98752de78df1cd0706b42cf3a
 ARG GARAK_VERSION=0.16.0
 ARG GARAK_SHA256=871100d78e2bc5a7ee6de58ff8301bdd3de3a41236032690d1a6da21a05e9f06
+ARG AEGIS_ANYIO_VERSION=4.11.0
+ARG AEGIS_TYPING_EXTENSIONS_VERSION=4.16.0
 ARG PYRIT_VERSION=1.0.1
 ARG PYRIT_SHA256=de3a73f38a4ddbe1930724f0f6c19924ddc87c2bee0e8209c4f67c70b4e7db03
-RUN pip install --no-cache-dir "mitmproxy==${MITMPROXY_VERSION}" "ssh-audit==${SSH_AUDIT_VERSION}" \
+RUN python -m venv /opt/venvs/mitmproxy \
+    && /opt/venvs/mitmproxy/bin/pip install --no-cache-dir "mitmproxy==${MITMPROXY_VERSION}" \
+    && ln -sf /opt/venvs/mitmproxy/bin/mitmproxy /usr/local/bin/mitmproxy \
+    && pip install --no-cache-dir "ssh-audit==${SSH_AUDIT_VERSION}" \
     && mitmproxy --version \
     && ssh-audit -h >/dev/null
 RUN apt-get update && apt-get install -y --no-install-recommends bsdextrautils procps dnsutils openssh-server \
@@ -558,6 +563,16 @@ RUN curl -fsSL --retry 3 \
       > /usr/local/bin/pyrit \
     && chmod 0755 /usr/local/bin/pyrit \
     && test "$(pyrit --version)" = "${PYRIT_VERSION}"
+
+# Keep provider-specific Python environments from inheriting resolver drift into
+# the Aegis control plane.  These versions are part of the base runtime, not the
+# isolated PyRIT environment.  Import the real FastAPI/AnyIO boundary here so an
+# incompatible pair fails while the image is built instead of during evidence
+# generation.
+RUN pip install --no-cache-dir \
+      "anyio==${AEGIS_ANYIO_VERSION}" \
+      "typing-extensions==${AEGIS_TYPING_EXTENSIONS_VERSION}" \
+    && python -c "from anyio.abc import ObjectReceiveStream; from fastapi import FastAPI; assert ObjectReceiveStream and FastAPI"
 
 # clone the arm's-length skill catalog so the prompt-only runner can read their instructions
 # (never executes a skill's own scripts — only reads SKILL.md and runs it via DeepSeek)
