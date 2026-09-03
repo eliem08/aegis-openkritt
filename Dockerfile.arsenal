@@ -452,8 +452,11 @@ ARG PYRIT_SHA256=de3a73f38a4ddbe1930724f0f6c19924ddc87c2bee0e8209c4f67c70b4e7db0
 RUN python -m venv /opt/venvs/mitmproxy \
     && /opt/venvs/mitmproxy/bin/pip install --no-cache-dir "mitmproxy==${MITMPROXY_VERSION}" \
     && ln -sf /opt/venvs/mitmproxy/bin/mitmproxy /usr/local/bin/mitmproxy \
-    && pip install --no-cache-dir "ssh-audit==${SSH_AUDIT_VERSION}" \
+    && ln -sf /opt/venvs/mitmproxy/bin/mitmdump /usr/local/bin/mitmdump \
+    && ln -sf /opt/venvs/mitmproxy/bin/mitmweb /usr/local/bin/mitmweb \
     && mitmproxy --version \
+    && mitmdump --version \
+    && pip install --no-cache-dir "ssh-audit==${SSH_AUDIT_VERSION}" \
     && ssh-audit -h >/dev/null
 RUN apt-get update && apt-get install -y --no-install-recommends bsdextrautils procps dnsutils openssh-server \
     && rm -rf /var/lib/apt/lists/*
@@ -540,12 +543,14 @@ RUN curl -fsSL --retry 3 \
     && /opt/venvs/garak/bin/pip install \
       "xdg-base-dirs==6.0.2" "lorem==0.1.1" "colorama==0.4.6" \
       "nltk==3.10.0" "langdetect==1.0.9" \
+      "numpy==2.2.3" "markdown==3.7" \
     && rm "/tmp/garak-${GARAK_VERSION}-py3-none-any.whl" \
     && printf '%s\n' '#!/bin/sh' \
       'exec /opt/venvs/garak/bin/python -m garak "$@"' \
       > /usr/local/bin/garak \
     && chmod 0755 /usr/local/bin/garak \
-    && garak --version | grep -F "v${GARAK_VERSION}"
+    && garak --version | grep -F "v${GARAK_VERSION}" \
+    && garak --target_type test.Blank --spec probes.promptinject.HijackHateHumans --generations 1 --narrow_output >/dev/null
 # PyRIT runs a deterministic, local PromptSendingAttack and scorer. The isolated
 # environment prevents its provider dependencies from changing Aegis's runtime.
 RUN curl -fsSL --retry 3 \
