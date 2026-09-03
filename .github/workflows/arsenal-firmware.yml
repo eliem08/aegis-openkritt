@@ -26,7 +26,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update && sudo apt-get install -y qemu-system-x86 binfmt-support squashfs-tools
-          pip install -e ".[dev]"
+          pip install -e ".[dev,api]"
       - name: Execute Firmware Architecture & Emulation Fixture Suite
         run: |
           pytest -q tests/arsenal/test_external_fixtures.py -k "firmware or firmae"

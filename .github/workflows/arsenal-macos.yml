@@ -27,7 +27,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install Aegis
-        run: pip install -e ".[dev]"
+        run: pip install -e ".[dev,api]"
       - name: Record macOS runner environment
         run: |
           mkdir -p reports/arsenal
