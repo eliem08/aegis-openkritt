@@ -75,6 +75,8 @@ def _make_coverage_record(**overrides):
         "stdout_digest": "out" + "0" * 61,
         "stderr_digest": "err" + "0" * 61,
         "parsed_result_digest": "res" + "0" * 61,
+        "positive_control_detected": True,
+        "negative_control_clean": True,
         "execution_proof_kind": ExecutionProofKind.REAL_BACKEND,
         "backend_kind": "EXTERNAL_TOOL",
         "launcher_executable": r"C:\Python314\python.exe",

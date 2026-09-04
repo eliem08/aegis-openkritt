@@ -265,7 +265,8 @@ class CapabilityCoverageRecord:
                 ExecutionProofKind.REAL_BACKEND_SHARED_CAPABILITIES,
             }:
                 from pathlib import Path
-                base_binary = Path(self.binary_path).stem.lower()
+                raw_path = self.binary_path.replace("\\", "/")
+                base_binary = Path(raw_path).stem.lower()
                 if self.backend_kind == "EXTERNAL_TOOL" and base_binary in {"python", "python3", "pythonw"}:
                     if not (self.backend_package or self.backend_entrypoint):
                         raise ValueError(
