@@ -56,3 +56,6 @@ reports/fresh_watch_state.json
 
 # learning-loop store
 aegis-learn.db
+
+.tmp/
+reports/campaign-artifacts/

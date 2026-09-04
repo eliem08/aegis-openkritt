@@ -26,13 +26,18 @@ class CapabilityMode(str, Enum):
 class ExecutionProofKind(str, Enum):
     """Provenance class for an execution claim.
 
-    Only ``REAL_BACKEND`` is eligible for fixture-backend coverage. Historical
-    rows remain readable without silently upgrading their evidentiary strength.
+    Only REAL_BACKEND and REAL_BACKEND_SHARED_CAPABILITIES are eligible for
+    actual runtime execution credit. MIGRATED_EQUIVALENT may count for capability semantic
+    coverage but NOT as an independently executed backend.
     """
 
     REAL_BACKEND = "REAL_BACKEND"
+    REAL_BACKEND_SHARED_CAPABILITIES = "REAL_BACKEND_SHARED_CAPABILITIES"
+    MIGRATED_EQUIVALENT = "MIGRATED_EQUIVALENT"
+    SIMULATED_INTEGRATION = "SIMULATED_INTEGRATION"
     INTEGRATION_SIMULATION = "INTEGRATION_SIMULATION"
     UNIT_MOCK = "UNIT_MOCK"
+    PREREQUISITE_ONLY = "PREREQUISITE_ONLY"
     LEGACY_UNVERIFIED = "LEGACY_UNVERIFIED"
 
 
@@ -150,11 +155,15 @@ class HistoricalExecution:
     finding_ids: tuple[str, ...] = ()
     error_or_block_reason: str = ""
     historical_evidence_invalid: bool = False
+    execution_proof_kind: ExecutionProofKind = ExecutionProofKind.REAL_BACKEND
+    backend_kind: str = "EXTERNAL_TOOL"
+    binary_path: str = ""
 
     def document(self) -> dict[str, Any]:
         value = asdict(self)
         value["mode"] = self.mode.value
         value["state"] = self.state.value
+        value["execution_proof_kind"] = self.execution_proof_kind.value
         return value
 
 
@@ -209,6 +218,16 @@ class CapabilityCoverageRecord:
     negative_control_clean: bool | None = None
     supersedes_coverage_record_id: str | None = None
     execution_proof_kind: ExecutionProofKind = ExecutionProofKind.LEGACY_UNVERIFIED
+    backend_kind: str = "EXTERNAL_TOOL"
+    launcher_executable: str = ""
+    launcher_sha256: str = ""
+    backend_entrypoint: str = ""
+    backend_package: str = ""
+    backend_package_version: str = ""
+    native_backend_binary: str = ""
+    native_backend_binary_sha256: str = ""
+    host_platform: str = ""
+    host_architecture: str = ""
 
     def __post_init__(self) -> None:
         if not all((self.coverage_record_id, self.idempotency_key, self.capability_id)):
@@ -235,8 +254,34 @@ class CapabilityCoverageRecord:
                 self.parsed_result_digest,
             )):
                 raise ValueError("schema-v2 execution coverage requires complete backend evidence")
-            if self.execution_proof_kind is not ExecutionProofKind.REAL_BACKEND:
-                raise ValueError("schema-v2 execution coverage requires REAL_BACKEND proof")
+            if self.execution_proof_kind not in {
+                ExecutionProofKind.REAL_BACKEND,
+                ExecutionProofKind.REAL_BACKEND_SHARED_CAPABILITIES,
+                ExecutionProofKind.MIGRATED_EQUIVALENT,
+            }:
+                raise ValueError("schema-v2 execution coverage requires valid REAL_BACKEND proof")
+            if self.execution_proof_kind in {
+                ExecutionProofKind.REAL_BACKEND,
+                ExecutionProofKind.REAL_BACKEND_SHARED_CAPABILITIES,
+            }:
+                from pathlib import Path
+                base_binary = Path(self.binary_path).stem.lower()
+                if self.backend_kind == "EXTERNAL_TOOL" and base_binary in {"python", "python3", "pythonw"}:
+                    if not (self.backend_package or self.backend_entrypoint):
+                        raise ValueError(
+                            f"BACKEND_IDENTITY_MISMATCH: external backend {self.backend!r} "
+                            f"cannot resolve to generic python binary {self.binary_path!r} "
+                            f"without package and entrypoint metadata"
+                        )
+                from aegis.arsenal.migrations import RUNTIME_MIGRATIONS
+                if (
+                    self.backend in {"class-dump", "firmadyne"}
+                    or any(self.capability_id in m.capabilities_affected for m in RUNTIME_MIGRATIONS)
+                ) and self.execution_proof_kind is ExecutionProofKind.REAL_BACKEND:
+                    raise ValueError(
+                        f"MIGRATION_CONFLICT: migrated backend {self.backend!r} cannot be "
+                        f"credited as independent REAL_BACKEND execution"
+                    )
         if self.result is ArsenalCoverageState.EXECUTED_PASS and self.schema_version >= 2:
             if self.positive_control_detected is not True:
                 raise ValueError("EXECUTED_PASS requires a detected positive control")
@@ -270,6 +315,16 @@ class CapabilityCoverageRecord:
             "negative_control_clean": self.negative_control_clean,
             "supersedes_coverage_record_id": self.supersedes_coverage_record_id,
             "execution_proof_kind": self.execution_proof_kind.value,
+            "backend_kind": self.backend_kind,
+            "launcher_executable": self.launcher_executable,
+            "launcher_sha256": self.launcher_sha256,
+            "backend_entrypoint": self.backend_entrypoint,
+            "backend_package": self.backend_package,
+            "backend_package_version": self.backend_package_version,
+            "native_backend_binary": self.native_backend_binary,
+            "native_backend_binary_sha256": self.native_backend_binary_sha256,
+            "host_platform": self.host_platform,
+            "host_architecture": self.host_architecture,
         }
 
 

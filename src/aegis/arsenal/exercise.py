@@ -99,7 +99,14 @@ class _LabExecutorProvider:
         return {FIXTURE_CAPABILITY: execute}
 
 
-def _manifest(run_id: str, authorization, *, scope_digest: str) -> OperatorRunManifest:
+def _manifest(
+    run_id: str,
+    authorization,
+    *,
+    scope_digest: str,
+    mission_ids: tuple[str, ...] = (),
+    execution_grants: tuple[Any, ...] = (),
+) -> OperatorRunManifest:
     policy_snapshot = FIXTURE_POLICY_SNAPSHOT
     scope_snapshot = {"assets": ["127.0.0.1"], "network_isolation": "loopback-only"}
     if scope_digest != document_digest(scope_snapshot):
@@ -115,6 +122,8 @@ def _manifest(run_id: str, authorization, *, scope_digest: str) -> OperatorRunMa
         budgets=RunBudgets(max_requests=1, requests_per_second=1.0, max_cost_usd=0.0,
                            max_duration_seconds=900, max_attempts=1),
         authorization=authorization.model_dump(mode="json"),
+        execution_grants=execution_grants,
+        mission_ids=mission_ids,
     )
 
 
@@ -157,7 +166,10 @@ def execute_llm_fixture(
     mission_id = f"arsenal-llm-{key}"
     task_id = f"{mission_id}-execute"
     store = ImmutableRunStore(runs_dir)
-    store.create(_manifest(run_id, authorization, scope_digest=scope_digest))
+    store.create(_manifest(
+        run_id, authorization, scope_digest=scope_digest,
+        mission_ids=(mission_id,), execution_grants=(grant._payload(),),
+    ))
     store.append_event(run_id, "arsenal_fixture_authorized", RunStatus.AUTHORIZED, {
         "policy_decision": decision.as_dict(), "grant": grant._payload(),
         "grant_signature_digest": sha256(grant.signature.encode()).hexdigest(),
@@ -307,6 +319,7 @@ def record_blocked_fixture(
         scope_snapshot, scope_digest, {"capabilities": [capability_id]},
         RunBudgets(1, 1.0, 0.0, max_duration_seconds=1, max_attempts=1),
         authorization.model_dump(mode="json"),
+        mission_ids=(mission_id,),
     )
     store.create(manifest)
     task = MissionTask(

@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import os
+import platform
 import secrets
+import sys
 import tempfile
 from dataclasses import replace
 from datetime import UTC, datetime
@@ -201,12 +203,7 @@ _EQUIVALENT_CAPABILITIES = {
         "asset:trivy/filesystem-security-scan",
         "asset:trivy/container-image-security-scan",
     ),
-    "asset:frida/android-runtime-instrumentation": ("asset:frida/ios-runtime-instrumentation",),
-    "asset:objection/android-runtime-exploration": ("asset:objection/ios-runtime-exploration",),
-    "asset:prowler/aws-security-posture": ("asset:prowler/azure-security-posture",),
-    "asset:scoutsuite/aws-attack-surface-audit": ("asset:scoutsuite/azure-attack-surface-audit",),
     "adapter:subfinder/passive-discovery": ("asset:subfinder/passive-subdomain-enumeration",),
-    "asset:firmae/firmware-emulation": ("asset:firmadyne/firmware-emulation-fallback",),
 }
 
 
@@ -392,6 +389,8 @@ def execute_tool_fixture(
         {"capabilities": [capability_id]},
         RunBudgets(1, 1.0, 0.0, max_duration_seconds=1200, max_attempts=1),
         authorization.model_dump(mode="json"),
+        execution_grants=(grant._payload(),),
+        mission_ids=(mission_id,),
     ))
     store.append_event(run_id, "arsenal_fixture_authorized", RunStatus.AUTHORIZED, {
         "capability_id": capability_id, "policy_decision": decision.as_dict(),
@@ -486,6 +485,14 @@ def execute_tool_fixture(
         and summary.get("positive", {}).get("stdout_digest")
         and summary.get("negative", {}).get("stdout_digest")
     )
+    is_internal = backend.tool_name.startswith("aegis-") or backend.tool_name.startswith("stdlib-")
+    backend_kind = "INTERNAL_AEGIS" if is_internal else "EXTERNAL_TOOL"
+    backend_package = "aegis" if is_internal else ""
+    backend_entrypoint = "aegis.arsenal.external_fixtures" if is_internal else ""
+    launcher_executable = sys.executable if is_internal else ""
+    native_backend_binary = str(summary.get("positive", {}).get("runtime", {}).get("resolved_path", ""))
+    host_platform = platform.system()
+    host_architecture = platform.machine()
     evidence = {
         "kind": "arsenal_tool_fixture_execution", "capability_id": capability_id,
         "mode": CapabilityMode.FIXTURE.value, "run_id": run_id, "mission_id": mission_id,
@@ -498,6 +505,13 @@ def execute_tool_fixture(
         "binary_path": str(
             summary.get("positive", {}).get("runtime", {}).get("resolved_path", "")
         ),
+        "backend_kind": backend_kind,
+        "backend_package": backend_package,
+        "backend_entrypoint": backend_entrypoint,
+        "launcher_executable": launcher_executable,
+        "native_backend_binary": native_backend_binary,
+        "host_platform": host_platform,
+        "host_architecture": host_architecture,
         "container_digest_if_applicable": os.environ.get("AEGIS_ARSENAL_IMAGE_DIGEST", ""),
         "adapter_version": backend.adapter_version,
         "capability_ids": list(covered_capability_ids),
@@ -590,6 +604,14 @@ def execute_tool_fixture(
             positive_control_detected=positive_detected,
             negative_control_clean=negative_clean,
             execution_proof_kind=ExecutionProofKind.REAL_BACKEND,
+            backend_kind=backend_kind,
+            launcher_executable=launcher_executable,
+            backend_entrypoint=backend_entrypoint,
+            backend_package=backend_package,
+            backend_package_version="aegis-2.0" if is_internal else "",
+            native_backend_binary=native_backend_binary,
+            host_platform=host_platform,
+            host_architecture=host_architecture,
         )
         try:
             _, recorded = coverage_repository.record(record)

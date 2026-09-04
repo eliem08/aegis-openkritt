@@ -64,6 +64,7 @@ def test_historical_execution_requires_verified_manifest_event_and_evidence(tmp_
         "local-fixture", ("fixture://local",), None, (), policy,
         document_digest(policy), scope, document_digest(scope), {},
         RunBudgets(1, 1.0, 0.0), authorization,
+        mission_ids=("mission-1",),
     )
     store.create(manifest)
     evidence_ref, evidence_digest = store.persist_evidence("run-fixture", {

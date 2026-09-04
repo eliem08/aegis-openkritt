@@ -100,6 +100,7 @@ jobs:
           assert scorecard["summary"]["negative_control_passed"] is True
           assert report["verdict"] in {
               "FULL FIXTURE ARSENAL VERIFIED",
+              "FULL ACTIVE SOFTWARE ARSENAL VERIFIED — MIGRATED/HARDWARE-SPECIFIC CAPABILITIES SEPARATE",
               "FIXTURE ARSENAL PARTIALLY VERIFIED",
           }
           PY

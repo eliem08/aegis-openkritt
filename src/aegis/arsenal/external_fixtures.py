@@ -10,6 +10,7 @@ from __future__ import annotations
 import gzip
 import json
 import pickle
+import platform
 import re
 import struct
 import xml.etree.ElementTree as ET
@@ -2059,262 +2060,23 @@ def _parse_rag_boundary(data) -> list[dict]:
     return []
 
 
-# --- Android Lane ---
+def _materialize_otool_darwin(positive: Path, negative: Path) -> None:
+    # Build minimal genuine Mach-O 64-bit binary with LC_LOAD_DYLIB
+    hdr_pos = struct.pack("<IIIIIIII", 0xfeedfacf, 0x01000007, 3, 2, 1, 48, 0x00200085, 0)
+    name_bytes = b"libfixture.dylib\x00\x00\x00\x00\x00\x00\x00\x00"
+    cmd_pos = struct.pack("<IIIIII", 0x0c, 48, 24, 0, 0, 0) + name_bytes
+    _write(positive, "sample.macho", hdr_pos + cmd_pos)
 
-def _materialize_frida(positive: Path, negative: Path) -> None:
-    script = (
-        "import json\n"
-        "from pathlib import Path\n"
-        "root = Path(__file__).parent\n"
-        "has_hook = open(root / 'instrumentation_target.txt').read().strip() == 'CANARY_ACTIVE'\n"
-        "print(json.dumps({'intercepted': has_hook, 'method': 'com.aegis.fixture.Canary.check'}))\n"
-    )
-    _write(positive, "run_frida.py", script)
-    _write(negative, "run_frida.py", script)
-    _write(positive, "instrumentation_target.txt", "CANARY_ACTIVE\n")
-    _write(negative, "instrumentation_target.txt", "CANARY_INACTIVE\n")
+    # Negative control: Mach-O binary with 0 load commands
+    hdr_neg = struct.pack("<IIIIIIII", 0xfeedfacf, 0x01000007, 3, 2, 0, 0, 0x00200085, 0)
+    _write(negative, "sample.macho", hdr_neg)
 
 
-def _parse_frida(data) -> list[dict]:
-    if not isinstance(data, dict) or not data.get("intercepted"):
-        return []
-    return [_row("frida", "Frida successfully intercepted runtime canary method", path="run_frida.py")]
-
-
-def _materialize_objection(positive: Path, negative: Path) -> None:
-    script = (
-        "import json\n"
-        "from pathlib import Path\n"
-        "root = Path(__file__).parent\n"
-        "manifest = open(root / 'app_env.json').read()\n"
-        "debuggable = '\"debuggable\": true' in manifest\n"
-        "print(json.dumps({'inspected': True, 'debuggable': debuggable}))\n"
-    )
-    _write(positive, "run_objection.py", script)
-    _write(negative, "run_objection.py", script)
-    _write(positive, "app_env.json", '{"package": "com.aegis.fixture", "debuggable": true}\n')
-    _write(negative, "app_env.json", '{"package": "com.aegis.fixture", "debuggable": false}\n')
-
-
-def _parse_objection(data) -> list[dict]:
-    if not isinstance(data, dict) or not data.get("debuggable"):
-        return []
-    return [_row("objection", "Objection verified application debuggable state in fixture runtime", path="app_env.json")]
-
-
-def _materialize_mobsf(positive: Path, negative: Path) -> None:
-    script = (
-        "import json\n"
-        "from pathlib import Path\n"
-        "root = Path(__file__).parent\n"
-        "report = json.load(open(root / 'analysis.json'))\n"
-        "issues = [i for i in report.get('findings', []) if i.get('severity') in {'high', 'warning'}]\n"
-        "print(json.dumps({'security_score': report.get('score', 100), 'issues': issues}))\n"
-    )
-    _write(positive, "run_mobsf.py", script)
-    _write(negative, "run_mobsf.py", script)
-    _write(positive, "analysis.json", '{"score": 45, "findings": [{"severity": "high", "title": "Exported debug activity"}]}\n')
-    _write(negative, "analysis.json", '{"score": 100, "findings": []}\n')
-
-
-def _parse_mobsf(data) -> list[dict]:
-    if not isinstance(data, dict) or not data.get("issues"):
-        return []
-    return [_row("mobsf", f"MobSF identified {len(data['issues'])} mobile vulnerabilities", path="analysis.json")]
-
-
-# --- Firmware Lane ---
-
-def _materialize_firmae(positive: Path, negative: Path) -> None:
-    script = (
-        "import json\n"
-        "from pathlib import Path\n"
-        "root = Path(__file__).parent\n"
-        "state = json.load(open(root / 'emulation_status.json'))\n"
-        "print(json.dumps(state))\n"
-    )
-    _write(positive, "run_firmae.py", script)
-    _write(negative, "run_firmae.py", script)
-    _write(positive, "emulation_status.json", '{"emulation_success": true, "service_reachable": true, "service": "http://127.0.0.1:8080/canary"}\n')
-    _write(negative, "emulation_status.json", '{"emulation_success": true, "service_reachable": false, "service": null}\n')
-
-
-def _parse_firmae(data) -> list[dict]:
-    if not isinstance(data, dict) or not data.get("service_reachable"):
-        return []
-    return [_row("firmae", "FirmAE emulated firmware and verified reachable HTTP canary service", path="emulation_status.json")]
-
-
-# --- macOS / iOS Lane ---
-
-def _materialize_otool(positive: Path, negative: Path) -> None:
-    script = (
-        "import json\n"
-        "from pathlib import Path\n"
-        "root = Path(__file__).parent\n"
-        "commands = open(root / 'load_commands.txt').read().splitlines()\n"
-        "dylibs = [c.split()[1] for c in commands if c.startswith('LC_LOAD_DYLIB ')]\n"
-        "print(json.dumps({'load_dylibs': dylibs}))\n"
-    )
-    _write(positive, "run_otool.py", script)
-    _write(negative, "run_otool.py", script)
-    _write(positive, "load_commands.txt", "LC_LOAD_DYLIB /usr/lib/libSystem.B.dylib\nLC_LOAD_DYLIB /usr/lib/libobjc.A.dylib\n")
-    _write(negative, "load_commands.txt", "LC_SEGMENT_64 __PAGEZERO\n")
-
-
-def _parse_otool(data) -> list[dict]:
-    if not isinstance(data, dict) or not data.get("load_dylibs"):
-        return []
-    return [_row("otool", f"otool identified load dylib commands: {data['load_dylibs']}", path="load_commands.txt")]
-
-
-def _materialize_class_dump(positive: Path, negative: Path) -> None:
-    script = (
-        "import json\n"
-        "from pathlib import Path\n"
-        "root = Path(__file__).parent\n"
-        "lines = open(root / 'headers.txt').read().splitlines()\n"
-        "classes = [l.split()[1] for l in lines if l.startswith('@interface ')]\n"
-        "print(json.dumps({'recovered_classes': classes}))\n"
-    )
-    _write(positive, "run_class_dump.py", script)
-    _write(negative, "run_class_dump.py", script)
-    _write(positive, "headers.txt", "@interface AegisFixtureClass : NSObject\n- (void)canary;\n@end\n")
-    _write(negative, "headers.txt", "// No Objective-C classes found\n")
-
-
-def _parse_class_dump(data) -> list[dict]:
-    if not isinstance(data, dict) or not data.get("recovered_classes"):
-        return []
-    return [_row("class-dump", f"class-dump recovered Objective-C class interfaces: {data['recovered_classes']}", path="headers.txt")]
-
-
-# --- Controlled Cloud Lab ---
-
-def _materialize_prowler(positive: Path, negative: Path) -> None:
-    script = (
-        "import json\n"
-        "from pathlib import Path\n"
-        "root = Path(__file__).parent\n"
-        "checks = json.load(open(root / 'prowler_checks.json'))\n"
-        "fails = [c for c in checks if c.get('Status') == 'FAIL']\n"
-        "print(json.dumps({'failed_checks': fails, 'fail_count': len(fails)}))\n"
-    )
-    _write(positive, "run_prowler.py", script)
-    _write(negative, "run_prowler.py", script)
-    _write(positive, "prowler_checks.json", '[{"CheckID": "s3_bucket_public_access", "Status": "FAIL", "Severity": "high"}]\n')
-    _write(negative, "prowler_checks.json", '[{"CheckID": "s3_bucket_public_access", "Status": "PASS", "Severity": "high"}]\n')
-
-
-def _parse_prowler(data) -> list[dict]:
-    if not isinstance(data, dict) or not data.get("failed_checks"):
-        return []
-    return [_row("prowler", f"Prowler detected {data['fail_count']} cloud posture failures", path="prowler_checks.json")]
-
-
-def _materialize_scoutsuite(positive: Path, negative: Path) -> None:
-    script = (
-        "import json\n"
-        "from pathlib import Path\n"
-        "root = Path(__file__).parent\n"
-        "audit = json.load(open(root / 'scout_results.json'))\n"
-        "flagged = [f for f in audit.get('findings', []) if f.get('flagged')]\n"
-        "print(json.dumps({'flagged_rules': flagged, 'count': len(flagged)}))\n"
-    )
-    _write(positive, "run_scoutsuite.py", script)
-    _write(negative, "run_scoutsuite.py", script)
-    _write(positive, "scout_results.json", '{"findings": [{"service": "ec2", "rule": "security_group_all_open", "flagged": true}]}\n')
-    _write(negative, "scout_results.json", '{"findings": [{"service": "ec2", "rule": "security_group_all_open", "flagged": false}]}\n')
-
-
-def _parse_scoutsuite(data) -> list[dict]:
-    if not isinstance(data, dict) or not data.get("flagged_rules"):
-        return []
-    return [_row("scoutsuite", f"ScoutSuite flagged {data['count']} cloud attack surface anomalies", path="scout_results.json")]
-
-
-def _materialize_roadrecon(positive: Path, negative: Path) -> None:
-    script = (
-        "import json\n"
-        "from pathlib import Path\n"
-        "root = Path(__file__).parent\n"
-        "db = json.load(open(root / 'roadrecon_data.json'))\n"
-        "admins = [u for u in db.get('users', []) if 'Global Administrator' in u.get('roles', []) and u.get('guest')]\n"
-        "print(json.dumps({'privileged_guests': admins, 'count': len(admins)}))\n"
-    )
-    _write(positive, "run_roadrecon.py", script)
-    _write(negative, "run_roadrecon.py", script)
-    _write(positive, "roadrecon_data.json", '{"users": [{"upn": "guest@fixture.test", "roles": ["Global Administrator"], "guest": true}]}\n')
-    _write(negative, "roadrecon_data.json", '{"users": [{"upn": "user@fixture.test", "roles": ["Standard User"], "guest": false}]}\n')
-
-
-def _parse_roadrecon(data) -> list[dict]:
-    if not isinstance(data, dict) or not data.get("privileged_guests"):
-        return []
-    return [_row("roadrecon", f"ROADrecon identified {data['count']} privileged guest Entra identities", path="roadrecon_data.json")]
-
-
-def _materialize_azurehound(positive: Path, negative: Path) -> None:
-    script = (
-        "import json\n"
-        "from pathlib import Path\n"
-        "root = Path(__file__).parent\n"
-        "graph = json.load(open(root / 'graph_edges.json'))\n"
-        "paths = [e for e in graph.get('edges', []) if e.get('relationship') == 'MemberOf' and e.get('target') == 'GlobalAdminGroup']\n"
-        "print(json.dumps({'escalation_paths': paths, 'count': len(paths)}))\n"
-    )
-    _write(positive, "run_azurehound.py", script)
-    _write(negative, "run_azurehound.py", script)
-    _write(positive, "graph_edges.json", '{"edges": [{"source": "fixture_user", "relationship": "MemberOf", "target": "GlobalAdminGroup"}]}\n')
-    _write(negative, "graph_edges.json", '{"edges": []}\n')
-
-
-def _parse_azurehound(data) -> list[dict]:
-    if not isinstance(data, dict) or not data.get("escalation_paths"):
-        return []
-    return [_row("azurehound", f"AzureHound mapped {data['count']} privilege escalation paths in Entra graph", path="graph_edges.json")]
-
-
-# --- Passive / Historical URL Providers ---
-
-def _materialize_gau(positive: Path, negative: Path) -> None:
-    script = (
-        "import json\n"
-        "from pathlib import Path\n"
-        "root = Path(__file__).parent\n"
-        "urls = [l.strip() for l in open(root / 'urls.txt') if l.strip()]\n"
-        "print(json.dumps({'discovered_urls': urls, 'providers_used': ['wayback', 'commoncrawl']}))\n"
-    )
-    _write(positive, "run_gau.py", script)
-    _write(negative, "run_gau.py", script)
-    _write(positive, "urls.txt", "https://fixture.aegis.internal/api/v1/health\nhttps://fixture.aegis.internal/test\n")
-    _write(negative, "urls.txt", "")
-
-
-def _parse_gau(data) -> list[dict]:
-    if not isinstance(data, dict) or not data.get("discovered_urls"):
-        return []
-    return [_row("gau", f"gau discovered {len(data['discovered_urls'])} passive URLs under operator domain", path="urls.txt")]
-
-
-def _materialize_subfinder(positive: Path, negative: Path) -> None:
-    script = (
-        "import json\n"
-        "from pathlib import Path\n"
-        "root = Path(__file__).parent\n"
-        "subs = [l.strip() for l in open(root / 'subdomains.txt') if l.strip()]\n"
-        "print(json.dumps({'discovered_subdomains': subs, 'providers_used': ['crtsh']}))\n"
-    )
-    _write(positive, "run_subfinder.py", script)
-    _write(negative, "run_subfinder.py", script)
-    _write(positive, "subdomains.txt", "api.fixture.aegis.internal\nadmin.fixture.aegis.internal\n")
-    _write(negative, "subdomains.txt", "")
-
-
-def _parse_subfinder(data) -> list[dict]:
-    if not isinstance(data, dict) or not data.get("discovered_subdomains"):
-        return []
-    return [_row("subfinder", f"subfinder discovered {len(data['discovered_subdomains'])} passive subdomains under operator domain", path="subdomains.txt")]
+def _parse_otool_darwin(data) -> list[dict]:
+    text = str(data.get("text", "")) if isinstance(data, dict) else str(data)
+    if "cmd LC_LOAD_DYLIB" in text and "libfixture.dylib" in text:
+        return [_row("otool", "otool identified LC_LOAD_DYLIB command referencing libfixture.dylib", path="sample.macho")]
+    return []
 
 
 _SPECS = {
@@ -2904,115 +2666,18 @@ _SPECS = {
         ),
         "aegis-rag-boundary-v1", _materialize_rag_boundary,
     ),
-    "asset:frida/android-runtime-instrumentation": ExternalFixtureSpec(
-        "asset:frida/android-runtime-instrumentation",
-        Tool(
-            "Frida", "python", ("android",),
-            'python "{target}/run_frida.py"',
-            "wxWindows", _parse_frida, "json",
-        ),
-        "frida-instrumentation-v1", _materialize_frida,
-    ),
-    "asset:objection/android-runtime-exploration": ExternalFixtureSpec(
-        "asset:objection/android-runtime-exploration",
-        Tool(
-            "objection", "python", ("android",),
-            'python "{target}/run_objection.py"',
-            "GPL-3.0", _parse_objection, "json",
-        ),
-        "objection-exploration-v1", _materialize_objection,
-    ),
-    "asset:mobsf/rest-static-analysis": ExternalFixtureSpec(
-        "asset:mobsf/rest-static-analysis",
-        Tool(
-            "MobSF", "python", ("android",),
-            'python "{target}/run_mobsf.py"',
-            "GPL-3.0", _parse_mobsf, "json",
-        ),
-        "mobsf-static-analysis-v1", _materialize_mobsf,
-    ),
-    "asset:firmae/firmware-emulation": ExternalFixtureSpec(
-        "asset:firmae/firmware-emulation",
-        Tool(
-            "FirmAE", "python", ("firmware",),
-            'python "{target}/run_firmae.py"',
-            "GPL-3.0", _parse_firmae, "json",
-        ),
-        "firmae-emulation-v1", _materialize_firmae,
-    ),
-    "asset:otool/ios-macos-load-command-analysis": ExternalFixtureSpec(
+}
+
+if platform.system() == "Darwin":
+    _SPECS["asset:otool/ios-macos-load-command-analysis"] = ExternalFixtureSpec(
         "asset:otool/ios-macos-load-command-analysis",
         Tool(
-            "otool", "python", ("executable",),
-            'python "{target}/run_otool.py"',
-            "Apple", _parse_otool, "json",
+            "otool", "otool", ("executable",),
+            'otool -l "{target}/sample.macho"',
+            "Apple", _parse_otool_darwin, "text",
         ),
-        "otool-load-commands-v1", _materialize_otool,
-    ),
-    "asset:class-dump/objective-c-interface-recovery": ExternalFixtureSpec(
-        "asset:class-dump/objective-c-interface-recovery",
-        Tool(
-            "class-dump", "python", ("executable",),
-            'python "{target}/run_class_dump.py"',
-            "GPL-2.0", _parse_class_dump, "json",
-        ),
-        "class-dump-recovery-v1", _materialize_class_dump,
-    ),
-    "asset:prowler/aws-security-posture": ExternalFixtureSpec(
-        "asset:prowler/aws-security-posture",
-        Tool(
-            "Prowler", "python", ("aws_account",),
-            'python "{target}/run_prowler.py"',
-            "Apache-2.0", _parse_prowler, "json",
-        ),
-        "prowler-posture-v1", _materialize_prowler,
-    ),
-    "asset:scoutsuite/aws-attack-surface-audit": ExternalFixtureSpec(
-        "asset:scoutsuite/aws-attack-surface-audit",
-        Tool(
-            "ScoutSuite", "python", ("aws_account",),
-            'python "{target}/run_scoutsuite.py"',
-            "GPL-2.0", _parse_scoutsuite, "json",
-        ),
-        "scoutsuite-audit-v1", _materialize_scoutsuite,
-    ),
-    "asset:roadtools/entra-identity-analysis": ExternalFixtureSpec(
-        "asset:roadtools/entra-identity-analysis",
-        Tool(
-            "ROADtools", "python", ("azure_account",),
-            'python "{target}/run_roadrecon.py"',
-            "MIT", _parse_roadrecon, "json",
-        ),
-        "roadrecon-identity-v1", _materialize_roadrecon,
-    ),
-    "asset:azurehound/azure-entra-relationship-collection": ExternalFixtureSpec(
-        "asset:azurehound/azure-entra-relationship-collection",
-        Tool(
-            "AzureHound", "python", ("azure_account",),
-            'python "{target}/run_azurehound.py"',
-            "GPL-3.0", _parse_azurehound, "json",
-        ),
-        "azurehound-graph-v1", _materialize_azurehound,
-    ),
-    "adapter:gau/passive-discovery": ExternalFixtureSpec(
-        "adapter:gau/passive-discovery",
-        Tool(
-            "gau", "python", ("network",),
-            'python "{target}/run_gau.py"',
-            "MIT", _parse_gau, "json",
-        ),
-        "gau-passive-discovery-v1", _materialize_gau,
-    ),
-    "adapter:subfinder/passive-discovery": ExternalFixtureSpec(
-        "adapter:subfinder/passive-discovery",
-        Tool(
-            "subfinder", "python", ("network",),
-            'python "{target}/run_subfinder.py"',
-            "MIT", _parse_subfinder, "json",
-        ),
-        "subfinder-passive-discovery-v1", _materialize_subfinder,
-    ),
-}
+        "otool-load-commands-v1", _materialize_otool_darwin,
+    )
 
 
 def external_fixture_spec(capability_id: str) -> ExternalFixtureSpec | None:

@@ -49,4 +49,11 @@ jobs:
         run: |
           pytest -q tests/arsenal/test_external_fixtures.py
           python -m aegis.cli arsenal exercise --capability asset:otool/ios-macos-load-command-analysis --runs-dir reports/operator-runs
-          python -m aegis.cli arsenal exercise --capability asset:class-dump/objective-c-interface-recovery --runs-dir reports/operator-runs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arsenal-macos-${{ github.sha }}
+          path: |
+            reports/arsenal/MACOS_RUNNER_ENV.json
+            reports/operator-runs
+          retention-days: 14

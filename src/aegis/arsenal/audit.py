@@ -17,6 +17,7 @@ from .models import (
     CapabilityDefinition,
     CapabilityHealth,
     CapabilityMode,
+    ExecutionProofKind,
     HistoricalExecution,
 )
 
@@ -86,6 +87,15 @@ def _historical_execution(
     errors: list[dict[str, Any]] = []
     for run_dir in sorted(path for path in root.iterdir() if path.is_dir()):
         run_id = run_dir.name
+        val_file = run_dir / "validation.json"
+        val_meta: dict[str, Any] = {}
+        if val_file.is_file():
+            try:
+                val_meta = json.loads(val_file.read_text(encoding="utf-8"))
+            except Exception:
+                pass
+        is_invalidated = val_meta.get("validation_status") == "INVALID_FOR_REAL_BACKEND_CREDIT"
+        invalidation_reason = val_meta.get("reason", "")
         try:
             store.verify(run_id)
             manifest = json.loads((run_dir / "manifest.json").read_text(encoding="utf-8"))
@@ -122,14 +132,96 @@ def _historical_execution(
                 capability_id = f"hunter:{technique}"
             if not capability_id:
                 continue
+
+            if is_invalidated:
+                history.append(HistoricalExecution(
+                    capability_id=capability_id, mode=mode,
+                    state=ArsenalCoverageState.WAITING_FOR_PREREQUISITE,
+                    run_id=run_id,
+                    mission_id=str(evidence.get("mission_id") or ""),
+                    task_id=str(evidence.get("task_id") or ""),
+                    backend=str(
+                        evidence.get("backend_name")
+                        or evidence.get("backend")
+                        or event.detail.get("backend")
+                        or technique
+                    ),
+                    backend_version=str(
+                        evidence.get("backend_version")
+                        or event.detail.get("backend_version")
+                        or ""
+                    ),
+                    policy_snapshot_digest=str(evidence.get("policy_snapshot_digest") or ""),
+                    asset=str(evidence.get("asset") or ""),
+                    authorization_decision="",
+                    operator_approval_id=None,
+                    execution_grant_id=None,
+                    executed_at=event.observed_at,
+                    evidence_digest=digest,
+                    finding_ids=(),
+                    error_or_block_reason=invalidation_reason,
+                    historical_evidence_invalid=True,
+                    execution_proof_kind=ExecutionProofKind.PREREQUISITE_ONLY,
+                    backend_kind=str(evidence.get("backend_kind") or "EXTERNAL_TOOL"),
+                    binary_path=str(evidence.get("binary_path") or ""),
+                ))
+                continue
+
+            manifest_mission_ids = set(manifest.get("mission_ids") or ())
+            evidence_mission_id = str(evidence.get("mission_id") or "")
+            if evidence_mission_id and evidence_mission_id not in manifest_mission_ids:
+                errors.append({
+                    "run_id": run_id, "task_id": str(event.detail.get("task_id") or ""),
+                    "historical_evidence_invalid": True,
+                    "error_type": "ManifestMissingMissionRef",
+                    "reason": f"evidence mission_id {evidence_mission_id} not in manifest.mission_ids",
+                })
+                continue
+
+            backend_name = str(
+                evidence.get("backend_name")
+                or evidence.get("backend")
+                or event.detail.get("backend")
+                or technique
+            )
+            is_internal = (
+                backend_name.startswith("aegis-")
+                or backend_name.startswith("stdlib-")
+                or val_meta.get("backend_kind") == "INTERNAL_AEGIS"
+            )
+            backend_kind = "INTERNAL_AEGIS" if is_internal else "EXTERNAL_TOOL"
+            binary_path = str(evidence.get("binary_path") or "")
+            base_binary = Path(binary_path).stem.lower() if binary_path else ""
+
+            if not is_internal and base_binary in {"python", "python3", "pythonw"}:
+                pkg = str(evidence.get("backend_package") or "")
+                ep = str(evidence.get("backend_entrypoint") or "")
+                if not (pkg or ep):
+                    errors.append({
+                        "run_id": run_id, "task_id": str(event.detail.get("task_id") or ""),
+                        "historical_evidence_invalid": True,
+                        "error_type": "BackendIdentityMismatch",
+                        "reason": f"external tool {backend_name} resolved to generic python binary without package/entrypoint metadata",
+                    })
+                    continue
+
+            if backend_name in {"class-dump", "firmadyne"}:
+                proof_kind_val = str(evidence.get("execution_proof_kind") or ExecutionProofKind.REAL_BACKEND.value)
+                if proof_kind_val == ExecutionProofKind.REAL_BACKEND.value:
+                    errors.append({
+                        "run_id": run_id, "task_id": str(event.detail.get("task_id") or ""),
+                        "historical_evidence_invalid": True,
+                        "error_type": "MigrationConflict",
+                        "reason": f"migrated backend {backend_name} cannot be credited as independent REAL_BACKEND",
+                    })
+                    continue
+
             recorded_result = str(event.detail.get("result") or "")
             executed = evidence.get("execution_performed") is True
             if recorded_result not in {
                 ArsenalCoverageState.EXECUTED_PASS.value,
                 ArsenalCoverageState.EXECUTED_FINDING.value,
             } or not executed:
-                # Preserve the immutable event/evidence in the run store, but do not
-                # reconstruct failed, blocked, or merely planned work as execution coverage.
                 continue
             grant = dict(evidence.get("grant") or {})
             if not grant:
@@ -140,16 +232,12 @@ def _historical_execution(
             if finding_ids and evidence.get("human_reviewed") is True:
                 state = ArsenalCoverageState.EXECUTED_FINDING
             elif state is ArsenalCoverageState.EXECUTED_FINDING:
-                # An immutable executor event cannot award finding credit without the
-                # canonical human-reviewed finding reference required by the schema.
                 state = ArsenalCoverageState.EXECUTED_PASS
             history.append(HistoricalExecution(
                 capability_id=capability_id, mode=mode, state=state, run_id=run_id,
-                mission_id=str(evidence.get("mission_id") or ""),
+                mission_id=evidence_mission_id,
                 task_id=str(evidence.get("task_id") or ""),
-                backend=str(
-                    evidence.get("backend") or event.detail.get("backend") or technique
-                ),
+                backend=backend_name,
                 backend_version=str(
                     evidence.get("backend_version")
                     or event.detail.get("backend_version")
@@ -163,6 +251,10 @@ def _historical_execution(
                 execution_grant_id=(str(grant.get("nonce")) if grant.get("nonce") else None),
                 executed_at=event.observed_at, evidence_digest=digest,
                 finding_ids=finding_ids,
+                historical_evidence_invalid=False,
+                execution_proof_kind=ExecutionProofKind.REAL_BACKEND,
+                backend_kind=backend_kind,
+                binary_path=binary_path,
             ))
     return tuple(history), tuple(errors)
 
