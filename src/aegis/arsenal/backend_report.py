@@ -307,6 +307,17 @@ def build_runtime_lock(inventory: Mapping[str, Any], *, image_digest: str = "") 
     }
 
 
+_INTERNAL_AEGIS_BACKEND_IDS = {
+    "internal:aegis-agent-permission-audit",
+    "internal:aegis-artifact-diff",
+    "internal:aegis-asset-classifier",
+    "internal:aegis-firmware-arch",
+    "internal:aegis-memory-poisoning",
+    "internal:aegis-model-provenance",
+    "internal:aegis-rag-boundary",
+}
+
+
 def build_full_coverage_report(
     *,
     audit: ArsenalAuditReport,
@@ -316,27 +327,45 @@ def build_full_coverage_report(
 ) -> dict[str, Any]:
     documents = [dict(item) for item in results]
     definition_by_id = {item.capability_id: item for item in audit.definitions}
-    backend_by_capability: dict[str, str] = {}
-    for backend in inventory.get("backends", []):
+
+    external_backends_all = [
+        item for item in inventory.get("backends", []) if item.get("external")
+    ]
+    internal_backends_all = [
+        item for item in inventory.get("backends", [])
+        if not item.get("external")
+        and (item.get("backend_id") in _INTERNAL_AEGIS_BACKEND_IDS or bool(item.get("fixture_executable_capabilities")))
+    ]
+
+    external_backend_by_capability: dict[str, str] = {}
+    for backend in external_backends_all:
         for capability_id in backend.get("capability_ids", []):
-            backend_by_capability[capability_id] = backend["backend_id"]
+            external_backend_by_capability[capability_id] = backend["backend_id"]
+
+    internal_backend_by_capability: dict[str, str] = {}
+    for backend in internal_backends_all:
+        for capability_id in backend.get("capability_ids", []):
+            internal_backend_by_capability[capability_id] = backend["backend_id"]
+
+    backend_by_capability = {**internal_backend_by_capability, **external_backend_by_capability}
 
     migrated_ids = {m.old_runtime_id for m in RUNTIME_MIGRATIONS}
     migrated_binaries = {
         m.old_runtime_id.split("/")[0] for m in RUNTIME_MIGRATIONS
     } | {"class-dump", "firmadyne"}
 
-    registered_external_backends = [
-        item for item in inventory.get("backends", []) if item.get("external")
-    ]
     migrated_backends = [
-        item for item in registered_external_backends
+        item for item in external_backends_all
         if item.get("binary") in migrated_binaries or item.get("backend_runtime_id") in migrated_ids
     ]
-    active_backends = [
-        item for item in registered_external_backends
+    active_external_backends = [
+        item for item in external_backends_all
         if item not in migrated_backends
     ]
+    active_external_backend_ids = {item["backend_id"] for item in active_external_backends}
+
+    active_internal_backends = list(internal_backends_all)
+    active_internal_backend_ids = {item["backend_id"] for item in active_internal_backends}
 
     executed = [
         item for item in documents
@@ -357,10 +386,22 @@ def build_full_coverage_report(
             or (item["capability_id"],)
         )
     }
-    executed_backends = {
-        backend_by_capability[item["capability_id"]]
-        for item in executed if item["capability_id"] in backend_by_capability
+
+    executed_external_backends = {
+        external_backend_by_capability[item["capability_id"]]
+        for item in executed if item["capability_id"] in external_backend_by_capability
     }
+    executed_internal_backends = {
+        internal_backend_by_capability[item["capability_id"]]
+        for item in executed if item["capability_id"] in internal_backend_by_capability
+    }
+
+    executed_active_external = executed_external_backends & active_external_backend_ids
+    never_executed_active_external = sorted(active_external_backend_ids - executed_external_backends)
+
+    executed_active_internal = executed_internal_backends & active_internal_backend_ids
+    never_executed_active_internal = sorted(active_internal_backend_ids - executed_internal_backends)
+
     fixture_capabilities = {
         item.capability_id for item in audit.definitions if item.fixture_executable
     }
@@ -375,20 +416,38 @@ def build_full_coverage_report(
     p0_defects = int(llm.get("p0_bypasses", 0) or 0)
     evidence_integrity_verified = not audit.historical_evidence_errors
 
-    registered_backend_count = len(registered_external_backends)
+    registered_external_count = len(external_backends_all)
     migrated_backend_count = len(migrated_backends)
-    active_backend_count = len(active_backends)
-    verified_real_backend_executions = len(executed_backends)
+    active_external_count = len(active_external_backends)
+    executed_external_count = len(executed_active_external)
+    never_executed_external_count = len(never_executed_active_external)
+
+    registered_internal_count = len(internal_backends_all)
+    active_internal_count = len(active_internal_backends)
+    executed_internal_count = len(executed_active_internal)
+    never_executed_internal_count = len(never_executed_active_internal)
+
+    external_coverage = (
+        executed_external_count / active_external_count
+        if active_external_count else 0.0
+    )
+    internal_coverage = (
+        executed_internal_count / active_internal_count
+        if active_internal_count else 0.0
+    )
+    overall_active_count = active_external_count + active_internal_count
+    overall_executed_count = executed_external_count + executed_internal_count
+    overall_coverage = (
+        overall_executed_count / overall_active_count
+        if overall_active_count else 0.0
+    )
+
     verified_shared_backend_executions = sum(
         1 for item in executed
         if len(item.get("summary", {}).get("covered_capability_ids") or ()) > 1
     )
     verified_real_capabilities = len(executed_capabilities)
     migrated_capabilities = len(migrated_ids)
-
-    active_backend_ids = {item["backend_id"] for item in active_backends}
-    never_executed_active = sorted(active_backend_ids - executed_backends)
-    never_executed_active_count = len(never_executed_active)
 
     positive_controls = sum(
         item.get("summary", {}).get("fixture_detection") is True
@@ -401,18 +460,59 @@ def build_full_coverage_report(
         for item in executed
     )
 
-    waiting_prerequisite_count = sum(
-        1 for item in registered_external_backends
-        if item.get("current_state") == ArsenalCoverageState.WAITING_FOR_PREREQUISITE.value
-    )
     unavailable_count = sum(
-        1 for item in registered_external_backends
-        if item.get("current_state") == ArsenalCoverageState.UNAVAILABLE.value
+        1 for item in active_external_backends
+        if item.get("backend_id") in never_executed_active_external
+        and item.get("current_state") == ArsenalCoverageState.UNAVAILABLE.value
     )
     backend_unhealthy_count = sum(
-        1 for item in registered_external_backends
-        if item.get("current_state") == ArsenalCoverageState.BACKEND_UNHEALTHY.value
+        1 for item in active_external_backends
+        if item.get("backend_id") in never_executed_active_external
+        and item.get("current_state") == ArsenalCoverageState.BACKEND_UNHEALTHY.value
     )
+    denied_count = sum(
+        1 for item in active_external_backends
+        if item.get("backend_id") in never_executed_active_external
+        and item.get("current_state") in {
+            ArsenalCoverageState.DENIED_BY_POLICY.value,
+            ArsenalCoverageState.DENIED_POLICY_AMBIGUOUS.value,
+        }
+    )
+    waiting_prerequisite_count = max(
+        0, never_executed_external_count - unavailable_count - backend_unhealthy_count - denied_count
+    )
+
+    populations = {
+        "external": {
+            "registered": registered_external_count,
+            "active": active_external_count,
+            "executed": executed_external_count,
+            "waiting": waiting_prerequisite_count,
+            "unavailable": unavailable_count,
+            "unhealthy": backend_unhealthy_count,
+            "denied": 0,
+            "migrated": migrated_backend_count,
+            "retired": 0,
+            "never_executed": never_executed_external_count,
+            "execution_coverage": external_coverage,
+        },
+        "internal_aegis": {
+            "registered": registered_internal_count,
+            "active": active_internal_count,
+            "executed": executed_internal_count,
+            "waiting": never_executed_internal_count,
+            "unavailable": 0,
+            "unhealthy": 0,
+            "never_executed": never_executed_internal_count,
+            "execution_coverage": internal_coverage,
+        },
+        "overall": {
+            "active": overall_active_count,
+            "executed": overall_executed_count,
+            "never_executed": never_executed_external_count + never_executed_internal_count,
+            "execution_coverage": overall_coverage,
+        },
+    }
 
     source_sha = inventory.get("git_sha") or _git_sha()
     report_time = _now()
@@ -424,39 +524,65 @@ def build_full_coverage_report(
     evidence_items = sorted((item.run_id, item.evidence_digest) for item in audit.history if not item.historical_evidence_invalid)
     evidence_root_digest = document_digest(evidence_items)
 
-    full_fixture_coverage = bool(active_backends) and executed_backends == active_backend_ids
-    active_unexecuted = active_backend_ids - executed_backends
+    full_fixture_coverage = bool(active_external_backends) and len(never_executed_active_external) == 0
+    active_unexecuted = set(never_executed_active_external)
     active_unexecuted_waiting = {
-        item["backend_id"] for item in active_backends
+        item["backend_id"] for item in active_external_backends
         if item["backend_id"] in active_unexecuted
         and (
             bool(item.get("prerequisite"))
             or item.get("binary") in _PREREQUISITES
+            or item.get("current_state") == ArsenalCoverageState.WAITING_FOR_PREREQUISITE.value
         )
     }
     all_unexecuted_are_waiting = bool(active_unexecuted) and active_unexecuted == active_unexecuted_waiting
 
-    if evidence_integrity_verified and full_fixture_coverage and p0_defects == 0 and waiting_prerequisite_count == 0:
-        verdict = "FULL FIXTURE ARSENAL VERIFIED"
-    elif evidence_integrity_verified and executed_backends and p0_defects == 0 and all_unexecuted_are_waiting:
-        verdict = "FULL ACTIVE SOFTWARE ARSENAL VERIFIED — MIGRATED/HARDWARE-SPECIFIC CAPABILITIES SEPARATE"
-    elif evidence_integrity_verified and executed_backends and p0_defects == 0:
-        verdict = "FIXTURE ARSENAL PARTIALLY VERIFIED"
+    # Deterministic ordered verdict hierarchy
+    if not evidence_integrity_verified or p0_defects > 0:
+        verdict = "ARSENAL_CLOSURE_FAILED"
+    elif full_fixture_coverage and waiting_prerequisite_count == 0 and unavailable_count == 0 and backend_unhealthy_count == 0:
+        verdict = "FULL_FIXTURE_ARSENAL_VERIFIED"
+    elif executed_external_count > 0 and all_unexecuted_are_waiting:
+        verdict = "ACTIVE_LOCAL_SOFTWARE_SUBSET_VERIFIED_EXTERNAL_PREREQUISITES_REMAIN"
+    elif executed_external_count > 0:
+        verdict = "FIXTURE_ARSENAL_PARTIALLY_VERIFIED"
     else:
-        verdict = "ARSENAL BACKEND BRINGUP FAILED"
+        verdict = "ARSENAL_CLOSURE_FAILED"
 
-    # Execution source rows for backend matrix
+    # Historical cross-runner evidence mapping
+    evidence_by_backend: dict[str, list[dict[str, Any]]] = {}
+    for h in audit.history:
+        if h.historical_evidence_invalid or h.state not in (
+            ArsenalCoverageState.EXECUTED_PASS, ArsenalCoverageState.EXECUTED_FINDING
+        ):
+            continue
+        bid = backend_by_capability.get(h.capability_id)
+        if bid:
+            plat = "Darwin" if "Darwin" in getattr(h, "binary_path", "") or h.backend == "otool" else "Linux"
+            evidence_by_backend.setdefault(bid, []).append({
+                "runner": "github-macos" if plat == "Darwin" else "arsenal-linux",
+                "platform": plat,
+                "state": h.state.value,
+                "evidence_digest": h.evidence_digest,
+                "source_sha": h.run_id,
+                "backend_name": h.backend,
+                "binary_path": getattr(h, "binary_path", ""),
+            })
+
     execution_by_cap = {e.get("capability_id"): e for e in executed}
     backend_matrix_rows = []
     for backend in inventory.get("backends", []):
         row = dict(backend)
         binary = row.get("binary", "")
+        bid = row.get("backend_id", "")
         is_migrated = binary in migrated_binaries or row.get("backend_runtime_id") in migrated_ids
         row["active_status"] = "migrated" if is_migrated else "active"
         matched_exec = next((execution_by_cap[c] for c in row.get("capability_ids", []) if c in execution_by_cap), None)
+
         if matched_exec:
             summary = matched_exec.get("summary", {})
             runtime_info = summary.get("positive", {}).get("runtime", {})
+            row["global_execution_state"] = matched_exec.get("result", ArsenalCoverageState.EXECUTED_PASS.value)
             row["execution_proof_kind"] = summary.get("execution_proof_kind", ExecutionProofKind.REAL_BACKEND.value)
             row["launcher_executable"] = summary.get("launcher_executable", "")
             row["backend_entrypoint"] = summary.get("backend_entrypoint", "")
@@ -467,6 +593,7 @@ def build_full_coverage_report(
             row["positive_control"] = "PASS" if summary.get("fixture_detection") else "FAIL"
             row["negative_control"] = "PASS" if summary.get("negative_control_passed") else "FAIL"
         elif is_migrated:
+            row["global_execution_state"] = "MIGRATED"
             row["execution_proof_kind"] = ExecutionProofKind.MIGRATED_EQUIVALENT.value
             row["launcher_executable"] = ""
             row["backend_entrypoint"] = ""
@@ -477,6 +604,7 @@ def build_full_coverage_report(
             row["positive_control"] = "MIGRATED"
             row["negative_control"] = "MIGRATED"
         else:
+            row["global_execution_state"] = ArsenalCoverageState.WAITING_FOR_PREREQUISITE.value
             row["execution_proof_kind"] = ExecutionProofKind.PREREQUISITE_ONLY.value
             row["launcher_executable"] = ""
             row["backend_entrypoint"] = ""
@@ -486,6 +614,15 @@ def build_full_coverage_report(
             row["evidence_digest"] = ""
             row["positive_control"] = "NOT_EXECUTED"
             row["negative_control"] = "NOT_EXECUTED"
+
+        current_readiness = backend.get("current_state", ArsenalCoverageState.WAITING_FOR_PREREQUISITE.value)
+        row["current_runner_readiness"] = current_readiness
+        row["current_runner"] = {
+            "runner": "windows-local" if platform.system() == "Windows" else "linux-runner",
+            "platform": platform.system(),
+            "readiness": current_readiness,
+        }
+        row["execution_evidence_by_runner"] = evidence_by_backend.get(bid, [])
         backend_matrix_rows.append(row)
 
     return {
@@ -502,14 +639,14 @@ def build_full_coverage_report(
         "verdict": verdict,
         "evidence_integrity_verified": evidence_integrity_verified,
         "metrics": {
-            "registered_backends": registered_backend_count,
-            "active_backends": active_backend_count,
+            "registered_backends": registered_external_count,
+            "active_backends": active_external_count,
             "migrated_backends": migrated_backend_count,
-            "verified_real_backend_executions": verified_real_backend_executions,
+            "verified_real_backend_executions": executed_external_count,
             "verified_shared_backend_executions": verified_shared_backend_executions,
             "verified_real_capabilities": verified_real_capabilities,
             "migrated_capabilities": migrated_capabilities,
-            "never_executed_active_backends": never_executed_active_count,
+            "never_executed_active_backends": never_executed_external_count,
             "positive_controls": positive_controls,
             "negative_controls": negative_controls,
             "waiting_prerequisite_count": waiting_prerequisite_count,
@@ -517,33 +654,35 @@ def build_full_coverage_report(
             "backend_unhealthy_count": backend_unhealthy_count,
             "total_canonical_capabilities": len(audit.definitions),
             "unique_backends": inventory.get("metrics", {}).get("unique_backend_count", 0),
-            "unique_external_backends": registered_backend_count,
+            "unique_external_backends": registered_external_count,
             "healthy_backends": inventory.get("metrics", {}).get(
                 "installed_external_backend_count", 0
             ),
-            "backend_executions": verified_real_backend_executions,
-            "fixture_executed_backends": verified_real_backend_executions,
+            "backend_executions": executed_external_count,
+            "fixture_executed_backends": executed_external_count,
             "fixture_executed_capabilities": verified_real_capabilities,
-            "fixture_backend_denominator": active_backend_count,
+            "fixture_backend_denominator": active_external_count,
             "fixture_capability_denominator": len(fixture_capabilities),
-            "fixture_backend_execution_coverage": (
-                verified_real_backend_executions / active_backend_count if active_backend_count else None
-            ),
+            "fixture_backend_execution_coverage": external_coverage,
             "fixture_capability_execution_coverage": (
                 verified_real_capabilities / len(fixture_capabilities)
                 if fixture_capabilities else None
             ),
+            "external_backend_execution_coverage": external_coverage,
+            "internal_backend_execution_coverage": internal_coverage,
+            "overall_active_backend_execution_coverage": overall_coverage,
+            "populations": populations,
             "authorized_real_execution_coverage": None,
             "authorized_real_executed_capabilities": 0,
             "positive_controls_passed": positive_controls,
             "negative_controls_passed": negative_controls,
-            "never_executed_external_backends": never_executed_active_count,
+            "never_executed_external_backends": never_executed_external_count,
             "states": state_counts,
         },
         "runtime_migrations": [m.document() for m in RUNTIME_MIGRATIONS],
         "backend_matrix": backend_matrix_rows,
         "executions": documents,
-        "never_executed_backend_ids": never_executed_active,
+        "never_executed_backend_ids": never_executed_active_external,
         "llm_boundary": llm,
         "p0_defects": p0_defects,
         "historical_evidence_errors": list(audit.historical_evidence_errors),
@@ -593,9 +732,20 @@ def render_full_coverage_markdown(document: Mapping[str, Any]) -> str:
         f"- Fixture Version Digest: `{document.get('fixture_version_digest', '')}`",
         f"- Evidence Root Digest: `{document.get('evidence_root_digest', '')}`",
         f"- Arsenal Image: `{document.get('arsenal_image_digest', '')}`", "",
-        "## Metrics", "",
     ]
+    lines.extend([
+        "## Typed Populations", "",
+        "| Population | Registered | Active | Executed | Never Executed | Coverage |",
+        "|---|---:|---:|---:|---:|---:|",
+        f"| External Tools | {metrics['populations']['external']['registered']} | {metrics['populations']['external']['active']} | {metrics['populations']['external']['executed']} | {metrics['populations']['external']['never_executed']} | {metrics['populations']['external']['execution_coverage']:.2%} |",
+        f"| Internal Aegis | {metrics['populations']['internal_aegis']['registered']} | {metrics['populations']['internal_aegis']['active']} | {metrics['populations']['internal_aegis']['executed']} | {metrics['populations']['internal_aegis']['never_executed']} | {metrics['populations']['internal_aegis']['execution_coverage']:.2%} |",
+        f"| Overall Active | - | {metrics['populations']['overall']['active']} | {metrics['populations']['overall']['executed']} | {metrics['populations']['overall']['never_executed']} | {metrics['populations']['overall']['execution_coverage']:.2%} |",
+        "",
+        "## Metrics", "",
+    ])
     for key, value in metrics.items():
+        if key == "populations":
+            continue
         lines.append(f"- `{key}`: `{value}`")
 
     lines.extend([

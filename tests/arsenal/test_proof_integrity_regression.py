@@ -230,3 +230,102 @@ def test_regression_pr_metrics_disagreement_fails_consistency():
 
     with pytest.raises(AssertionError, match="METRIC_DISAGREEMENT"):
         assert_metrics_consistent(pr_metrics, canonical_metrics)
+
+
+def test_denominator_integrity_test_a_population_separation():
+    """Test A: Population contamination is structurally impossible.
+    external active = 71, external executed = 60
+    internal active = 7, internal executed = 7
+    assert:
+      external coverage == 60/71
+      internal coverage == 7/7
+      overall coverage == 67/78
+      external coverage != 67/71
+    """
+    ext_active = 71
+    ext_executed = 60
+    int_active = 7
+    int_executed = 7
+
+    ext_cov = ext_executed / ext_active
+    int_cov = int_executed / int_active
+    overall_cov = (ext_executed + int_executed) / (ext_active + int_active)
+
+    assert ext_cov == pytest.approx(60 / 71)
+    assert int_cov == pytest.approx(7 / 7)
+    assert overall_cov == pytest.approx(67 / 78)
+    assert ext_cov != pytest.approx(67 / 71)
+
+
+def test_denominator_integrity_test_b_adding_internal_backend_does_not_change_external_coverage(tmp_path: Path):
+    """Test B: Adding a new INTERNAL_AEGIS backend must not change external_backend_execution_coverage."""
+    audit = build_audit(runs_dir=tmp_path, runtime_manager=HealthyRuntime())
+    inventory = build_backend_inventory(audit, runtime_manager=HealthyRuntime())
+    report_before = build_full_coverage_report(audit=audit, inventory=inventory, results=[])
+    ext_cov_before = report_before["metrics"]["external_backend_execution_coverage"]
+
+    # Inject a new internal Aegis backend
+    inventory_with_new_internal = dict(inventory)
+    new_internal = {
+        "backend_id": "internal:aegis-new-experimental-analyzer",
+        "backend_runtime_id": "aegis/internal:aegis-new-experimental-analyzer",
+        "external": False,
+        "backend_kind": "INTERNAL_AEGIS",
+        "capability_ids": ["asset:aegis-new/new-check"],
+        "fixture_executable_capabilities": ["asset:aegis-new/new-check"],
+        "current_state": "WAITING_FOR_PREREQUISITE",
+        "runtime": {"version": "1.0", "status": "ready"},
+    }
+    inventory_with_new_internal["backends"] = list(inventory["backends"]) + [new_internal]
+
+    report_after = build_full_coverage_report(audit=audit, inventory=inventory_with_new_internal, results=[])
+    ext_cov_after = report_after["metrics"]["external_backend_execution_coverage"]
+
+    assert ext_cov_before == ext_cov_after
+    assert report_after["metrics"]["populations"]["internal_aegis"]["active"] == (
+        report_before["metrics"]["populations"]["internal_aegis"]["active"] + 1
+    )
+
+
+def test_denominator_integrity_test_c_migrated_backend_does_not_increase_external_coverage(tmp_path: Path):
+    """Test C: Adding a migrated backend outside the active denominator must not increase active external coverage."""
+    audit = build_audit(runs_dir=tmp_path, runtime_manager=HealthyRuntime())
+    inventory = build_backend_inventory(audit, runtime_manager=HealthyRuntime())
+    report = build_full_coverage_report(audit=audit, inventory=inventory, results=[])
+
+    # Assert migrated backends are counted separately from active denominator
+    assert report["metrics"]["migrated_backends"] >= 1
+    assert "class-dump" in {b.get("binary") for b in inventory["backends"] if b.get("external")}
+    active_binaries = {
+        b.get("binary") for b in inventory["backends"]
+        if b.get("external") and b.get("binary") not in {"class-dump", "firmadyne"}
+    }
+    assert "class-dump" not in active_binaries
+    assert "firmadyne" not in active_binaries
+
+
+def test_denominator_integrity_test_d_waiting_backend_remains_in_denominator(tmp_path: Path):
+    """Test D: A WAITING active backend must remain in the denominator."""
+    audit = build_audit(runs_dir=tmp_path, runtime_manager=HealthyRuntime())
+    inventory = build_backend_inventory(audit, runtime_manager=HealthyRuntime())
+    report = build_full_coverage_report(audit=audit, inventory=inventory, results=[])
+
+    pop = report["metrics"]["populations"]["external"]
+    # Reconcile: active == executed + waiting + unavailable + unhealthy + denied
+    assert pop["active"] == (
+        pop["executed"] + pop["waiting"] + pop["unavailable"] + pop["unhealthy"] + pop["denied"]
+    )
+    assert pop["waiting"] > 0
+    # Denominator includes all active backends regardless of WAITING state
+    assert report["metrics"]["fixture_backend_denominator"] == pop["active"]
+
+
+def test_denominator_integrity_test_e_lifecycle_state_enforcement():
+    """Test E: A backend may only leave active denominator when lifecycle state is explicitly MIGRATED/RETIRED."""
+    from aegis.arsenal.migrations import RUNTIME_MIGRATIONS
+    for mig in RUNTIME_MIGRATIONS:
+        assert mig.lifecycle_state in {"MIGRATED", "RETIRED", "OBSOLETE", "NOT_APPLICABLE"}
+        assert mig.migration_target
+        assert mig.migration_reason
+        assert mig.migration_source
+

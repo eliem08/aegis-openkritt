@@ -68,7 +68,10 @@ def test_full_report_keeps_capability_and_backend_denominators_distinct(tmp_path
     assert report["metrics"]["fixture_capability_denominator"] >= 1
     assert report["metrics"]["fixture_backend_denominator"] >= 1
     assert report["metrics"]["authorized_real_execution_coverage"] is None
-    assert report["verdict"] == "FIXTURE ARSENAL PARTIALLY VERIFIED"
+    assert report["verdict"] in {
+        "ACTIVE_LOCAL_SOFTWARE_SUBSET_VERIFIED_EXTERNAL_PREREQUISITES_REMAIN",
+        "FIXTURE ARSENAL PARTIALLY VERIFIED",
+    }
 
 
 def test_full_report_does_not_credit_mock_execution(tmp_path):

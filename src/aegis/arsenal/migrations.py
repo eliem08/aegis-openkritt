@@ -23,6 +23,24 @@ class RuntimeMigration:
     capabilities_affected: tuple[str, ...]
     coverage_interpretation: str
     migration_date: str
+    lifecycle_state: str = "MIGRATED"
+    migration_target: str = ""
+    migration_reason: str = ""
+    migration_source: str = ""
+    migration_timestamp: str = ""
+    source_commit: str = ""
+
+    def __post_init__(self) -> None:
+        if not self.migration_target:
+            object.__setattr__(self, "migration_target", self.replacement_runtime_id)
+        if not self.migration_reason:
+            object.__setattr__(self, "migration_reason", self.reason)
+        if not self.migration_source:
+            object.__setattr__(self, "migration_source", self.source_registry_provenance)
+        if not self.migration_timestamp:
+            object.__setattr__(self, "migration_timestamp", self.migration_date)
+        if not self.source_commit:
+            object.__setattr__(self, "source_commit", "2c93c3017a4ea0134812fbb1c7a8769c8e11aee6")
 
     def document(self) -> dict[str, Any]:
         return asdict(self)
