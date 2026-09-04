@@ -1,0 +1,13 @@
+{
+  "blocking_reason": "binary not found",
+  "capability_id": "asset:spotbugs/java-bytecode-static-analysis",
+  "coverage_state": "UNAVAILABLE",
+  "evidence_digest": "c230e5737cf7fed5692c7cba7b868bc92c010e28e6ef46717f5b3981c627e41c",
+  "execution_grant_issued": false,
+  "execution_performed": false,
+  "kind": "arsenal_fixture_blocked",
+  "mission_id": "arsenal-blocked-6519dde8693fbe35",
+  "mode": "FIXTURE",
+  "run_id": "arsenal-20260827T203242Z-6519dde8",
+  "task_id": "arsenal-blocked-6519dde8693fbe35-execute"
+}

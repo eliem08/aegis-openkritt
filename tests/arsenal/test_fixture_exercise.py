@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from aegis.arsenal.exercise import execute_llm_fixture
+import json
+from pathlib import Path
+
+from aegis.arsenal.exercise import execute_llm_fixture, record_blocked_fixture
 from aegis.arsenal.fixture_authority import (
     LocalFixtureSignatureVerifier,
     is_isolated_destination,
@@ -67,3 +70,24 @@ def test_executed_finding_is_not_awarded_by_fixture_lab(tmp_path):
     assert result.result is ArsenalCoverageState.EXECUTED_PASS
     assert result.summary["model_behavior_unsafe"] == 16
     assert "finding" not in result.result.value.casefold()
+
+
+def test_missing_fixture_backend_stops_before_grant_and_execution(tmp_path):
+    ledger = SqliteCoverageRepository(tmp_path / "coverage.db")
+    result = record_blocked_fixture(
+        "asset:frida/android-runtime-instrumentation",
+        state_value=ArsenalCoverageState.WAITING_FOR_PREREQUISITE,
+        reason="local Android emulator and operator-owned fixture app are required",
+        runs_dir=tmp_path / "runs", coverage_repository=ledger,
+    )
+
+    assert result.result is ArsenalCoverageState.WAITING_FOR_PREREQUISITE
+    assert result.summary["execution_performed"] is False
+    evidence = json.loads(Path(
+        tmp_path / "runs" / result.run_id / result.evidence_ref
+    ).read_text(encoding="utf-8"))
+    assert evidence["execution_grant_issued"] is False
+    record = ledger.records()[0]
+    assert record.executed is False
+    assert record.execution_grant_id is None
+    ledger.close()

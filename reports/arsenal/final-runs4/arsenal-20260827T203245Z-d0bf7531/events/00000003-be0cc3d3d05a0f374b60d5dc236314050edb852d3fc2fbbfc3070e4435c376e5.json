@@ -1,0 +1,13 @@
+{
+  "detail": {
+    "capability_id": "tool:bandit/code",
+    "mission_id": "arsenal-tool-d0bf7531a2c1",
+    "task_id": "arsenal-tool-d0bf7531a2c1-execute"
+  },
+  "digest": "be0cc3d3d05a0f374b60d5dc236314050edb852d3fc2fbbfc3070e4435c376e5",
+  "event_type": "arsenal_task_started",
+  "observed_at": "2026-08-27T20:32:45.268918+00:00",
+  "previous_digest": "1904b9864eeae09cfce958e7bdf9dfbf196b0585c868272b5fbcc737c05a9216",
+  "sequence": 3,
+  "status": "running"
+}

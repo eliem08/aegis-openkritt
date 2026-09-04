@@ -1,0 +1,13 @@
+{
+  "detail": {
+    "capability_id": "asset:otool/ios-macos-load-command-analysis",
+    "mission_id": "arsenal-tool-458dfd3d5e91",
+    "task_id": "arsenal-tool-458dfd3d5e91-execute"
+  },
+  "digest": "4d5e1529fcf846fb8d2b8393c941c8f29629775e7377bbc6e7ce0d05c5ed3af2",
+  "event_type": "arsenal_task_started",
+  "observed_at": "2026-09-04T01:11:38.513698+00:00",
+  "previous_digest": "2e7fd12d97bd06d404ce9a93ef5dc55ce2057efc4fa37b1bd43091fa6746699d",
+  "sequence": 3,
+  "status": "running"
+}

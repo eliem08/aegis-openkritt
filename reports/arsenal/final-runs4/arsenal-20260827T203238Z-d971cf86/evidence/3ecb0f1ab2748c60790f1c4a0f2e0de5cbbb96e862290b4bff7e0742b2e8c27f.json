@@ -1,0 +1,13 @@
+{
+  "blocking_reason": "opt-in privileged Linux worker with QEMU/binfmt; readiness: test -e /dev/kvm && command -v qemu-system-x86_64",
+  "capability_id": "asset:firmadyne/firmware-emulation-fallback",
+  "coverage_state": "WAITING_FOR_PREREQUISITE",
+  "evidence_digest": "3ecb0f1ab2748c60790f1c4a0f2e0de5cbbb96e862290b4bff7e0742b2e8c27f",
+  "execution_grant_issued": false,
+  "execution_performed": false,
+  "kind": "arsenal_fixture_blocked",
+  "mission_id": "arsenal-blocked-d971cf868db3655b",
+  "mode": "FIXTURE",
+  "run_id": "arsenal-20260827T203238Z-d971cf86",
+  "task_id": "arsenal-blocked-d971cf868db3655b-execute"
+}

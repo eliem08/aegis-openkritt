@@ -1,0 +1,13 @@
+{
+  "blocking_reason": "binary not found",
+  "capability_id": "asset:modelscan/serialized-model-safety-scan",
+  "coverage_state": "UNAVAILABLE",
+  "evidence_digest": "a8e5cbae561801bb4140d4d7f238127c501b3bf8e0e853d24876d77cc71e6f76",
+  "execution_grant_issued": false,
+  "execution_performed": false,
+  "kind": "arsenal_fixture_blocked",
+  "mission_id": "arsenal-blocked-a966f3d645664b07",
+  "mode": "FIXTURE",
+  "run_id": "arsenal-20260827T203240Z-a966f3d6",
+  "task_id": "arsenal-blocked-a966f3d645664b07-execute"
+}

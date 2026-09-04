@@ -1,0 +1,18 @@
+{
+  "detail": {
+    "blocking_reason": "binary not found",
+    "capability_id": "asset:pip-audit/python-dependency-vulnerability-analysis",
+    "evidence_digest": "5a94f64d80f4a1542638e4b3d99f3b2385fd87a940cc22857f56ae1c6e789dda",
+    "evidence_ref": "evidence/5a94f64d80f4a1542638e4b3d99f3b2385fd87a940cc22857f56ae1c6e789dda.json",
+    "execution_grant_id": null,
+    "mission_id": "arsenal-blocked-bc1caae870ae6d5b",
+    "result": "UNAVAILABLE",
+    "task_id": "arsenal-blocked-bc1caae870ae6d5b-execute"
+  },
+  "digest": "dd179cc6ac2bac47c1e779515baa66710fe85769c7ced4a483aaf2211a0fad4e",
+  "event_type": "arsenal_task_blocked",
+  "observed_at": "2026-08-27T20:32:42.606963+00:00",
+  "previous_digest": "049d0ee97252a307ce6649d911e0b86cd1ce007abdc07213477173f06e769f1d",
+  "sequence": 2,
+  "status": "failed"
+}

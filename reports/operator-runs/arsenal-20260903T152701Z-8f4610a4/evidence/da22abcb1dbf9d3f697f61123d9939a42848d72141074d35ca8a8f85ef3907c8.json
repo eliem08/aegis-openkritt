@@ -1,0 +1,140 @@
+{
+  "adapter_version": "deep-asset/1",
+  "backend_name": "objection",
+  "backend_version": "Python 3.14.5",
+  "binary_path": "C:\\Python314\\python.exe",
+  "blocking_reason": "",
+  "capability_id": "asset:objection/android-runtime-exploration",
+  "capability_ids": [
+    "asset:objection/android-runtime-exploration",
+    "asset:objection/ios-runtime-exploration"
+  ],
+  "container_digest_if_applicable": "",
+  "coverage_state": "EXECUTED_PASS",
+  "duration_ms": 116,
+  "evidence_digest": "da22abcb1dbf9d3f697f61123d9939a42848d72141074d35ca8a8f85ef3907c8",
+  "execution_completed_at": "2026-09-03T15:27:01.608353+00:00",
+  "execution_grant_payload": {
+    "allowed_destinations": [],
+    "allowed_methods": [],
+    "budget": {
+      "max_cost_usd": 0.0,
+      "max_human_minutes": 0.0,
+      "max_requests": 0
+    },
+    "constraints": {
+      "authorization_class": "LOCAL_FIXTURE_ONLY",
+      "capability_id": "asset:objection/android-runtime-exploration",
+      "covered_capability_ids": [
+        "asset:objection/android-runtime-exploration",
+        "asset:objection/ios-runtime-exploration"
+      ],
+      "fixture_version": "objection-exploration-v1",
+      "negative_fixture_digest": "c6a25da540e6e648ae7c56cf063f953579daf8f307c9fbb8f324783b99ec36b9",
+      "positive_fixture_digest": "a035cbc17a40c2902d9fda78da7f4e5bfef37908b09ef62cc0bd27ca9a8b4144"
+    },
+    "decision_fingerprint": "8f6568c840e8e13107ce86ad",
+    "expires_at": "2026-09-03T15:42:01.461213+00:00",
+    "external_model_egress_allowed": false,
+    "human_approval": false,
+    "issued_at": "2026-09-03T15:27:01.461213+00:00",
+    "network_allowed": false,
+    "nonce": "a4039f010eb6941e",
+    "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+    "state_change_allowed": false
+  },
+  "execution_performed": true,
+  "execution_proof_kind": "REAL_BACKEND",
+  "execution_started_at": "2026-09-03T15:27:01.492661+00:00",
+  "exit_code": 0,
+  "fixture_version": "objection-exploration-v1",
+  "kind": "arsenal_tool_fixture_execution",
+  "mission_id": "arsenal-tool-8f4610a45a8e",
+  "mode": "FIXTURE",
+  "negative_control_clean": true,
+  "negative_control_status": "PASSED",
+  "negative_fixture_digest": "c6a25da540e6e648ae7c56cf063f953579daf8f307c9fbb8f324783b99ec36b9",
+  "parsed_result_digest": "aaf4e74e7fba0143bd7d07f496b2b8fe42c08c38df85a9048c0216deeaac8303",
+  "policy_decision": {
+    "action": "source_analysis",
+    "authorization_id": "fixture:20260903T152701Z",
+    "evaluated_at": "2026-09-03T15:27:01.461184+00:00",
+    "incidents": [],
+    "reasons": [
+      {
+        "code": "ok",
+        "message": "all policy gates passed",
+        "verdict": "allow"
+      }
+    ],
+    "request_id": "arsenal:asset:objection/android-runtime-exploration",
+    "required_approvals": [],
+    "target": "127.0.0.1",
+    "tier": "passive",
+    "verdict": "allow"
+  },
+  "positive_control_detected": true,
+  "positive_fixture_digest": "a035cbc17a40c2902d9fda78da7f4e5bfef37908b09ef62cc0bd27ca9a8b4144",
+  "run_id": "arsenal-20260903T152701Z-8f4610a4",
+  "runtime_disposition": "ready",
+  "runtime_reason": "internal hunter capability completed",
+  "stderr_digest": "1b60320976d31a6c8ea434b79341b13eb109dcb76abcdb78ce01376a39a5ce6b",
+  "stdout_digest": "263795a8834fcac794aec57cd7c8aecaf2b0b3314ab74aad74a2eff3efd55913",
+  "summary": {
+    "blocking_reason": "",
+    "covered_capability_ids": [
+      "asset:objection/android-runtime-exploration",
+      "asset:objection/ios-runtime-exploration"
+    ],
+    "execution_error_class": null,
+    "execution_proof_kind": "REAL_BACKEND",
+    "fixture_detection": true,
+    "negative": {
+      "duration_ms": 59,
+      "error": "",
+      "execution_completed_at": "2026-09-03T15:27:01.608353+00:00",
+      "execution_started_at": "2026-09-03T15:27:01.549853+00:00",
+      "exit_code": 0,
+      "finding_count": 0,
+      "parsed_result_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "ran": true,
+      "runtime": {
+        "binary": "python",
+        "checked_at": "2026-09-03T15:27:01.481112+00:00",
+        "name": "objection",
+        "reason": "healthy",
+        "resolved_path": "C:\\Python314\\python.exe",
+        "sha256": "3adbbf2af609e206e3ca18cd55fc7c4b52f5c8bb8218dd99fd5a9e50d7a193cd",
+        "status": "ready",
+        "version": "Python 3.14.5"
+      },
+      "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_digest": "2c91fbdaee335e5a63915fe94098070f0d11360f4e52b5c2b5ea87bd6da7242f"
+    },
+    "negative_control_passed": true,
+    "positive": {
+      "duration_ms": 57,
+      "error": "",
+      "execution_completed_at": "2026-09-03T15:27:01.549686+00:00",
+      "execution_started_at": "2026-09-03T15:27:01.492661+00:00",
+      "exit_code": 0,
+      "finding_count": 1,
+      "parsed_result_digest": "b05096e509cc409ddd66986d6a61178b98cf37378334cd6bd272017722d22924",
+      "ran": true,
+      "runtime": {
+        "binary": "python",
+        "checked_at": "2026-09-03T15:27:01.481112+00:00",
+        "name": "objection",
+        "reason": "healthy",
+        "resolved_path": "C:\\Python314\\python.exe",
+        "sha256": "3adbbf2af609e206e3ca18cd55fc7c4b52f5c8bb8218dd99fd5a9e50d7a193cd",
+        "status": "ready",
+        "version": "Python 3.14.5"
+      },
+      "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_digest": "ba6f00c6e2e851141c9d809dec45e4010859dd35371cc2319376eb201a228fe2"
+    },
+    "tool": "objection"
+  },
+  "task_id": "arsenal-tool-8f4610a45a8e-execute"
+}

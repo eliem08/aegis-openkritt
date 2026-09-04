@@ -1,0 +1,58 @@
+{
+  "detail": {
+    "capability_id": "tool:brakeman/code",
+    "grant": {
+      "allowed_destinations": [],
+      "allowed_methods": [],
+      "budget": {
+        "max_cost_usd": 0.0,
+        "max_human_minutes": 0.0,
+        "max_requests": 0
+      },
+      "constraints": {
+        "authorization_class": "LOCAL_FIXTURE_ONLY",
+        "capability_id": "tool:brakeman/code",
+        "covered_capability_ids": [
+          "tool:brakeman/code",
+          "asset:brakeman/rails-security-static-analysis"
+        ],
+        "fixture_version": "scanner-fixture-v2",
+        "negative_fixture_digest": "ad2b0799492915f1624a3f2530c8eb9042405d68381e8d3411872dffc0b3841a",
+        "positive_fixture_digest": "f8363406f4a0e237270db88e9e65a8e164558e302d3b0cba39ce4e4d48d02ceb"
+      },
+      "decision_fingerprint": "372d917bdfac3217578c03a2",
+      "expires_at": "2026-08-27T20:47:46.166888+00:00",
+      "external_model_egress_allowed": false,
+      "human_approval": false,
+      "issued_at": "2026-08-27T20:32:46.166888+00:00",
+      "network_allowed": false,
+      "nonce": "9cc51042a812f818",
+      "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+      "state_change_allowed": false
+    },
+    "policy_decision": {
+      "action": "source_analysis",
+      "authorization_id": "fixture:20260827T203246Z",
+      "evaluated_at": "2026-08-27T20:32:46.166839+00:00",
+      "incidents": [],
+      "reasons": [
+        {
+          "code": "ok",
+          "message": "all policy gates passed",
+          "verdict": "allow"
+        }
+      ],
+      "request_id": "arsenal:tool:brakeman/code",
+      "required_approvals": [],
+      "target": "127.0.0.1",
+      "tier": "passive",
+      "verdict": "allow"
+    }
+  },
+  "digest": "4b23f32e04dbf0f6f874b99c501527c4509c6aba0ead2faa0c5e77ef2f7ef686",
+  "event_type": "arsenal_fixture_authorized",
+  "observed_at": "2026-08-27T20:32:46.214997+00:00",
+  "previous_digest": "c94ffb0cb4ff411a68b63434a01cfd67d2d554caf35506901c4a485cc807363b",
+  "sequence": 2,
+  "status": "authorized"
+}

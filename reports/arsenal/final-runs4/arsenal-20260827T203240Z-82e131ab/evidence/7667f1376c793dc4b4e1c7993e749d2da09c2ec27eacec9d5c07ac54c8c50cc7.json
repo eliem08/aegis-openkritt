@@ -1,0 +1,13 @@
+{
+  "blocking_reason": "binary not found",
+  "capability_id": "asset:jadx/android-decompile",
+  "coverage_state": "UNAVAILABLE",
+  "evidence_digest": "7667f1376c793dc4b4e1c7993e749d2da09c2ec27eacec9d5c07ac54c8c50cc7",
+  "execution_grant_issued": false,
+  "execution_performed": false,
+  "kind": "arsenal_fixture_blocked",
+  "mission_id": "arsenal-blocked-82e131ab6158b7da",
+  "mode": "FIXTURE",
+  "run_id": "arsenal-20260827T203240Z-82e131ab",
+  "task_id": "arsenal-blocked-82e131ab6158b7da-execute"
+}

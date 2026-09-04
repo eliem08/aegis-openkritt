@@ -1,0 +1,123 @@
+{
+  "authorization": {
+    "approval_required_for": [],
+    "authorization_id": "fixture:20260904T011138Z",
+    "cloud_fixture": null,
+    "customer_id": "aegis-local-fixture",
+    "data_handling": {
+      "evidence_retention_days": 30,
+      "region": "eu",
+      "stop_on_real_pii": true
+    },
+    "environment": "local-fixture-only",
+    "escalation_contacts": [],
+    "kill_switch_channel": null,
+    "ownership_proof": [
+      "local fixture created by the operator process"
+    ],
+    "passive_provider": null,
+    "permitted_actions": [
+      "source_analysis"
+    ],
+    "prohibited_actions": [
+      "denial_of_service",
+      "persistence",
+      "production_data_exfiltration",
+      "third_party_targeting",
+      "credential_bruteforce",
+      "lateral_movement",
+      "log_tampering"
+    ],
+    "rate_limits": {
+      "max_concurrent_sessions": 1,
+      "requests_per_second": 1.0
+    },
+    "signature": "54f253271a275d06c953192c5dd495f985dad19960b6f3e181d82440ae468b45",
+    "signing_key_id": "fixture-auth",
+    "spend_budget": 0.0,
+    "targets": [
+      "127.0.0.1"
+    ],
+    "test_identities": [],
+    "valid_from": "2026-09-04T01:11:33.506097Z",
+    "valid_until": "2026-09-04T01:26:38.506097Z"
+  },
+  "budgets": {
+    "max_attempts": 1,
+    "max_concurrent_sessions": 1,
+    "max_cost_usd": 0.0,
+    "max_duration_seconds": 1200,
+    "max_requests": 1,
+    "requests_per_second": 1.0
+  },
+  "canary_asset": null,
+  "controlled_identity_refs": [],
+  "created_at": "2026-09-04T01:11:38.506729+00:00",
+  "evidence_refs": [
+    "e97a797792ae5231d722f16bd8b82d3afdd493c041fb9892f0d80f297f3f42da",
+    "evidence/e97a797792ae5231d722f16bd8b82d3afdd493c041fb9892f0d80f297f3f42da.json"
+  ],
+  "execution_grants": [
+    {
+      "allowed_destinations": [],
+      "allowed_methods": [],
+      "budget": {
+        "max_cost_usd": 0.0,
+        "max_human_minutes": 0.0,
+        "max_requests": 0
+      },
+      "constraints": {
+        "authorization_class": "LOCAL_FIXTURE_ONLY",
+        "capability_id": "asset:otool/ios-macos-load-command-analysis",
+        "covered_capability_ids": [
+          "asset:otool/ios-macos-load-command-analysis"
+        ],
+        "fixture_version": "otool-load-commands-v1",
+        "negative_fixture_digest": "b134745e6124239b183ebe57f4546cfc0b84b41be0b8cb45657f0fb86eb27fc7",
+        "positive_fixture_digest": "cdd468469ab524b25ebebd69105d4a93b3efce80ce04c28b3d909ad9a3707948"
+      },
+      "decision_fingerprint": "33f8725978ced7f84880d484",
+      "expires_at": "2026-09-04T01:26:38.506630+00:00",
+      "external_model_egress_allowed": false,
+      "human_approval": false,
+      "issued_at": "2026-09-04T01:11:38.506630+00:00",
+      "network_allowed": false,
+      "nonce": "6625a76fcbe755c6",
+      "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+      "state_change_allowed": false
+    }
+  ],
+  "manifest_digest": "45bdf028d6c43697ef6f3e18bec725380d63528f2008900f64b1b3689febe0a6",
+  "mission_ids": [
+    "arsenal-tool-458dfd3d5e91"
+  ],
+  "mode": "arsenal_fixture",
+  "operator_id": "local-fixture-operator",
+  "operator_selections": {
+    "capabilities": [
+      "asset:otool/ios-macos-load-command-analysis"
+    ]
+  },
+  "policy_digest": "e9dc52e97b35225a0c936cbb21cf6a57125fab156ebe781fbf0dd01d0c147d2f",
+  "policy_snapshot": {
+    "authorization_class": "LOCAL_FIXTURE_ONLY",
+    "permitted_actions": [
+      "source_analysis"
+    ],
+    "prohibited_real_targets": true
+  },
+  "program_handle": "aegis-local-fixtures",
+  "program_source": "built-in deterministic fixtures",
+  "run_id": "arsenal-20260904T011138Z-458dfd3d",
+  "schema_version": 1,
+  "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+  "scope_snapshot": {
+    "assets": [
+      "127.0.0.1"
+    ],
+    "network_isolation": "loopback-only"
+  },
+  "selected_assets": [
+    "127.0.0.1"
+  ]
+}

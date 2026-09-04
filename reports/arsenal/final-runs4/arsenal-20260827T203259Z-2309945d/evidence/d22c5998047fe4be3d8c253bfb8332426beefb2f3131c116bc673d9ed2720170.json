@@ -1,0 +1,135 @@
+{
+  "adapter_version": "tool-bridge/1",
+  "backend_name": "detect-secrets",
+  "backend_version": "1.5.47",
+  "binary_path": "/usr/local/bin/detect-secrets",
+  "blocking_reason": "",
+  "capability_id": "tool:detect-secrets/secrets",
+  "capability_ids": [
+    "tool:detect-secrets/secrets"
+  ],
+  "container_digest_if_applicable": "sha256:3766088055a72f82346bf7318cb0acf9ec6b2e82ddf6df6bcba9558f70e9c40d",
+  "coverage_state": "EXECUTED_PASS",
+  "duration_ms": 671,
+  "evidence_digest": "d22c5998047fe4be3d8c253bfb8332426beefb2f3131c116bc673d9ed2720170",
+  "execution_completed_at": "2026-08-27T20:33:00.638556+00:00",
+  "execution_grant_payload": {
+    "allowed_destinations": [],
+    "allowed_methods": [],
+    "budget": {
+      "max_cost_usd": 0.0,
+      "max_human_minutes": 0.0,
+      "max_requests": 0
+    },
+    "constraints": {
+      "authorization_class": "LOCAL_FIXTURE_ONLY",
+      "capability_id": "tool:detect-secrets/secrets",
+      "covered_capability_ids": [
+        "tool:detect-secrets/secrets"
+      ],
+      "fixture_version": "scanner-fixture-v2",
+      "negative_fixture_digest": "ad2b0799492915f1624a3f2530c8eb9042405d68381e8d3411872dffc0b3841a",
+      "positive_fixture_digest": "f8363406f4a0e237270db88e9e65a8e164558e302d3b0cba39ce4e4d48d02ceb"
+    },
+    "decision_fingerprint": "58cd0f2d46c6c37b64e6372e",
+    "expires_at": "2026-08-27T20:47:59.687287+00:00",
+    "external_model_egress_allowed": false,
+    "human_approval": false,
+    "issued_at": "2026-08-27T20:32:59.687287+00:00",
+    "network_allowed": false,
+    "nonce": "c9947498a48a55f9",
+    "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+    "state_change_allowed": false
+  },
+  "execution_performed": true,
+  "execution_started_at": "2026-08-27T20:32:59.966431+00:00",
+  "exit_code": 0,
+  "fixture_version": "scanner-fixture-v2",
+  "kind": "arsenal_tool_fixture_execution",
+  "mission_id": "arsenal-tool-2309945d97ff",
+  "mode": "FIXTURE",
+  "negative_control_clean": true,
+  "negative_control_status": "PASSED",
+  "negative_fixture_digest": "ad2b0799492915f1624a3f2530c8eb9042405d68381e8d3411872dffc0b3841a",
+  "parsed_result_digest": "df96231d0ecf23a9553856ff6958c80da74e18ed89e6bc0e7c79457e136e0b8d",
+  "policy_decision": {
+    "action": "source_analysis",
+    "authorization_id": "fixture:20260827T203259Z",
+    "evaluated_at": "2026-08-27T20:32:59.687247+00:00",
+    "incidents": [],
+    "reasons": [
+      {
+        "code": "ok",
+        "message": "all policy gates passed",
+        "verdict": "allow"
+      }
+    ],
+    "request_id": "arsenal:tool:detect-secrets/secrets",
+    "required_approvals": [],
+    "target": "127.0.0.1",
+    "tier": "passive",
+    "verdict": "allow"
+  },
+  "positive_control_detected": true,
+  "positive_fixture_digest": "f8363406f4a0e237270db88e9e65a8e164558e302d3b0cba39ce4e4d48d02ceb",
+  "run_id": "arsenal-20260827T203259Z-2309945d",
+  "runtime_disposition": "ready",
+  "runtime_reason": "internal hunter capability completed",
+  "stderr_digest": "1b60320976d31a6c8ea434b79341b13eb109dcb76abcdb78ce01376a39a5ce6b",
+  "stdout_digest": "e3eee42f11407ee1bc17b8bdea51ede4b9e122746131df3e14d1c22e8b27e82a",
+  "summary": {
+    "blocking_reason": "",
+    "covered_capability_ids": [
+      "tool:detect-secrets/secrets"
+    ],
+    "execution_error_class": null,
+    "fixture_detection": true,
+    "negative": {
+      "duration_ms": 328,
+      "error": "",
+      "execution_completed_at": "2026-08-27T20:33:00.638556+00:00",
+      "execution_started_at": "2026-08-27T20:33:00.310326+00:00",
+      "exit_code": 0,
+      "finding_count": 0,
+      "parsed_result_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "ran": true,
+      "runtime": {
+        "binary": "detect-secrets",
+        "checked_at": "2026-08-27T20:32:59.763085+00:00",
+        "name": "detect-secrets",
+        "reason": "healthy",
+        "resolved_path": "/usr/local/bin/detect-secrets",
+        "sha256": "6b3e5f0a76e83cf8f497619d1937e4f96c1bf67e00838caa5911bb24147509e4",
+        "status": "ready",
+        "version": "1.5.47"
+      },
+      "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_digest": "f72b7b2fa268ae1aca25007336af8e4bb157b8276e2bf4399a4703080d4656c9"
+    },
+    "negative_control_passed": true,
+    "positive": {
+      "duration_ms": 343,
+      "error": "",
+      "execution_completed_at": "2026-08-27T20:33:00.309905+00:00",
+      "execution_started_at": "2026-08-27T20:32:59.966431+00:00",
+      "exit_code": 0,
+      "finding_count": 5,
+      "parsed_result_digest": "b40a45ed691961e0d7c04dd5bebe920caacf782322ba45a4b0258658279d579b",
+      "ran": true,
+      "runtime": {
+        "binary": "detect-secrets",
+        "checked_at": "2026-08-27T20:32:59.763085+00:00",
+        "name": "detect-secrets",
+        "reason": "healthy",
+        "resolved_path": "/usr/local/bin/detect-secrets",
+        "sha256": "6b3e5f0a76e83cf8f497619d1937e4f96c1bf67e00838caa5911bb24147509e4",
+        "status": "ready",
+        "version": "1.5.47"
+      },
+      "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_digest": "3aeeb8bb5a8bb871432d1259c8cf840923cd2a746227edc9890acc6b7b53d7bd"
+    },
+    "tool": "detect-secrets"
+  },
+  "task_id": "arsenal-tool-2309945d97ff-execute"
+}

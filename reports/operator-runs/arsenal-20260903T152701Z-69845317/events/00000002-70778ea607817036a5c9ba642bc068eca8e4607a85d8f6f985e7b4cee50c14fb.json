@@ -1,0 +1,57 @@
+{
+  "detail": {
+    "capability_id": "asset:aegis-rag-boundary/rag-retrieval-trust-analysis",
+    "grant": {
+      "allowed_destinations": [],
+      "allowed_methods": [],
+      "budget": {
+        "max_cost_usd": 0.0,
+        "max_human_minutes": 0.0,
+        "max_requests": 0
+      },
+      "constraints": {
+        "authorization_class": "LOCAL_FIXTURE_ONLY",
+        "capability_id": "asset:aegis-rag-boundary/rag-retrieval-trust-analysis",
+        "covered_capability_ids": [
+          "asset:aegis-rag-boundary/rag-retrieval-trust-analysis"
+        ],
+        "fixture_version": "aegis-rag-boundary-v1",
+        "negative_fixture_digest": "7dc839357ab07fb95e987e55cec2722530161ce76180c87d5d3dbc3b8d5d1ad0",
+        "positive_fixture_digest": "58bc84b7fe44c7f89302f90c5e84f3a7ada1e5334898aaa18e5e3754ce1ece21"
+      },
+      "decision_fingerprint": "81632017eeae44d0c2b1df7e",
+      "expires_at": "2026-09-03T15:42:01.033035+00:00",
+      "external_model_egress_allowed": false,
+      "human_approval": false,
+      "issued_at": "2026-09-03T15:27:01.033035+00:00",
+      "network_allowed": false,
+      "nonce": "596362d5074039fb",
+      "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+      "state_change_allowed": false
+    },
+    "policy_decision": {
+      "action": "source_analysis",
+      "authorization_id": "fixture:20260903T152701Z",
+      "evaluated_at": "2026-09-03T15:27:01.033006+00:00",
+      "incidents": [],
+      "reasons": [
+        {
+          "code": "ok",
+          "message": "all policy gates passed",
+          "verdict": "allow"
+        }
+      ],
+      "request_id": "arsenal:asset:aegis-rag-boundary/rag-retrieval-trust-analysis",
+      "required_approvals": [],
+      "target": "127.0.0.1",
+      "tier": "passive",
+      "verdict": "allow"
+    }
+  },
+  "digest": "70778ea607817036a5c9ba642bc068eca8e4607a85d8f6f985e7b4cee50c14fb",
+  "event_type": "arsenal_fixture_authorized",
+  "observed_at": "2026-09-03T15:27:01.043147+00:00",
+  "previous_digest": "692f43ae21c4a4ee986a2521a8f83014a97ae1eb2bab8024d8e028754ea98e38",
+  "sequence": 2,
+  "status": "authorized"
+}

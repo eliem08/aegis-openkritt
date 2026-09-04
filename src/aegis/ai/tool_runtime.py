@@ -280,7 +280,20 @@ class ToolRuntimeManager:
         return record
 
     def _probe_version(self, resolved: str) -> str:
-        for suffix in (("--version",), ("version",), ("-version",)):
+        binary_name = Path(resolved).name.casefold().removesuffix(".exe")
+        extra_probes = {
+            # Binwalk 2.x treats --version as an input filename. Its bounded help
+            # header is the upstream-supported source of version provenance.
+            "binwalk": (("-h",),),
+            # jsluice is pinned by immutable source commit and intentionally has no
+            # version subcommand. Its bounded upstream help header is its supported
+            # non-target health probe; the executable digest supplies identity.
+            "jsluice": (("--help",),),
+            # ssh-audit exposes argparse help but no --version flag.  Keep the
+            # probe bounded and non-targeting; the package version is pinned.
+            "ssh-audit": (("-h",),),
+        }.get(binary_name, ())
+        for suffix in (*extra_probes, ("--version",), ("version",), ("-version",)):
             argv = [resolved, *suffix]
             try:
                 code, stdout, stderr = self._runner(argv, self._timeout)

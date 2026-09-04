@@ -1,0 +1,28 @@
+{
+  "detail": {
+    "asset": "127.0.0.1",
+    "authorization_decision": "arsenal:asset:mobsf/rest-static-analysis",
+    "backend": "MobSF",
+    "backend_version": "Python 3.14.5",
+    "blocking_reason": "",
+    "capability_id": "asset:mobsf/rest-static-analysis",
+    "evidence_digest": "8f3d53047fb289fa8e076652e70c4b771612b37f530d24cdcbfb57c6aa91cd42",
+    "evidence_ref": "evidence/8f3d53047fb289fa8e076652e70c4b771612b37f530d24cdcbfb57c6aa91cd42.json",
+    "execution_error_class": null,
+    "execution_grant_id": "159ba5c33b6fdc72",
+    "finding_ids": [],
+    "fixture_detection": true,
+    "mission_id": "arsenal-tool-04a49db7e085",
+    "mode": "FIXTURE",
+    "negative_control_status": "PASSED",
+    "policy_snapshot_digest": "e9dc52e97b35225a0c936cbb21cf6a57125fab156ebe781fbf0dd01d0c147d2f",
+    "result": "EXECUTED_PASS",
+    "task_id": "arsenal-tool-04a49db7e085-execute"
+  },
+  "digest": "041b32aa5e80ba839a7c3cd7a698a808191e6cb455f25c6fce3114073807361f",
+  "event_type": "arsenal_task_completed",
+  "observed_at": "2026-09-03T15:27:01.818095+00:00",
+  "previous_digest": "b7f2d1cbd4859459d8008734dc758c9bdd61e3073d5478e6ea6b4374ea16ba7a",
+  "sequence": 4,
+  "status": "completed"
+}

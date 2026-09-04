@@ -1,0 +1,28 @@
+{
+  "detail": {
+    "asset": "127.0.0.1",
+    "authorization_decision": "arsenal:adapter:subfinder/passive-discovery",
+    "backend": "subfinder",
+    "backend_version": "Python 3.14.5",
+    "blocking_reason": "",
+    "capability_id": "adapter:subfinder/passive-discovery",
+    "evidence_digest": "758b88f39dfea6128fe52d231bfe4388f20beb46e3ae08dfc3584c97ee4228c0",
+    "evidence_ref": "evidence/758b88f39dfea6128fe52d231bfe4388f20beb46e3ae08dfc3584c97ee4228c0.json",
+    "execution_error_class": null,
+    "execution_grant_id": "a465a0e83b554c8a",
+    "finding_ids": [],
+    "fixture_detection": true,
+    "mission_id": "arsenal-tool-056e408059a8",
+    "mode": "FIXTURE",
+    "negative_control_status": "PASSED",
+    "policy_snapshot_digest": "e9dc52e97b35225a0c936cbb21cf6a57125fab156ebe781fbf0dd01d0c147d2f",
+    "result": "EXECUTED_PASS",
+    "task_id": "arsenal-tool-056e408059a8-execute"
+  },
+  "digest": "b578b5c2b9039ce3e12d7c7a26c085ce8243f451cc4da406e8d9f0a9ffbbe00a",
+  "event_type": "arsenal_task_completed",
+  "observed_at": "2026-09-03T15:27:03.705020+00:00",
+  "previous_digest": "cccbd8a8755d7276c3f575b1043cdaca85b81127d677737b3fd5e60303f2c23a",
+  "sequence": 4,
+  "status": "completed"
+}

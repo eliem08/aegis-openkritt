@@ -1,0 +1,191 @@
+{
+  "backlog_count": 10,
+  "generated_at": "2026-09-04T02:47:04.652331+00:00",
+  "git_sha": "976a80b94d0c184b0ebb3493847305da708efafc",
+  "never_executed_backend_ids": [
+    "external:azurehound",
+    "external:firmae",
+    "external:frida",
+    "external:gau",
+    "external:mobsf",
+    "external:objection",
+    "external:prowler",
+    "external:roadrecon",
+    "external:scout",
+    "external:subfinder"
+  ],
+  "reconciliation": [
+    {
+      "backend_id": "external:azurehound",
+      "capability_ids": [
+        "asset:azurehound/entra-id-graph-collection"
+      ],
+      "current_execution_state": "WAITING_FOR_PREREQUISITE",
+      "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
+      "infrastructure_needed": "Operator-owned Azure sandbox tenant with test app registration",
+      "infrastructure_provisionable": true,
+      "last_attempted_evidence": "Historical run annotated as INVALID_FOR_REAL_BACKEND_CREDIT",
+      "lifecycle_state": "ACTIVE",
+      "missing_prerequisite": "Dedicated operator-owned Entra ID / Azure tenant with synthetic test users, groups, and graph relationships",
+      "operator_owned_fixture_sufficient": true,
+      "proof_kind": "PREREQUISITE_ONLY",
+      "real_third_party_target_required": false,
+      "why_fixture_execution_has_not_occurred": "Requires authenticated Entra ID graph collector against operator-owned tenant; synthetic Python graph mock prohibited"
+    },
+    {
+      "backend_id": "external:firmae",
+      "capability_ids": [
+        "asset:firmae/firmware-emulation"
+      ],
+      "current_execution_state": "WAITING_FOR_PREREQUISITE",
+      "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
+      "infrastructure_needed": "Bare-metal or KVM-enabled Linux self-hosted runner with FirmAE stack",
+      "infrastructure_provisionable": true,
+      "last_attempted_evidence": "Historical run annotated as INVALID_FOR_REAL_BACKEND_CREDIT",
+      "lifecycle_state": "ACTIVE",
+      "missing_prerequisite": "Privileged Linux KVM runner with /dev/kvm, QEMU system emulation, and FirmAE automation stack",
+      "operator_owned_fixture_sufficient": true,
+      "proof_kind": "PREREQUISITE_ONLY",
+      "real_third_party_target_required": false,
+      "why_fixture_execution_has_not_occurred": "Standard unprivileged runner lacks KVM acceleration and nested virtualization needed for FirmAE full system emulation"
+    },
+    {
+      "backend_id": "external:frida",
+      "capability_ids": [
+        "asset:frida/android-runtime-instrumentation"
+      ],
+      "current_execution_state": "WAITING_FOR_PREREQUISITE",
+      "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
+      "infrastructure_needed": "KVM-capable Android emulator runner with matching frida-server binary and fixture APK",
+      "infrastructure_provisionable": true,
+      "last_attempted_evidence": "Historical run annotated as INVALID_FOR_REAL_BACKEND_CREDIT",
+      "lifecycle_state": "ACTIVE",
+      "missing_prerequisite": "Booted Android AVD emulator (API 30+ x86_64) with adb wait-for-device, frida-server deployed, and fixture APK",
+      "operator_owned_fixture_sufficient": true,
+      "proof_kind": "PREREQUISITE_ONLY",
+      "real_third_party_target_required": false,
+      "why_fixture_execution_has_not_occurred": "Standard runner does not boot Android emulator or start frida-server; Python-only wrapper rejected under process identity rules"
+    },
+    {
+      "backend_id": "external:gau",
+      "capability_ids": [
+        "asset:gau/passive-url-collection"
+      ],
+      "current_execution_state": "WAITING_FOR_PREREQUISITE",
+      "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
+      "infrastructure_needed": "Pinned gau binary on runner with operator-owned test domain",
+      "infrastructure_provisionable": true,
+      "last_attempted_evidence": "Historical run annotated as INVALID_FOR_REAL_BACKEND_CREDIT",
+      "lifecycle_state": "ACTIVE",
+      "missing_prerequisite": "Native gau binary and operator-owned test domain with deterministic provider mock or query budget",
+      "operator_owned_fixture_sufficient": true,
+      "proof_kind": "PREREQUISITE_ONLY",
+      "real_third_party_target_required": false,
+      "why_fixture_execution_has_not_occurred": "Native gau executable not run against arbitrary third-party targets; Python wrapper rejected"
+    },
+    {
+      "backend_id": "external:mobsf",
+      "capability_ids": [
+        "asset:mobsf/rest-static-analysis"
+      ],
+      "current_execution_state": "WAITING_FOR_PREREQUISITE",
+      "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
+      "infrastructure_needed": "MobSF container image (opensecurity/mobile-security-framework-mobsf)",
+      "infrastructure_provisionable": true,
+      "last_attempted_evidence": "Historical run annotated as INVALID_FOR_REAL_BACKEND_CREDIT",
+      "lifecycle_state": "ACTIVE",
+      "missing_prerequisite": "Live MobSF REST service container listening on loopback with API health check and real APK upload",
+      "operator_owned_fixture_sufficient": true,
+      "proof_kind": "PREREQUISITE_ONLY",
+      "real_third_party_target_required": false,
+      "why_fixture_execution_has_not_occurred": "Live MobSF container was not booted in standard runner; pre-recorded JSON / Python mock rejected"
+    },
+    {
+      "backend_id": "external:objection",
+      "capability_ids": [
+        "asset:objection/android-runtime-exploration"
+      ],
+      "current_execution_state": "WAITING_FOR_PREREQUISITE",
+      "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
+      "infrastructure_needed": "Booted Android AVD + frida-server + objection CLI",
+      "infrastructure_provisionable": true,
+      "last_attempted_evidence": "Historical run annotated as INVALID_FOR_REAL_BACKEND_CREDIT",
+      "lifecycle_state": "ACTIVE",
+      "missing_prerequisite": "Live Frida session attached to running synthetic Android fixture process in booted emulator",
+      "operator_owned_fixture_sufficient": true,
+      "proof_kind": "PREREQUISITE_ONLY",
+      "real_third_party_target_required": false,
+      "why_fixture_execution_has_not_occurred": "Requires live Android emulator and Frida-backed session; Python fixture rejected"
+    },
+    {
+      "backend_id": "external:prowler",
+      "capability_ids": [
+        "asset:prowler/multi-cloud-compliance-audit"
+      ],
+      "current_execution_state": "WAITING_FOR_PREREQUISITE",
+      "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
+      "infrastructure_needed": "Signed ExecutionGrant + operator-owned AWS sandbox account / LocalStack Pro",
+      "infrastructure_provisionable": true,
+      "last_attempted_evidence": "Historical run annotated as INVALID_FOR_REAL_BACKEND_CREDIT",
+      "lifecycle_state": "ACTIVE",
+      "missing_prerequisite": "Operator-owned disposable AWS/Azure sandbox account or certified LocalStack cloud emulator with signed ExecutionGrant",
+      "operator_owned_fixture_sufficient": true,
+      "proof_kind": "PREREQUISITE_ONLY",
+      "real_third_party_target_required": false,
+      "why_fixture_execution_has_not_occurred": "Requires authenticated cloud provider sandbox; string-flag authorization rejected"
+    },
+    {
+      "backend_id": "external:roadrecon",
+      "capability_ids": [
+        "asset:roadrecon/entra-id-exploration"
+      ],
+      "current_execution_state": "WAITING_FOR_PREREQUISITE",
+      "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
+      "infrastructure_needed": "Operator-owned disposable Entra ID tenant with test user data",
+      "infrastructure_provisionable": true,
+      "last_attempted_evidence": "Historical run annotated as INVALID_FOR_REAL_BACKEND_CREDIT",
+      "lifecycle_state": "ACTIVE",
+      "missing_prerequisite": "Dedicated operator-owned Entra ID tenant fixture with roadrecon auth and gather database",
+      "operator_owned_fixture_sufficient": true,
+      "proof_kind": "PREREQUISITE_ONLY",
+      "real_third_party_target_required": false,
+      "why_fixture_execution_has_not_occurred": "Requires operator-owned test tenant; arbitrary third-party tenant data prohibited"
+    },
+    {
+      "backend_id": "external:scout",
+      "capability_ids": [
+        "asset:scoutsuite/multi-cloud-security-audit"
+      ],
+      "current_execution_state": "WAITING_FOR_PREREQUISITE",
+      "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
+      "infrastructure_needed": "Signed ExecutionGrant + operator-owned cloud account",
+      "infrastructure_provisionable": true,
+      "last_attempted_evidence": "Historical run annotated as INVALID_FOR_REAL_BACKEND_CREDIT",
+      "lifecycle_state": "ACTIVE",
+      "missing_prerequisite": "Operator-owned disposable cloud sandbox account with real ScoutSuite executable invocation",
+      "operator_owned_fixture_sufficient": true,
+      "proof_kind": "PREREQUISITE_ONLY",
+      "real_third_party_target_required": false,
+      "why_fixture_execution_has_not_occurred": "Requires live cloud provider credentials in operator-owned sandbox"
+    },
+    {
+      "backend_id": "external:subfinder",
+      "capability_ids": [
+        "asset:subfinder/passive-subdomain-discovery"
+      ],
+      "current_execution_state": "WAITING_FOR_PREREQUISITE",
+      "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
+      "infrastructure_needed": "Pinned subfinder binary on runner with operator-owned test domain",
+      "infrastructure_provisionable": true,
+      "last_attempted_evidence": "Historical run annotated as INVALID_FOR_REAL_BACKEND_CREDIT",
+      "lifecycle_state": "ACTIVE",
+      "missing_prerequisite": "Native subfinder binary executed in passive mode strictly against operator-owned test domain",
+      "operator_owned_fixture_sufficient": true,
+      "proof_kind": "PREREQUISITE_ONLY",
+      "real_third_party_target_required": false,
+      "why_fixture_execution_has_not_occurred": "Native subfinder invocation with query budget on operator-owned domain required; Python mock rejected"
+    }
+  ],
+  "schema_version": 2,
+  "source_git_sha": "976a80b94d0c184b0ebb3493847305da708efafc"
+}

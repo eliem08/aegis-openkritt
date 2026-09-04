@@ -11,7 +11,12 @@ from hashlib import sha256
 from pathlib import Path
 from typing import Any, Protocol
 
-from .models import ArsenalCoverageState, CapabilityCoverageRecord, CapabilityMode
+from .models import (
+    ArsenalCoverageState,
+    CapabilityCoverageRecord,
+    CapabilityMode,
+    ExecutionProofKind,
+)
 
 
 class CoverageStorageError(RuntimeError):
@@ -42,7 +47,8 @@ _COLUMNS = (
     "policy_snapshot_digest,asset,authorization_decision,operator_approval_id,"
     "execution_grant_id,run_id,mission_id,task_id,executed,execution_timestamp,"
     "evidence_digest,result,finding_ids,error_or_block_reason,execution_error_class,"
-    "negative_control_status,historical_evidence_invalid,schema_version,payload_digest"
+    "negative_control_status,historical_evidence_invalid,schema_version,execution_metadata,"
+    "payload_digest"
 )
 
 
@@ -57,11 +63,14 @@ def _values(value: CapabilityCoverageRecord) -> tuple[Any, ...]:
         value.executed, value.execution_timestamp, value.evidence_digest,
         value.result.value, json.dumps(value.finding_ids), value.error_or_block_reason,
         value.execution_error_class, value.negative_control_status,
-        value.historical_evidence_invalid, value.schema_version, _digest(value),
+        value.historical_evidence_invalid, value.schema_version,
+        json.dumps(value.execution_metadata(), sort_keys=True, separators=(",", ":")),
+        _digest(value),
     )
 
 
 def _record(row: Any) -> CapabilityCoverageRecord:
+    metadata = json.loads(row[30] or "{}")
     return CapabilityCoverageRecord(
         coverage_record_id=str(row[0]), idempotency_key=str(row[1]),
         capability_id=str(row[2]), mode=CapabilityMode(row[3]), tool_name=str(row[4]),
@@ -76,6 +85,27 @@ def _record(row: Any) -> CapabilityCoverageRecord:
         finding_ids=tuple(json.loads(row[24])), error_or_block_reason=str(row[25]),
         execution_error_class=row[26], negative_control_status=str(row[27]),
         historical_evidence_invalid=bool(row[28]), schema_version=int(row[29]),
+        backend_execution_id=str(metadata.get("backend_execution_id") or ""),
+        binary_path=str(metadata.get("binary_path") or ""),
+        container_digest=str(metadata.get("container_digest") or ""),
+        adapter_version=str(metadata.get("adapter_version") or ""),
+        capability_ids=tuple(metadata.get("capability_ids") or ()),
+        fixture_version=str(metadata.get("fixture_version") or ""),
+        positive_fixture_digest=str(metadata.get("positive_fixture_digest") or ""),
+        negative_fixture_digest=str(metadata.get("negative_fixture_digest") or ""),
+        execution_started_at=str(metadata.get("execution_started_at") or ""),
+        execution_completed_at=str(metadata.get("execution_completed_at") or ""),
+        duration_ms=int(metadata.get("duration_ms") or 0),
+        exit_code=metadata.get("exit_code"),
+        stdout_digest=str(metadata.get("stdout_digest") or ""),
+        stderr_digest=str(metadata.get("stderr_digest") or ""),
+        parsed_result_digest=str(metadata.get("parsed_result_digest") or ""),
+        positive_control_detected=metadata.get("positive_control_detected"),
+        negative_control_clean=metadata.get("negative_control_clean"),
+        supersedes_coverage_record_id=metadata.get("supersedes_coverage_record_id"),
+        execution_proof_kind=ExecutionProofKind(
+            metadata.get("execution_proof_kind") or ExecutionProofKind.LEGACY_UNVERIFIED.value
+        ),
     )
 
 
@@ -111,6 +141,7 @@ CREATE TABLE IF NOT EXISTS arsenal_coverage_records (
   negative_control_status TEXT NOT NULL,
   historical_evidence_invalid INTEGER NOT NULL,
   schema_version INTEGER NOT NULL,
+  execution_metadata TEXT NOT NULL DEFAULT '{}',
   payload_digest TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_arsenal_coverage_capability
@@ -136,6 +167,17 @@ class SqliteCoverageRepository:
             )
         self._connection = sqlite3.connect(str(path), check_same_thread=False)
         self._connection.executescript(SQLITE_SCHEMA)
+        columns = {
+            row[1] for row in self._connection.execute(
+                "PRAGMA table_info(arsenal_coverage_records)"
+            )
+        }
+        if "execution_metadata" not in columns:
+            self._connection.execute(
+                "ALTER TABLE arsenal_coverage_records "
+                "ADD COLUMN execution_metadata TEXT NOT NULL DEFAULT '{}'"
+            )
+            self._connection.commit()
         self._lock = threading.Lock()
 
     def record(self, value: CapabilityCoverageRecord) -> tuple[CapabilityCoverageRecord, bool]:
@@ -145,12 +187,23 @@ class SqliteCoverageRepository:
                 (value.idempotency_key,),
             ).fetchone()
             if row:
-                if row[30] != _digest(value):
+                if row[31] != _digest(value):
                     raise CoverageConflictError("coverage idempotency key has different content")
                 return _record(row), False
+            if value.supersedes_coverage_record_id:
+                prior = self._connection.execute(
+                    "SELECT capability_id FROM arsenal_coverage_records "
+                    "WHERE coverage_record_id=?",
+                    (value.supersedes_coverage_record_id,),
+                ).fetchone()
+                if not prior or prior[0] != value.capability_id:
+                    raise CoverageConflictError(
+                        "coverage correction must supersede an existing record for the same capability"
+                    )
             try:
                 self._connection.execute(
-                    "INSERT INTO arsenal_coverage_records VALUES (" + ",".join(["?"] * 31) + ")",
+                    f"INSERT INTO arsenal_coverage_records ({_COLUMNS}) VALUES ("
+                    + ",".join(["?"] * 32) + ")",
                     _values(value),
                 )
             except sqlite3.IntegrityError as exc:
@@ -180,6 +233,8 @@ POSTGRES_SCHEMA = SQLITE_SCHEMA.replace(
     "BEFORE DELETE ON arsenal_coverage_records BEGIN SELECT RAISE(ABORT,'immutable coverage'); END;\n",
     "",
 ) + """
+ALTER TABLE arsenal_coverage_records
+  ADD COLUMN IF NOT EXISTS execution_metadata TEXT NOT NULL DEFAULT '{}';
 CREATE OR REPLACE FUNCTION arsenal_coverage_reject_mutation() RETURNS trigger AS $$
 BEGIN RAISE EXCEPTION 'immutable coverage'; END; $$ LANGUAGE plpgsql;
 DO $$ BEGIN
@@ -211,7 +266,27 @@ class PostgresCoverageRepository:
             cursor.execute(
                 "SELECT pg_advisory_xact_lock(hashtext('aegis_arsenal_coverage_schema'))"
             )
-            cursor.execute(POSTGRES_SCHEMA)
+            # Recheck after acquiring the bootstrap lock. Running idempotent ALTER/CREATE
+            # statements on every short-lived writer can deadlock with a concurrent INSERT:
+            # PostgreSQL may retain a weaker DDL lock while waiting for AccessExclusiveLock.
+            cursor.execute("""
+                SELECT
+                  to_regclass('public.arsenal_coverage_records') IS NOT NULL,
+                  EXISTS (
+                    SELECT 1 FROM information_schema.columns
+                    WHERE table_schema='public'
+                      AND table_name='arsenal_coverage_records'
+                      AND column_name='execution_metadata'
+                  ),
+                  EXISTS (
+                    SELECT 1 FROM pg_trigger
+                    WHERE tgname='arsenal_coverage_immutable'
+                      AND tgrelid=to_regclass('public.arsenal_coverage_records')
+                  )
+            """)
+            table_exists, metadata_exists, trigger_exists = cursor.fetchone()
+            if not (table_exists and metadata_exists and trigger_exists):
+                cursor.execute(POSTGRES_SCHEMA)
         self._connection.commit()
 
     @contextmanager
@@ -228,11 +303,23 @@ class PostgresCoverageRepository:
             )
             row = cursor.fetchone()
             if row:
-                if row[30] != _digest(value):
+                if row[31] != _digest(value):
                     raise CoverageConflictError("coverage idempotency key has different content")
                 return _record(row), False
+            if value.supersedes_coverage_record_id:
+                cursor.execute(
+                    "SELECT capability_id FROM arsenal_coverage_records "
+                    "WHERE coverage_record_id=%s",
+                    (value.supersedes_coverage_record_id,),
+                )
+                prior = cursor.fetchone()
+                if not prior or prior[0] != value.capability_id:
+                    raise CoverageConflictError(
+                        "coverage correction must supersede an existing record for the same capability"
+                    )
             cursor.execute(
-                "INSERT INTO arsenal_coverage_records VALUES (" + ",".join(["%s"] * 31) + ")",
+                f"INSERT INTO arsenal_coverage_records ({_COLUMNS}) VALUES ("
+                + ",".join(["%s"] * 32) + ")",
                 _values(value),
             )
             return value, True

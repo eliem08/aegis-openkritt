@@ -1,0 +1,185 @@
+name: Arsenal Coverage
+
+on:
+  pull_request:
+    paths:
+      - "Dockerfile.arsenal"
+      - "src/aegis/arsenal/**"
+      - "src/aegis/ai/tool_bridge.py"
+      - "tests/arsenal/**"
+      - "tests/ai/test_tool_bridge.py"
+      - ".github/workflows/arsenal-coverage.yml"
+  push:
+    branches: [main]
+    paths:
+      - "Dockerfile.arsenal"
+      - "src/aegis/arsenal/**"
+      - "src/aegis/ai/tool_bridge.py"
+      - "tests/arsenal/**"
+      - "tests/ai/test_tool_bridge.py"
+      - ".github/workflows/arsenal-coverage.yml"
+  schedule:
+    - cron: "23 4 * * 1"
+  workflow_dispatch:
+    inputs:
+      run_heavy:
+        description: Run opt-in heavyweight prerequisite/readiness lane
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  arsenal-core:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[dev,api]"
+      - name: Canonical inventory, policy, evidence, parser, and ledger tests
+        run: pytest -q tests/arsenal tests/ai/test_tool_bridge.py
+
+  arsenal-linux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      AEGIS_CHECKOUT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.AEGIS_CHECKOUT_SHA }}
+      - name: Reclaim ephemeral runner disk for the pinned arsenal image
+        run: |
+          before=$(df -BG / | tail -1 | awk '{print $4}')
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc \
+            /usr/local/share/boost /usr/local/.ghcup
+          docker system prune --all --force
+          after=$(df -BG / | tail -1 | awk '{print $4}')
+          echo "runner free space: ${before} -> ${after}"
+      - name: Build pinned runtime and execute real fixtures without external network
+        timeout-minutes: 45
+        run: |
+          evidence_dir="$RUNNER_TEMP/arsenal-evidence"
+          rm -rf "$evidence_dir"
+          docker buildx build --pull --provenance=false \
+            --target arsenal_fixture_evidence \
+            --build-arg AEGIS_BUILD_GIT_SHA='${{ env.AEGIS_CHECKOUT_SHA }}' \
+            --output "type=local,dest=$evidence_dir" \
+            -f Dockerfile.arsenal .
+          mkdir -p reports/arsenal
+          cp -R "$evidence_dir/reports/arsenal/." reports/arsenal/
+          test -s reports/arsenal/ci-full-fixture.json
+      - name: Verify evidence-backed partial-or-full result
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path("reports/arsenal/ci-full-fixture.json").read_text())
+          metrics = report["metrics"]
+          assert report["git_sha"] == "${{ env.AEGIS_CHECKOUT_SHA }}"
+          assert report["evidence_integrity_verified"] is True
+          assert not report["historical_evidence_errors"]
+          assert metrics["fixture_executed_backends"] > 0
+          assert metrics["positive_controls_passed"] == metrics["negative_controls_passed"]
+          assert metrics["positive_controls_passed"] >= metrics["backend_executions"]
+          assert metrics["states"]["BACKEND_UNHEALTHY"] == 0
+          assert not report["p0_defects"]
+          scorecard = next(
+              execution for execution in report["executions"]
+              if execution["capability_id"]
+              == "asset:openssf-scorecard/repository-supply-chain-posture"
+          )
+          assert scorecard["result"] == "EXECUTED_PASS"
+          assert scorecard["summary"]["execution_proof_kind"] == "REAL_BACKEND"
+          assert scorecard["summary"]["positive"]["ran"] is True
+          assert scorecard["summary"]["negative_control_passed"] is True
+          assert report["verdict"] in {
+              "FULL FIXTURE ARSENAL VERIFIED",
+              "FULL ACTIVE SOFTWARE ARSENAL VERIFIED — MIGRATED/HARDWARE-SPECIFIC CAPABILITIES SEPARATE",
+              "ACTIVE_LOCAL_SOFTWARE_SUBSET_VERIFIED_EXTERNAL_PREREQUISITES_REMAIN",
+              "FIXTURE ARSENAL PARTIALLY VERIFIED",
+          }
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arsenal-linux-${{ env.AEGIS_CHECKOUT_SHA }}
+          path: |
+            reports/arsenal/ci-*.json
+            reports/arsenal/ci-*.md
+            reports/arsenal/ci-runs
+          retention-days: 14
+
+  arsenal-postgres:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: aegis_test
+          POSTGRES_PASSWORD: aegis_test_password
+          POSTGRES_DB: aegis_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U aegis_test -d aegis_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      AEGIS_TEST_POSTGRES_DSN: postgresql://aegis_test:aegis_test_password@127.0.0.1:5432/aegis_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[dev,postgres]"
+      - name: PostgreSQL concurrency, replay, correction, and evidence tests
+        run: pytest -q tests/arsenal/test_arsenal_postgres.py tests/arsenal/test_coverage_ledger.py
+
+  llm-boundary:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[dev,api]"
+      - name: Deterministic 16-case LLM boundary regression
+        run: pytest -q tests/arsenal/test_fixture_exercise.py -k llm
+
+  arsenal-heavy:
+    if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.run_heavy)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[dev,api]"
+      - name: Heavy backend readiness remains explicit and fail-closed
+        run: |
+          python -m aegis.cli arsenal audit --json reports/arsenal/heavy-readiness.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path("reports/arsenal/heavy-readiness.json").read_text())
+          heavy = {"FirmAE", "Firmadyne", "Frida", "Ghidra", "MobSF"}
+          definitions = report["definitions"]
+          assert heavy.issubset({b["tool_name"] for d in definitions for b in d["tool_backends"]})
+          # This lane probes readiness only. It never upgrades unexecuted heavy tools to PASS.
+          assert report["metrics"]["fixture_executed_count"] == 0
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: arsenal-heavy-readiness-${{ github.sha }}
+          path: reports/arsenal/heavy-readiness.json
+          retention-days: 14

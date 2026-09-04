@@ -1,0 +1,18 @@
+{
+  "detail": {
+    "blocking_reason": "binary not found",
+    "capability_id": "asset:yara/approved-rule-binary-scan",
+    "evidence_digest": "1676f5e945777f000a9341846361f00ac0610b6a21e4f0679ccbfd848fc6e767",
+    "evidence_ref": "evidence/1676f5e945777f000a9341846361f00ac0610b6a21e4f0679ccbfd848fc6e767.json",
+    "execution_grant_id": null,
+    "mission_id": "arsenal-blocked-0b6dd4d4b095c727",
+    "result": "UNAVAILABLE",
+    "task_id": "arsenal-blocked-0b6dd4d4b095c727-execute"
+  },
+  "digest": "90ee726ccc84174d58b390c9d20bf2ba736ca29b4dc149b7280e139315bfcbe3",
+  "event_type": "arsenal_task_blocked",
+  "observed_at": "2026-08-27T20:32:44.385013+00:00",
+  "previous_digest": "77f839fd93a711cdf63f731a4c89dac79d0051b642f30cb71bcba1266e168ea6",
+  "sequence": 2,
+  "status": "failed"
+}

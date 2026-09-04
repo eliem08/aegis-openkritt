@@ -1,0 +1,13 @@
+{
+  "blocking_reason": "binary not found",
+  "capability_id": "asset:foundry/smart-contract-fuzz-and-invariant-tests",
+  "coverage_state": "UNAVAILABLE",
+  "evidence_digest": "33e5821781e1e5caf643576b1195a12e9e798c73171ff8eaedaaa67eae856a91",
+  "execution_grant_issued": false,
+  "execution_performed": false,
+  "kind": "arsenal_fixture_blocked",
+  "mission_id": "arsenal-blocked-97fba3a5e62594d3",
+  "mode": "FIXTURE",
+  "run_id": "arsenal-20260827T203239Z-97fba3a5",
+  "task_id": "arsenal-blocked-97fba3a5e62594d3-execute"
+}

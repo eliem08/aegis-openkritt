@@ -1,0 +1,87 @@
+{
+  "authorization": {
+    "approval_required_for": [],
+    "authorization_id": "fixture:20260827T203241Z",
+    "customer_id": "aegis-local-fixture",
+    "data_handling": {
+      "evidence_retention_days": 30,
+      "region": "eu",
+      "stop_on_real_pii": true
+    },
+    "environment": "local-fixture-only",
+    "escalation_contacts": [],
+    "kill_switch_channel": null,
+    "ownership_proof": [
+      "local fixture created by the operator process"
+    ],
+    "permitted_actions": [
+      "source_analysis"
+    ],
+    "prohibited_actions": [
+      "denial_of_service",
+      "persistence",
+      "production_data_exfiltration",
+      "third_party_targeting",
+      "credential_bruteforce",
+      "lateral_movement",
+      "log_tampering"
+    ],
+    "rate_limits": {
+      "max_concurrent_sessions": 1,
+      "requests_per_second": 1.0
+    },
+    "signature": "ac37ac9574c49cdb0910cec5619b9f3cf4221621f6feb29c065489c2dc6f04cc",
+    "signing_key_id": "fixture-auth",
+    "spend_budget": 0.0,
+    "targets": [
+      "127.0.0.1"
+    ],
+    "test_identities": [],
+    "valid_from": "2026-08-27T20:32:36.823754Z",
+    "valid_until": "2026-08-27T20:47:41.823754Z"
+  },
+  "budgets": {
+    "max_attempts": 1,
+    "max_concurrent_sessions": 1,
+    "max_cost_usd": 0.0,
+    "max_duration_seconds": 1,
+    "max_requests": 1,
+    "requests_per_second": 1.0
+  },
+  "canary_asset": null,
+  "controlled_identity_refs": [],
+  "created_at": "2026-08-27T20:32:41.823657+00:00",
+  "evidence_refs": [],
+  "execution_grants": [],
+  "manifest_digest": "553c49cfcc50cef1eb2393e86de03dbecd5225caa8f3d635f3d97b0f14c5102b",
+  "mission_ids": [],
+  "mode": "arsenal_fixture",
+  "operator_id": "local-fixture-operator",
+  "operator_selections": {
+    "capabilities": [
+      "asset:objection/android-runtime-exploration"
+    ]
+  },
+  "policy_digest": "e9dc52e97b35225a0c936cbb21cf6a57125fab156ebe781fbf0dd01d0c147d2f",
+  "policy_snapshot": {
+    "authorization_class": "LOCAL_FIXTURE_ONLY",
+    "permitted_actions": [
+      "source_analysis"
+    ],
+    "prohibited_real_targets": true
+  },
+  "program_handle": "aegis-local-fixtures",
+  "program_source": "built-in deterministic fixtures",
+  "run_id": "arsenal-20260827T203241Z-fbe20b87",
+  "schema_version": 1,
+  "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+  "scope_snapshot": {
+    "assets": [
+      "127.0.0.1"
+    ],
+    "network_isolation": "loopback-only"
+  },
+  "selected_assets": [
+    "127.0.0.1"
+  ]
+}

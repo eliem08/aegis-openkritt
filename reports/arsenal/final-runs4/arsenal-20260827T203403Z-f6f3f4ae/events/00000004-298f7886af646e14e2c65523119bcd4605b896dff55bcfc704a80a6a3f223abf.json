@@ -1,0 +1,28 @@
+{
+  "detail": {
+    "asset": "127.0.0.1",
+    "authorization_decision": "arsenal:tool:osv-scanner/deps",
+    "backend": "osv-scanner",
+    "backend_version": "osv-scanner version: 2.5.1",
+    "blocking_reason": "",
+    "capability_id": "tool:osv-scanner/deps",
+    "evidence_digest": "76c0decb263a927e5afc95bc35f3ff8f8263171f28c6f1569b4036063a594d07",
+    "evidence_ref": "evidence/76c0decb263a927e5afc95bc35f3ff8f8263171f28c6f1569b4036063a594d07.json",
+    "execution_error_class": null,
+    "execution_grant_id": "ee127556dc53ba40",
+    "finding_ids": [],
+    "fixture_detection": true,
+    "mission_id": "arsenal-tool-f6f3f4aee974",
+    "mode": "FIXTURE",
+    "negative_control_status": "PASSED",
+    "policy_snapshot_digest": "e9dc52e97b35225a0c936cbb21cf6a57125fab156ebe781fbf0dd01d0c147d2f",
+    "result": "EXECUTED_PASS",
+    "task_id": "arsenal-tool-f6f3f4aee974-execute"
+  },
+  "digest": "298f7886af646e14e2c65523119bcd4605b896dff55bcfc704a80a6a3f223abf",
+  "event_type": "arsenal_task_completed",
+  "observed_at": "2026-08-27T20:34:28.290216+00:00",
+  "previous_digest": "b4eb98dfd0f1ac2a30b46661fe4bb62d61a25d04c2ff52a6796e1653c8bc77d7",
+  "sequence": 4,
+  "status": "completed"
+}
