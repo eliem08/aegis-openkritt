@@ -1,6 +1,6 @@
 # Aegis backend inventory
 
-Git SHA: `97331ee62ae558421929d2c9c5eb1848210bd576`
+Git SHA: `2c93c3066cff700033e92375a4d6098a98309499`
 
 Canonical capabilities: **174**  
 Logical backend claims: **146**  

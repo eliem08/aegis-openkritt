@@ -4,10 +4,10 @@ Verdict: **FULL ACTIVE SOFTWARE ARSENAL VERIFIED — MIGRATED/HARDWARE-SPECIFIC 
 
 ## Exact-Head Provenance
 
-- Source Git SHA: `97331ee62ae558421929d2c9c5eb1848210bd576`
-- Generated At: `2026-09-04T01:08:00.386832+00:00`
-- Inventory Digest: `a4965112917eacc8b4b5b465993793d736916c43a3d8385488d36cd010072c0c`
-- Backend Lock Digest: `94ad5b8cca304aaeb2a69cb36f3a45451ce9828a20019d8a43862ba5a03ea6a8`
+- Source Git SHA: `2c93c3066cff700033e92375a4d6098a98309499`
+- Generated At: `2026-09-04T01:10:53.683385+00:00`
+- Inventory Digest: `bbef539feacf601b763f5468cd5ee7c933ba8596d3b7e3bbc76fe824c67bb86d`
+- Backend Lock Digest: `d76a69991233d0560edfe666e247449bc1b1273045e89ea3404a7a905b74993c`
 - Fixture Version Digest: `aa4d89610f7e9236736d56b9e19146f001fe3bf4c25a09dcd8011adbfeb33f79`
 - Evidence Root Digest: `2641d787ee7a04711fd89969d610b2e9f9085bbd7d850ca43b3159adea13c00f`
 - Arsenal Image: ``
