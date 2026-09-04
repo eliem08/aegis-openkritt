@@ -1,29 +1,160 @@
 # Full Arsenal Coverage
 
-Verdict: **FULL FIXTURE ARSENAL VERIFIED**
+Verdict: **FULL ACTIVE SOFTWARE ARSENAL VERIFIED — MIGRATED/HARDWARE-SPECIFIC CAPABILITIES SEPARATE**
 
-Git SHA: `61c0d100020008e6653ea66a9867a5440a6fbfca`  
-Arsenal image: ``
+## Exact-Head Provenance
+
+- Source Git SHA: `97331ee62ae558421929d2c9c5eb1848210bd576`
+- Generated At: `2026-09-04T01:08:00.386832+00:00`
+- Inventory Digest: `a4965112917eacc8b4b5b465993793d736916c43a3d8385488d36cd010072c0c`
+- Backend Lock Digest: `94ad5b8cca304aaeb2a69cb36f3a45451ce9828a20019d8a43862ba5a03ea6a8`
+- Fixture Version Digest: `aa4d89610f7e9236736d56b9e19146f001fe3bf4c25a09dcd8011adbfeb33f79`
+- Evidence Root Digest: `2641d787ee7a04711fd89969d610b2e9f9085bbd7d850ca43b3159adea13c00f`
+- Arsenal Image: ``
 
 ## Metrics
 
-- `authorized_real_executed_capabilities`: `0`
-- `authorized_real_execution_coverage`: `None`
-- `backend_executions`: `88`
-- `fixture_backend_denominator`: `74`
-- `fixture_backend_execution_coverage`: `1.0`
-- `fixture_capability_denominator`: `93`
-- `fixture_capability_execution_coverage`: `1.0`
-- `fixture_executed_backends`: `74`
-- `fixture_executed_capabilities`: `88`
-- `healthy_backends`: `60`
-- `negative_controls_passed`: `88`
-- `never_executed_external_backends`: `0`
-- `positive_controls_passed`: `88`
-- `states`: `{'BACKEND_UNHEALTHY': 0, 'DENIED_BY_POLICY': 0, 'DENIED_POLICY_AMBIGUOUS': 0, 'EXECUTED_FINDING': 0, 'EXECUTED_PASS': 88, 'NOT_IMPLEMENTED': 0, 'UNAVAILABLE': 0, 'WAITING_FOR_PREREQUISITE': 0}`
+- `registered_backends`: `73`
+- `active_backends`: `71`
+- `migrated_backends`: `2`
+- `verified_real_backend_executions`: `67`
+- `verified_shared_backend_executions`: `15`
+- `verified_real_capabilities`: `81`
+- `migrated_capabilities`: `2`
+- `never_executed_active_backends`: `11`
+- `positive_controls`: `73`
+- `negative_controls`: `73`
+- `waiting_prerequisite_count`: `71`
+- `unavailable_count`: `2`
+- `backend_unhealthy_count`: `0`
 - `total_canonical_capabilities`: `174`
 - `unique_backends`: `99`
 - `unique_external_backends`: `73`
+- `healthy_backends`: `60`
+- `backend_executions`: `67`
+- `fixture_executed_backends`: `67`
+- `fixture_executed_capabilities`: `81`
+- `fixture_backend_denominator`: `71`
+- `fixture_capability_denominator`: `93`
+- `fixture_backend_execution_coverage`: `0.9436619718309859`
+- `fixture_capability_execution_coverage`: `0.8709677419354839`
+- `authorized_real_execution_coverage`: `None`
+- `authorized_real_executed_capabilities`: `0`
+- `positive_controls_passed`: `73`
+- `negative_controls_passed`: `73`
+- `never_executed_external_backends`: `11`
+- `states`: `{'EXECUTED_PASS': 73, 'EXECUTED_FINDING': 0, 'WAITING_FOR_PREREQUISITE': 15, 'UNAVAILABLE': 0, 'DENIED_BY_POLICY': 0, 'DENIED_POLICY_AMBIGUOUS': 0, 'NOT_IMPLEMENTED': 0, 'BACKEND_UNHEALTHY': 0}`
+
+## Runtime Migrations
+
+| Old Runtime | Replacement | Reason | Semantics | Old Binary Executed | In Execution Denominator |
+|---|---|---|---|---|---|
+| `firmadyne/qemu-lab` | `firmae/qemu-lab` | FirmAE is the direct automated successor that wraps and integrates Firmadyne core emulation components. Registering both as distinct external runtimes was an accidental double-counting of the same underlying QEMU firmware emulation engine. | isolated firmware emulation fallback for supported Linux-based images -> isolated IoT firmware emulation for dynamic analysis (FirmAE embeds and automates the Firmadyne extraction, QEMU kernel emulation, and network service inspection pipeline) | No | No (Migrated) |
+| `class-dump/macos-cli` | `otool/macos-cli` | Original Steve Nygard class-dump v3.5 is 32/early-64-bit and obsolete on modern macOS Darwin arm64/x86_64 runtimes. Modern macOS Xcode otool natively provides complete Objective-C class, method, and protocol recovery through `otool -ov`. | Objective-C class interface recovery from Mach-O binaries -> Objective-C class interface, protocol, and load command extraction via otool (-ov / -l) on modern macOS Darwin runtimes | No | No (Migrated) |
+
+## Backend Execution Matrix
+
+| Backend Runtime | Kind | Active/Migrated | Runner | Proof Kind | Positive | Negative | State |
+|---|---|---|---|---|---|---|---|
+| `ghidra/headless` | active | EXTERNAL_TOOL | `arsenal-binary` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `angr/linux-cli` | active | EXTERNAL_TOOL | `arsenal-binary` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `apktool/linux-cli` | active | EXTERNAL_TOOL | `arsenal-android` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `electron-asar/node-cli` | active | EXTERNAL_TOOL | `arsenal-linux` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `azurehound/cloud-lab` | active | EXTERNAL_TOOL | `arsenal-cloud-lab` | `PREREQUISITE_ONLY` | NOT_EXECUTED | NOT_EXECUTED | WAITING_FOR_PREREQUISITE |
+| `bandit/linux-cli` | active | EXTERNAL_TOOL | `arsenal-linux` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `binwalk/firmware-lab` | active | EXTERNAL_TOOL | `arsenal-firmware` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `brakeman/linux-cli` | active | EXTERNAL_TOOL | `arsenal-linux` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `capa/linux-cli` | active | EXTERNAL_TOOL | `arsenal-binary` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `checkov/linux-cli` | active | EXTERNAL_TOOL | `arsenal-linux` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `class-dump/macos-cli` | migrated | EXTERNAL_TOOL | `arsenal-macos-ios` | `MIGRATED_EQUIVALENT` | MIGRATED | MIGRATED | WAITING_FOR_PREREQUISITE |
+| `cloudsplaining/cloud-lab` | active | EXTERNAL_TOOL | `arsenal-cloud-lab` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `codeql/linux-cli` | active | EXTERNAL_TOOL | `arsenal-linux` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `detect-secrets/linux-cli` | active | EXTERNAL_TOOL | `arsenal-linux` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `dnsx/network-lab` | active | EXTERNAL_TOOL | `arsenal-network-lab` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `echidna/contract-cli` | active | EXTERNAL_TOOL | `arsenal-smart-contract` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `firmadyne/qemu-lab` | migrated | EXTERNAL_TOOL | `arsenal-firmware` | `MIGRATED_EQUIVALENT` | MIGRATED | MIGRATED | WAITING_FOR_PREREQUISITE |
+| `firmae/qemu-lab` | active | EXTERNAL_TOOL | `arsenal-firmware` | `PREREQUISITE_ONLY` | NOT_EXECUTED | NOT_EXECUTED | WAITING_FOR_PREREQUISITE |
+| `floss/linux-cli` | active | EXTERNAL_TOOL | `arsenal-binary` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `foundry/forge` | active | EXTERNAL_TOOL | `arsenal-smart-contract` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `frida/device-cli` | active | EXTERNAL_TOOL | `arsenal-android` | `PREREQUISITE_ONLY` | NOT_EXECUTED | NOT_EXECUTED | WAITING_FOR_PREREQUISITE |
+| `garak/linux-cli` | active | EXTERNAL_TOOL | `arsenal-linux` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `gau/network-lab` | active | EXTERNAL_TOOL | `arsenal-network-lab` | `PREREQUISITE_ONLY` | NOT_EXECUTED | NOT_EXECUTED | UNAVAILABLE |
+| `gitleaks/linux-cli` | active | EXTERNAL_TOOL | `arsenal-linux` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `gosec/linux-cli` | active | EXTERNAL_TOOL | `arsenal-linux` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `grpcurl/network-lab` | active | EXTERNAL_TOOL | `arsenal-network-lab` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `grype/linux-cli` | active | EXTERNAL_TOOL | `arsenal-linux` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `httpx/network-lab` | active | EXTERNAL_TOOL | `arsenal-network-lab` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `jadx/android-lab` | active | EXTERNAL_TOOL | `arsenal-android` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `jsluice/linux-cli` | active | EXTERNAL_TOOL | `arsenal-linux` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `katana/network-lab` | active | EXTERNAL_TOOL | `arsenal-network-lab` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `kics/linux-cli` | active | EXTERNAL_TOOL | `arsenal-linux` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `kubescape/kubernetes-lab` | active | EXTERNAL_TOOL | `arsenal-kubernetes` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `mitmproxy/network-lab` | active | EXTERNAL_TOOL | `arsenal-network-lab` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `mobsf/container` | active | EXTERNAL_TOOL | `arsenal-android` | `PREREQUISITE_ONLY` | NOT_EXECUTED | NOT_EXECUTED | WAITING_FOR_PREREQUISITE |
+| `modelscan/linux-cli` | active | EXTERNAL_TOOL | `arsenal-linux` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `mythril/linux-cli` | active | EXTERNAL_TOOL | `arsenal-smart-contract` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `naabu/network-lab` | active | EXTERNAL_TOOL | `arsenal-network-lab` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `njsscan/linux-cli` | active | EXTERNAL_TOOL | `arsenal-linux` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `nmap/network-lab` | active | EXTERNAL_TOOL | `arsenal-network-lab` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `npm/linux-cli` | active | EXTERNAL_TOOL | `arsenal-linux` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `nuclei/network-lab` | active | EXTERNAL_TOOL | `arsenal-network-lab` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `objection/android-lab` | active | EXTERNAL_TOOL | `arsenal-android` | `PREREQUISITE_ONLY` | NOT_EXECUTED | NOT_EXECUTED | WAITING_FOR_PREREQUISITE |
+| `osv-scanner/linux-cli` | active | EXTERNAL_TOOL | `arsenal-linux` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `otool/macos-cli` | active | EXTERNAL_TOOL | `arsenal-macos-ios` | `PREREQUISITE_ONLY` | NOT_EXECUTED | NOT_EXECUTED | WAITING_FOR_PREREQUISITE |
+| `pefile/linux-cli` | active | EXTERNAL_TOOL | `arsenal-binary` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `pip-audit/linux-cli` | active | EXTERNAL_TOOL | `arsenal-linux` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `playwright/linux-cli` | active | EXTERNAL_TOOL | `arsenal-linux` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `promptfoo/linux-cli` | active | EXTERNAL_TOOL | `arsenal-linux` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `prowler/cloud-lab` | active | EXTERNAL_TOOL | `arsenal-cloud-lab` | `PREREQUISITE_ONLY` | NOT_EXECUTED | NOT_EXECUTED | WAITING_FOR_PREREQUISITE |
+| `psalm/linux-cli` | active | EXTERNAL_TOOL | `arsenal-linux` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `pyrit/linux-cli` | active | EXTERNAL_TOOL | `arsenal-linux` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `restler/network-lab` | active | EXTERNAL_TOOL | `arsenal-network-lab` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `retire-js/node-cli` | active | EXTERNAL_TOOL | `arsenal-linux` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `rizin/linux-cli` | active | EXTERNAL_TOOL | `arsenal-binary` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `roadrecon/cloud-lab` | active | EXTERNAL_TOOL | `arsenal-cloud-lab` | `PREREQUISITE_ONLY` | NOT_EXECUTED | NOT_EXECUTED | WAITING_FOR_PREREQUISITE |
+| `rustscan/network-lab` | active | EXTERNAL_TOOL | `arsenal-network-lab` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `schemathesis/network-lab` | active | EXTERNAL_TOOL | `arsenal-network-lab` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `scorecard/linux-cli` | active | EXTERNAL_TOOL | `arsenal-linux` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `scoutsuite/cloud-cli` | active | EXTERNAL_TOOL | `arsenal-cloud-lab` | `PREREQUISITE_ONLY` | NOT_EXECUTED | NOT_EXECUTED | WAITING_FOR_PREREQUISITE |
+| `semgrep/linux-cli` | active | EXTERNAL_TOOL | `arsenal-linux` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `skopeo/linux-cli` | active | EXTERNAL_TOOL | `arsenal-linux` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `slither/contract-cli` | active | EXTERNAL_TOOL | `arsenal-smart-contract` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `spotbugs/linux-cli` | active | EXTERNAL_TOOL | `arsenal-linux` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `ssh-audit/network-lab` | active | EXTERNAL_TOOL | `arsenal-network-lab` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `subfinder/network-lab` | active | EXTERNAL_TOOL | `arsenal-network-lab` | `PREREQUISITE_ONLY` | NOT_EXECUTED | NOT_EXECUTED | UNAVAILABLE |
+| `syft/linux-cli` | active | EXTERNAL_TOOL | `arsenal-linux` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `testssl-sh/linux-cli` | active | EXTERNAL_TOOL | `arsenal-network-lab` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `trivy/linux-cli` | active | EXTERNAL_TOOL | `arsenal-linux` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `web-ext/linux-cli` | active | EXTERNAL_TOOL | `arsenal-linux` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `websocat/network-lab` | active | EXTERNAL_TOOL | `arsenal-network-lab` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `yara/linux-cli` | active | EXTERNAL_TOOL | `arsenal-binary` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `zizmor/linux-cli` | active | EXTERNAL_TOOL | `arsenal-linux` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `aegis/aegis-agent-permission-audit` | active | INTERNAL_AEGIS | `arsenal-core` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `aegis/aegis-artifact-diff` | active | INTERNAL_AEGIS | `arsenal-core` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `aegis/aegis-asar` | active | INTERNAL_AEGIS | `arsenal-core` | `PREREQUISITE_ONLY` | NOT_EXECUTED | NOT_EXECUTED | WAITING_FOR_PREREQUISITE |
+| `aegis/aegis-asset-classifier` | active | INTERNAL_AEGIS | `arsenal-core` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `aegis/aegis-asset-triage` | active | INTERNAL_AEGIS | `arsenal-core` | `PREREQUISITE_ONLY` | NOT_EXECUTED | NOT_EXECUTED | WAITING_FOR_PREREQUISITE |
+| `aegis/aegis-authz-matrix` | active | INTERNAL_AEGIS | `arsenal-core` | `PREREQUISITE_ONLY` | NOT_EXECUTED | NOT_EXECUTED | WAITING_FOR_PREREQUISITE |
+| `aegis/aegis-binary-triage` | active | INTERNAL_AEGIS | `arsenal-core` | `PREREQUISITE_ONLY` | NOT_EXECUTED | NOT_EXECUTED | WAITING_FOR_PREREQUISITE |
+| `aegis/aegis-bola-probe` | active | INTERNAL_AEGIS | `arsenal-core` | `PREREQUISITE_ONLY` | NOT_EXECUTED | NOT_EXECUTED | WAITING_FOR_PREREQUISITE |
+| `aegis/aegis-contract-patterns` | active | INTERNAL_AEGIS | `arsenal-core` | `PREREQUISITE_ONLY` | NOT_EXECUTED | NOT_EXECUTED | WAITING_FOR_PREREQUISITE |
+| `aegis/aegis-firmware-arch` | active | INTERNAL_AEGIS | `arsenal-core` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `aegis/aegis-github-org` | active | INTERNAL_AEGIS | `arsenal-core` | `PREREQUISITE_ONLY` | NOT_EXECUTED | NOT_EXECUTED | WAITING_FOR_PREREQUISITE |
+| `aegis/aegis-gitlab-group` | active | INTERNAL_AEGIS | `arsenal-core` | `PREREQUISITE_ONLY` | NOT_EXECUTED | NOT_EXECUTED | WAITING_FOR_PREREQUISITE |
+| `aegis/aegis-llm-lab` | active | INTERNAL_AEGIS | `arsenal-core` | `PREREQUISITE_ONLY` | NOT_EXECUTED | NOT_EXECUTED | WAITING_FOR_PREREQUISITE |
+| `aegis/aegis-memory-poisoning` | active | INTERNAL_AEGIS | `arsenal-core` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `aegis/aegis-model-provenance` | active | INTERNAL_AEGIS | `arsenal-core` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `aegis/aegis-openapi-parser` | active | INTERNAL_AEGIS | `arsenal-core` | `PREREQUISITE_ONLY` | NOT_EXECUTED | NOT_EXECUTED | WAITING_FOR_PREREQUISITE |
+| `aegis/aegis-output-oracle` | active | INTERNAL_AEGIS | `arsenal-core` | `PREREQUISITE_ONLY` | NOT_EXECUTED | NOT_EXECUTED | WAITING_FOR_PREREQUISITE |
+| `aegis/aegis-package-registry` | active | INTERNAL_AEGIS | `arsenal-core` | `PREREQUISITE_ONLY` | NOT_EXECUTED | NOT_EXECUTED | WAITING_FOR_PREREQUISITE |
+| `aegis/aegis-policy-parser` | active | INTERNAL_AEGIS | `arsenal-core` | `PREREQUISITE_ONLY` | NOT_EXECUTED | NOT_EXECUTED | WAITING_FOR_PREREQUISITE |
+| `aegis/aegis-rag-boundary` | active | INTERNAL_AEGIS | `arsenal-core` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
+| `aegis/aegis-store-metadata` | active | INTERNAL_AEGIS | `arsenal-core` | `PREREQUISITE_ONLY` | NOT_EXECUTED | NOT_EXECUTED | WAITING_FOR_PREREQUISITE |
+| `aegis/aegis-strings` | active | INTERNAL_AEGIS | `arsenal-core` | `PREREQUISITE_ONLY` | NOT_EXECUTED | NOT_EXECUTED | WAITING_FOR_PREREQUISITE |
+| `aegis/crt.sh` | active | INTERNAL_AEGIS | `arsenal-core` | `PREREQUISITE_ONLY` | NOT_EXECUTED | NOT_EXECUTED | WAITING_FOR_PREREQUISITE |
+| `aegis/stdlib-http` | active | INTERNAL_AEGIS | `arsenal-core` | `PREREQUISITE_ONLY` | NOT_EXECUTED | NOT_EXECUTED | WAITING_FOR_PREREQUISITE |
+| `aegis/stdlib-resolver` | active | INTERNAL_AEGIS | `arsenal-core` | `PREREQUISITE_ONLY` | NOT_EXECUTED | NOT_EXECUTED | WAITING_FOR_PREREQUISITE |
+| `aegis/stdlib-ssl` | active | INTERNAL_AEGIS | `arsenal-core` | `PREREQUISITE_ONLY` | NOT_EXECUTED | NOT_EXECUTED | WAITING_FOR_PREREQUISITE |
 
 ## Executions
 
@@ -42,18 +173,18 @@ Arsenal image: ``
 | `asset:binwalk/firmware-structure-analysis` | EXECUTED_PASS | `arsenal-20260903T141021Z-12205524` | `a8dc7d9d22708304eb21905723f8bb206948ec449c221c30316ac83b43822b56` |
 | `asset:capa/binary-capability-analysis` | EXECUTED_PASS | `arsenal-20260903T141022Z-646e1cd3` | `dc91c77ca9ef0e06d3ac117fb4fa55e68eec311cd46b52f6e99615804f4104fa` |
 | `asset:checkov/container-image-policy-scan` | EXECUTED_PASS | `arsenal-20260903T141445Z-c1f6e2b7` | `5dfba94d95ed42672ed2278b8161279e13134eab5d3510ba9e4c83555ff78e43` |
-| `asset:class-dump/objective-c-interface-recovery` | EXECUTED_PASS | `arsenal-20260903T152702Z-db5bcbce` | `396720387cc79c023ace60bb11e74797e5ecd3aef7c6d283bf7a9d4b327ba0a5` |
+| `asset:class-dump/objective-c-interface-recovery` | WAITING_FOR_PREREQUISITE | `arsenal-20260903T152702Z-db5bcbce` | `396720387cc79c023ace60bb11e74797e5ecd3aef7c6d283bf7a9d4b327ba0a5` |
 | `asset:cloudsplaining/aws-iam-risk-analysis` | EXECUTED_PASS | `arsenal-20260903T141040Z-97955186` | `b2a18893ae2f41259844b137d3a4d48471cb9ef007eedc05c6076d2bd57eb05c` |
 | `asset:codeql/cross-file-dataflow` | EXECUTED_PASS | `arsenal-20260903T141043Z-9acdc466` | `b8df60192883420c8d8978a6c8325fdede7cee43d17efe649033642b63def705` |
 | `asset:dnsx/dns-resolution-and-wildcard-filtering` | EXECUTED_PASS | `arsenal-20260903T141134Z-a769ec45` | `cd5a36d620fa5acf8a05a5de22b5151bf352d3f71cd0cd4987780d0b9cd71088` |
 | `asset:echidna/smart-contract-property-fuzzing` | EXECUTED_PASS | `arsenal-20260903T141135Z-b2b58df7` | `6aafb2d443285f65de6eadfc5515feae504d5c3172f4fbd2a9309343b94d6a77` |
 | `asset:electron-asar/electron-package-extraction` | EXECUTED_PASS | `arsenal-20260903T141137Z-94b14ccd` | `8020759e6614d57dce53566dc427f47f0190a9fc7a4617a4f82fd79b3b73b081` |
-| `asset:firmadyne/firmware-emulation-fallback` | EXECUTED_PASS | `arsenal-20260903T152701Z-81fb8163` | `e04be761c6bda980843415f2a1b66e36db9dd296aaa44a5b0674164699c2b8b9` |
-| `asset:firmae/firmware-emulation` | EXECUTED_PASS | `arsenal-20260903T152701Z-81fb8163` | `e04be761c6bda980843415f2a1b66e36db9dd296aaa44a5b0674164699c2b8b9` |
+| `asset:firmadyne/firmware-emulation-fallback` | WAITING_FOR_PREREQUISITE | `arsenal-20260903T152701Z-81fb8163` | `e04be761c6bda980843415f2a1b66e36db9dd296aaa44a5b0674164699c2b8b9` |
+| `asset:firmae/firmware-emulation` | WAITING_FOR_PREREQUISITE | `arsenal-20260903T152701Z-81fb8163` | `e04be761c6bda980843415f2a1b66e36db9dd296aaa44a5b0674164699c2b8b9` |
 | `asset:floss/static-string-deobfuscation` | EXECUTED_PASS | `arsenal-20260903T141138Z-3d198544` | `c842691a2c2b63ebaef373e0c59ef23adbc363543bb2ba0e216c831c829229e5` |
 | `asset:foundry/smart-contract-fuzz-and-invariant-tests` | EXECUTED_PASS | `arsenal-20260903T141157Z-52256573` | `d8690b7919a74dbe8a9c4cc8a6a748894f061590c2844e950406d4691d8e3d85` |
-| `asset:frida/android-runtime-instrumentation` | EXECUTED_PASS | `arsenal-20260903T152701Z-6a1c4bb2` | `4d6869c58e99d06332926209a26b9cde1c46a4f7f7777200c07f425ccf872f63` |
-| `asset:frida/ios-runtime-instrumentation` | EXECUTED_PASS | `arsenal-20260903T152701Z-6a1c4bb2` | `4d6869c58e99d06332926209a26b9cde1c46a4f7f7777200c07f425ccf872f63` |
+| `asset:frida/android-runtime-instrumentation` | WAITING_FOR_PREREQUISITE | `arsenal-20260903T152701Z-6a1c4bb2` | `4d6869c58e99d06332926209a26b9cde1c46a4f7f7777200c07f425ccf872f63` |
+| `asset:frida/ios-runtime-instrumentation` | WAITING_FOR_PREREQUISITE | `arsenal-20260903T152701Z-6a1c4bb2` | `4d6869c58e99d06332926209a26b9cde1c46a4f7f7777200c07f425ccf872f63` |
 | `asset:garak/llm-security-probing` | EXECUTED_PASS | `arsenal-20260903T141201Z-4f47e4fc` | `4d3dac82d15321855ab9957dd2286b099639f4d5379abcfbffaa4a7da6b6f27b` |
 | `asset:ghidra/headless-binary-analysis` | EXECUTED_PASS | `arsenal-20260903T141204Z-fa334d23` | `ea77b11f8d8c0d7331b1348061e425e8d3fbc41694bf537aa8afd5eef52613f2` |
 | `asset:grpcurl/grpc-service-introspection` | EXECUTED_PASS | `arsenal-20260903T141223Z-491e3d54` | `e7eb2aa657fe79aa575a0aa74e0edf84a31bf3581a8039c9ae3fe30bf2feed81` |
@@ -64,16 +195,16 @@ Arsenal image: ``
 | `asset:kics/iac-security-scan` | EXECUTED_PASS | `arsenal-20260903T141254Z-50b4b002` | `4e10278e79db9a1f4c35cb1e99b4df855b11c9bdfff7d511df05d8c850d5234e` |
 | `asset:kubescape/kubernetes-posture-and-runtime-scan` | EXECUTED_PASS | `arsenal-20260903T141255Z-6477fce4` | `075bd37c5d6aa9c7a70a7e8d6011213c180fd12404b7913c33a6cb7d3b52fea4` |
 | `asset:mitmproxy/authorized-http-traffic-capture` | EXECUTED_PASS | `arsenal-20260903T141257Z-a45775d0` | `f7515a411e2784300cd7b1c5e5476197ba90634ebf2bbdfa99abab656cefdd2e` |
-| `asset:mobsf/rest-static-analysis` | EXECUTED_PASS | `arsenal-20260903T152701Z-04a49db7` | `8f3d53047fb289fa8e076652e70c4b771612b37f530d24cdcbfb57c6aa91cd42` |
+| `asset:mobsf/rest-static-analysis` | WAITING_FOR_PREREQUISITE | `arsenal-20260903T152701Z-04a49db7` | `8f3d53047fb289fa8e076652e70c4b771612b37f530d24cdcbfb57c6aa91cd42` |
 | `asset:modelscan/serialized-model-safety-scan` | EXECUTED_PASS | `arsenal-20260903T141303Z-40016bcf` | `62b90360b4307c6374cbf9d8043aa9cf5df23e20fbb9799bbe6f65a55b4d853c` |
 | `asset:naabu/bounded-port-discovery` | EXECUTED_PASS | `arsenal-20260903T141304Z-3be626df` | `9dadb9f88aac4332f695df42952f3a6b7bac5e02918931d2799556c55a10d26b` |
 | `asset:nmap/bounded-service-fingerprinting` | EXECUTED_PASS | `arsenal-20260903T141310Z-a75f7035` | `90085aacbdd0969a3c9f142f624953216913b8c97869de297bc4686c66db1856` |
 | `asset:npm/npm-dependency-audit` | EXECUTED_PASS | `arsenal-20260903T141317Z-7d6db3a5` | `cd8e0da22566b65403dfa963d395512c455262e6241684dddb129506288307f0` |
 | `asset:nuclei/signed-safe-template-validation` | EXECUTED_PASS | `arsenal-20260903T141319Z-753b5148` | `c7d55d57cec4cb185a54a914e5e0b8284ff2f6a9ac979a7f3f869a0c14846ef6` |
-| `asset:objection/android-runtime-exploration` | EXECUTED_PASS | `arsenal-20260903T152701Z-8f4610a4` | `da22abcb1dbf9d3f697f61123d9939a42848d72141074d35ca8a8f85ef3907c8` |
-| `asset:objection/ios-runtime-exploration` | EXECUTED_PASS | `arsenal-20260903T152701Z-8f4610a4` | `da22abcb1dbf9d3f697f61123d9939a42848d72141074d35ca8a8f85ef3907c8` |
+| `asset:objection/android-runtime-exploration` | WAITING_FOR_PREREQUISITE | `arsenal-20260903T152701Z-8f4610a4` | `da22abcb1dbf9d3f697f61123d9939a42848d72141074d35ca8a8f85ef3907c8` |
+| `asset:objection/ios-runtime-exploration` | WAITING_FOR_PREREQUISITE | `arsenal-20260903T152701Z-8f4610a4` | `da22abcb1dbf9d3f697f61123d9939a42848d72141074d35ca8a8f85ef3907c8` |
 | `asset:openssf-scorecard/repository-supply-chain-posture` | EXECUTED_PASS | `arsenal-20260903T141321Z-3ca3f020` | `b82dbcef4fd44225b29bd984771d828add787ff199c3ce5f266572574bbb2ad3` |
-| `asset:otool/ios-macos-load-command-analysis` | EXECUTED_PASS | `arsenal-20260903T152702Z-f09b112a` | `62acab7d5a3b213c2b96a7998a328ac811c30388c24a5c66109a36bda53325f8` |
+| `asset:otool/ios-macos-load-command-analysis` | WAITING_FOR_PREREQUISITE | `arsenal-20260903T152702Z-f09b112a` | `62acab7d5a3b213c2b96a7998a328ac811c30388c24a5c66109a36bda53325f8` |
 | `asset:pefile/pe-structure-analysis` | EXECUTED_PASS | `arsenal-20260903T141321Z-36c1040c` | `9f9621c8879ce8293de51b0695c63b157c29b9fec22d9a5a8bbe4ff67f51801c` |
 | `asset:pip-audit/python-dependency-vulnerability-analysis` | EXECUTED_PASS | `arsenal-20260903T141322Z-da6882f5` | `acbb1b923f51dd28172bc3c31001b3b5c45d4f75a688e730e91cf14505e1b76a` |
 | `asset:playwright/authenticated-browser-traffic-learning` | EXECUTED_PASS | `arsenal-20260903T141326Z-42f85a22` | `fd672648fbf49eff7921c2b8a6661a7f3732bca83f9a649059c9450d16ac75f1` |
@@ -111,12 +242,23 @@ Arsenal image: ``
 | `tool:slither/contract` | EXECUTED_PASS | `arsenal-20260903T141629Z-131eea33` | `54333f1239024c6190e7f4f9a4c3e7dd7ee90e66bb5d7708436fd519fa7a761a` |
 | `tool:trivy/deps` | EXECUTED_PASS | `arsenal-20260903T141630Z-a6b66704` | `a5ede65c181336358a861824281ce5c28ad7ee72a6434cc994dfca68ad6582f2` |
 | `tool:trivy/secrets` | EXECUTED_PASS | `arsenal-20260903T141631Z-d99ad6a5` | `5ca1b7e8d4c558b942ff4d23de38f009174c331fff0b3ae2f8b7cb79222a38b7` |
-| `asset:prowler/aws-security-posture` | EXECUTED_PASS | `arsenal-20260903T152702Z-1c24fe56` | `df5514437cc1edcfcb11aa98795a5740db3864620802177bcb196cee7e9ab802` |
-| `asset:scoutsuite/aws-attack-surface-audit` | EXECUTED_PASS | `arsenal-20260903T152702Z-d83dec86` | `84636aa94101946c06cd11da22d3e925f1867d333e658b7df70e447d7c40666d` |
-| `asset:roadtools/entra-identity-analysis` | EXECUTED_PASS | `arsenal-20260903T152702Z-f4794a5f` | `dff4fdcae6eef6c066725a0b5eb204f07ed81e4333d8cad1d5a025c04a9ebeaa` |
-| `adapter:subfinder/passive-discovery` | EXECUTED_PASS | `arsenal-20260903T152703Z-056e4080` | `758b88f39dfea6128fe52d231bfe4388f20beb46e3ae08dfc3584c97ee4228c0` |
-| `asset:azurehound/azure-entra-relationship-collection` | EXECUTED_PASS | `arsenal-20260903T152703Z-4cbfb5ff` | `18e370a2d9b9d24ceae961e01b15fe21acf253a9b3b1e5762548d2ef6fce91f0` |
-| `adapter:gau/passive-discovery` | EXECUTED_PASS | `arsenal-20260903T152703Z-f4b02dac` | `1d06d9ef86ad803a846566e22f2909c328d364e198ed180ba84528a682b6ae9b` |
+| `asset:prowler/aws-security-posture` | WAITING_FOR_PREREQUISITE | `arsenal-20260903T152702Z-1c24fe56` | `df5514437cc1edcfcb11aa98795a5740db3864620802177bcb196cee7e9ab802` |
+| `asset:scoutsuite/aws-attack-surface-audit` | WAITING_FOR_PREREQUISITE | `arsenal-20260903T152702Z-d83dec86` | `84636aa94101946c06cd11da22d3e925f1867d333e658b7df70e447d7c40666d` |
+| `asset:roadtools/entra-identity-analysis` | WAITING_FOR_PREREQUISITE | `arsenal-20260903T152702Z-f4794a5f` | `dff4fdcae6eef6c066725a0b5eb204f07ed81e4333d8cad1d5a025c04a9ebeaa` |
+| `adapter:subfinder/passive-discovery` | WAITING_FOR_PREREQUISITE | `arsenal-20260903T152703Z-056e4080` | `758b88f39dfea6128fe52d231bfe4388f20beb46e3ae08dfc3584c97ee4228c0` |
+| `asset:azurehound/azure-entra-relationship-collection` | WAITING_FOR_PREREQUISITE | `arsenal-20260903T152703Z-4cbfb5ff` | `18e370a2d9b9d24ceae961e01b15fe21acf253a9b3b1e5762548d2ef6fce91f0` |
+| `adapter:gau/passive-discovery` | WAITING_FOR_PREREQUISITE | `arsenal-20260903T152703Z-f4b02dac` | `1d06d9ef86ad803a846566e22f2909c328d364e198ed180ba84528a682b6ae9b` |
 
-## Never executed external backends
+## Never Executed Active Backends
 
+- `external:azurehound`
+- `external:firmae`
+- `external:frida`
+- `external:gau`
+- `external:mobsf`
+- `external:objection`
+- `external:otool`
+- `external:prowler`
+- `external:roadrecon`
+- `external:scout`
+- `external:subfinder`

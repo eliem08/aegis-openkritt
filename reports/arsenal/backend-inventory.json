@@ -5342,8 +5342,8 @@
       ]
     }
   ],
-  "generated_at": "2026-09-03T14:17:35.003189+00:00",
-  "git_sha": "61c0d100020008e6653ea66a9867a5440a6fbfca",
+  "generated_at": "2026-09-04T01:08:00.386832+00:00",
+  "git_sha": "97331ee62ae558421929d2c9c5eb1848210bd576",
   "metrics": {
     "canonical_capability_count": 174,
     "installed_external_backend_count": 60,
@@ -5353,5 +5353,6 @@
     "unique_external_executable_runtime_count": 73,
     "unique_internal_backend_count": 26
   },
-  "schema_version": 1
+  "schema_version": 1,
+  "source_git_sha": "97331ee62ae558421929d2c9c5eb1848210bd576"
 }

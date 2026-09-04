@@ -1,4 +1,6 @@
 {
+  "generated_at": "2026-09-04T01:08:00.386832+00:00",
+  "git_sha": "97331ee62ae558421929d2c9c5eb1848210bd576",
   "migrations": [
     {
       "capabilities_affected": [
@@ -27,5 +29,6 @@
       "source_registry_provenance": "src/aegis/ai/jarvis/asset_deep_capabilities.py:CLASS_DUMP"
     }
   ],
-  "schema_version": 1
+  "schema_version": 2,
+  "source_git_sha": "97331ee62ae558421929d2c9c5eb1848210bd576"
 }

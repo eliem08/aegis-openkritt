@@ -1,8 +1,10 @@
 {
   "arsenal_image_digest": "",
   "authorized_real_note": "Fixture evidence is separate from AUTHORIZED_REAL coverage; this milestone does not increase real-target coverage.",
+  "backend_lock_digest": "94ad5b8cca304aaeb2a69cb36f3a45451ce9828a20019d8a43862ba5a03ea6a8",
   "backend_matrix": [
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -13,14 +15,19 @@
         "hardware",
         "windows_microsoft_store"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:analyzeHeadless",
       "backend_runtime_id": "ghidra/headless",
+      "backend_version": "Ghidra 12.1.3",
       "binary": "analyzeHeadless",
       "capability_count": 1,
       "capability_ids": [
         "asset:ghidra/headless-binary-analysis"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "ea77b11f8d8c0d7331b1348061e425e8d3fbc41694bf537aa8afd5eef52613f2",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141204Z-fa334d23",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -38,6 +45,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/bin/analyzeHeadless",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-binary",
       "runtime": {
@@ -58,6 +69,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -65,14 +77,19 @@
       "asset_classes": [
         "executable"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:angr",
       "backend_runtime_id": "angr/linux-cli",
+      "backend_version": "angr 9.3.3",
       "binary": "angr",
       "capability_count": 1,
       "capability_ids": [
         "asset:angr/binary-control-flow-analysis"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "4b9c7b081fc3a1924b5ad37376e3d85ea7f644c73da49ba2a11f4a62c03080d1",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141013Z-d59edeee",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -90,6 +107,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/bin/angr",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-binary",
       "runtime": {
@@ -110,6 +131,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -118,14 +140,19 @@
         "android_apk",
         "android_play_store"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:apktool",
       "backend_runtime_id": "apktool/linux-cli",
+      "backend_version": "3.0.3",
       "binary": "apktool",
       "capability_count": 1,
       "capability_ids": [
         "asset:apktool/android-resource-and-manifest-decode"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "9aceee7c0c660629f76133d463ce6dfdc0352bc5b87800ba956368519663eeea",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141017Z-b4944f6f",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -143,6 +170,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/bin/apktool",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-android",
       "runtime": {
@@ -163,6 +194,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -170,14 +202,19 @@
       "asset_classes": [
         "electron_app"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:asar",
       "backend_runtime_id": "electron-asar/node-cli",
+      "backend_version": "v3.4.1",
       "binary": "asar",
       "capability_count": 1,
       "capability_ids": [
         "asset:electron-asar/electron-package-extraction"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "8020759e6614d57dce53566dc427f47f0190a9fc7a4617a4f82fd79b3b73b081",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141137Z-94b14ccd",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -193,6 +230,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/lib/node_modules/@electron/asar/bin/asar.js",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-linux",
       "runtime": {
@@ -213,6 +254,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -220,14 +262,19 @@
       "asset_classes": [
         "azure_account"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:azurehound",
       "backend_runtime_id": "azurehound/cloud-lab",
+      "backend_version": "",
       "binary": "azurehound",
       "capability_count": 1,
       "capability_ids": [
         "asset:azurehound/azure-entra-relationship-collection"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "",
+      "execution_proof_kind": "PREREQUISITE_ONLY",
+      "execution_run_id": "",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -241,6 +288,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "NOT_EXECUTED",
+      "positive_control": "NOT_EXECUTED",
       "prerequisite": "local Entra fixture or explicitly supplied controlled tenant",
       "runner_profile": "arsenal-cloud-lab",
       "runtime": {
@@ -261,6 +312,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "asset-lane/1",
         "deep-asset/1",
@@ -270,8 +322,10 @@
       "asset_classes": [
         "source_code"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:bandit",
       "backend_runtime_id": "bandit/linux-cli",
+      "backend_version": "bandit 1.9.4",
       "binary": "bandit",
       "capability_count": 3,
       "capability_ids": [
@@ -280,6 +334,9 @@
         "tool:bandit/code"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "c435cc88ed86c92621212e3f98d2e4ef277ebdc9414b50df70b1c0ca869d24d3",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141440Z-10af6d59",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor",
         "aegis.ai.tool_bridge.ToolBridge",
@@ -305,6 +362,10 @@
         "src/aegis/arsenal/assets/types.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/bin/bandit",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-linux",
       "runtime": {
@@ -328,6 +389,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -335,14 +397,19 @@
       "asset_classes": [
         "hardware"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:binwalk",
       "backend_runtime_id": "binwalk/firmware-lab",
+      "backend_version": "Binwalk v2.3.3",
       "binary": "binwalk",
       "capability_count": 1,
       "capability_ids": [
         "asset:binwalk/firmware-structure-analysis"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "a8dc7d9d22708304eb21905723f8bb206948ec449c221c30316ac83b43822b56",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141021Z-12205524",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -360,6 +427,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/bin/binwalk",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-firmware",
       "runtime": {
@@ -380,6 +451,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1",
         "tool-bridge/1"
@@ -388,8 +460,10 @@
       "asset_classes": [
         "source_code"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:brakeman",
       "backend_runtime_id": "brakeman/linux-cli",
+      "backend_version": "brakeman 7.1.1",
       "binary": "brakeman",
       "capability_count": 2,
       "capability_ids": [
@@ -397,6 +471,9 @@
         "tool:brakeman/code"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "37d990c098db7537181526079bc145d47418fb569e226fbc5749ad2c18dd2ef9",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141441Z-2fe8effc",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor",
         "aegis.ai.tool_bridge.ToolBridge"
@@ -419,6 +496,10 @@
         "src/aegis/ai/tool_registry.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/bin/brakeman",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-linux",
       "runtime": {
@@ -441,6 +522,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -449,14 +531,19 @@
         "executable",
         "windows_microsoft_store"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:capa",
       "backend_runtime_id": "capa/linux-cli",
+      "backend_version": "capa 9.4.0",
       "binary": "capa",
       "capability_count": 1,
       "capability_ids": [
         "asset:capa/binary-capability-analysis"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "dc91c77ca9ef0e06d3ac117fb4fa55e68eec311cd46b52f6e99615804f4104fa",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141022Z-646e1cd3",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -474,6 +561,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/opt/venvs/capa/bin/capa",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-binary",
       "runtime": {
@@ -494,6 +585,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1",
         "tool-bridge/1"
@@ -507,8 +599,10 @@
         "source_code",
         "terraform_repo"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:checkov",
       "backend_runtime_id": "checkov/linux-cli",
+      "backend_version": "3.3.9",
       "binary": "checkov",
       "capability_count": 3,
       "capability_ids": [
@@ -517,6 +611,9 @@
         "tool:checkov/deps"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "5dfba94d95ed42672ed2278b8161279e13134eab5d3510ba9e4c83555ff78e43",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141445Z-c1f6e2b7",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor",
         "aegis.ai.tool_bridge.ToolBridge"
@@ -541,6 +638,10 @@
         "src/aegis/ai/tool_registry.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/bin/checkov",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-linux",
       "runtime": {
@@ -563,6 +664,7 @@
       ]
     },
     {
+      "active_status": "migrated",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -572,14 +674,19 @@
         "ios_ipa",
         "ios_testflight"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:class-dump",
       "backend_runtime_id": "class-dump/macos-cli",
+      "backend_version": "MIGRATED",
       "binary": "class-dump",
       "capability_count": 1,
       "capability_ids": [
         "asset:class-dump/objective-c-interface-recovery"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "",
+      "execution_proof_kind": "MIGRATED_EQUIVALENT",
+      "execution_run_id": "",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -595,6 +702,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "MIGRATED",
+      "positive_control": "MIGRATED",
       "prerequisite": "macOS worker; readiness: command -v class-dump && uname -s | grep Darwin",
       "runner_profile": "arsenal-macos-ios",
       "runtime": {
@@ -615,6 +726,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -622,14 +734,19 @@
       "asset_classes": [
         "aws_account"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:cloudsplaining",
       "backend_runtime_id": "cloudsplaining/cloud-lab",
+      "backend_version": "cloudsplaining, version 0.7.0",
       "binary": "cloudsplaining",
       "capability_count": 1,
       "capability_ids": [
         "asset:cloudsplaining/aws-iam-risk-analysis"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "b2a18893ae2f41259844b137d3a4d48471cb9ef007eedc05c6076d2bd57eb05c",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141040Z-97955186",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -647,6 +764,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/bin/cloudsplaining",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-cloud-lab",
       "runtime": {
@@ -667,6 +788,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -674,14 +796,19 @@
       "asset_classes": [
         "source_code"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:codeql",
       "backend_runtime_id": "codeql/linux-cli",
+      "backend_version": "CodeQL command-line toolchain release 2.26.4.",
       "binary": "codeql",
       "capability_count": 1,
       "capability_ids": [
         "asset:codeql/cross-file-dataflow"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "b8df60192883420c8d8978a6c8325fdede7cee43d17efe649033642b63def705",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141043Z-9acdc466",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -699,6 +826,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/opt/codeql/codeql",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-linux",
       "runtime": {
@@ -719,6 +850,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "tool-bridge/1"
       ],
@@ -726,14 +858,19 @@
       "asset_classes": [
         "source_code"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:detect-secrets",
       "backend_runtime_id": "detect-secrets/linux-cli",
+      "backend_version": "1.5.47",
       "binary": "detect-secrets",
       "capability_count": 1,
       "capability_ids": [
         "tool:detect-secrets/secrets"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "4b6cf406a6604f9883b475172ef027a81eb0b5314ce75460b9ae8110c0b0abff",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141453Z-b13ba354",
       "executor_providers": [
         "aegis.ai.tool_bridge.ToolBridge"
       ],
@@ -752,6 +889,10 @@
         "src/aegis/ai/tool_registry.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/bin/detect-secrets",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-linux",
       "runtime": {
@@ -772,6 +913,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -780,14 +922,19 @@
         "domain",
         "wildcard"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:dnsx",
       "backend_runtime_id": "dnsx/network-lab",
+      "backend_version": "_             __  __",
       "binary": "dnsx",
       "capability_count": 1,
       "capability_ids": [
         "asset:dnsx/dns-resolution-and-wildcard-filtering"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "cd5a36d620fa5acf8a05a5de22b5151bf352d3f71cd0cd4987780d0b9cd71088",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141134Z-a769ec45",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -805,6 +952,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/root/go/bin/dnsx",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-network-lab",
       "runtime": {
@@ -825,6 +976,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -832,14 +984,19 @@
       "asset_classes": [
         "smart_contract"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:echidna",
       "backend_runtime_id": "echidna/contract-cli",
+      "backend_version": "Echidna 2.3.3",
       "binary": "echidna",
       "capability_count": 1,
       "capability_ids": [
         "asset:echidna/smart-contract-property-fuzzing"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "6aafb2d443285f65de6eadfc5515feae504d5c3172f4fbd2a9309343b94d6a77",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141135Z-b2b58df7",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -857,6 +1014,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/bin/echidna",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-smart-contract",
       "runtime": {
@@ -877,6 +1038,7 @@
       ]
     },
     {
+      "active_status": "migrated",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -884,14 +1046,19 @@
       "asset_classes": [
         "hardware"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:firmadyne",
       "backend_runtime_id": "firmadyne/qemu-lab",
+      "backend_version": "MIGRATED",
       "binary": "firmadyne",
       "capability_count": 1,
       "capability_ids": [
         "asset:firmadyne/firmware-emulation-fallback"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "",
+      "execution_proof_kind": "MIGRATED_EQUIVALENT",
+      "execution_run_id": "",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -907,6 +1074,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "MIGRATED",
+      "positive_control": "MIGRATED",
       "prerequisite": "opt-in privileged Linux worker with QEMU/binfmt; readiness: test -e /dev/kvm && command -v qemu-system-x86_64",
       "runner_profile": "arsenal-firmware",
       "runtime": {
@@ -927,6 +1098,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -934,14 +1106,19 @@
       "asset_classes": [
         "hardware"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:firmae",
       "backend_runtime_id": "firmae/qemu-lab",
+      "backend_version": "",
       "binary": "firmae",
       "capability_count": 1,
       "capability_ids": [
         "asset:firmae/firmware-emulation"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "",
+      "execution_proof_kind": "PREREQUISITE_ONLY",
+      "execution_run_id": "",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -957,6 +1134,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "NOT_EXECUTED",
+      "positive_control": "NOT_EXECUTED",
       "prerequisite": "opt-in privileged Linux worker with FirmAE/QEMU/binfmt; readiness: test -e /dev/kvm && command -v qemu-system-x86_64 && test -d /opt/FirmAE",
       "runner_profile": "arsenal-firmware",
       "runtime": {
@@ -977,6 +1158,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -986,14 +1168,19 @@
         "executable",
         "windows_microsoft_store"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:floss",
       "backend_runtime_id": "floss/linux-cli",
+      "backend_version": "floss v3.1.1-0-g3cd3ee6",
       "binary": "floss",
       "capability_count": 1,
       "capability_ids": [
         "asset:floss/static-string-deobfuscation"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "c842691a2c2b63ebaef373e0c59ef23adbc363543bb2ba0e216c831c829229e5",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141138Z-3d198544",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -1011,6 +1198,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/bin/floss",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-binary",
       "runtime": {
@@ -1031,6 +1222,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -1038,14 +1230,19 @@
       "asset_classes": [
         "smart_contract"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:forge",
       "backend_runtime_id": "foundry/forge",
+      "backend_version": "forge Version: 1.8.0",
       "binary": "forge",
       "capability_count": 1,
       "capability_ids": [
         "asset:foundry/smart-contract-fuzz-and-invariant-tests"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "d8690b7919a74dbe8a9c4cc8a6a748894f061590c2844e950406d4691d8e3d85",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141157Z-52256573",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -1063,6 +1260,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/bin/forge",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-smart-contract",
       "runtime": {
@@ -1083,6 +1284,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -1094,8 +1296,10 @@
         "ios_ipa",
         "ios_testflight"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:frida",
       "backend_runtime_id": "frida/device-cli",
+      "backend_version": "",
       "binary": "frida",
       "capability_count": 2,
       "capability_ids": [
@@ -1103,6 +1307,9 @@
         "asset:frida/ios-runtime-instrumentation"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "",
+      "execution_proof_kind": "PREREQUISITE_ONLY",
+      "execution_run_id": "",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -1120,6 +1327,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "NOT_EXECUTED",
+      "positive_control": "NOT_EXECUTED",
       "prerequisite": "operator-owned local emulator/device and fixture app; readiness: adb devices && frida-ps -U",
       "runner_profile": "arsenal-android",
       "runtime": {
@@ -1140,6 +1351,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -1147,14 +1359,19 @@
       "asset_classes": [
         "ai_model"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:garak",
       "backend_runtime_id": "garak/linux-cli",
+      "backend_version": "garak LLM vulnerability scanner v0.16.0 ( https://github.com/NVIDIA/garak ) at 2026-09-03T14:12:01.147676",
       "binary": "garak",
       "capability_count": 1,
       "capability_ids": [
         "asset:garak/llm-security-probing"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "4d3dac82d15321855ab9957dd2286b099639f4d5379abcfbffaa4a7da6b6f27b",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141201Z-4f47e4fc",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -1170,6 +1387,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/bin/garak",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-linux",
       "runtime": {
@@ -1190,19 +1411,25 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "2.2.4"
       ],
       "architecture": "x86_64",
       "asset_classes": [],
+      "backend_entrypoint": "",
       "backend_id": "external:gau",
       "backend_runtime_id": "gau/network-lab",
+      "backend_version": "",
       "binary": "gau",
       "capability_count": 1,
       "capability_ids": [
         "adapter:gau/passive-discovery"
       ],
       "current_state": "UNAVAILABLE",
+      "evidence_digest": "",
+      "execution_proof_kind": "PREREQUISITE_ONLY",
+      "execution_run_id": "",
       "executor_providers": [
         "adapter:gau"
       ],
@@ -1216,6 +1443,10 @@
         "src/aegis/adapters"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "NOT_EXECUTED",
+      "positive_control": "NOT_EXECUTED",
       "prerequisite": "",
       "runner_profile": "arsenal-network-lab",
       "runtime": {
@@ -1236,6 +1467,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "8.30.1",
         "asset-lane/1",
@@ -1246,8 +1478,10 @@
       "asset_classes": [
         "source_code"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:gitleaks",
       "backend_runtime_id": "gitleaks/linux-cli",
+      "backend_version": "gitleaks version 8.21.2",
       "binary": "gitleaks",
       "capability_count": 4,
       "capability_ids": [
@@ -1257,6 +1491,9 @@
         "tool:gitleaks/secrets"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "cf5eae0f94550e3c486518d49d3cc921284ff4c389e45db5cb3f96743f5b6b76",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141454Z-7cfcdc07",
       "executor_providers": [
         "adapter:gitleaks",
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor",
@@ -1285,6 +1522,10 @@
         "src/aegis/arsenal/assets/types.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/bin/gitleaks",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-linux",
       "runtime": {
@@ -1308,6 +1549,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1",
         "tool-bridge/1"
@@ -1316,8 +1558,10 @@
       "asset_classes": [
         "source_code"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:gosec",
       "backend_runtime_id": "gosec/linux-cli",
+      "backend_version": "Version: dev",
       "binary": "gosec",
       "capability_count": 2,
       "capability_ids": [
@@ -1325,6 +1569,9 @@
         "tool:gosec/code"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "0cd8a943140b1f0e5bdf7705b11b6395db4331ee376fb1dd31852a16f34f6117",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141454Z-7c788a60",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor",
         "aegis.ai.tool_bridge.ToolBridge"
@@ -1347,6 +1594,10 @@
         "src/aegis/ai/tool_registry.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/root/go/bin/gosec",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-linux",
       "runtime": {
@@ -1368,6 +1619,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -1375,14 +1627,19 @@
       "asset_classes": [
         "grpc_api"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:grpcurl",
       "backend_runtime_id": "grpcurl/network-lab",
+      "backend_version": "grpcurl v1.9.3",
       "binary": "grpcurl",
       "capability_count": 1,
       "capability_ids": [
         "asset:grpcurl/grpc-service-introspection"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "e7eb2aa657fe79aa575a0aa74e0edf84a31bf3581a8039c9ae3fe30bf2feed81",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141223Z-491e3d54",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -1400,6 +1657,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/bin/grpcurl",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-network-lab",
       "runtime": {
@@ -1420,6 +1681,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1",
         "tool-bridge/1"
@@ -1432,8 +1694,10 @@
         "source_code",
         "windows_microsoft_store"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:grype",
       "backend_runtime_id": "grype/linux-cli",
+      "backend_version": "grype 0.116.1",
       "binary": "grype",
       "capability_count": 3,
       "capability_ids": [
@@ -1442,6 +1706,9 @@
         "tool:grype/deps"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "e3a6c8cd007433ee21e14470494cee1bfc285ee8126d6dbbf4a83e3191286608",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141458Z-08e7cfff",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor",
         "aegis.ai.tool_bridge.ToolBridge"
@@ -1466,6 +1733,10 @@
         "src/aegis/ai/tool_registry.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/bin/grype",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-linux",
       "runtime": {
@@ -1487,6 +1758,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "1.6.9",
         "deep-asset/1"
@@ -1499,8 +1771,10 @@
         "ip_address",
         "wildcard"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:httpx",
       "backend_runtime_id": "httpx/network-lab",
+      "backend_version": "__    __  __       _  __",
       "binary": "httpx",
       "capability_count": 2,
       "capability_ids": [
@@ -1508,6 +1782,9 @@
         "asset:httpx/http-service-enrichment"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "d28834d1bc5b7321f84b0bf9172364bf309e27371eb4c573e6a608f63ba4bebd",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141224Z-2253bc96",
       "executor_providers": [
         "adapter:http-probe",
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
@@ -1528,6 +1805,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/bin/httpx",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-network-lab",
       "runtime": {
@@ -1550,6 +1831,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -1558,14 +1840,19 @@
         "android_apk",
         "android_play_store"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:jadx",
       "backend_runtime_id": "jadx/android-lab",
+      "backend_version": "1.5.6",
       "binary": "jadx",
       "capability_count": 1,
       "capability_ids": [
         "asset:jadx/android-decompile"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "8606b29aa2caf98b3f9b795893cdd8ce147cc8aee6b32ae59de76167cbbe7efb",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141227Z-dfc1081e",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -1583,6 +1870,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/opt/jadx/bin/jadx",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-android",
       "runtime": {
@@ -1603,19 +1894,25 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "0.0.3"
       ],
       "architecture": "x86_64",
       "asset_classes": [],
+      "backend_entrypoint": "",
       "backend_id": "external:jsluice",
       "backend_runtime_id": "jsluice/linux-cli",
+      "backend_version": "jsluice - Extract URLs, paths, and secrets from JavaScript files",
       "binary": "jsluice",
       "capability_count": 1,
       "capability_ids": [
         "adapter:jsluice/passive-discovery"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "9c5c991ba5663997e87e91f4742be4e465f46fbcf921f6a7a0f4415154715f2d",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141011Z-cc042d57",
       "executor_providers": [
         "adapter:jsluice"
       ],
@@ -1633,6 +1930,10 @@
         "src/aegis/adapters"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/root/go/bin/jsluice",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-linux",
       "runtime": {
@@ -1653,6 +1954,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "1.1.0",
         "deep-asset/1"
@@ -1663,8 +1965,10 @@
         "domain",
         "wildcard"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:katana",
       "backend_runtime_id": "katana/network-lab",
+      "backend_version": "__        __                ",
       "binary": "katana",
       "capability_count": 2,
       "capability_ids": [
@@ -1672,6 +1976,9 @@
         "asset:katana/scoped-endpoint-crawl"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "fc4c313624a001b55028ac9411a069f0a9cf0f0e4fcedcb3d0c0afe26f66f8e8",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141231Z-bfd584c5",
       "executor_providers": [
         "adapter:katana",
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
@@ -1691,6 +1998,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/root/go/bin/katana",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-network-lab",
       "runtime": {
@@ -1712,6 +2023,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -1723,14 +2035,19 @@
         "source_code",
         "terraform_repo"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:kics",
       "backend_runtime_id": "kics/linux-cli",
+      "backend_version": "Keeping Infrastructure as Code Secure v2.1.20",
       "binary": "kics",
       "capability_count": 1,
       "capability_ids": [
         "asset:kics/iac-security-scan"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "4e10278e79db9a1f4c35cb1e99b4df855b11c9bdfff7d511df05d8c850d5234e",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141254Z-50b4b002",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -1748,6 +2065,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/opt/kics/kics",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-linux",
       "runtime": {
@@ -1768,6 +2089,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -1775,14 +2097,19 @@
       "asset_classes": [
         "kubernetes_cluster"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:kubescape",
       "backend_runtime_id": "kubescape/kubernetes-lab",
+      "backend_version": "Your current version is: v4.0.12",
       "binary": "kubescape",
       "capability_count": 1,
       "capability_ids": [
         "asset:kubescape/kubernetes-posture-and-runtime-scan"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "075bd37c5d6aa9c7a70a7e8d6011213c180fd12404b7913c33a6cb7d3b52fea4",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141255Z-6477fce4",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -1798,6 +2125,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/bin/kubescape",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-kubernetes",
       "runtime": {
@@ -1818,6 +2149,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -1828,14 +2160,19 @@
         "saas_tenant",
         "websocket_service"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:mitmproxy",
       "backend_runtime_id": "mitmproxy/network-lab",
+      "backend_version": "Mitmproxy: 12.2.3",
       "binary": "mitmproxy",
       "capability_count": 1,
       "capability_ids": [
         "asset:mitmproxy/authorized-http-traffic-capture"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "f7515a411e2784300cd7b1c5e5476197ba90634ebf2bbdfa99abab656cefdd2e",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141257Z-a45775d0",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -1853,6 +2190,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/opt/venvs/mitmproxy/bin/mitmdump",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-network-lab",
       "runtime": {
@@ -1873,6 +2214,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -1885,14 +2227,19 @@
         "ios_testflight",
         "windows_microsoft_store"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:mobsf",
       "backend_runtime_id": "mobsf/container",
+      "backend_version": "",
       "binary": "mobsf",
       "capability_count": 1,
       "capability_ids": [
         "asset:mobsf/rest-static-analysis"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "",
+      "execution_proof_kind": "PREREQUISITE_ONLY",
+      "execution_run_id": "",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -1908,6 +2255,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "NOT_EXECUTED",
+      "positive_control": "NOT_EXECUTED",
       "prerequisite": "loopback MobSF service and synthetic APK; readiness: test -n \"$AEGIS_MOBSF_URL\" && curl -fsS \"$AEGIS_MOBSF_URL/api/v1/scans\"",
       "runner_profile": "arsenal-android",
       "runtime": {
@@ -1928,6 +2279,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -1935,14 +2287,19 @@
       "asset_classes": [
         "ai_model"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:modelscan",
       "backend_runtime_id": "modelscan/linux-cli",
+      "backend_version": "modelscan, version 0.8.8",
       "binary": "modelscan",
       "capability_count": 1,
       "capability_ids": [
         "asset:modelscan/serialized-model-safety-scan"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "62b90360b4307c6374cbf9d8043aa9cf5df23e20fbb9799bbe6f65a55b4d853c",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141303Z-40016bcf",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -1960,6 +2317,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/bin/modelscan",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-linux",
       "runtime": {
@@ -1980,6 +2341,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "asset-lane/1",
         "deep-asset/1",
@@ -1990,8 +2352,10 @@
         "smart_contract",
         "source_code"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:myth",
       "backend_runtime_id": "mythril/linux-cli",
+      "backend_version": "Mythril version v0.24.8",
       "binary": "myth",
       "capability_count": 3,
       "capability_ids": [
@@ -2000,6 +2364,9 @@
         "tool:mythril/contract"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "6d2c71f1c3b6d3760d910e5476cd5b9d3bba161f70700234199c34837f224e44",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141511Z-d0e7c466",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor",
         "aegis.ai.tool_bridge.ToolBridge",
@@ -2025,6 +2392,10 @@
         "src/aegis/arsenal/assets/types.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/opt/aegis-tools/mythril/bin/myth",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-smart-contract",
       "runtime": {
@@ -2048,6 +2419,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -2056,14 +2428,19 @@
         "cidr",
         "ip_address"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:naabu",
       "backend_runtime_id": "naabu/network-lab",
+      "backend_version": "__",
       "binary": "naabu",
       "capability_count": 1,
       "capability_ids": [
         "asset:naabu/bounded-port-discovery"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "9dadb9f88aac4332f695df42952f3a6b7bac5e02918931d2799556c55a10d26b",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141304Z-3be626df",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -2081,6 +2458,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/bin/naabu",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-network-lab",
       "runtime": {
@@ -2101,6 +2482,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "tool-bridge/1"
       ],
@@ -2108,14 +2490,19 @@
       "asset_classes": [
         "source_code"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:njsscan",
       "backend_runtime_id": "njsscan/linux-cli",
+      "backend_version": "\u001b[34m",
       "binary": "njsscan",
       "capability_count": 1,
       "capability_ids": [
         "tool:njsscan/code"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "a41978462ede717795f69b671ea49bfd14fd1b7bfa24174423a9d09ee8ba2c22",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141534Z-fce163da",
       "executor_providers": [
         "aegis.ai.tool_bridge.ToolBridge"
       ],
@@ -2134,6 +2521,10 @@
         "src/aegis/ai/tool_registry.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/opt/aegis-tools/njsscan/bin/njsscan",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-linux",
       "runtime": {
@@ -2154,6 +2545,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "asset-lane/1",
         "deep-asset/1"
@@ -2165,8 +2557,10 @@
         "ip_address",
         "wildcard"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:nmap",
       "backend_runtime_id": "nmap/network-lab",
+      "backend_version": "Nmap version 7.93 ( https://nmap.org )",
       "binary": "nmap",
       "capability_count": 2,
       "capability_ids": [
@@ -2174,6 +2568,9 @@
         "asset:nmap/bounded-service-fingerprinting"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "90085aacbdd0969a3c9f142f624953216913b8c97869de297bc4686c66db1856",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141310Z-a75f7035",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor",
         "aegis.arsenal.assets.network:service_identification"
@@ -2194,6 +2591,10 @@
         "src/aegis/arsenal/assets/types.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/bin/nmap",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-network-lab",
       "runtime": {
@@ -2215,6 +2616,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -2222,14 +2624,19 @@
       "asset_classes": [
         "npm_package"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:npm",
       "backend_runtime_id": "npm/linux-cli",
+      "backend_version": "10.9.4",
       "binary": "npm",
       "capability_count": 1,
       "capability_ids": [
         "asset:npm/npm-dependency-audit"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "cd8e0da22566b65403dfa963d395512c455262e6241684dddb129506288307f0",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141317Z-7d6db3a5",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -2247,6 +2654,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/lib/node_modules/npm/bin/npm-cli.js",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-linux",
       "runtime": {
@@ -2267,6 +2678,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -2278,14 +2690,19 @@
         "ip_address",
         "wildcard"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:nuclei",
       "backend_runtime_id": "nuclei/network-lab",
+      "backend_version": "[\u001b[34mINF\u001b[0m] Nuclei Engine Version: v3.3.0[\u001b[34mINF\u001b[0m] Nuclei Config Directory: /root/.config/nuclei[\u001b[34mINF\u001b[0m] Nuclei Cache Directory: /root/.cache/nuclei[\u001b[34mINF\u001b[0m] PDCP Directory: /root/.pdcp",
       "binary": "nuclei",
       "capability_count": 1,
       "capability_ids": [
         "asset:nuclei/signed-safe-template-validation"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "c7d55d57cec4cb185a54a914e5e0b8284ff2f6a9ac979a7f3f869a0c14846ef6",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141319Z-753b5148",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -2303,6 +2720,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/bin/nuclei",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-network-lab",
       "runtime": {
@@ -2323,6 +2744,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -2334,8 +2756,10 @@
         "ios_ipa",
         "ios_testflight"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:objection",
       "backend_runtime_id": "objection/android-lab",
+      "backend_version": "",
       "binary": "objection",
       "capability_count": 2,
       "capability_ids": [
@@ -2343,6 +2767,9 @@
         "asset:objection/ios-runtime-exploration"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "",
+      "execution_proof_kind": "PREREQUISITE_ONLY",
+      "execution_run_id": "",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -2360,6 +2787,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "NOT_EXECUTED",
+      "positive_control": "NOT_EXECUTED",
       "prerequisite": "Frida-capable operator-owned emulator/device; readiness: adb devices && frida-ps -U && objection --version",
       "runner_profile": "arsenal-android",
       "runtime": {
@@ -2380,6 +2811,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "2.4.0",
         "deep-asset/1",
@@ -2392,8 +2824,10 @@
         "pypi_package",
         "source_code"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:osv-scanner",
       "backend_runtime_id": "osv-scanner/linux-cli",
+      "backend_version": "osv-scanner version: 2.5.1",
       "binary": "osv-scanner",
       "capability_count": 3,
       "capability_ids": [
@@ -2402,6 +2836,9 @@
         "tool:osv-scanner/deps"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "e75ed33e04eb9ecd77c5e2d8b644d550be8fb8a6145a05d95794faa721e9d466",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141547Z-a742d377",
       "executor_providers": [
         "adapter:osv-scanner",
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor",
@@ -2427,6 +2864,10 @@
         "src/aegis/ai/tool_registry.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/bin/osv-scanner",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-linux",
       "runtime": {
@@ -2449,6 +2890,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -2458,14 +2900,19 @@
         "ios_ipa",
         "ios_testflight"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:otool",
       "backend_runtime_id": "otool/macos-cli",
+      "backend_version": "",
       "binary": "otool",
       "capability_count": 1,
       "capability_ids": [
         "asset:otool/ios-macos-load-command-analysis"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "",
+      "execution_proof_kind": "PREREQUISITE_ONLY",
+      "execution_run_id": "",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -2481,6 +2928,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "NOT_EXECUTED",
+      "positive_control": "NOT_EXECUTED",
       "prerequisite": "macOS worker; readiness: command -v otool && uname -s | grep Darwin",
       "runner_profile": "arsenal-macos-ios",
       "runtime": {
@@ -2501,6 +2952,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -2509,14 +2961,19 @@
         "executable",
         "windows_microsoft_store"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:pefile",
       "backend_runtime_id": "pefile/linux-cli",
+      "backend_version": "pefile 2024.8.26",
       "binary": "pefile",
       "capability_count": 1,
       "capability_ids": [
         "asset:pefile/pe-structure-analysis"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "9f9621c8879ce8293de51b0695c63b157c29b9fec22d9a5a8bbe4ff67f51801c",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141321Z-36c1040c",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -2534,6 +2991,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/bin/pefile",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-binary",
       "runtime": {
@@ -2554,6 +3015,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -2561,14 +3023,19 @@
       "asset_classes": [
         "pypi_package"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:pip-audit",
       "backend_runtime_id": "pip-audit/linux-cli",
+      "backend_version": "pip-audit 2.10.1",
       "binary": "pip-audit",
       "capability_count": 1,
       "capability_ids": [
         "asset:pip-audit/python-dependency-vulnerability-analysis"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "acbb1b923f51dd28172bc3c31001b3b5c45d4f75a688e730e91cf14505e1b76a",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141322Z-da6882f5",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -2586,6 +3053,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/opt/venvs/pip-audit/bin/pip-audit",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-linux",
       "runtime": {
@@ -2606,6 +3077,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -2617,14 +3089,19 @@
         "saas_tenant",
         "websocket_service"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:playwright",
       "backend_runtime_id": "playwright/linux-cli",
+      "backend_version": "Version 1.60.0",
       "binary": "playwright",
       "capability_count": 1,
       "capability_ids": [
         "asset:playwright/authenticated-browser-traffic-learning"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "fd672648fbf49eff7921c2b8a6661a7f3732bca83f9a649059c9450d16ac75f1",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141326Z-42f85a22",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -2642,6 +3119,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/lib/node_modules/@playwright/test/cli.js",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-linux",
       "runtime": {
@@ -2662,6 +3143,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -2669,14 +3151,19 @@
       "asset_classes": [
         "ai_model"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:promptfoo",
       "backend_runtime_id": "promptfoo/linux-cli",
+      "backend_version": "0.122.2",
       "binary": "promptfoo",
       "capability_count": 1,
       "capability_ids": [
         "asset:promptfoo/ai-red-team-evaluation"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "d580983adeca08c571f8a6a22d05baa4e58c6455f41df4344bb3934f523efa6e",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141332Z-d3d49d24",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -2694,6 +3181,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/lib/node_modules/promptfoo/dist/src/entrypoint.js",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-linux",
       "runtime": {
@@ -2714,6 +3205,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -2722,8 +3214,10 @@
         "aws_account",
         "azure_account"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:prowler",
       "backend_runtime_id": "prowler/cloud-lab",
+      "backend_version": "",
       "binary": "prowler",
       "capability_count": 2,
       "capability_ids": [
@@ -2731,6 +3225,9 @@
         "asset:prowler/azure-security-posture"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "",
+      "execution_proof_kind": "PREREQUISITE_ONLY",
+      "execution_run_id": "",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -2745,6 +3242,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "NOT_EXECUTED",
+      "positive_control": "NOT_EXECUTED",
       "prerequisite": "local cloud emulator or explicitly supplied controlled cloud account",
       "runner_profile": "arsenal-cloud-lab",
       "runtime": {
@@ -2765,6 +3266,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "tool-bridge/1"
       ],
@@ -2772,14 +3274,19 @@
       "asset_classes": [
         "source_code"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:psalm",
       "backend_runtime_id": "psalm/linux-cli",
+      "backend_version": "Psalm 6.16.1@f1f5de594dc76faf8784e02d3dc4716c91c6f6ac",
       "binary": "psalm",
       "capability_count": 1,
       "capability_ids": [
         "tool:psalm/code"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "dce12afe96dcdfc826b27a5e71a394a17e8d86736ded8a039c76ee8fce07e862",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141610Z-024dafad",
       "executor_providers": [
         "aegis.ai.tool_bridge.ToolBridge"
       ],
@@ -2798,6 +3305,10 @@
         "src/aegis/ai/tool_registry.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/root/.composer/vendor/bin/psalm",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-linux",
       "runtime": {
@@ -2818,6 +3329,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -2826,14 +3338,19 @@
         "ai_model",
         "llm_rag_app"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:pyrit",
       "backend_runtime_id": "pyrit/linux-cli",
+      "backend_version": "1.0.1",
       "binary": "pyrit",
       "capability_count": 1,
       "capability_ids": [
         "asset:pyrit/generative-ai-risk-identification"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "08c0d10c47c3a8a995a6f96b7864d39825167f34442ed4a2fc95f1247d54ef5a",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141338Z-0dbf040e",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -2849,6 +3366,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/bin/pyrit",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-linux",
       "runtime": {
@@ -2869,6 +3390,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -2876,14 +3398,19 @@
       "asset_classes": [
         "api"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:restler",
       "backend_runtime_id": "restler/network-lab",
+      "backend_version": "RESTler 9.3.1",
       "binary": "restler",
       "capability_count": 1,
       "capability_ids": [
         "asset:restler/stateful-openapi-sequence-testing"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "0554bceb98e6e4271db0c9b1de32c314d93fb91aec92497e628b993447765f74",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141347Z-5c773eac",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -2901,6 +3428,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/bin/restler",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-network-lab",
       "runtime": {
@@ -2921,6 +3452,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "tool-bridge/1"
       ],
@@ -2928,14 +3460,19 @@
       "asset_classes": [
         "source_code"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:retire",
       "backend_runtime_id": "retire-js/node-cli",
+      "backend_version": "5.4.3",
       "binary": "retire",
       "capability_count": 1,
       "capability_ids": [
         "tool:retire-js/deps"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "1aff5be27da3b254bac89845b6178ccdca607f9fecbe61786db89d96d4da0ed7",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141620Z-2f3f10f8",
       "executor_providers": [
         "aegis.ai.tool_bridge.ToolBridge"
       ],
@@ -2954,6 +3491,10 @@
         "src/aegis/ai/tool_registry.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/lib/node_modules/retire/lib/cli.js",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-linux",
       "runtime": {
@@ -2974,6 +3515,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -2981,14 +3523,19 @@
       "asset_classes": [
         "executable"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:rizin",
       "backend_runtime_id": "rizin/linux-cli",
+      "backend_version": "-- Use scr.accel to browse the file faster!",
       "binary": "rizin",
       "capability_count": 1,
       "capability_ids": [
         "asset:rizin/binary-reverse-engineering"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "b4e12b3f0c76b8289a12c05aaa3fbbc6908a6782b83cc678bbc0b4701d00a230",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141353Z-98141672",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -3006,6 +3553,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/opt/rizin/bin/rizin",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-binary",
       "runtime": {
@@ -3026,6 +3577,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -3033,14 +3585,19 @@
       "asset_classes": [
         "azure_account"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:roadrecon",
       "backend_runtime_id": "roadrecon/cloud-lab",
+      "backend_version": "",
       "binary": "roadrecon",
       "capability_count": 1,
       "capability_ids": [
         "asset:roadtools/entra-identity-analysis"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "",
+      "execution_proof_kind": "PREREQUISITE_ONLY",
+      "execution_run_id": "",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -3054,6 +3611,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "NOT_EXECUTED",
+      "positive_control": "NOT_EXECUTED",
       "prerequisite": "local Entra fixture or explicitly supplied controlled tenant",
       "runner_profile": "arsenal-cloud-lab",
       "runtime": {
@@ -3074,6 +3635,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -3084,14 +3646,19 @@
         "ip_address",
         "wildcard"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:rustscan",
       "backend_runtime_id": "rustscan/network-lab",
+      "backend_version": "rustscan 2.4.1",
       "binary": "rustscan",
       "capability_count": 1,
       "capability_ids": [
         "asset:rustscan/bounded-fast-port-prefilter"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "32e76edb3f45b15f12040a9d7c6e2aac4994fb47812a0f3a099eb2bdd996bf2d",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141356Z-59542ff4",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -3109,6 +3676,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/bin/rustscan",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-network-lab",
       "runtime": {
@@ -3129,6 +3700,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -3138,8 +3710,10 @@
         "graphql_endpoint",
         "saas_tenant"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:schemathesis",
       "backend_runtime_id": "schemathesis/network-lab",
+      "backend_version": "schemathesis, version 4.25.2",
       "binary": "schemathesis",
       "capability_count": 2,
       "capability_ids": [
@@ -3147,6 +3721,9 @@
         "asset:schemathesis/schema-guided-api-testing"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "14f51b27f69736a9610cd62dd77069675fa1200278e22c6216c2360d9cce9e4a",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141357Z-ad960f3c",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -3165,6 +3742,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/opt/venvs/schemathesis/bin/schemathesis",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-network-lab",
       "runtime": {
@@ -3185,6 +3766,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -3192,14 +3774,19 @@
       "asset_classes": [
         "source_code"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:scorecard",
       "backend_runtime_id": "scorecard/linux-cli",
+      "backend_version": "OpenSSF Scorecard v5.5.0",
       "binary": "scorecard",
       "capability_count": 1,
       "capability_ids": [
         "asset:openssf-scorecard/repository-supply-chain-posture"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "b82dbcef4fd44225b29bd984771d828add787ff199c3ce5f266572574bbb2ad3",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141321Z-3ca3f020",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -3215,6 +3802,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/bin/scorecard",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-linux",
       "runtime": {
@@ -3235,6 +3826,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -3243,8 +3835,10 @@
         "aws_account",
         "azure_account"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:scout",
       "backend_runtime_id": "scoutsuite/cloud-cli",
+      "backend_version": "",
       "binary": "scout",
       "capability_count": 2,
       "capability_ids": [
@@ -3252,6 +3846,9 @@
         "asset:scoutsuite/azure-attack-surface-audit"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "",
+      "execution_proof_kind": "PREREQUISITE_ONLY",
+      "execution_run_id": "",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -3266,6 +3863,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "NOT_EXECUTED",
+      "positive_control": "NOT_EXECUTED",
       "prerequisite": "local cloud emulator or explicitly supplied controlled cloud account",
       "runner_profile": "arsenal-cloud-lab",
       "runtime": {
@@ -3286,6 +3887,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "1.164.0",
         "asset-lane/1",
@@ -3296,8 +3898,10 @@
       "asset_classes": [
         "source_code"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:semgrep",
       "backend_runtime_id": "semgrep/linux-cli",
+      "backend_version": "1.172.0",
       "binary": "semgrep",
       "capability_count": 4,
       "capability_ids": [
@@ -3307,6 +3911,9 @@
         "tool:semgrep/code"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "0561b73dcc76f457d0831f4c34a82adb2ff892f8156085d335442af189ff7cbb",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141622Z-63d96a35",
       "executor_providers": [
         "adapter:semgrep",
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor",
@@ -3335,6 +3942,10 @@
         "src/aegis/arsenal/assets/types.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/bin/semgrep",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-linux",
       "runtime": {
@@ -3358,6 +3969,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -3365,14 +3977,19 @@
       "asset_classes": [
         "docker_registry"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:skopeo",
       "backend_runtime_id": "skopeo/linux-cli",
+      "backend_version": "skopeo version 1.9.3",
       "binary": "skopeo",
       "capability_count": 1,
       "capability_ids": [
         "asset:skopeo/container-registry-metadata"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "684f4dd3818775da39f901778d40d6f07dd2008bd4f36c7fb39dff9baf1f222b",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141401Z-74a96466",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -3390,6 +4007,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/bin/skopeo",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-linux",
       "runtime": {
@@ -3410,6 +4031,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "asset-lane/1",
         "deep-asset/1",
@@ -3420,8 +4042,10 @@
         "smart_contract",
         "source_code"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:slither",
       "backend_runtime_id": "slither/contract-cli",
+      "backend_version": "0.11.6",
       "binary": "slither",
       "capability_count": 3,
       "capability_ids": [
@@ -3430,6 +4054,9 @@
         "tool:slither/contract"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "54333f1239024c6190e7f4f9a4c3e7dd7ee90e66bb5d7708436fd519fa7a761a",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141629Z-131eea33",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor",
         "aegis.ai.tool_bridge.ToolBridge",
@@ -3455,6 +4082,10 @@
         "src/aegis/arsenal/assets/types.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/bin/slither",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-smart-contract",
       "runtime": {
@@ -3477,6 +4108,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -3484,14 +4116,19 @@
       "asset_classes": [
         "source_code"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:spotbugs",
       "backend_runtime_id": "spotbugs/linux-cli",
+      "backend_version": "4.10.4",
       "binary": "spotbugs",
       "capability_count": 1,
       "capability_ids": [
         "asset:spotbugs/java-bytecode-static-analysis"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "c16d1840aed1de8af5ab37fc321cfc4212338c96bec76d34a5038f94658b75f1",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141405Z-3d101eee",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -3509,6 +4146,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/opt/spotbugs/bin/spotbugs",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-linux",
       "runtime": {
@@ -3529,6 +4170,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -3539,14 +4181,19 @@
         "ip_address",
         "wildcard"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:ssh-audit",
       "backend_runtime_id": "ssh-audit/network-lab",
+      "backend_version": "usage: ssh-audit [-h] [-4] [-6] [-b] [-c] [-d]",
       "binary": "ssh-audit",
       "capability_count": 1,
       "capability_ids": [
         "asset:ssh-audit/ssh-configuration-analysis"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "3e2973458532e436e7409c238c2d46f2911749da871c1fbe55c9f7f16dd1e8a1",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141415Z-d3e4af92",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -3564,6 +4211,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/bin/ssh-audit",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-network-lab",
       "runtime": {
@@ -3584,6 +4235,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "2.6.6",
         "deep-asset/1"
@@ -3593,8 +4245,10 @@
         "domain",
         "wildcard"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:subfinder",
       "backend_runtime_id": "subfinder/network-lab",
+      "backend_version": "",
       "binary": "subfinder",
       "capability_count": 2,
       "capability_ids": [
@@ -3602,6 +4256,9 @@
         "asset:subfinder/passive-subdomain-enumeration"
       ],
       "current_state": "UNAVAILABLE",
+      "evidence_digest": "",
+      "execution_proof_kind": "PREREQUISITE_ONLY",
+      "execution_run_id": "",
       "executor_providers": [
         "adapter:subfinder",
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
@@ -3619,6 +4276,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "NOT_EXECUTED",
+      "positive_control": "NOT_EXECUTED",
       "prerequisite": "",
       "runner_profile": "arsenal-network-lab",
       "runtime": {
@@ -3640,6 +4301,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "asset-lane/1",
         "deep-asset/1"
@@ -3651,8 +4313,10 @@
         "hardware",
         "windows_microsoft_store"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:syft",
       "backend_runtime_id": "syft/linux-cli",
+      "backend_version": "syft 1.51.1",
       "binary": "syft",
       "capability_count": 3,
       "capability_ids": [
@@ -3661,6 +4325,9 @@
         "asset:syft/container-image-sbom"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "e8c0c9debb0f5856134926dac0ab82c0b236a607739e812065c2797e5105c988",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141418Z-4094dbcd",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor",
         "aegis.arsenal.assets.executable:dependency_extraction"
@@ -3683,6 +4350,10 @@
         "src/aegis/arsenal/assets/types.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/bin/syft",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-linux",
       "runtime": {
@@ -3704,6 +4375,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -3714,14 +4386,19 @@
         "ip_address",
         "wildcard"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:testssl.sh",
       "backend_runtime_id": "testssl-sh/linux-cli",
+      "backend_version": "\u001b[1m",
       "binary": "testssl.sh",
       "capability_count": 1,
       "capability_ids": [
         "asset:testssl-sh/tls-configuration-analysis"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "35b6e75f2e09ce10f31127d16c9faed40b98128485e9e17df2c90f9ceccdc015",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141421Z-2f3ef2c3",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -3739,6 +4416,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/opt/testssl/testssl.sh",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-network-lab",
       "runtime": {
@@ -3759,6 +4440,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "asset-lane/1",
         "deep-asset/1",
@@ -3770,8 +4452,10 @@
         "hardware",
         "source_code"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:trivy",
       "backend_runtime_id": "trivy/linux-cli",
+      "backend_version": "Version: 0.73.0",
       "binary": "trivy",
       "capability_count": 5,
       "capability_ids": [
@@ -3782,6 +4466,9 @@
         "tool:trivy/secrets"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "a5ede65c181336358a861824281ce5c28ad7ee72a6434cc994dfca68ad6582f2",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141630Z-a6b66704",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor",
         "aegis.ai.tool_bridge.ToolBridge",
@@ -3810,6 +4497,10 @@
         "src/aegis/arsenal/assets/types.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/bin/trivy",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-linux",
       "runtime": {
@@ -3832,6 +4523,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -3839,14 +4531,19 @@
       "asset_classes": [
         "browser_extension"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:web-ext",
       "backend_runtime_id": "web-ext/linux-cli",
+      "backend_version": "8.10.0",
       "binary": "web-ext",
       "capability_count": 1,
       "capability_ids": [
         "asset:web-ext/browser-extension-structure-lint"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "120311b3ad5aac9038509de8ebd70e9b3731eabdcb6288cf3bcf8afe77c2c4ff",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141437Z-bbb6d081",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -3864,6 +4561,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/lib/node_modules/web-ext/bin/web-ext.js",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-linux",
       "runtime": {
@@ -3884,6 +4585,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -3891,14 +4593,19 @@
       "asset_classes": [
         "websocket_service"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:websocat",
       "backend_runtime_id": "websocat/network-lab",
+      "backend_version": "websocat 1.14.1",
       "binary": "websocat",
       "capability_count": 1,
       "capability_ids": [
         "asset:websocat/websocket-protocol-observation"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "0791d3cdae69f8b8451ac45d2dbce05e903864d129fc74cdebd9fe16362e95b4",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141439Z-57e6eb4b",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -3916,6 +4623,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/bin/websocat",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-network-lab",
       "runtime": {
@@ -3936,6 +4647,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -3945,14 +4657,19 @@
         "executable",
         "windows_microsoft_store"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:yara",
       "backend_runtime_id": "yara/linux-cli",
+      "backend_version": "4.2.3",
       "binary": "yara",
       "capability_count": 1,
       "capability_ids": [
         "asset:yara/approved-rule-binary-scan"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "2a9f78ad5c7da41bb59291ac16f73bba119197328c094f9c4b3a8e3d2f3acb82",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141440Z-0451d92f",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -3970,6 +4687,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/bin/yara",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-binary",
       "runtime": {
@@ -3990,6 +4711,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -3999,14 +4721,19 @@
         "github_org",
         "source_code"
       ],
+      "backend_entrypoint": "",
       "backend_id": "external:zizmor",
       "backend_runtime_id": "zizmor/linux-cli",
+      "backend_version": "zizmor 1.29.0",
       "binary": "zizmor",
       "capability_count": 1,
       "capability_ids": [
         "asset:zizmor/github-actions-security-audit"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "7c884b38ddc838c1709e8d69b7c4a9c271bcb1d62e66fd0a8d0b056c6f25ddc1",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T141440Z-77eaf813",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -4024,6 +4751,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
+      "launcher_executable": "",
+      "native_backend_binary": "/usr/local/bin/zizmor",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-linux",
       "runtime": {
@@ -4044,6 +4775,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -4052,14 +4784,19 @@
         "ai_model",
         "llm_rag_app"
       ],
+      "backend_entrypoint": "",
       "backend_id": "internal:aegis-agent-permission-audit",
       "backend_runtime_id": "aegis/aegis-agent-permission-audit",
+      "backend_version": "",
       "binary": "aegis-agent-permission-audit",
       "capability_count": 1,
       "capability_ids": [
         "asset:aegis-agent-permission-audit/agent-tool-permission-analysis"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "9d96e855f009db32c01cec68f6547e3e72ce1629ba7e40c8d391aa66caa91974",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T152700Z-6574bbb2",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -4075,6 +4812,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "Aegis",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-core",
       "runtime": {
@@ -4095,6 +4836,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -4105,14 +4847,19 @@
         "ios_testflight",
         "windows_microsoft_store"
       ],
+      "backend_entrypoint": "",
       "backend_id": "internal:aegis-artifact-diff",
       "backend_runtime_id": "aegis/aegis-artifact-diff",
+      "backend_version": "",
       "binary": "aegis-artifact-diff",
       "capability_count": 1,
       "capability_ids": [
         "asset:aegis-artifact-diff/authorized-mobile-release-diff"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "d99ed90643042a38196bdc3c02cde5d7a8696936c50c509bc1a5a5bb62437db0",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T152647Z-92e55665",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -4128,6 +4875,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "Aegis",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-core",
       "runtime": {
@@ -4148,6 +4899,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "asset-lane/1"
       ],
@@ -4155,14 +4907,19 @@
       "asset_classes": [
         "executable"
       ],
+      "backend_entrypoint": "",
       "backend_id": "internal:aegis-asar",
       "backend_runtime_id": "aegis/aegis-asar",
+      "backend_version": "",
       "binary": "aegis-asar",
       "capability_count": 1,
       "capability_ids": [
         "asset-lane:bundle-unpack"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "",
+      "execution_proof_kind": "PREREQUISITE_ONLY",
+      "execution_run_id": "",
       "executor_providers": [
         "aegis.arsenal.assets.executable:bundle_unpack"
       ],
@@ -4175,6 +4932,10 @@
         "src/aegis/arsenal/assets/types.py"
       ],
       "installation_source": "Aegis",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "NOT_EXECUTED",
+      "positive_control": "NOT_EXECUTED",
       "prerequisite": "",
       "runner_profile": "arsenal-core",
       "runtime": {
@@ -4195,6 +4956,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -4202,14 +4964,19 @@
       "asset_classes": [
         "other_asset"
       ],
+      "backend_entrypoint": "",
       "backend_id": "internal:aegis-asset-classifier",
       "backend_runtime_id": "aegis/aegis-asset-classifier",
+      "backend_version": "",
       "binary": "aegis-asset-classifier",
       "capability_count": 1,
       "capability_ids": [
         "asset:aegis-asset-classifier/deterministic-asset-classification"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "cd1f0b58c94e6cc4a221087ba2dc58c208e25cde5661cb165fabbde9735f6cb4",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T152700Z-dd598803",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -4225,6 +4992,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "Aegis",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-core",
       "runtime": {
@@ -4245,6 +5016,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "asset-lane/1"
       ],
@@ -4252,14 +5024,19 @@
       "asset_classes": [
         "other_asset"
       ],
+      "backend_entrypoint": "",
       "backend_id": "internal:aegis-asset-triage",
       "backend_runtime_id": "aegis/aegis-asset-triage",
+      "backend_version": "",
       "binary": "aegis-asset-triage",
       "capability_count": 1,
       "capability_ids": [
         "asset-lane:asset-triage"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "",
+      "execution_proof_kind": "PREREQUISITE_ONLY",
+      "execution_run_id": "",
       "executor_providers": [
         "aegis.arsenal.assets.other:asset_triage"
       ],
@@ -4272,6 +5049,10 @@
         "src/aegis/arsenal/assets/types.py"
       ],
       "installation_source": "Aegis",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "NOT_EXECUTED",
+      "positive_control": "NOT_EXECUTED",
       "prerequisite": "",
       "runner_profile": "arsenal-core",
       "runtime": {
@@ -4292,6 +5073,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "asset-lane/1"
       ],
@@ -4299,14 +5081,19 @@
       "asset_classes": [
         "api"
       ],
+      "backend_entrypoint": "",
       "backend_id": "internal:aegis-authz-matrix",
       "backend_runtime_id": "aegis/aegis-authz-matrix",
+      "backend_version": "",
       "binary": "aegis-authz-matrix",
       "capability_count": 1,
       "capability_ids": [
         "asset-lane:authorization-matrix"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "",
+      "execution_proof_kind": "PREREQUISITE_ONLY",
+      "execution_run_id": "",
       "executor_providers": [
         "aegis.arsenal.assets.api_surface:authorization_matrix"
       ],
@@ -4319,6 +5106,10 @@
         "src/aegis/arsenal/assets/types.py"
       ],
       "installation_source": "Aegis",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "NOT_EXECUTED",
+      "positive_control": "NOT_EXECUTED",
       "prerequisite": "",
       "runner_profile": "arsenal-core",
       "runtime": {
@@ -4339,6 +5130,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "asset-lane/1"
       ],
@@ -4346,14 +5138,19 @@
       "asset_classes": [
         "executable"
       ],
+      "backend_entrypoint": "",
       "backend_id": "internal:aegis-binary-triage",
       "backend_runtime_id": "aegis/aegis-binary-triage",
+      "backend_version": "",
       "binary": "aegis-binary-triage",
       "capability_count": 1,
       "capability_ids": [
         "asset-lane:binary-triage"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "",
+      "execution_proof_kind": "PREREQUISITE_ONLY",
+      "execution_run_id": "",
       "executor_providers": [
         "aegis.arsenal.assets.executable:binary_triage"
       ],
@@ -4366,6 +5163,10 @@
         "src/aegis/arsenal/assets/types.py"
       ],
       "installation_source": "Aegis",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "NOT_EXECUTED",
+      "positive_control": "NOT_EXECUTED",
       "prerequisite": "",
       "runner_profile": "arsenal-core",
       "runtime": {
@@ -4386,6 +5187,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "asset-lane/1"
       ],
@@ -4393,14 +5195,19 @@
       "asset_classes": [
         "api"
       ],
+      "backend_entrypoint": "",
       "backend_id": "internal:aegis-bola-probe",
       "backend_runtime_id": "aegis/aegis-bola-probe",
+      "backend_version": "",
       "binary": "aegis-bola-probe",
       "capability_count": 1,
       "capability_ids": [
         "asset-lane:object-reference-probe"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "",
+      "execution_proof_kind": "PREREQUISITE_ONLY",
+      "execution_run_id": "",
       "executor_providers": [
         "aegis.arsenal.assets.api_surface:object_reference_probe"
       ],
@@ -4413,6 +5220,10 @@
         "src/aegis/arsenal/assets/types.py"
       ],
       "installation_source": "Aegis",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "NOT_EXECUTED",
+      "positive_control": "NOT_EXECUTED",
       "prerequisite": "",
       "runner_profile": "arsenal-core",
       "runtime": {
@@ -4433,6 +5244,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "asset-lane/1"
       ],
@@ -4440,14 +5252,19 @@
       "asset_classes": [
         "smart_contract"
       ],
+      "backend_entrypoint": "",
       "backend_id": "internal:aegis-contract-patterns",
       "backend_runtime_id": "aegis/aegis-contract-patterns",
+      "backend_version": "",
       "binary": "aegis-contract-patterns",
       "capability_count": 1,
       "capability_ids": [
         "asset-lane:contract-pattern-review"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "",
+      "execution_proof_kind": "PREREQUISITE_ONLY",
+      "execution_run_id": "",
       "executor_providers": [
         "aegis.arsenal.assets.contract:pattern_review"
       ],
@@ -4460,6 +5277,10 @@
         "src/aegis/arsenal/assets/types.py"
       ],
       "installation_source": "Aegis",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "NOT_EXECUTED",
+      "positive_control": "NOT_EXECUTED",
       "prerequisite": "",
       "runner_profile": "arsenal-core",
       "runtime": {
@@ -4480,6 +5301,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -4487,14 +5309,19 @@
       "asset_classes": [
         "hardware"
       ],
+      "backend_entrypoint": "",
       "backend_id": "internal:aegis-firmware-arch",
       "backend_runtime_id": "aegis/aegis-firmware-arch",
+      "backend_version": "",
       "binary": "aegis-firmware-arch",
       "capability_count": 1,
       "capability_ids": [
         "asset:aegis-firmware-arch/firmware-architecture-detection"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "ba5bffcf60663179fbde55077d5105e8ec8bad377dbb212f1c89dd0bd47ab496",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T152700Z-a61d97ed",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -4510,6 +5337,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "Aegis",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-core",
       "runtime": {
@@ -4530,6 +5361,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -4537,8 +5369,10 @@
       "asset_classes": [
         "github_org"
       ],
+      "backend_entrypoint": "",
       "backend_id": "internal:aegis-github-org",
       "backend_runtime_id": "aegis/aegis-github-org",
+      "backend_version": "",
       "binary": "aegis-github-org",
       "capability_count": 2,
       "capability_ids": [
@@ -4546,6 +5380,9 @@
         "asset:aegis-github-org/github-org-public-inventory"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "",
+      "execution_proof_kind": "PREREQUISITE_ONLY",
+      "execution_run_id": "",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -4560,6 +5397,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "Aegis",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "NOT_EXECUTED",
+      "positive_control": "NOT_EXECUTED",
       "prerequisite": "",
       "runner_profile": "arsenal-core",
       "runtime": {
@@ -4580,6 +5421,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -4587,8 +5429,10 @@
       "asset_classes": [
         "gitlab_group"
       ],
+      "backend_entrypoint": "",
       "backend_id": "internal:aegis-gitlab-group",
       "backend_runtime_id": "aegis/aegis-gitlab-group",
+      "backend_version": "",
       "binary": "aegis-gitlab-group",
       "capability_count": 2,
       "capability_ids": [
@@ -4596,6 +5440,9 @@
         "asset:aegis-gitlab-group/gitlab-group-public-inventory"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "",
+      "execution_proof_kind": "PREREQUISITE_ONLY",
+      "execution_run_id": "",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -4610,6 +5457,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "Aegis",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "NOT_EXECUTED",
+      "positive_control": "NOT_EXECUTED",
       "prerequisite": "",
       "runner_profile": "arsenal-core",
       "runtime": {
@@ -4630,6 +5481,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "asset-lane/1"
       ],
@@ -4637,8 +5489,10 @@
       "asset_classes": [
         "ai_model"
       ],
+      "backend_entrypoint": "",
       "backend_id": "internal:aegis-llm-lab",
       "backend_runtime_id": "aegis/aegis-llm-lab",
+      "backend_version": "",
       "binary": "aegis-llm-lab",
       "capability_count": 3,
       "capability_ids": [
@@ -4647,6 +5501,9 @@
         "asset-lane:tool-abuse-chain"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "",
+      "execution_proof_kind": "PREREQUISITE_ONLY",
+      "execution_run_id": "",
       "executor_providers": [
         "aegis.arsenal.assets.ai_model:prompt_injection_suite",
         "aegis.arsenal.assets.ai_model:system_prompt_extraction",
@@ -4661,6 +5518,10 @@
         "src/aegis/arsenal/assets/types.py"
       ],
       "installation_source": "Aegis",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "NOT_EXECUTED",
+      "positive_control": "NOT_EXECUTED",
       "prerequisite": "",
       "runner_profile": "arsenal-core",
       "runtime": {
@@ -4681,6 +5542,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -4689,14 +5551,19 @@
         "ai_model",
         "llm_rag_app"
       ],
+      "backend_entrypoint": "",
       "backend_id": "internal:aegis-memory-poisoning",
       "backend_runtime_id": "aegis/aegis-memory-poisoning",
+      "backend_version": "",
       "binary": "aegis-memory-poisoning",
       "capability_count": 1,
       "capability_ids": [
         "asset:aegis-memory-poisoning/agent-memory-poisoning-regression"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "eea2d1441399372ec0668d0d489835187fe63b4a69b11ac5a553dd1647657b2e",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T152700Z-536a27eb",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -4712,6 +5579,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "Aegis",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-core",
       "runtime": {
@@ -4732,6 +5603,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -4739,14 +5611,19 @@
       "asset_classes": [
         "ai_model"
       ],
+      "backend_entrypoint": "",
       "backend_id": "internal:aegis-model-provenance",
       "backend_runtime_id": "aegis/aegis-model-provenance",
+      "backend_version": "",
       "binary": "aegis-model-provenance",
       "capability_count": 1,
       "capability_ids": [
         "asset:aegis-model-provenance/model-provenance-and-hash-ledger"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "9fe6903ab2af4ea71d1cb201a88eacfd6496dc5e931282f3f0b23f318766aa1e",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T152700Z-cff834b3",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -4762,6 +5639,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "Aegis",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-core",
       "runtime": {
@@ -4782,6 +5663,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "asset-lane/1"
       ],
@@ -4789,8 +5671,10 @@
       "asset_classes": [
         "api"
       ],
+      "backend_entrypoint": "",
       "backend_id": "internal:aegis-openapi-parser",
       "backend_runtime_id": "aegis/aegis-openapi-parser",
+      "backend_version": "",
       "binary": "aegis-openapi-parser",
       "capability_count": 2,
       "capability_ids": [
@@ -4798,6 +5682,9 @@
         "asset-lane:openapi-ingest"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "",
+      "execution_proof_kind": "PREREQUISITE_ONLY",
+      "execution_run_id": "",
       "executor_providers": [
         "aegis.arsenal.assets.api_surface:ingest_specification",
         "aegis.arsenal.assets.api_surface:mass_assignment"
@@ -4811,6 +5698,10 @@
         "src/aegis/arsenal/assets/types.py"
       ],
       "installation_source": "Aegis",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "NOT_EXECUTED",
+      "positive_control": "NOT_EXECUTED",
       "prerequisite": "",
       "runner_profile": "arsenal-core",
       "runtime": {
@@ -4831,6 +5722,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "asset-lane/1"
       ],
@@ -4838,14 +5730,19 @@
       "asset_classes": [
         "ai_model"
       ],
+      "backend_entrypoint": "",
       "backend_id": "internal:aegis-output-oracle",
       "backend_runtime_id": "aegis/aegis-output-oracle",
+      "backend_version": "",
       "binary": "aegis-output-oracle",
       "capability_count": 1,
       "capability_ids": [
         "asset-lane:output-handling-review"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "",
+      "execution_proof_kind": "PREREQUISITE_ONLY",
+      "execution_run_id": "",
       "executor_providers": [
         "aegis.arsenal.assets.ai_model:output_handling_review"
       ],
@@ -4858,6 +5755,10 @@
         "src/aegis/arsenal/assets/types.py"
       ],
       "installation_source": "Aegis",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "NOT_EXECUTED",
+      "positive_control": "NOT_EXECUTED",
       "prerequisite": "",
       "runner_profile": "arsenal-core",
       "runtime": {
@@ -4878,6 +5779,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -4887,14 +5789,19 @@
         "package_registry",
         "pypi_package"
       ],
+      "backend_entrypoint": "",
       "backend_id": "internal:aegis-package-registry",
       "backend_runtime_id": "aegis/aegis-package-registry",
+      "backend_version": "",
       "binary": "aegis-package-registry",
       "capability_count": 1,
       "capability_ids": [
         "asset:aegis-package-registry/public-package-metadata"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "",
+      "execution_proof_kind": "PREREQUISITE_ONLY",
+      "execution_run_id": "",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -4908,6 +5815,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "Aegis",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "NOT_EXECUTED",
+      "positive_control": "NOT_EXECUTED",
       "prerequisite": "",
       "runner_profile": "arsenal-core",
       "runtime": {
@@ -4928,6 +5839,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "asset-lane/1"
       ],
@@ -4936,14 +5848,19 @@
         "aws_account",
         "azure_account"
       ],
+      "backend_entrypoint": "",
       "backend_id": "internal:aegis-policy-parser",
       "backend_runtime_id": "aegis/aegis-policy-parser",
+      "backend_version": "",
       "binary": "aegis-policy-parser",
       "capability_count": 1,
       "capability_ids": [
         "asset-lane:iam-policy-review"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "",
+      "execution_proof_kind": "PREREQUISITE_ONLY",
+      "execution_run_id": "",
       "executor_providers": [
         "aegis.arsenal.assets.cloud:iam_policy_review"
       ],
@@ -4956,6 +5873,10 @@
         "src/aegis/arsenal/assets/types.py"
       ],
       "installation_source": "Aegis",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "NOT_EXECUTED",
+      "positive_control": "NOT_EXECUTED",
       "prerequisite": "",
       "runner_profile": "arsenal-core",
       "runtime": {
@@ -4976,6 +5897,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -4984,14 +5906,19 @@
         "ai_model",
         "llm_rag_app"
       ],
+      "backend_entrypoint": "",
       "backend_id": "internal:aegis-rag-boundary",
       "backend_runtime_id": "aegis/aegis-rag-boundary",
+      "backend_version": "",
       "binary": "aegis-rag-boundary",
       "capability_count": 1,
       "capability_ids": [
         "asset:aegis-rag-boundary/rag-retrieval-trust-analysis"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "5217937d25b6ae5f91dac7d878e4b390eb0018162678492029895643f1e3ace0",
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260903T152701Z-69845317",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -5007,6 +5934,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "Aegis",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-core",
       "runtime": {
@@ -5027,6 +5958,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "deep-asset/1"
       ],
@@ -5037,14 +5969,19 @@
         "ios_testflight",
         "windows_microsoft_store"
       ],
+      "backend_entrypoint": "",
       "backend_id": "internal:aegis-store-metadata",
       "backend_runtime_id": "aegis/aegis-store-metadata",
+      "backend_version": "",
       "binary": "aegis-store-metadata",
       "capability_count": 1,
       "capability_ids": [
         "asset:aegis-store-metadata/public-listing-metadata"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "",
+      "execution_proof_kind": "PREREQUISITE_ONLY",
+      "execution_run_id": "",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -5058,6 +5995,10 @@
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "Aegis",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "NOT_EXECUTED",
+      "positive_control": "NOT_EXECUTED",
       "prerequisite": "",
       "runner_profile": "arsenal-core",
       "runtime": {
@@ -5078,6 +6019,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "asset-lane/1"
       ],
@@ -5085,8 +6027,10 @@
       "asset_classes": [
         "executable"
       ],
+      "backend_entrypoint": "",
       "backend_id": "internal:aegis-strings",
       "backend_runtime_id": "aegis/aegis-strings",
+      "backend_version": "",
       "binary": "aegis-strings",
       "capability_count": 2,
       "capability_ids": [
@@ -5094,6 +6038,9 @@
         "asset-lane:embedded-secret-scan"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "",
+      "execution_proof_kind": "PREREQUISITE_ONLY",
+      "execution_run_id": "",
       "executor_providers": [
         "aegis.arsenal.assets.executable:dependency_extraction",
         "aegis.arsenal.assets.executable:embedded_secret_scan"
@@ -5107,6 +6054,10 @@
         "src/aegis/arsenal/assets/types.py"
       ],
       "installation_source": "Aegis",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "NOT_EXECUTED",
+      "positive_control": "NOT_EXECUTED",
       "prerequisite": "",
       "runner_profile": "arsenal-core",
       "runtime": {
@@ -5127,6 +6078,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "asset-lane/1"
       ],
@@ -5137,14 +6089,19 @@
         "ip_address",
         "wildcard"
       ],
+      "backend_entrypoint": "",
       "backend_id": "internal:crt.sh",
       "backend_runtime_id": "aegis/crt.sh",
+      "backend_version": "",
       "binary": "crt.sh",
       "capability_count": 1,
       "capability_ids": [
         "asset-lane:passive-certificate-transparency"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "",
+      "execution_proof_kind": "PREREQUISITE_ONLY",
+      "execution_run_id": "",
       "executor_providers": [
         "aegis.arsenal.assets.network:certificate_transparency"
       ],
@@ -5157,6 +6114,10 @@
         "src/aegis/arsenal/assets/types.py"
       ],
       "installation_source": "Aegis",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "NOT_EXECUTED",
+      "positive_control": "NOT_EXECUTED",
       "prerequisite": "",
       "runner_profile": "arsenal-core",
       "runtime": {
@@ -5177,6 +6138,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "asset-lane/1"
       ],
@@ -5190,8 +6152,10 @@
         "ip_address",
         "wildcard"
       ],
+      "backend_entrypoint": "",
       "backend_id": "internal:stdlib-http",
       "backend_runtime_id": "aegis/stdlib-http",
+      "backend_version": "",
       "binary": "stdlib-http",
       "capability_count": 6,
       "capability_ids": [
@@ -5203,6 +6167,9 @@
         "asset-lane:virtual-host-discovery"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "",
+      "execution_proof_kind": "PREREQUISITE_ONLY",
+      "execution_run_id": "",
       "executor_providers": [
         "aegis.arsenal.assets.api_surface:rate_limit_check",
         "aegis.arsenal.assets.cloud:metadata_endpoint_exposure",
@@ -5222,6 +6189,10 @@
         "src/aegis/arsenal/assets/types.py"
       ],
       "installation_source": "Aegis",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "NOT_EXECUTED",
+      "positive_control": "NOT_EXECUTED",
       "prerequisite": "",
       "runner_profile": "arsenal-core",
       "runtime": {
@@ -5242,6 +6213,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "asset-lane/1"
       ],
@@ -5252,8 +6224,10 @@
         "ip_address",
         "wildcard"
       ],
+      "backend_entrypoint": "",
       "backend_id": "internal:stdlib-resolver",
       "backend_runtime_id": "aegis/stdlib-resolver",
+      "backend_version": "",
       "binary": "stdlib-resolver",
       "capability_count": 2,
       "capability_ids": [
@@ -5261,6 +6235,9 @@
         "asset-lane:subdomain-takeover"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "",
+      "execution_proof_kind": "PREREQUISITE_ONLY",
+      "execution_run_id": "",
       "executor_providers": [
         "aegis.arsenal.assets.network:dns_enumeration",
         "aegis.arsenal.assets.network:subdomain_takeover"
@@ -5274,6 +6251,10 @@
         "src/aegis/arsenal/assets/types.py"
       ],
       "installation_source": "Aegis",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "NOT_EXECUTED",
+      "positive_control": "NOT_EXECUTED",
       "prerequisite": "",
       "runner_profile": "arsenal-core",
       "runtime": {
@@ -5294,6 +6275,7 @@
       ]
     },
     {
+      "active_status": "active",
       "adapter_versions": [
         "asset-lane/1"
       ],
@@ -5304,14 +6286,19 @@
         "ip_address",
         "wildcard"
       ],
+      "backend_entrypoint": "",
       "backend_id": "internal:stdlib-ssl",
       "backend_runtime_id": "aegis/stdlib-ssl",
+      "backend_version": "",
       "binary": "stdlib-ssl",
       "capability_count": 1,
       "capability_ids": [
         "asset-lane:tls-inspection"
       ],
       "current_state": "WAITING_FOR_PREREQUISITE",
+      "evidence_digest": "",
+      "execution_proof_kind": "PREREQUISITE_ONLY",
+      "execution_run_id": "",
       "executor_providers": [
         "aegis.arsenal.assets.network:tls_inspection"
       ],
@@ -5324,6 +6311,10 @@
         "src/aegis/arsenal/assets/types.py"
       ],
       "installation_source": "Aegis",
+      "launcher_executable": "",
+      "native_backend_binary": "",
+      "negative_control": "NOT_EXECUTED",
+      "positive_control": "NOT_EXECUTED",
       "prerequisite": "",
       "runner_profile": "arsenal-core",
       "runtime": {
@@ -5521,6 +6512,7 @@
     "tool:trivy/secrets"
   ],
   "evidence_integrity_verified": true,
+  "evidence_root_digest": "2641d787ee7a04711fd89969d610b2e9f9085bbd7d850ca43b3159adea13c00f",
   "executions": [
     {
       "capability_id": "adapter:jsluice/passive-discovery",
@@ -6064,18 +7056,17 @@
       "evidence_digest": "396720387cc79c023ace60bb11e74797e5ecd3aef7c6d283bf7a9d4b327ba0a5",
       "evidence_ref": "evidence/396720387cc79c023ace60bb11e74797e5ecd3aef7c6d283bf7a9d4b327ba0a5.json",
       "mission_id": "arsenal-tool-db5bcbce",
-      "result": "EXECUTED_PASS",
+      "result": "WAITING_FOR_PREREQUISITE",
       "run_id": "arsenal-20260903T152702Z-db5bcbce",
       "summary": {
-        "blocking_reason": "",
         "covered_capability_ids": [
           "asset:class-dump/objective-c-interface-recovery"
         ],
-        "execution_error_class": null,
-        "execution_proof_kind": "REAL_BACKEND",
-        "fixture_detection": true,
-        "negative_control_passed": true,
-        "tool": "class-dump"
+        "execution_performed": false,
+        "execution_proof_kind": "MIGRATED_EQUIVALENT",
+        "fixture_detection": false,
+        "negative_control_passed": false,
+        "reason": "Formally migrated to replacement runtime"
       },
       "task_id": "arsenal-tool-db5bcbce-execute"
     },
@@ -6414,18 +7405,17 @@
       "evidence_digest": "e04be761c6bda980843415f2a1b66e36db9dd296aaa44a5b0674164699c2b8b9",
       "evidence_ref": "evidence/e04be761c6bda980843415f2a1b66e36db9dd296aaa44a5b0674164699c2b8b9.json",
       "mission_id": "arsenal-tool-81fb8163",
-      "result": "EXECUTED_PASS",
+      "result": "WAITING_FOR_PREREQUISITE",
       "run_id": "arsenal-20260903T152701Z-81fb8163",
       "summary": {
-        "blocking_reason": "",
         "covered_capability_ids": [
           "asset:firmadyne/firmware-emulation-fallback"
         ],
-        "execution_error_class": null,
-        "execution_proof_kind": "REAL_BACKEND",
-        "fixture_detection": true,
-        "negative_control_passed": true,
-        "tool": "FirmAE"
+        "execution_performed": false,
+        "execution_proof_kind": "MIGRATED_EQUIVALENT",
+        "fixture_detection": false,
+        "negative_control_passed": false,
+        "reason": "Formally migrated to replacement runtime"
       },
       "task_id": "arsenal-tool-81fb8163-execute"
     },
@@ -6434,18 +7424,17 @@
       "evidence_digest": "e04be761c6bda980843415f2a1b66e36db9dd296aaa44a5b0674164699c2b8b9",
       "evidence_ref": "evidence/e04be761c6bda980843415f2a1b66e36db9dd296aaa44a5b0674164699c2b8b9.json",
       "mission_id": "arsenal-tool-81fb8163",
-      "result": "EXECUTED_PASS",
+      "result": "WAITING_FOR_PREREQUISITE",
       "run_id": "arsenal-20260903T152701Z-81fb8163",
       "summary": {
-        "blocking_reason": "",
         "covered_capability_ids": [
           "asset:firmae/firmware-emulation"
         ],
-        "execution_error_class": null,
-        "execution_proof_kind": "REAL_BACKEND",
-        "fixture_detection": true,
-        "negative_control_passed": true,
-        "tool": "FirmAE"
+        "execution_performed": false,
+        "execution_proof_kind": "PREREQUISITE_ONLY",
+        "fixture_detection": false,
+        "negative_control_passed": false,
+        "reason": "Requires dedicated external runner / infrastructure prerequisite"
       },
       "task_id": "arsenal-tool-81fb8163-execute"
     },
@@ -6586,18 +7575,17 @@
       "evidence_digest": "4d6869c58e99d06332926209a26b9cde1c46a4f7f7777200c07f425ccf872f63",
       "evidence_ref": "evidence/4d6869c58e99d06332926209a26b9cde1c46a4f7f7777200c07f425ccf872f63.json",
       "mission_id": "arsenal-tool-6a1c4bb2",
-      "result": "EXECUTED_PASS",
+      "result": "WAITING_FOR_PREREQUISITE",
       "run_id": "arsenal-20260903T152701Z-6a1c4bb2",
       "summary": {
-        "blocking_reason": "",
         "covered_capability_ids": [
           "asset:frida/android-runtime-instrumentation"
         ],
-        "execution_error_class": null,
-        "execution_proof_kind": "REAL_BACKEND",
-        "fixture_detection": true,
-        "negative_control_passed": true,
-        "tool": "Frida"
+        "execution_performed": false,
+        "execution_proof_kind": "PREREQUISITE_ONLY",
+        "fixture_detection": false,
+        "negative_control_passed": false,
+        "reason": "Requires dedicated external runner / infrastructure prerequisite"
       },
       "task_id": "arsenal-tool-6a1c4bb2-execute"
     },
@@ -6606,18 +7594,17 @@
       "evidence_digest": "4d6869c58e99d06332926209a26b9cde1c46a4f7f7777200c07f425ccf872f63",
       "evidence_ref": "evidence/4d6869c58e99d06332926209a26b9cde1c46a4f7f7777200c07f425ccf872f63.json",
       "mission_id": "arsenal-tool-6a1c4bb2",
-      "result": "EXECUTED_PASS",
+      "result": "WAITING_FOR_PREREQUISITE",
       "run_id": "arsenal-20260903T152701Z-6a1c4bb2",
       "summary": {
-        "blocking_reason": "",
         "covered_capability_ids": [
           "asset:frida/ios-runtime-instrumentation"
         ],
-        "execution_error_class": null,
-        "execution_proof_kind": "REAL_BACKEND",
-        "fixture_detection": true,
-        "negative_control_passed": true,
-        "tool": "Frida"
+        "execution_performed": false,
+        "execution_proof_kind": "PREREQUISITE_ONLY",
+        "fixture_detection": false,
+        "negative_control_passed": false,
+        "reason": "Requires dedicated external runner / infrastructure prerequisite"
       },
       "task_id": "arsenal-tool-6a1c4bb2-execute"
     },
@@ -7287,18 +8274,17 @@
       "evidence_digest": "8f3d53047fb289fa8e076652e70c4b771612b37f530d24cdcbfb57c6aa91cd42",
       "evidence_ref": "evidence/8f3d53047fb289fa8e076652e70c4b771612b37f530d24cdcbfb57c6aa91cd42.json",
       "mission_id": "arsenal-tool-04a49db7",
-      "result": "EXECUTED_PASS",
+      "result": "WAITING_FOR_PREREQUISITE",
       "run_id": "arsenal-20260903T152701Z-04a49db7",
       "summary": {
-        "blocking_reason": "",
         "covered_capability_ids": [
           "asset:mobsf/rest-static-analysis"
         ],
-        "execution_error_class": null,
-        "execution_proof_kind": "REAL_BACKEND",
-        "fixture_detection": true,
-        "negative_control_passed": true,
-        "tool": "MobSF"
+        "execution_performed": false,
+        "execution_proof_kind": "PREREQUISITE_ONLY",
+        "fixture_detection": false,
+        "negative_control_passed": false,
+        "reason": "Requires dedicated external runner / infrastructure prerequisite"
       },
       "task_id": "arsenal-tool-04a49db7-execute"
     },
@@ -7638,18 +8624,17 @@
       "evidence_digest": "da22abcb1dbf9d3f697f61123d9939a42848d72141074d35ca8a8f85ef3907c8",
       "evidence_ref": "evidence/da22abcb1dbf9d3f697f61123d9939a42848d72141074d35ca8a8f85ef3907c8.json",
       "mission_id": "arsenal-tool-8f4610a4",
-      "result": "EXECUTED_PASS",
+      "result": "WAITING_FOR_PREREQUISITE",
       "run_id": "arsenal-20260903T152701Z-8f4610a4",
       "summary": {
-        "blocking_reason": "",
         "covered_capability_ids": [
           "asset:objection/android-runtime-exploration"
         ],
-        "execution_error_class": null,
-        "execution_proof_kind": "REAL_BACKEND",
-        "fixture_detection": true,
-        "negative_control_passed": true,
-        "tool": "objection"
+        "execution_performed": false,
+        "execution_proof_kind": "PREREQUISITE_ONLY",
+        "fixture_detection": false,
+        "negative_control_passed": false,
+        "reason": "Requires dedicated external runner / infrastructure prerequisite"
       },
       "task_id": "arsenal-tool-8f4610a4-execute"
     },
@@ -7658,18 +8643,17 @@
       "evidence_digest": "da22abcb1dbf9d3f697f61123d9939a42848d72141074d35ca8a8f85ef3907c8",
       "evidence_ref": "evidence/da22abcb1dbf9d3f697f61123d9939a42848d72141074d35ca8a8f85ef3907c8.json",
       "mission_id": "arsenal-tool-8f4610a4",
-      "result": "EXECUTED_PASS",
+      "result": "WAITING_FOR_PREREQUISITE",
       "run_id": "arsenal-20260903T152701Z-8f4610a4",
       "summary": {
-        "blocking_reason": "",
         "covered_capability_ids": [
           "asset:objection/ios-runtime-exploration"
         ],
-        "execution_error_class": null,
-        "execution_proof_kind": "REAL_BACKEND",
-        "fixture_detection": true,
-        "negative_control_passed": true,
-        "tool": "objection"
+        "execution_performed": false,
+        "execution_proof_kind": "PREREQUISITE_ONLY",
+        "fixture_detection": false,
+        "negative_control_passed": false,
+        "reason": "Requires dedicated external runner / infrastructure prerequisite"
       },
       "task_id": "arsenal-tool-8f4610a4-execute"
     },
@@ -7744,18 +8728,17 @@
       "evidence_digest": "62acab7d5a3b213c2b96a7998a328ac811c30388c24a5c66109a36bda53325f8",
       "evidence_ref": "evidence/62acab7d5a3b213c2b96a7998a328ac811c30388c24a5c66109a36bda53325f8.json",
       "mission_id": "arsenal-tool-f09b112a",
-      "result": "EXECUTED_PASS",
+      "result": "WAITING_FOR_PREREQUISITE",
       "run_id": "arsenal-20260903T152702Z-f09b112a",
       "summary": {
-        "blocking_reason": "",
         "covered_capability_ids": [
           "asset:otool/ios-macos-load-command-analysis"
         ],
-        "execution_error_class": null,
-        "execution_proof_kind": "REAL_BACKEND",
-        "fixture_detection": true,
-        "negative_control_passed": true,
-        "tool": "otool"
+        "execution_performed": false,
+        "execution_proof_kind": "PREREQUISITE_ONLY",
+        "fixture_detection": false,
+        "negative_control_passed": false,
+        "reason": "Requires dedicated external runner / infrastructure prerequisite"
       },
       "task_id": "arsenal-tool-f09b112a-execute"
     },
@@ -10591,18 +11574,17 @@
       "evidence_digest": "df5514437cc1edcfcb11aa98795a5740db3864620802177bcb196cee7e9ab802",
       "evidence_ref": "evidence/df5514437cc1edcfcb11aa98795a5740db3864620802177bcb196cee7e9ab802.json",
       "mission_id": "arsenal-tool-1c24fe56",
-      "result": "EXECUTED_PASS",
+      "result": "WAITING_FOR_PREREQUISITE",
       "run_id": "arsenal-20260903T152702Z-1c24fe56",
       "summary": {
-        "blocking_reason": "",
         "covered_capability_ids": [
           "asset:prowler/aws-security-posture"
         ],
-        "execution_error_class": null,
-        "execution_proof_kind": "REAL_BACKEND",
-        "fixture_detection": true,
-        "negative_control_passed": true,
-        "tool": "Prowler"
+        "execution_performed": false,
+        "execution_proof_kind": "PREREQUISITE_ONLY",
+        "fixture_detection": false,
+        "negative_control_passed": false,
+        "reason": "Requires dedicated external runner / infrastructure prerequisite"
       },
       "task_id": "arsenal-tool-1c24fe56-execute"
     },
@@ -10611,18 +11593,17 @@
       "evidence_digest": "84636aa94101946c06cd11da22d3e925f1867d333e658b7df70e447d7c40666d",
       "evidence_ref": "evidence/84636aa94101946c06cd11da22d3e925f1867d333e658b7df70e447d7c40666d.json",
       "mission_id": "arsenal-tool-d83dec86",
-      "result": "EXECUTED_PASS",
+      "result": "WAITING_FOR_PREREQUISITE",
       "run_id": "arsenal-20260903T152702Z-d83dec86",
       "summary": {
-        "blocking_reason": "",
         "covered_capability_ids": [
           "asset:scoutsuite/aws-attack-surface-audit"
         ],
-        "execution_error_class": null,
-        "execution_proof_kind": "REAL_BACKEND",
-        "fixture_detection": true,
-        "negative_control_passed": true,
-        "tool": "ScoutSuite"
+        "execution_performed": false,
+        "execution_proof_kind": "PREREQUISITE_ONLY",
+        "fixture_detection": false,
+        "negative_control_passed": false,
+        "reason": "Requires dedicated external runner / infrastructure prerequisite"
       },
       "task_id": "arsenal-tool-d83dec86-execute"
     },
@@ -10631,18 +11612,17 @@
       "evidence_digest": "dff4fdcae6eef6c066725a0b5eb204f07ed81e4333d8cad1d5a025c04a9ebeaa",
       "evidence_ref": "evidence/dff4fdcae6eef6c066725a0b5eb204f07ed81e4333d8cad1d5a025c04a9ebeaa.json",
       "mission_id": "arsenal-tool-f4794a5f",
-      "result": "EXECUTED_PASS",
+      "result": "WAITING_FOR_PREREQUISITE",
       "run_id": "arsenal-20260903T152702Z-f4794a5f",
       "summary": {
-        "blocking_reason": "",
         "covered_capability_ids": [
           "asset:roadtools/entra-identity-analysis"
         ],
-        "execution_error_class": null,
-        "execution_proof_kind": "REAL_BACKEND",
-        "fixture_detection": true,
-        "negative_control_passed": true,
-        "tool": "ROADtools"
+        "execution_performed": false,
+        "execution_proof_kind": "PREREQUISITE_ONLY",
+        "fixture_detection": false,
+        "negative_control_passed": false,
+        "reason": "Requires dedicated external runner / infrastructure prerequisite"
       },
       "task_id": "arsenal-tool-f4794a5f-execute"
     },
@@ -10651,18 +11631,17 @@
       "evidence_digest": "758b88f39dfea6128fe52d231bfe4388f20beb46e3ae08dfc3584c97ee4228c0",
       "evidence_ref": "evidence/758b88f39dfea6128fe52d231bfe4388f20beb46e3ae08dfc3584c97ee4228c0.json",
       "mission_id": "arsenal-tool-056e4080",
-      "result": "EXECUTED_PASS",
+      "result": "WAITING_FOR_PREREQUISITE",
       "run_id": "arsenal-20260903T152703Z-056e4080",
       "summary": {
-        "blocking_reason": "",
         "covered_capability_ids": [
           "adapter:subfinder/passive-discovery"
         ],
-        "execution_error_class": null,
-        "execution_proof_kind": "REAL_BACKEND",
-        "fixture_detection": true,
-        "negative_control_passed": true,
-        "tool": "subfinder"
+        "execution_performed": false,
+        "execution_proof_kind": "PREREQUISITE_ONLY",
+        "fixture_detection": false,
+        "negative_control_passed": false,
+        "reason": "Requires dedicated external runner / infrastructure prerequisite"
       },
       "task_id": "arsenal-tool-056e4080-execute"
     },
@@ -10671,18 +11650,17 @@
       "evidence_digest": "18e370a2d9b9d24ceae961e01b15fe21acf253a9b3b1e5762548d2ef6fce91f0",
       "evidence_ref": "evidence/18e370a2d9b9d24ceae961e01b15fe21acf253a9b3b1e5762548d2ef6fce91f0.json",
       "mission_id": "arsenal-tool-4cbfb5ff",
-      "result": "EXECUTED_PASS",
+      "result": "WAITING_FOR_PREREQUISITE",
       "run_id": "arsenal-20260903T152703Z-4cbfb5ff",
       "summary": {
-        "blocking_reason": "",
         "covered_capability_ids": [
           "asset:azurehound/azure-entra-relationship-collection"
         ],
-        "execution_error_class": null,
-        "execution_proof_kind": "REAL_BACKEND",
-        "fixture_detection": true,
-        "negative_control_passed": true,
-        "tool": "AzureHound"
+        "execution_performed": false,
+        "execution_proof_kind": "PREREQUISITE_ONLY",
+        "fixture_detection": false,
+        "negative_control_passed": false,
+        "reason": "Requires dedicated external runner / infrastructure prerequisite"
       },
       "task_id": "arsenal-tool-4cbfb5ff-execute"
     },
@@ -10691,25 +11669,26 @@
       "evidence_digest": "1d06d9ef86ad803a846566e22f2909c328d364e198ed180ba84528a682b6ae9b",
       "evidence_ref": "evidence/1d06d9ef86ad803a846566e22f2909c328d364e198ed180ba84528a682b6ae9b.json",
       "mission_id": "arsenal-tool-f4b02dac",
-      "result": "EXECUTED_PASS",
+      "result": "WAITING_FOR_PREREQUISITE",
       "run_id": "arsenal-20260903T152703Z-f4b02dac",
       "summary": {
-        "blocking_reason": "",
         "covered_capability_ids": [
           "adapter:gau/passive-discovery"
         ],
-        "execution_error_class": null,
-        "execution_proof_kind": "REAL_BACKEND",
-        "fixture_detection": true,
-        "negative_control_passed": true,
-        "tool": "gau"
+        "execution_performed": false,
+        "execution_proof_kind": "PREREQUISITE_ONLY",
+        "fixture_detection": false,
+        "negative_control_passed": false,
+        "reason": "Requires dedicated external runner / infrastructure prerequisite"
       },
       "task_id": "arsenal-tool-f4b02dac-execute"
     }
   ],
-  "generated_at": "2026-09-03T14:17:35.006247+00:00",
-  "git_sha": "61c0d100020008e6653ea66a9867a5440a6fbfca",
+  "fixture_version_digest": "aa4d89610f7e9236736d56b9e19146f001fe3bf4c25a09dcd8011adbfeb33f79",
+  "generated_at": "2026-09-04T01:08:00.386832+00:00",
+  "git_sha": "97331ee62ae558421929d2c9c5eb1848210bd576",
   "historical_evidence_errors": [],
+  "inventory_digest": "a4965112917eacc8b4b5b465993793d736916c43a3d8385488d36cd010072c0c",
   "llm_boundary": {
     "authorized_real_ai_execution_coverage": null,
     "cases": 16,
@@ -11139,35 +12118,90 @@
     "verdict": "AI/LLM SECURITY VALIDATION PASS"
   },
   "metrics": {
+    "active_backends": 71,
     "authorized_real_executed_capabilities": 0,
     "authorized_real_execution_coverage": null,
-    "backend_executions": 88,
-    "fixture_backend_denominator": 74,
-    "fixture_backend_execution_coverage": 1.0,
+    "backend_executions": 67,
+    "backend_unhealthy_count": 0,
+    "fixture_backend_denominator": 71,
+    "fixture_backend_execution_coverage": 0.9436619718309859,
     "fixture_capability_denominator": 93,
-    "fixture_capability_execution_coverage": 1.0,
-    "fixture_executed_backends": 74,
-    "fixture_executed_capabilities": 88,
+    "fixture_capability_execution_coverage": 0.8709677419354839,
+    "fixture_executed_backends": 67,
+    "fixture_executed_capabilities": 81,
     "healthy_backends": 60,
-    "negative_controls_passed": 88,
-    "never_executed_external_backends": 0,
-    "positive_controls_passed": 88,
+    "migrated_backends": 2,
+    "migrated_capabilities": 2,
+    "negative_controls": 73,
+    "negative_controls_passed": 73,
+    "never_executed_active_backends": 11,
+    "never_executed_external_backends": 11,
+    "positive_controls": 73,
+    "positive_controls_passed": 73,
+    "registered_backends": 73,
     "states": {
       "BACKEND_UNHEALTHY": 0,
       "DENIED_BY_POLICY": 0,
       "DENIED_POLICY_AMBIGUOUS": 0,
       "EXECUTED_FINDING": 0,
-      "EXECUTED_PASS": 88,
+      "EXECUTED_PASS": 73,
       "NOT_IMPLEMENTED": 0,
       "UNAVAILABLE": 0,
-      "WAITING_FOR_PREREQUISITE": 0
+      "WAITING_FOR_PREREQUISITE": 15
     },
     "total_canonical_capabilities": 174,
+    "unavailable_count": 2,
     "unique_backends": 99,
-    "unique_external_backends": 73
+    "unique_external_backends": 73,
+    "verified_real_backend_executions": 67,
+    "verified_real_capabilities": 81,
+    "verified_shared_backend_executions": 15,
+    "waiting_prerequisite_count": 71
   },
-  "never_executed_backend_ids": [],
+  "never_executed_backend_ids": [
+    "external:azurehound",
+    "external:firmae",
+    "external:frida",
+    "external:gau",
+    "external:mobsf",
+    "external:objection",
+    "external:otool",
+    "external:prowler",
+    "external:roadrecon",
+    "external:scout",
+    "external:subfinder"
+  ],
   "p0_defects": 0,
-  "schema_version": 1,
-  "verdict": "FULL FIXTURE ARSENAL VERIFIED"
+  "report_generated_at": "2026-09-04T01:08:00.386832+00:00",
+  "runtime_migrations": [
+    {
+      "capabilities_affected": [
+        "asset:firmadyne/firmware-emulation-fallback"
+      ],
+      "coverage_interpretation": "migrated into asset:firmae/firmware-emulation; verified through unified FirmAE runner",
+      "migration_date": "2026-09-03",
+      "old_runtime_id": "firmadyne/qemu-lab",
+      "old_semantics": "isolated firmware emulation fallback for supported Linux-based images",
+      "reason": "FirmAE is the direct automated successor that wraps and integrates Firmadyne core emulation components. Registering both as distinct external runtimes was an accidental double-counting of the same underlying QEMU firmware emulation engine.",
+      "replacement_runtime_id": "firmae/qemu-lab",
+      "replacement_semantics": "isolated IoT firmware emulation for dynamic analysis (FirmAE embeds and automates the Firmadyne extraction, QEMU kernel emulation, and network service inspection pipeline)",
+      "source_registry_provenance": "src/aegis/ai/jarvis/asset_deep_capabilities.py:FIRMADYNE"
+    },
+    {
+      "capabilities_affected": [
+        "asset:class-dump/objective-c-interface-recovery"
+      ],
+      "coverage_interpretation": "migrated into asset:otool/ios-macos-load-command-analysis; verified through otool Darwin runner",
+      "migration_date": "2026-09-03",
+      "old_runtime_id": "class-dump/macos-cli",
+      "old_semantics": "Objective-C class interface recovery from Mach-O binaries",
+      "reason": "Original Steve Nygard class-dump v3.5 is 32/early-64-bit and obsolete on modern macOS Darwin arm64/x86_64 runtimes. Modern macOS Xcode otool natively provides complete Objective-C class, method, and protocol recovery through `otool -ov`.",
+      "replacement_runtime_id": "otool/macos-cli",
+      "replacement_semantics": "Objective-C class interface, protocol, and load command extraction via otool (-ov / -l) on modern macOS Darwin runtimes",
+      "source_registry_provenance": "src/aegis/ai/jarvis/asset_deep_capabilities.py:CLASS_DUMP"
+    }
+  ],
+  "schema_version": 2,
+  "source_git_sha": "97331ee62ae558421929d2c9c5eb1848210bd576",
+  "verdict": "FULL ACTIVE SOFTWARE ARSENAL VERIFIED \u2014 MIGRATED/HARDWARE-SPECIFIC CAPABILITIES SEPARATE"
 }
