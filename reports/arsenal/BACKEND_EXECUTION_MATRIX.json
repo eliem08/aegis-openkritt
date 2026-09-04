@@ -20,8 +20,15 @@
     "capability_ids": [
       "asset:ghidra/headless-binary-analysis"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "ea77b11f8d8c0d7331b1348061e425e8d3fbc41694bf537aa8afd5eef52613f2",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141204Z-fa334d23",
     "executor_providers": [
@@ -37,6 +44,7 @@
     "fixture_providers": [
       "fixture:asset:ghidra:headless-binary-analysis"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -82,8 +90,15 @@
     "capability_ids": [
       "asset:angr/binary-control-flow-analysis"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "4b9c7b081fc3a1924b5ad37376e3d85ea7f644c73da49ba2a11f4a62c03080d1",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141013Z-d59edeee",
     "executor_providers": [
@@ -99,6 +114,7 @@
     "fixture_providers": [
       "fixture:asset:angr:binary-control-flow-analysis"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -145,8 +161,15 @@
     "capability_ids": [
       "asset:apktool/android-resource-and-manifest-decode"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "9aceee7c0c660629f76133d463ce6dfdc0352bc5b87800ba956368519663eeea",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141017Z-b4944f6f",
     "executor_providers": [
@@ -162,6 +185,7 @@
     "fixture_providers": [
       "fixture:asset:apktool:android-resource-and-manifest-decode"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -207,8 +231,15 @@
     "capability_ids": [
       "asset:electron-asar/electron-package-extraction"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "8020759e6614d57dce53566dc427f47f0190a9fc7a4617a4f82fd79b3b73b081",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141137Z-94b14ccd",
     "executor_providers": [
@@ -222,6 +253,7 @@
     "fixture_providers": [
       "fixture:asset:electron-asar:electron-package-extraction"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -267,8 +299,15 @@
     "capability_ids": [
       "asset:azurehound/azure-entra-relationship-collection"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "PREREQUISITE_ONLY",
     "execution_run_id": "",
     "executor_providers": [
@@ -280,6 +319,7 @@
     "fixture_providers": [
       "fixture:asset:azurehound:azure-entra-relationship-collection"
     ],
+    "global_execution_state": "WAITING_FOR_PREREQUISITE",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -329,8 +369,15 @@
       "asset:bandit/python-security-static-analysis",
       "tool:bandit/code"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "c435cc88ed86c92621212e3f98d2e4ef277ebdc9414b50df70b1c0ca869d24d3",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141440Z-10af6d59",
     "executor_providers": [
@@ -350,6 +397,7 @@
       "fixture:asset:bandit:python-security-static-analysis",
       "fixture:scanner:bandit"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "aegis/arsenal/assets/source.py",
       "src/aegis/ai/jarvis/asset_deep_capabilities.py",
@@ -402,8 +450,15 @@
     "capability_ids": [
       "asset:binwalk/firmware-structure-analysis"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "a8dc7d9d22708304eb21905723f8bb206948ec449c221c30316ac83b43822b56",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141021Z-12205524",
     "executor_providers": [
@@ -419,6 +474,7 @@
     "fixture_providers": [
       "fixture:asset:binwalk:firmware-structure-analysis"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -466,8 +522,15 @@
       "asset:brakeman/rails-security-static-analysis",
       "tool:brakeman/code"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "37d990c098db7537181526079bc145d47418fb569e226fbc5749ad2c18dd2ef9",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141441Z-2fe8effc",
     "executor_providers": [
@@ -486,6 +549,7 @@
       "fixture:asset:brakeman:rails-security-static-analysis",
       "fixture:scanner:brakeman"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py",
       "src/aegis/ai/tool_bridge.py",
@@ -536,8 +600,15 @@
     "capability_ids": [
       "asset:capa/binary-capability-analysis"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "dc91c77ca9ef0e06d3ac117fb4fa55e68eec311cd46b52f6e99615804f4104fa",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141022Z-646e1cd3",
     "executor_providers": [
@@ -553,6 +624,7 @@
     "fixture_providers": [
       "fixture:asset:capa:binary-capability-analysis"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -606,8 +678,15 @@
       "asset:checkov/iac-cicd-and-container-policy-scan",
       "tool:checkov/deps"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "5dfba94d95ed42672ed2278b8161279e13134eab5d3510ba9e4c83555ff78e43",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141445Z-c1f6e2b7",
     "executor_providers": [
@@ -628,6 +707,7 @@
       "fixture:asset:checkov:iac-cicd-and-container-policy-scan",
       "fixture:scanner:checkov"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py",
       "src/aegis/ai/tool_bridge.py",
@@ -679,8 +759,15 @@
     "capability_ids": [
       "asset:class-dump/objective-c-interface-recovery"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "MIGRATED_EQUIVALENT",
     "execution_run_id": "",
     "executor_providers": [
@@ -694,6 +781,7 @@
     "fixture_providers": [
       "fixture:asset:class-dump:objective-c-interface-recovery"
     ],
+    "global_execution_state": "MIGRATED",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -739,8 +827,15 @@
     "capability_ids": [
       "asset:cloudsplaining/aws-iam-risk-analysis"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "b2a18893ae2f41259844b137d3a4d48471cb9ef007eedc05c6076d2bd57eb05c",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141040Z-97955186",
     "executor_providers": [
@@ -756,6 +851,7 @@
     "fixture_providers": [
       "fixture:asset:cloudsplaining:aws-iam-risk-analysis"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -801,8 +897,15 @@
     "capability_ids": [
       "asset:codeql/cross-file-dataflow"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "b8df60192883420c8d8978a6c8325fdede7cee43d17efe649033642b63def705",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141043Z-9acdc466",
     "executor_providers": [
@@ -818,6 +921,7 @@
     "fixture_providers": [
       "fixture:asset:codeql:cross-file-dataflow"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -863,8 +967,15 @@
     "capability_ids": [
       "tool:detect-secrets/secrets"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "4b6cf406a6604f9883b475172ef027a81eb0b5314ce75460b9ae8110c0b0abff",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141453Z-b13ba354",
     "executor_providers": [
@@ -880,6 +991,7 @@
     "fixture_providers": [
       "fixture:scanner:detect-secrets"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/tool_bridge.py",
       "src/aegis/ai/tool_registry.py"
@@ -927,8 +1039,15 @@
     "capability_ids": [
       "asset:dnsx/dns-resolution-and-wildcard-filtering"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "cd5a36d620fa5acf8a05a5de22b5151bf352d3f71cd0cd4987780d0b9cd71088",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141134Z-a769ec45",
     "executor_providers": [
@@ -944,6 +1063,7 @@
     "fixture_providers": [
       "fixture:asset:dnsx:dns-resolution-and-wildcard-filtering"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -989,8 +1109,15 @@
     "capability_ids": [
       "asset:echidna/smart-contract-property-fuzzing"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "6aafb2d443285f65de6eadfc5515feae504d5c3172f4fbd2a9309343b94d6a77",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141135Z-b2b58df7",
     "executor_providers": [
@@ -1006,6 +1133,7 @@
     "fixture_providers": [
       "fixture:asset:echidna:smart-contract-property-fuzzing"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -1051,8 +1179,15 @@
     "capability_ids": [
       "asset:firmadyne/firmware-emulation-fallback"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "MIGRATED_EQUIVALENT",
     "execution_run_id": "",
     "executor_providers": [
@@ -1066,6 +1201,7 @@
     "fixture_providers": [
       "fixture:asset:firmadyne:firmware-emulation-fallback"
     ],
+    "global_execution_state": "MIGRATED",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -1111,8 +1247,15 @@
     "capability_ids": [
       "asset:firmae/firmware-emulation"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "PREREQUISITE_ONLY",
     "execution_run_id": "",
     "executor_providers": [
@@ -1126,6 +1269,7 @@
     "fixture_providers": [
       "fixture:asset:firmae:firmware-emulation"
     ],
+    "global_execution_state": "WAITING_FOR_PREREQUISITE",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -1173,8 +1317,15 @@
     "capability_ids": [
       "asset:floss/static-string-deobfuscation"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "c842691a2c2b63ebaef373e0c59ef23adbc363543bb2ba0e216c831c829229e5",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141138Z-3d198544",
     "executor_providers": [
@@ -1190,6 +1341,7 @@
     "fixture_providers": [
       "fixture:asset:floss:static-string-deobfuscation"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -1235,8 +1387,15 @@
     "capability_ids": [
       "asset:foundry/smart-contract-fuzz-and-invariant-tests"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "d8690b7919a74dbe8a9c4cc8a6a748894f061590c2844e950406d4691d8e3d85",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141157Z-52256573",
     "executor_providers": [
@@ -1252,6 +1411,7 @@
     "fixture_providers": [
       "fixture:asset:foundry:smart-contract-fuzz-and-invariant-tests"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -1302,8 +1462,15 @@
       "asset:frida/android-runtime-instrumentation",
       "asset:frida/ios-runtime-instrumentation"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "PREREQUISITE_ONLY",
     "execution_run_id": "",
     "executor_providers": [
@@ -1319,6 +1486,7 @@
       "fixture:asset:frida:android-runtime-instrumentation",
       "fixture:asset:frida:ios-runtime-instrumentation"
     ],
+    "global_execution_state": "WAITING_FOR_PREREQUISITE",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -1364,8 +1532,15 @@
     "capability_ids": [
       "asset:garak/llm-security-probing"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "4d3dac82d15321855ab9957dd2286b099639f4d5379abcfbffaa4a7da6b6f27b",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141201Z-4f47e4fc",
     "executor_providers": [
@@ -1379,6 +1554,7 @@
     "fixture_providers": [
       "fixture:asset:garak:llm-security-probing"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -1422,8 +1598,15 @@
     "capability_ids": [
       "adapter:gau/passive-discovery"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "UNAVAILABLE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "UNAVAILABLE",
     "current_state": "UNAVAILABLE",
     "evidence_digest": "",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "PREREQUISITE_ONLY",
     "execution_run_id": "",
     "executor_providers": [
@@ -1435,6 +1618,7 @@
     "external": true,
     "fixture_executable_capabilities": [],
     "fixture_providers": [],
+    "global_execution_state": "WAITING_FOR_PREREQUISITE",
     "implementation_paths": [
       "src/aegis/adapters"
     ],
@@ -1486,8 +1670,15 @@
       "asset:gitleaks/git-secret-detection",
       "tool:gitleaks/secrets"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "cf5eae0f94550e3c486518d49d3cc921284ff4c389e45db5cb3f96743f5b6b76",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141454Z-7cfcdc07",
     "executor_providers": [
@@ -1509,6 +1700,7 @@
       "fixture:asset:gitleaks:git-secret-detection",
       "fixture:scanner:gitleaks"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "aegis/arsenal/assets/source.py",
       "src/aegis/adapters",
@@ -1564,8 +1756,15 @@
       "asset:gosec/go-security-static-analysis",
       "tool:gosec/code"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "0cd8a943140b1f0e5bdf7705b11b6395db4331ee376fb1dd31852a16f34f6117",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141454Z-7c788a60",
     "executor_providers": [
@@ -1584,6 +1783,7 @@
       "fixture:asset:gosec:go-security-static-analysis",
       "fixture:scanner:gosec"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py",
       "src/aegis/ai/tool_bridge.py",
@@ -1632,8 +1832,15 @@
     "capability_ids": [
       "asset:grpcurl/grpc-service-introspection"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "e7eb2aa657fe79aa575a0aa74e0edf84a31bf3581a8039c9ae3fe30bf2feed81",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141223Z-491e3d54",
     "executor_providers": [
@@ -1649,6 +1856,7 @@
     "fixture_providers": [
       "fixture:asset:grpcurl:grpc-service-introspection"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -1701,8 +1909,15 @@
       "asset:grype/container-image-vulnerability-scan",
       "tool:grype/deps"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "e3a6c8cd007433ee21e14470494cee1bfc285ee8126d6dbbf4a83e3191286608",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141458Z-08e7cfff",
     "executor_providers": [
@@ -1723,6 +1938,7 @@
       "fixture:asset:grype:container-image-vulnerability-scan",
       "fixture:scanner:grype"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py",
       "src/aegis/ai/tool_bridge.py",
@@ -1777,8 +1993,15 @@
       "adapter:http-probe/passive-discovery",
       "asset:httpx/http-service-enrichment"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "d28834d1bc5b7321f84b0bf9172364bf309e27371eb4c573e6a608f63ba4bebd",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141224Z-2253bc96",
     "executor_providers": [
@@ -1796,6 +2019,7 @@
     "fixture_providers": [
       "fixture:asset:httpx:http-service-enrichment"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/adapters",
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
@@ -1845,8 +2069,15 @@
     "capability_ids": [
       "asset:jadx/android-decompile"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "8606b29aa2caf98b3f9b795893cdd8ce147cc8aee6b32ae59de76167cbbe7efb",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141227Z-dfc1081e",
     "executor_providers": [
@@ -1862,6 +2093,7 @@
     "fixture_providers": [
       "fixture:asset:jadx:android-decompile"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -1905,8 +2137,15 @@
     "capability_ids": [
       "adapter:jsluice/passive-discovery"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "9c5c991ba5663997e87e91f4742be4e465f46fbcf921f6a7a0f4415154715f2d",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141011Z-cc042d57",
     "executor_providers": [
@@ -1922,6 +2161,7 @@
     "fixture_providers": [
       "fixture:adapter:jsluice"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/adapters"
     ],
@@ -1971,8 +2211,15 @@
       "adapter:katana/passive-discovery",
       "asset:katana/scoped-endpoint-crawl"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "fc4c313624a001b55028ac9411a069f0a9cf0f0e4fcedcb3d0c0afe26f66f8e8",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141231Z-bfd584c5",
     "executor_providers": [
@@ -1989,6 +2236,7 @@
     "fixture_providers": [
       "fixture:asset:katana:scoped-endpoint-crawl"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/adapters",
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
@@ -2040,8 +2288,15 @@
     "capability_ids": [
       "asset:kics/iac-security-scan"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "4e10278e79db9a1f4c35cb1e99b4df855b11c9bdfff7d511df05d8c850d5234e",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141254Z-50b4b002",
     "executor_providers": [
@@ -2057,6 +2312,7 @@
     "fixture_providers": [
       "fixture:asset:kics:iac-security-scan"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -2102,8 +2358,15 @@
     "capability_ids": [
       "asset:kubescape/kubernetes-posture-and-runtime-scan"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "075bd37c5d6aa9c7a70a7e8d6011213c180fd12404b7913c33a6cb7d3b52fea4",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141255Z-6477fce4",
     "executor_providers": [
@@ -2117,6 +2380,7 @@
     "fixture_providers": [
       "fixture:asset:kubescape:kubernetes-posture-and-runtime-scan"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -2165,8 +2429,15 @@
     "capability_ids": [
       "asset:mitmproxy/authorized-http-traffic-capture"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "f7515a411e2784300cd7b1c5e5476197ba90634ebf2bbdfa99abab656cefdd2e",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141257Z-a45775d0",
     "executor_providers": [
@@ -2182,6 +2453,7 @@
     "fixture_providers": [
       "fixture:asset:mitmproxy:authorized-http-traffic-capture"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -2232,8 +2504,15 @@
     "capability_ids": [
       "asset:mobsf/rest-static-analysis"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "PREREQUISITE_ONLY",
     "execution_run_id": "",
     "executor_providers": [
@@ -2247,6 +2526,7 @@
     "fixture_providers": [
       "fixture:asset:mobsf:rest-static-analysis"
     ],
+    "global_execution_state": "WAITING_FOR_PREREQUISITE",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -2292,8 +2572,15 @@
     "capability_ids": [
       "asset:modelscan/serialized-model-safety-scan"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "62b90360b4307c6374cbf9d8043aa9cf5df23e20fbb9799bbe6f65a55b4d853c",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141303Z-40016bcf",
     "executor_providers": [
@@ -2309,6 +2596,7 @@
     "fixture_providers": [
       "fixture:asset:modelscan:serialized-model-safety-scan"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -2359,8 +2647,15 @@
       "asset:mythril/evm-symbolic-execution",
       "tool:mythril/contract"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "6d2c71f1c3b6d3760d910e5476cd5b9d3bba161f70700234199c34837f224e44",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141511Z-d0e7c466",
     "executor_providers": [
@@ -2380,6 +2675,7 @@
       "fixture:asset:mythril:evm-symbolic-execution",
       "fixture:scanner:mythril"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "aegis/arsenal/assets/contract.py",
       "src/aegis/ai/jarvis/asset_deep_capabilities.py",
@@ -2433,8 +2729,15 @@
     "capability_ids": [
       "asset:naabu/bounded-port-discovery"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "9dadb9f88aac4332f695df42952f3a6b7bac5e02918931d2799556c55a10d26b",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141304Z-3be626df",
     "executor_providers": [
@@ -2450,6 +2753,7 @@
     "fixture_providers": [
       "fixture:asset:naabu:bounded-port-discovery"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -2495,8 +2799,15 @@
     "capability_ids": [
       "tool:njsscan/code"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "a41978462ede717795f69b671ea49bfd14fd1b7bfa24174423a9d09ee8ba2c22",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141534Z-fce163da",
     "executor_providers": [
@@ -2512,6 +2823,7 @@
     "fixture_providers": [
       "fixture:scanner:njsscan"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/tool_bridge.py",
       "src/aegis/ai/tool_registry.py"
@@ -2563,8 +2875,15 @@
       "asset-lane:service-identification",
       "asset:nmap/bounded-service-fingerprinting"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "90085aacbdd0969a3c9f142f624953216913b8c97869de297bc4686c66db1856",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141310Z-a75f7035",
     "executor_providers": [
@@ -2581,6 +2900,7 @@
     "fixture_providers": [
       "fixture:asset:nmap:bounded-service-fingerprinting"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "aegis/arsenal/assets/network.py",
       "src/aegis/ai/jarvis/asset_deep_capabilities.py",
@@ -2629,8 +2949,15 @@
     "capability_ids": [
       "asset:npm/npm-dependency-audit"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "cd8e0da22566b65403dfa963d395512c455262e6241684dddb129506288307f0",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141317Z-7d6db3a5",
     "executor_providers": [
@@ -2646,6 +2973,7 @@
     "fixture_providers": [
       "fixture:asset:npm:npm-dependency-audit"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -2695,8 +3023,15 @@
     "capability_ids": [
       "asset:nuclei/signed-safe-template-validation"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "c7d55d57cec4cb185a54a914e5e0b8284ff2f6a9ac979a7f3f869a0c14846ef6",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141319Z-753b5148",
     "executor_providers": [
@@ -2712,6 +3047,7 @@
     "fixture_providers": [
       "fixture:asset:nuclei:signed-safe-template-validation"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -2762,8 +3098,15 @@
       "asset:objection/android-runtime-exploration",
       "asset:objection/ios-runtime-exploration"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "PREREQUISITE_ONLY",
     "execution_run_id": "",
     "executor_providers": [
@@ -2779,6 +3122,7 @@
       "fixture:asset:objection:android-runtime-exploration",
       "fixture:asset:objection:ios-runtime-exploration"
     ],
+    "global_execution_state": "WAITING_FOR_PREREQUISITE",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -2831,8 +3175,15 @@
       "asset:osv-scanner/dependency-vulnerability-analysis",
       "tool:osv-scanner/deps"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "e75ed33e04eb9ecd77c5e2d8b644d550be8fb8a6145a05d95794faa721e9d466",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141547Z-a742d377",
     "executor_providers": [
@@ -2853,6 +3204,7 @@
       "fixture:asset:osv-scanner:dependency-vulnerability-analysis",
       "fixture:scanner:osv-scanner"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/adapters",
       "src/aegis/ai/jarvis/asset_deep_capabilities.py",
@@ -2899,16 +3251,33 @@
     "backend_entrypoint": "",
     "backend_id": "external:otool",
     "backend_runtime_id": "otool/macos-cli",
-    "backend_version": "",
+    "backend_version": "llvm-otool(1): Apple Inc. version cctools-1040",
     "binary": "otool",
     "capability_count": 1,
     "capability_ids": [
       "asset:otool/ios-macos-load-command-analysis"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
-    "evidence_digest": "",
-    "execution_proof_kind": "PREREQUISITE_ONLY",
-    "execution_run_id": "",
+    "evidence_digest": "e97a797792ae5231d722f16bd8b82d3afdd493c041fb9892f0d80f297f3f42da",
+    "execution_evidence_by_runner": [
+      {
+        "backend_name": "otool",
+        "binary_path": "/usr/bin/otool",
+        "evidence_digest": "e97a797792ae5231d722f16bd8b82d3afdd493c041fb9892f0d80f297f3f42da",
+        "platform": "Darwin",
+        "runner": "github-macos",
+        "source_sha": "arsenal-20260904T011138Z-458dfd3d",
+        "state": "EXECUTED_PASS"
+      }
+    ],
+    "execution_proof_kind": "REAL_BACKEND",
+    "execution_run_id": "arsenal-20260904T011138Z-458dfd3d",
     "executor_providers": [
       "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
     ],
@@ -2920,14 +3289,15 @@
     "fixture_providers": [
       "fixture:asset:otool:ios-macos-load-command-analysis"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
     "installation_source": "resolved executable/runtime probe",
     "launcher_executable": "",
-    "native_backend_binary": "",
-    "negative_control": "NOT_EXECUTED",
-    "positive_control": "NOT_EXECUTED",
+    "native_backend_binary": "/usr/bin/otool",
+    "negative_control": "PASS",
+    "positive_control": "PASS",
     "prerequisite": "macOS worker; readiness: command -v otool && uname -s | grep Darwin",
     "runner_profile": "arsenal-macos-ios",
     "runtime": {
@@ -2966,8 +3336,15 @@
     "capability_ids": [
       "asset:pefile/pe-structure-analysis"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "9f9621c8879ce8293de51b0695c63b157c29b9fec22d9a5a8bbe4ff67f51801c",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141321Z-36c1040c",
     "executor_providers": [
@@ -2983,6 +3360,7 @@
     "fixture_providers": [
       "fixture:asset:pefile:pe-structure-analysis"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -3028,8 +3406,15 @@
     "capability_ids": [
       "asset:pip-audit/python-dependency-vulnerability-analysis"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "acbb1b923f51dd28172bc3c31001b3b5c45d4f75a688e730e91cf14505e1b76a",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141322Z-da6882f5",
     "executor_providers": [
@@ -3045,6 +3430,7 @@
     "fixture_providers": [
       "fixture:asset:pip-audit:python-dependency-vulnerability-analysis"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -3094,8 +3480,15 @@
     "capability_ids": [
       "asset:playwright/authenticated-browser-traffic-learning"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "fd672648fbf49eff7921c2b8a6661a7f3732bca83f9a649059c9450d16ac75f1",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141326Z-42f85a22",
     "executor_providers": [
@@ -3111,6 +3504,7 @@
     "fixture_providers": [
       "fixture:asset:playwright:authenticated-browser-traffic-learning"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -3156,8 +3550,15 @@
     "capability_ids": [
       "asset:promptfoo/ai-red-team-evaluation"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "d580983adeca08c571f8a6a22d05baa4e58c6455f41df4344bb3934f523efa6e",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141332Z-d3d49d24",
     "executor_providers": [
@@ -3173,6 +3574,7 @@
     "fixture_providers": [
       "fixture:asset:promptfoo:ai-red-team-evaluation"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -3220,8 +3622,15 @@
       "asset:prowler/aws-security-posture",
       "asset:prowler/azure-security-posture"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "PREREQUISITE_ONLY",
     "execution_run_id": "",
     "executor_providers": [
@@ -3234,6 +3643,7 @@
       "fixture:asset:prowler:aws-security-posture",
       "fixture:asset:prowler:azure-security-posture"
     ],
+    "global_execution_state": "WAITING_FOR_PREREQUISITE",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -3279,8 +3689,15 @@
     "capability_ids": [
       "tool:psalm/code"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "dce12afe96dcdfc826b27a5e71a394a17e8d86736ded8a039c76ee8fce07e862",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141610Z-024dafad",
     "executor_providers": [
@@ -3296,6 +3713,7 @@
     "fixture_providers": [
       "fixture:scanner:psalm"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/tool_bridge.py",
       "src/aegis/ai/tool_registry.py"
@@ -3343,8 +3761,15 @@
     "capability_ids": [
       "asset:pyrit/generative-ai-risk-identification"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "08c0d10c47c3a8a995a6f96b7864d39825167f34442ed4a2fc95f1247d54ef5a",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141338Z-0dbf040e",
     "executor_providers": [
@@ -3358,6 +3783,7 @@
     "fixture_providers": [
       "fixture:asset:pyrit:generative-ai-risk-identification"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -3403,8 +3829,15 @@
     "capability_ids": [
       "asset:restler/stateful-openapi-sequence-testing"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "0554bceb98e6e4271db0c9b1de32c314d93fb91aec92497e628b993447765f74",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141347Z-5c773eac",
     "executor_providers": [
@@ -3420,6 +3853,7 @@
     "fixture_providers": [
       "fixture:asset:restler:stateful-openapi-sequence-testing"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -3465,8 +3899,15 @@
     "capability_ids": [
       "tool:retire-js/deps"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "1aff5be27da3b254bac89845b6178ccdca607f9fecbe61786db89d96d4da0ed7",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141620Z-2f3f10f8",
     "executor_providers": [
@@ -3482,6 +3923,7 @@
     "fixture_providers": [
       "fixture:scanner:retire.js"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/tool_bridge.py",
       "src/aegis/ai/tool_registry.py"
@@ -3528,8 +3970,15 @@
     "capability_ids": [
       "asset:rizin/binary-reverse-engineering"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "b4e12b3f0c76b8289a12c05aaa3fbbc6908a6782b83cc678bbc0b4701d00a230",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141353Z-98141672",
     "executor_providers": [
@@ -3545,6 +3994,7 @@
     "fixture_providers": [
       "fixture:asset:rizin:binary-reverse-engineering"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -3590,8 +4040,15 @@
     "capability_ids": [
       "asset:roadtools/entra-identity-analysis"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "PREREQUISITE_ONLY",
     "execution_run_id": "",
     "executor_providers": [
@@ -3603,6 +4060,7 @@
     "fixture_providers": [
       "fixture:asset:roadtools:entra-identity-analysis"
     ],
+    "global_execution_state": "WAITING_FOR_PREREQUISITE",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -3651,8 +4109,15 @@
     "capability_ids": [
       "asset:rustscan/bounded-fast-port-prefilter"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "32e76edb3f45b15f12040a9d7c6e2aac4994fb47812a0f3a099eb2bdd996bf2d",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141356Z-59542ff4",
     "executor_providers": [
@@ -3668,6 +4133,7 @@
     "fixture_providers": [
       "fixture:asset:rustscan:bounded-fast-port-prefilter"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -3716,8 +4182,15 @@
       "asset:schemathesis/graphql-schema-guided-testing",
       "asset:schemathesis/schema-guided-api-testing"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "14f51b27f69736a9610cd62dd77069675fa1200278e22c6216c2360d9cce9e4a",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141357Z-ad960f3c",
     "executor_providers": [
@@ -3734,6 +4207,7 @@
       "fixture:asset:schemathesis:graphql-schema-guided-testing",
       "fixture:asset:schemathesis:schema-guided-api-testing"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -3779,8 +4253,15 @@
     "capability_ids": [
       "asset:openssf-scorecard/repository-supply-chain-posture"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "b82dbcef4fd44225b29bd984771d828add787ff199c3ce5f266572574bbb2ad3",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141321Z-3ca3f020",
     "executor_providers": [
@@ -3794,6 +4275,7 @@
     "fixture_providers": [
       "fixture:asset:openssf-scorecard:repository-supply-chain-posture"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -3841,8 +4323,15 @@
       "asset:scoutsuite/aws-attack-surface-audit",
       "asset:scoutsuite/azure-attack-surface-audit"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "PREREQUISITE_ONLY",
     "execution_run_id": "",
     "executor_providers": [
@@ -3855,6 +4344,7 @@
       "fixture:asset:scoutsuite:aws-attack-surface-audit",
       "fixture:asset:scoutsuite:azure-attack-surface-audit"
     ],
+    "global_execution_state": "WAITING_FOR_PREREQUISITE",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -3906,8 +4396,15 @@
       "asset:semgrep/source-static-analysis",
       "tool:semgrep/code"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "0561b73dcc76f457d0831f4c34a82adb2ff892f8156085d335442af189ff7cbb",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141622Z-63d96a35",
     "executor_providers": [
@@ -3929,6 +4426,7 @@
       "fixture:asset:semgrep:source-static-analysis",
       "fixture:scanner:semgrep"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "aegis/arsenal/assets/source.py",
       "src/aegis/adapters",
@@ -3982,8 +4480,15 @@
     "capability_ids": [
       "asset:skopeo/container-registry-metadata"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "684f4dd3818775da39f901778d40d6f07dd2008bd4f36c7fb39dff9baf1f222b",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141401Z-74a96466",
     "executor_providers": [
@@ -3999,6 +4504,7 @@
     "fixture_providers": [
       "fixture:asset:skopeo:container-registry-metadata"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -4049,8 +4555,15 @@
       "asset:slither/solidity-vyper-static-analysis",
       "tool:slither/contract"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "54333f1239024c6190e7f4f9a4c3e7dd7ee90e66bb5d7708436fd519fa7a761a",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141629Z-131eea33",
     "executor_providers": [
@@ -4070,6 +4583,7 @@
       "fixture:asset:slither:solidity-vyper-static-analysis",
       "fixture:scanner:slither"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "aegis/arsenal/assets/contract.py",
       "src/aegis/ai/jarvis/asset_deep_capabilities.py",
@@ -4121,8 +4635,15 @@
     "capability_ids": [
       "asset:spotbugs/java-bytecode-static-analysis"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "c16d1840aed1de8af5ab37fc321cfc4212338c96bec76d34a5038f94658b75f1",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141405Z-3d101eee",
     "executor_providers": [
@@ -4138,6 +4659,7 @@
     "fixture_providers": [
       "fixture:asset:spotbugs:java-bytecode-static-analysis"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -4186,8 +4708,15 @@
     "capability_ids": [
       "asset:ssh-audit/ssh-configuration-analysis"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "3e2973458532e436e7409c238c2d46f2911749da871c1fbe55c9f7f16dd1e8a1",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141415Z-d3e4af92",
     "executor_providers": [
@@ -4203,6 +4732,7 @@
     "fixture_providers": [
       "fixture:asset:ssh-audit:ssh-configuration-analysis"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -4251,8 +4781,15 @@
       "adapter:subfinder/passive-discovery",
       "asset:subfinder/passive-subdomain-enumeration"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "UNAVAILABLE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "UNAVAILABLE",
     "current_state": "UNAVAILABLE",
     "evidence_digest": "",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "PREREQUISITE_ONLY",
     "execution_run_id": "",
     "executor_providers": [
@@ -4267,6 +4804,7 @@
     "fixture_providers": [
       "fixture:asset:subfinder:passive-subdomain-enumeration"
     ],
+    "global_execution_state": "WAITING_FOR_PREREQUISITE",
     "implementation_paths": [
       "src/aegis/adapters",
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
@@ -4320,8 +4858,15 @@
       "asset:syft/artifact-sbom",
       "asset:syft/container-image-sbom"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "e8c0c9debb0f5856134926dac0ab82c0b236a607739e812065c2797e5105c988",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141418Z-4094dbcd",
     "executor_providers": [
@@ -4340,6 +4885,7 @@
       "fixture:asset:syft:artifact-sbom",
       "fixture:asset:syft:container-image-sbom"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "aegis/arsenal/assets/executable.py",
       "src/aegis/ai/jarvis/asset_deep_capabilities.py",
@@ -4391,8 +4937,15 @@
     "capability_ids": [
       "asset:testssl-sh/tls-configuration-analysis"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "35b6e75f2e09ce10f31127d16c9faed40b98128485e9e17df2c90f9ceccdc015",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141421Z-2f3ef2c3",
     "executor_providers": [
@@ -4408,6 +4961,7 @@
     "fixture_providers": [
       "fixture:asset:testssl-sh:tls-configuration-analysis"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -4461,8 +5015,15 @@
       "tool:trivy/deps",
       "tool:trivy/secrets"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "a5ede65c181336358a861824281ce5c28ad7ee72a6434cc994dfca68ad6582f2",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141630Z-a6b66704",
     "executor_providers": [
@@ -4485,6 +5046,7 @@
       "fixture:asset:trivy:filesystem-security-scan",
       "fixture:scanner:trivy"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "aegis/arsenal/assets/source.py",
       "src/aegis/ai/jarvis/asset_deep_capabilities.py",
@@ -4536,8 +5098,15 @@
     "capability_ids": [
       "asset:web-ext/browser-extension-structure-lint"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "120311b3ad5aac9038509de8ebd70e9b3731eabdcb6288cf3bcf8afe77c2c4ff",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141437Z-bbb6d081",
     "executor_providers": [
@@ -4553,6 +5122,7 @@
     "fixture_providers": [
       "fixture:asset:web-ext:browser-extension-structure-lint"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -4598,8 +5168,15 @@
     "capability_ids": [
       "asset:websocat/websocket-protocol-observation"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "0791d3cdae69f8b8451ac45d2dbce05e903864d129fc74cdebd9fe16362e95b4",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141439Z-57e6eb4b",
     "executor_providers": [
@@ -4615,6 +5192,7 @@
     "fixture_providers": [
       "fixture:asset:websocat:websocket-protocol-observation"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -4662,8 +5240,15 @@
     "capability_ids": [
       "asset:yara/approved-rule-binary-scan"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "2a9f78ad5c7da41bb59291ac16f73bba119197328c094f9c4b3a8e3d2f3acb82",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141440Z-0451d92f",
     "executor_providers": [
@@ -4679,6 +5264,7 @@
     "fixture_providers": [
       "fixture:asset:yara:approved-rule-binary-scan"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -4726,8 +5312,15 @@
     "capability_ids": [
       "asset:zizmor/github-actions-security-audit"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "7c884b38ddc838c1709e8d69b7c4a9c271bcb1d62e66fd0a8d0b056c6f25ddc1",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T141440Z-77eaf813",
     "executor_providers": [
@@ -4743,6 +5336,7 @@
     "fixture_providers": [
       "fixture:asset:zizmor:github-actions-security-audit"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -4783,14 +5377,31 @@
     "backend_entrypoint": "",
     "backend_id": "internal:aegis-agent-permission-audit",
     "backend_runtime_id": "aegis/aegis-agent-permission-audit",
-    "backend_version": "",
+    "backend_version": "Python 3.14.5",
     "binary": "aegis-agent-permission-audit",
     "capability_count": 1,
     "capability_ids": [
       "asset:aegis-agent-permission-audit/agent-tool-permission-analysis"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "9d96e855f009db32c01cec68f6547e3e72ce1629ba7e40c8d391aa66caa91974",
+    "execution_evidence_by_runner": [
+      {
+        "backend_name": "aegis-agent-permission-audit",
+        "binary_path": "C:\\Python314\\python.exe",
+        "evidence_digest": "9d96e855f009db32c01cec68f6547e3e72ce1629ba7e40c8d391aa66caa91974",
+        "platform": "Linux",
+        "runner": "arsenal-linux",
+        "source_sha": "arsenal-20260903T152700Z-6574bbb2",
+        "state": "EXECUTED_PASS"
+      }
+    ],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T152700Z-6574bbb2",
     "executor_providers": [
@@ -4804,12 +5415,13 @@
     "fixture_providers": [
       "fixture:asset:aegis-agent-permission-audit:agent-tool-permission-analysis"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
     "installation_source": "Aegis",
     "launcher_executable": "",
-    "native_backend_binary": "",
+    "native_backend_binary": "C:\\Python314\\python.exe",
     "negative_control": "PASS",
     "positive_control": "PASS",
     "prerequisite": "",
@@ -4846,14 +5458,31 @@
     "backend_entrypoint": "",
     "backend_id": "internal:aegis-artifact-diff",
     "backend_runtime_id": "aegis/aegis-artifact-diff",
-    "backend_version": "",
+    "backend_version": "Python 3.14.5",
     "binary": "aegis-artifact-diff",
     "capability_count": 1,
     "capability_ids": [
       "asset:aegis-artifact-diff/authorized-mobile-release-diff"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "d99ed90643042a38196bdc3c02cde5d7a8696936c50c509bc1a5a5bb62437db0",
+    "execution_evidence_by_runner": [
+      {
+        "backend_name": "aegis-artifact-diff",
+        "binary_path": "C:\\Python314\\python.exe",
+        "evidence_digest": "d99ed90643042a38196bdc3c02cde5d7a8696936c50c509bc1a5a5bb62437db0",
+        "platform": "Linux",
+        "runner": "arsenal-linux",
+        "source_sha": "arsenal-20260903T152647Z-92e55665",
+        "state": "EXECUTED_PASS"
+      }
+    ],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T152647Z-92e55665",
     "executor_providers": [
@@ -4867,12 +5496,13 @@
     "fixture_providers": [
       "fixture:asset:aegis-artifact-diff:authorized-mobile-release-diff"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
     "installation_source": "Aegis",
     "launcher_executable": "",
-    "native_backend_binary": "",
+    "native_backend_binary": "C:\\Python314\\python.exe",
     "negative_control": "PASS",
     "positive_control": "PASS",
     "prerequisite": "",
@@ -4912,8 +5542,15 @@
     "capability_ids": [
       "asset-lane:bundle-unpack"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "PREREQUISITE_ONLY",
     "execution_run_id": "",
     "executor_providers": [
@@ -4923,6 +5560,7 @@
     "external": false,
     "fixture_executable_capabilities": [],
     "fixture_providers": [],
+    "global_execution_state": "WAITING_FOR_PREREQUISITE",
     "implementation_paths": [
       "aegis/arsenal/assets/executable.py",
       "src/aegis/arsenal/assets/types.py"
@@ -4963,14 +5601,31 @@
     "backend_entrypoint": "",
     "backend_id": "internal:aegis-asset-classifier",
     "backend_runtime_id": "aegis/aegis-asset-classifier",
-    "backend_version": "",
+    "backend_version": "Python 3.14.5",
     "binary": "aegis-asset-classifier",
     "capability_count": 1,
     "capability_ids": [
       "asset:aegis-asset-classifier/deterministic-asset-classification"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "cd1f0b58c94e6cc4a221087ba2dc58c208e25cde5661cb165fabbde9735f6cb4",
+    "execution_evidence_by_runner": [
+      {
+        "backend_name": "aegis-asset-classifier",
+        "binary_path": "C:\\Python314\\python.exe",
+        "evidence_digest": "cd1f0b58c94e6cc4a221087ba2dc58c208e25cde5661cb165fabbde9735f6cb4",
+        "platform": "Linux",
+        "runner": "arsenal-linux",
+        "source_sha": "arsenal-20260903T152700Z-dd598803",
+        "state": "EXECUTED_PASS"
+      }
+    ],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T152700Z-dd598803",
     "executor_providers": [
@@ -4984,12 +5639,13 @@
     "fixture_providers": [
       "fixture:asset:aegis-asset-classifier:deterministic-asset-classification"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
     "installation_source": "Aegis",
     "launcher_executable": "",
-    "native_backend_binary": "",
+    "native_backend_binary": "C:\\Python314\\python.exe",
     "negative_control": "PASS",
     "positive_control": "PASS",
     "prerequisite": "",
@@ -5029,8 +5685,15 @@
     "capability_ids": [
       "asset-lane:asset-triage"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "PREREQUISITE_ONLY",
     "execution_run_id": "",
     "executor_providers": [
@@ -5040,6 +5703,7 @@
     "external": false,
     "fixture_executable_capabilities": [],
     "fixture_providers": [],
+    "global_execution_state": "WAITING_FOR_PREREQUISITE",
     "implementation_paths": [
       "aegis/arsenal/assets/other.py",
       "src/aegis/arsenal/assets/types.py"
@@ -5086,8 +5750,15 @@
     "capability_ids": [
       "asset-lane:authorization-matrix"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "PREREQUISITE_ONLY",
     "execution_run_id": "",
     "executor_providers": [
@@ -5097,6 +5768,7 @@
     "external": false,
     "fixture_executable_capabilities": [],
     "fixture_providers": [],
+    "global_execution_state": "WAITING_FOR_PREREQUISITE",
     "implementation_paths": [
       "aegis/arsenal/assets/api_surface.py",
       "src/aegis/arsenal/assets/types.py"
@@ -5143,8 +5815,15 @@
     "capability_ids": [
       "asset-lane:binary-triage"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "PREREQUISITE_ONLY",
     "execution_run_id": "",
     "executor_providers": [
@@ -5154,6 +5833,7 @@
     "external": false,
     "fixture_executable_capabilities": [],
     "fixture_providers": [],
+    "global_execution_state": "WAITING_FOR_PREREQUISITE",
     "implementation_paths": [
       "aegis/arsenal/assets/executable.py",
       "src/aegis/arsenal/assets/types.py"
@@ -5200,8 +5880,15 @@
     "capability_ids": [
       "asset-lane:object-reference-probe"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "PREREQUISITE_ONLY",
     "execution_run_id": "",
     "executor_providers": [
@@ -5211,6 +5898,7 @@
     "external": false,
     "fixture_executable_capabilities": [],
     "fixture_providers": [],
+    "global_execution_state": "WAITING_FOR_PREREQUISITE",
     "implementation_paths": [
       "aegis/arsenal/assets/api_surface.py",
       "src/aegis/arsenal/assets/types.py"
@@ -5257,8 +5945,15 @@
     "capability_ids": [
       "asset-lane:contract-pattern-review"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "PREREQUISITE_ONLY",
     "execution_run_id": "",
     "executor_providers": [
@@ -5268,6 +5963,7 @@
     "external": false,
     "fixture_executable_capabilities": [],
     "fixture_providers": [],
+    "global_execution_state": "WAITING_FOR_PREREQUISITE",
     "implementation_paths": [
       "aegis/arsenal/assets/contract.py",
       "src/aegis/arsenal/assets/types.py"
@@ -5308,14 +6004,31 @@
     "backend_entrypoint": "",
     "backend_id": "internal:aegis-firmware-arch",
     "backend_runtime_id": "aegis/aegis-firmware-arch",
-    "backend_version": "",
+    "backend_version": "Python 3.14.5",
     "binary": "aegis-firmware-arch",
     "capability_count": 1,
     "capability_ids": [
       "asset:aegis-firmware-arch/firmware-architecture-detection"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "ba5bffcf60663179fbde55077d5105e8ec8bad377dbb212f1c89dd0bd47ab496",
+    "execution_evidence_by_runner": [
+      {
+        "backend_name": "aegis-firmware-arch",
+        "binary_path": "C:\\Python314\\python.exe",
+        "evidence_digest": "ba5bffcf60663179fbde55077d5105e8ec8bad377dbb212f1c89dd0bd47ab496",
+        "platform": "Linux",
+        "runner": "arsenal-linux",
+        "source_sha": "arsenal-20260903T152700Z-a61d97ed",
+        "state": "EXECUTED_PASS"
+      }
+    ],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T152700Z-a61d97ed",
     "executor_providers": [
@@ -5329,12 +6042,13 @@
     "fixture_providers": [
       "fixture:asset:aegis-firmware-arch:firmware-architecture-detection"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
     "installation_source": "Aegis",
     "launcher_executable": "",
-    "native_backend_binary": "",
+    "native_backend_binary": "C:\\Python314\\python.exe",
     "negative_control": "PASS",
     "positive_control": "PASS",
     "prerequisite": "",
@@ -5375,8 +6089,15 @@
       "asset:aegis-github-org/github-org-authorized-inventory",
       "asset:aegis-github-org/github-org-public-inventory"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "PREREQUISITE_ONLY",
     "execution_run_id": "",
     "executor_providers": [
@@ -5389,6 +6110,7 @@
       "fixture:asset:aegis-github-org:github-org-authorized-inventory",
       "fixture:asset:aegis-github-org:github-org-public-inventory"
     ],
+    "global_execution_state": "WAITING_FOR_PREREQUISITE",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -5435,8 +6157,15 @@
       "asset:aegis-gitlab-group/gitlab-group-authorized-inventory",
       "asset:aegis-gitlab-group/gitlab-group-public-inventory"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "PREREQUISITE_ONLY",
     "execution_run_id": "",
     "executor_providers": [
@@ -5449,6 +6178,7 @@
       "fixture:asset:aegis-gitlab-group:gitlab-group-authorized-inventory",
       "fixture:asset:aegis-gitlab-group:gitlab-group-public-inventory"
     ],
+    "global_execution_state": "WAITING_FOR_PREREQUISITE",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -5496,8 +6226,15 @@
       "asset-lane:system-prompt-extraction",
       "asset-lane:tool-abuse-chain"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "PREREQUISITE_ONLY",
     "execution_run_id": "",
     "executor_providers": [
@@ -5509,6 +6246,7 @@
     "external": false,
     "fixture_executable_capabilities": [],
     "fixture_providers": [],
+    "global_execution_state": "WAITING_FOR_PREREQUISITE",
     "implementation_paths": [
       "aegis/arsenal/assets/ai_model.py",
       "src/aegis/arsenal/assets/types.py"
@@ -5550,14 +6288,31 @@
     "backend_entrypoint": "",
     "backend_id": "internal:aegis-memory-poisoning",
     "backend_runtime_id": "aegis/aegis-memory-poisoning",
-    "backend_version": "",
+    "backend_version": "Python 3.14.5",
     "binary": "aegis-memory-poisoning",
     "capability_count": 1,
     "capability_ids": [
       "asset:aegis-memory-poisoning/agent-memory-poisoning-regression"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "eea2d1441399372ec0668d0d489835187fe63b4a69b11ac5a553dd1647657b2e",
+    "execution_evidence_by_runner": [
+      {
+        "backend_name": "aegis-memory-poisoning",
+        "binary_path": "C:\\Python314\\python.exe",
+        "evidence_digest": "eea2d1441399372ec0668d0d489835187fe63b4a69b11ac5a553dd1647657b2e",
+        "platform": "Linux",
+        "runner": "arsenal-linux",
+        "source_sha": "arsenal-20260903T152700Z-536a27eb",
+        "state": "EXECUTED_PASS"
+      }
+    ],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T152700Z-536a27eb",
     "executor_providers": [
@@ -5571,12 +6326,13 @@
     "fixture_providers": [
       "fixture:asset:aegis-memory-poisoning:agent-memory-poisoning-regression"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
     "installation_source": "Aegis",
     "launcher_executable": "",
-    "native_backend_binary": "",
+    "native_backend_binary": "C:\\Python314\\python.exe",
     "negative_control": "PASS",
     "positive_control": "PASS",
     "prerequisite": "",
@@ -5610,14 +6366,31 @@
     "backend_entrypoint": "",
     "backend_id": "internal:aegis-model-provenance",
     "backend_runtime_id": "aegis/aegis-model-provenance",
-    "backend_version": "",
+    "backend_version": "Python 3.14.5",
     "binary": "aegis-model-provenance",
     "capability_count": 1,
     "capability_ids": [
       "asset:aegis-model-provenance/model-provenance-and-hash-ledger"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "9fe6903ab2af4ea71d1cb201a88eacfd6496dc5e931282f3f0b23f318766aa1e",
+    "execution_evidence_by_runner": [
+      {
+        "backend_name": "aegis-model-provenance",
+        "binary_path": "C:\\Python314\\python.exe",
+        "evidence_digest": "9fe6903ab2af4ea71d1cb201a88eacfd6496dc5e931282f3f0b23f318766aa1e",
+        "platform": "Linux",
+        "runner": "arsenal-linux",
+        "source_sha": "arsenal-20260903T152700Z-cff834b3",
+        "state": "EXECUTED_PASS"
+      }
+    ],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T152700Z-cff834b3",
     "executor_providers": [
@@ -5631,12 +6404,13 @@
     "fixture_providers": [
       "fixture:asset:aegis-model-provenance:model-provenance-and-hash-ledger"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
     "installation_source": "Aegis",
     "launcher_executable": "",
-    "native_backend_binary": "",
+    "native_backend_binary": "C:\\Python314\\python.exe",
     "negative_control": "PASS",
     "positive_control": "PASS",
     "prerequisite": "",
@@ -5677,8 +6451,15 @@
       "asset-lane:mass-assignment",
       "asset-lane:openapi-ingest"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "PREREQUISITE_ONLY",
     "execution_run_id": "",
     "executor_providers": [
@@ -5689,6 +6470,7 @@
     "external": false,
     "fixture_executable_capabilities": [],
     "fixture_providers": [],
+    "global_execution_state": "WAITING_FOR_PREREQUISITE",
     "implementation_paths": [
       "aegis/arsenal/assets/api_surface.py",
       "src/aegis/arsenal/assets/types.py"
@@ -5735,8 +6517,15 @@
     "capability_ids": [
       "asset-lane:output-handling-review"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "PREREQUISITE_ONLY",
     "execution_run_id": "",
     "executor_providers": [
@@ -5746,6 +6535,7 @@
     "external": false,
     "fixture_executable_capabilities": [],
     "fixture_providers": [],
+    "global_execution_state": "WAITING_FOR_PREREQUISITE",
     "implementation_paths": [
       "aegis/arsenal/assets/ai_model.py",
       "src/aegis/arsenal/assets/types.py"
@@ -5794,8 +6584,15 @@
     "capability_ids": [
       "asset:aegis-package-registry/public-package-metadata"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "PREREQUISITE_ONLY",
     "execution_run_id": "",
     "executor_providers": [
@@ -5807,6 +6604,7 @@
     "fixture_providers": [
       "fixture:asset:aegis-package-registry:public-package-metadata"
     ],
+    "global_execution_state": "WAITING_FOR_PREREQUISITE",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -5853,8 +6651,15 @@
     "capability_ids": [
       "asset-lane:iam-policy-review"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "PREREQUISITE_ONLY",
     "execution_run_id": "",
     "executor_providers": [
@@ -5864,6 +6669,7 @@
     "external": false,
     "fixture_executable_capabilities": [],
     "fixture_providers": [],
+    "global_execution_state": "WAITING_FOR_PREREQUISITE",
     "implementation_paths": [
       "aegis/arsenal/assets/cloud.py",
       "src/aegis/arsenal/assets/types.py"
@@ -5905,14 +6711,31 @@
     "backend_entrypoint": "",
     "backend_id": "internal:aegis-rag-boundary",
     "backend_runtime_id": "aegis/aegis-rag-boundary",
-    "backend_version": "",
+    "backend_version": "Python 3.14.5",
     "binary": "aegis-rag-boundary",
     "capability_count": 1,
     "capability_ids": [
       "asset:aegis-rag-boundary/rag-retrieval-trust-analysis"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "5217937d25b6ae5f91dac7d878e4b390eb0018162678492029895643f1e3ace0",
+    "execution_evidence_by_runner": [
+      {
+        "backend_name": "aegis-rag-boundary",
+        "binary_path": "C:\\Python314\\python.exe",
+        "evidence_digest": "5217937d25b6ae5f91dac7d878e4b390eb0018162678492029895643f1e3ace0",
+        "platform": "Linux",
+        "runner": "arsenal-linux",
+        "source_sha": "arsenal-20260903T152701Z-69845317",
+        "state": "EXECUTED_PASS"
+      }
+    ],
     "execution_proof_kind": "REAL_BACKEND",
     "execution_run_id": "arsenal-20260903T152701Z-69845317",
     "executor_providers": [
@@ -5926,12 +6749,13 @@
     "fixture_providers": [
       "fixture:asset:aegis-rag-boundary:rag-retrieval-trust-analysis"
     ],
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
     "installation_source": "Aegis",
     "launcher_executable": "",
-    "native_backend_binary": "",
+    "native_backend_binary": "C:\\Python314\\python.exe",
     "negative_control": "PASS",
     "positive_control": "PASS",
     "prerequisite": "",
@@ -5974,8 +6798,15 @@
     "capability_ids": [
       "asset:aegis-store-metadata/public-listing-metadata"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "PREREQUISITE_ONLY",
     "execution_run_id": "",
     "executor_providers": [
@@ -5987,6 +6818,7 @@
     "fixture_providers": [
       "fixture:asset:aegis-store-metadata:public-listing-metadata"
     ],
+    "global_execution_state": "WAITING_FOR_PREREQUISITE",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
@@ -6033,8 +6865,15 @@
       "asset-lane:dependency-extraction",
       "asset-lane:embedded-secret-scan"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "PREREQUISITE_ONLY",
     "execution_run_id": "",
     "executor_providers": [
@@ -6045,6 +6884,7 @@
     "external": false,
     "fixture_executable_capabilities": [],
     "fixture_providers": [],
+    "global_execution_state": "WAITING_FOR_PREREQUISITE",
     "implementation_paths": [
       "aegis/arsenal/assets/executable.py",
       "src/aegis/arsenal/assets/types.py"
@@ -6094,8 +6934,15 @@
     "capability_ids": [
       "asset-lane:passive-certificate-transparency"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "PREREQUISITE_ONLY",
     "execution_run_id": "",
     "executor_providers": [
@@ -6105,6 +6952,7 @@
     "external": false,
     "fixture_executable_capabilities": [],
     "fixture_providers": [],
+    "global_execution_state": "WAITING_FOR_PREREQUISITE",
     "implementation_paths": [
       "aegis/arsenal/assets/network.py",
       "src/aegis/arsenal/assets/types.py"
@@ -6162,8 +7010,15 @@
       "asset-lane:security-headers",
       "asset-lane:virtual-host-discovery"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "PREREQUISITE_ONLY",
     "execution_run_id": "",
     "executor_providers": [
@@ -6178,6 +7033,7 @@
     "external": false,
     "fixture_executable_capabilities": [],
     "fixture_providers": [],
+    "global_execution_state": "WAITING_FOR_PREREQUISITE",
     "implementation_paths": [
       "aegis/arsenal/assets/api_surface.py",
       "aegis/arsenal/assets/cloud.py",
@@ -6230,8 +7086,15 @@
       "asset-lane:dns-enumeration",
       "asset-lane:subdomain-takeover"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "PREREQUISITE_ONLY",
     "execution_run_id": "",
     "executor_providers": [
@@ -6242,6 +7105,7 @@
     "external": false,
     "fixture_executable_capabilities": [],
     "fixture_providers": [],
+    "global_execution_state": "WAITING_FOR_PREREQUISITE",
     "implementation_paths": [
       "aegis/arsenal/assets/network.py",
       "src/aegis/arsenal/assets/types.py"
@@ -6291,8 +7155,15 @@
     "capability_ids": [
       "asset-lane:tls-inspection"
     ],
+    "current_runner": {
+      "platform": "Windows",
+      "readiness": "WAITING_FOR_PREREQUISITE",
+      "runner": "windows-local"
+    },
+    "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
     "evidence_digest": "",
+    "execution_evidence_by_runner": [],
     "execution_proof_kind": "PREREQUISITE_ONLY",
     "execution_run_id": "",
     "executor_providers": [
@@ -6302,6 +7173,7 @@
     "external": false,
     "fixture_executable_capabilities": [],
     "fixture_providers": [],
+    "global_execution_state": "WAITING_FOR_PREREQUISITE",
     "implementation_paths": [
       "aegis/arsenal/assets/network.py",
       "src/aegis/arsenal/assets/types.py"

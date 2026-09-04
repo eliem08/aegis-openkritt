@@ -1,49 +1,60 @@
 # Full Arsenal Coverage
 
-Verdict: **FULL ACTIVE SOFTWARE ARSENAL VERIFIED — MIGRATED/HARDWARE-SPECIFIC CAPABILITIES SEPARATE**
+Verdict: **ACTIVE_LOCAL_SOFTWARE_SUBSET_VERIFIED_EXTERNAL_PREREQUISITES_REMAIN**
 
 ## Exact-Head Provenance
 
-- Source Git SHA: `2c93c3066cff700033e92375a4d6098a98309499`
-- Generated At: `2026-09-04T01:10:53.683385+00:00`
-- Inventory Digest: `bbef539feacf601b763f5468cd5ee7c933ba8596d3b7e3bbc76fe824c67bb86d`
-- Backend Lock Digest: `d76a69991233d0560edfe666e247449bc1b1273045e89ea3404a7a905b74993c`
+- Source Git SHA: `976a80b94d0c184b0ebb3493847305da708efafc`
+- Generated At: `2026-09-04T02:47:04.652331+00:00`
+- Inventory Digest: `5de65d06c29391728aa5d17564cfa61cb981d14722828031495032001ad88727`
+- Backend Lock Digest: `f23e4bc71dcb249d9ce299c518c86e87a597a9e17aaf929de4f4c434ae2d67fc`
 - Fixture Version Digest: `aa4d89610f7e9236736d56b9e19146f001fe3bf4c25a09dcd8011adbfeb33f79`
-- Evidence Root Digest: `2641d787ee7a04711fd89969d610b2e9f9085bbd7d850ca43b3159adea13c00f`
+- Evidence Root Digest: `e6e936f1e6e1e89a9031ad4c755380f5930a07c8fd996d6d25dad9ecd8750e37`
 - Arsenal Image: ``
+
+## Typed Populations
+
+| Population | Registered | Active | Executed | Never Executed | Coverage |
+|---|---:|---:|---:|---:|---:|
+| External Tools | 73 | 71 | 61 | 10 | 85.92% |
+| Internal Aegis | 7 | 7 | 7 | 0 | 100.00% |
+| Overall Active | - | 78 | 68 | 10 | 87.18% |
 
 ## Metrics
 
 - `registered_backends`: `73`
 - `active_backends`: `71`
 - `migrated_backends`: `2`
-- `verified_real_backend_executions`: `67`
+- `verified_real_backend_executions`: `61`
 - `verified_shared_backend_executions`: `15`
-- `verified_real_capabilities`: `81`
+- `verified_real_capabilities`: `82`
 - `migrated_capabilities`: `2`
-- `never_executed_active_backends`: `11`
-- `positive_controls`: `73`
-- `negative_controls`: `73`
-- `waiting_prerequisite_count`: `71`
+- `never_executed_active_backends`: `10`
+- `positive_controls`: `74`
+- `negative_controls`: `74`
+- `waiting_prerequisite_count`: `8`
 - `unavailable_count`: `2`
 - `backend_unhealthy_count`: `0`
 - `total_canonical_capabilities`: `174`
 - `unique_backends`: `99`
 - `unique_external_backends`: `73`
 - `healthy_backends`: `60`
-- `backend_executions`: `67`
-- `fixture_executed_backends`: `67`
-- `fixture_executed_capabilities`: `81`
+- `backend_executions`: `61`
+- `fixture_executed_backends`: `61`
+- `fixture_executed_capabilities`: `82`
 - `fixture_backend_denominator`: `71`
 - `fixture_capability_denominator`: `93`
-- `fixture_backend_execution_coverage`: `0.9436619718309859`
-- `fixture_capability_execution_coverage`: `0.8709677419354839`
+- `fixture_backend_execution_coverage`: `0.8591549295774648`
+- `fixture_capability_execution_coverage`: `0.8817204301075269`
+- `external_backend_execution_coverage`: `0.8591549295774648`
+- `internal_backend_execution_coverage`: `1.0`
+- `overall_active_backend_execution_coverage`: `0.8717948717948718`
 - `authorized_real_execution_coverage`: `None`
 - `authorized_real_executed_capabilities`: `0`
-- `positive_controls_passed`: `73`
-- `negative_controls_passed`: `73`
-- `never_executed_external_backends`: `11`
-- `states`: `{'EXECUTED_PASS': 73, 'EXECUTED_FINDING': 0, 'WAITING_FOR_PREREQUISITE': 15, 'UNAVAILABLE': 0, 'DENIED_BY_POLICY': 0, 'DENIED_POLICY_AMBIGUOUS': 0, 'NOT_IMPLEMENTED': 0, 'BACKEND_UNHEALTHY': 0}`
+- `positive_controls_passed`: `74`
+- `negative_controls_passed`: `74`
+- `never_executed_external_backends`: `10`
+- `states`: `{'EXECUTED_PASS': 74, 'EXECUTED_FINDING': 0, 'WAITING_FOR_PREREQUISITE': 14, 'UNAVAILABLE': 0, 'DENIED_BY_POLICY': 0, 'DENIED_POLICY_AMBIGUOUS': 0, 'NOT_IMPLEMENTED': 0, 'BACKEND_UNHEALTHY': 0}`
 
 ## Runtime Migrations
 
@@ -100,7 +111,7 @@ Verdict: **FULL ACTIVE SOFTWARE ARSENAL VERIFIED — MIGRATED/HARDWARE-SPECIFIC 
 | `nuclei/network-lab` | active | EXTERNAL_TOOL | `arsenal-network-lab` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
 | `objection/android-lab` | active | EXTERNAL_TOOL | `arsenal-android` | `PREREQUISITE_ONLY` | NOT_EXECUTED | NOT_EXECUTED | WAITING_FOR_PREREQUISITE |
 | `osv-scanner/linux-cli` | active | EXTERNAL_TOOL | `arsenal-linux` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
-| `otool/macos-cli` | active | EXTERNAL_TOOL | `arsenal-macos-ios` | `PREREQUISITE_ONLY` | NOT_EXECUTED | NOT_EXECUTED | WAITING_FOR_PREREQUISITE |
+| `otool/macos-cli` | active | EXTERNAL_TOOL | `arsenal-macos-ios` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
 | `pefile/linux-cli` | active | EXTERNAL_TOOL | `arsenal-binary` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
 | `pip-audit/linux-cli` | active | EXTERNAL_TOOL | `arsenal-linux` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
 | `playwright/linux-cli` | active | EXTERNAL_TOOL | `arsenal-linux` | `REAL_BACKEND` | PASS | PASS | WAITING_FOR_PREREQUISITE |
@@ -204,7 +215,7 @@ Verdict: **FULL ACTIVE SOFTWARE ARSENAL VERIFIED — MIGRATED/HARDWARE-SPECIFIC 
 | `asset:objection/android-runtime-exploration` | WAITING_FOR_PREREQUISITE | `arsenal-20260903T152701Z-8f4610a4` | `da22abcb1dbf9d3f697f61123d9939a42848d72141074d35ca8a8f85ef3907c8` |
 | `asset:objection/ios-runtime-exploration` | WAITING_FOR_PREREQUISITE | `arsenal-20260903T152701Z-8f4610a4` | `da22abcb1dbf9d3f697f61123d9939a42848d72141074d35ca8a8f85ef3907c8` |
 | `asset:openssf-scorecard/repository-supply-chain-posture` | EXECUTED_PASS | `arsenal-20260903T141321Z-3ca3f020` | `b82dbcef4fd44225b29bd984771d828add787ff199c3ce5f266572574bbb2ad3` |
-| `asset:otool/ios-macos-load-command-analysis` | WAITING_FOR_PREREQUISITE | `arsenal-20260903T152702Z-f09b112a` | `62acab7d5a3b213c2b96a7998a328ac811c30388c24a5c66109a36bda53325f8` |
+| `asset:otool/ios-macos-load-command-analysis` | EXECUTED_PASS | `arsenal-20260904T011138Z-458dfd3d` | `e97a797792ae5231d722f16bd8b82d3afdd493c041fb9892f0d80f297f3f42da` |
 | `asset:pefile/pe-structure-analysis` | EXECUTED_PASS | `arsenal-20260903T141321Z-36c1040c` | `9f9621c8879ce8293de51b0695c63b157c29b9fec22d9a5a8bbe4ff67f51801c` |
 | `asset:pip-audit/python-dependency-vulnerability-analysis` | EXECUTED_PASS | `arsenal-20260903T141322Z-da6882f5` | `acbb1b923f51dd28172bc3c31001b3b5c45d4f75a688e730e91cf14505e1b76a` |
 | `asset:playwright/authenticated-browser-traffic-learning` | EXECUTED_PASS | `arsenal-20260903T141326Z-42f85a22` | `fd672648fbf49eff7921c2b8a6661a7f3732bca83f9a649059c9450d16ac75f1` |
@@ -257,7 +268,6 @@ Verdict: **FULL ACTIVE SOFTWARE ARSENAL VERIFIED — MIGRATED/HARDWARE-SPECIFIC 
 - `external:gau`
 - `external:mobsf`
 - `external:objection`
-- `external:otool`
 - `external:prowler`
 - `external:roadrecon`
 - `external:scout`

@@ -1,18 +1,24 @@
 {
-  "generated_at": "2026-09-04T01:10:53.683385+00:00",
-  "git_sha": "2c93c3066cff700033e92375a4d6098a98309499",
+  "generated_at": "2026-09-04T02:47:04.652331+00:00",
+  "git_sha": "976a80b94d0c184b0ebb3493847305da708efafc",
   "migrations": [
     {
       "capabilities_affected": [
         "asset:firmadyne/firmware-emulation-fallback"
       ],
       "coverage_interpretation": "migrated into asset:firmae/firmware-emulation; verified through unified FirmAE runner",
+      "lifecycle_state": "MIGRATED",
       "migration_date": "2026-09-03",
+      "migration_reason": "FirmAE is the direct automated successor that wraps and integrates Firmadyne core emulation components. Registering both as distinct external runtimes was an accidental double-counting of the same underlying QEMU firmware emulation engine.",
+      "migration_source": "src/aegis/ai/jarvis/asset_deep_capabilities.py:FIRMADYNE",
+      "migration_target": "firmae/qemu-lab",
+      "migration_timestamp": "2026-09-03",
       "old_runtime_id": "firmadyne/qemu-lab",
       "old_semantics": "isolated firmware emulation fallback for supported Linux-based images",
       "reason": "FirmAE is the direct automated successor that wraps and integrates Firmadyne core emulation components. Registering both as distinct external runtimes was an accidental double-counting of the same underlying QEMU firmware emulation engine.",
       "replacement_runtime_id": "firmae/qemu-lab",
       "replacement_semantics": "isolated IoT firmware emulation for dynamic analysis (FirmAE embeds and automates the Firmadyne extraction, QEMU kernel emulation, and network service inspection pipeline)",
+      "source_commit": "2c93c3017a4ea0134812fbb1c7a8769c8e11aee6",
       "source_registry_provenance": "src/aegis/ai/jarvis/asset_deep_capabilities.py:FIRMADYNE"
     },
     {
@@ -20,15 +26,21 @@
         "asset:class-dump/objective-c-interface-recovery"
       ],
       "coverage_interpretation": "migrated into asset:otool/ios-macos-load-command-analysis; verified through otool Darwin runner",
+      "lifecycle_state": "MIGRATED",
       "migration_date": "2026-09-03",
+      "migration_reason": "Original Steve Nygard class-dump v3.5 is 32/early-64-bit and obsolete on modern macOS Darwin arm64/x86_64 runtimes. Modern macOS Xcode otool natively provides complete Objective-C class, method, and protocol recovery through `otool -ov`.",
+      "migration_source": "src/aegis/ai/jarvis/asset_deep_capabilities.py:CLASS_DUMP",
+      "migration_target": "otool/macos-cli",
+      "migration_timestamp": "2026-09-03",
       "old_runtime_id": "class-dump/macos-cli",
       "old_semantics": "Objective-C class interface recovery from Mach-O binaries",
       "reason": "Original Steve Nygard class-dump v3.5 is 32/early-64-bit and obsolete on modern macOS Darwin arm64/x86_64 runtimes. Modern macOS Xcode otool natively provides complete Objective-C class, method, and protocol recovery through `otool -ov`.",
       "replacement_runtime_id": "otool/macos-cli",
       "replacement_semantics": "Objective-C class interface, protocol, and load command extraction via otool (-ov / -l) on modern macOS Darwin runtimes",
+      "source_commit": "2c93c3017a4ea0134812fbb1c7a8769c8e11aee6",
       "source_registry_provenance": "src/aegis/ai/jarvis/asset_deep_capabilities.py:CLASS_DUMP"
     }
   ],
   "schema_version": 2,
-  "source_git_sha": "2c93c3066cff700033e92375a4d6098a98309499"
+  "source_git_sha": "976a80b94d0c184b0ebb3493847305da708efafc"
 }
