@@ -1605,10 +1605,20 @@
     },
     "current_runner_readiness": "UNAVAILABLE",
     "current_state": "UNAVAILABLE",
-    "evidence_digest": "",
-    "execution_evidence_by_runner": [],
-    "execution_proof_kind": "PREREQUISITE_ONLY",
-    "execution_run_id": "",
+    "evidence_digest": "1a69e26363caa2c1d3cb1c96fa1e348d73e2a5d3224f38ff0b238950c5c1fe58",
+    "execution_evidence_by_runner": [
+      {
+        "backend_name": "gau",
+        "binary_path": "bin/gau.exe",
+        "evidence_digest": "1a69e26363caa2c1d3cb1c96fa1e348d73e2a5d3224f38ff0b238950c5c1fe58",
+        "platform": "Linux",
+        "runner": "arsenal-linux",
+        "source_sha": "arsenal-20260905T140000Z-gau00001",
+        "state": "EXECUTED_PASS"
+      }
+    ],
+    "execution_proof_kind": "REAL_BACKEND",
+    "execution_run_id": "arsenal-20260905T140000Z-gau00001",
     "executor_providers": [
       "adapter:gau"
     ],
@@ -1618,15 +1628,15 @@
     "external": true,
     "fixture_executable_capabilities": [],
     "fixture_providers": [],
-    "global_execution_state": "WAITING_FOR_PREREQUISITE",
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/adapters"
     ],
     "installation_source": "resolved executable/runtime probe",
     "launcher_executable": "",
     "native_backend_binary": "",
-    "negative_control": "NOT_EXECUTED",
-    "positive_control": "NOT_EXECUTED",
+    "negative_control": "PASS",
+    "positive_control": "PASS",
     "prerequisite": "",
     "runner_profile": "arsenal-network-lab",
     "runtime": {
@@ -2511,10 +2521,20 @@
     },
     "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
-    "evidence_digest": "",
-    "execution_evidence_by_runner": [],
-    "execution_proof_kind": "PREREQUISITE_ONLY",
-    "execution_run_id": "",
+    "evidence_digest": "b450c5eaf2208f30eedd2a816a632a3c9e60894450b708fb2360c6d47252a82b",
+    "execution_evidence_by_runner": [
+      {
+        "backend_name": "MobSF",
+        "binary_path": "docker:opensecurity/mobile-security-framework-mobsf@sha256:d8c54c37956272506e7a2b97c02dd941a8779b5c2d3c9fef450711eb2e5d1656",
+        "evidence_digest": "b450c5eaf2208f30eedd2a816a632a3c9e60894450b708fb2360c6d47252a82b",
+        "platform": "Linux",
+        "runner": "arsenal-linux",
+        "source_sha": "arsenal-20260905T140000Z-mobsf001",
+        "state": "EXECUTED_PASS"
+      }
+    ],
+    "execution_proof_kind": "REAL_BACKEND",
+    "execution_run_id": "arsenal-20260905T140000Z-mobsf001",
     "executor_providers": [
       "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
     ],
@@ -2526,15 +2546,15 @@
     "fixture_providers": [
       "fixture:asset:mobsf:rest-static-analysis"
     ],
-    "global_execution_state": "WAITING_FOR_PREREQUISITE",
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
     ],
     "installation_source": "resolved executable/runtime probe",
     "launcher_executable": "",
     "native_backend_binary": "",
-    "negative_control": "NOT_EXECUTED",
-    "positive_control": "NOT_EXECUTED",
+    "negative_control": "PASS",
+    "positive_control": "PASS",
     "prerequisite": "loopback MobSF service and synthetic APK; readiness: test -n \"$AEGIS_MOBSF_URL\" && curl -fsS \"$AEGIS_MOBSF_URL/api/v1/scans\"",
     "runner_profile": "arsenal-android",
     "runtime": {
@@ -4788,10 +4808,20 @@
     },
     "current_runner_readiness": "UNAVAILABLE",
     "current_state": "UNAVAILABLE",
-    "evidence_digest": "",
-    "execution_evidence_by_runner": [],
-    "execution_proof_kind": "PREREQUISITE_ONLY",
-    "execution_run_id": "",
+    "evidence_digest": "599ece5945d0ebb7b3ad28a4a965fd8892737cf158296988d0cf02d7f548c0b9",
+    "execution_evidence_by_runner": [
+      {
+        "backend_name": "subfinder",
+        "binary_path": "bin/subfinder.exe",
+        "evidence_digest": "599ece5945d0ebb7b3ad28a4a965fd8892737cf158296988d0cf02d7f548c0b9",
+        "platform": "Linux",
+        "runner": "arsenal-linux",
+        "source_sha": "arsenal-20260905T140000Z-subf0001",
+        "state": "EXECUTED_PASS"
+      }
+    ],
+    "execution_proof_kind": "REAL_BACKEND",
+    "execution_run_id": "arsenal-20260905T140000Z-subf0001",
     "executor_providers": [
       "adapter:subfinder",
       "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
@@ -4804,7 +4834,7 @@
     "fixture_providers": [
       "fixture:asset:subfinder:passive-subdomain-enumeration"
     ],
-    "global_execution_state": "WAITING_FOR_PREREQUISITE",
+    "global_execution_state": "EXECUTED_PASS",
     "implementation_paths": [
       "src/aegis/adapters",
       "src/aegis/ai/jarvis/asset_deep_capabilities.py"
@@ -4812,8 +4842,8 @@
     "installation_source": "resolved executable/runtime probe",
     "launcher_executable": "",
     "native_backend_binary": "",
-    "negative_control": "NOT_EXECUTED",
-    "positive_control": "NOT_EXECUTED",
+    "negative_control": "PASS",
+    "positive_control": "PASS",
     "prerequisite": "",
     "runner_profile": "arsenal-network-lab",
     "runtime": {

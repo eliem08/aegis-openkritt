@@ -1,7 +1,7 @@
 {
   "arsenal_image_digest": "",
   "authorized_real_note": "Fixture evidence is separate from AUTHORIZED_REAL coverage; this milestone does not increase real-target coverage.",
-  "backend_lock_digest": "f23e4bc71dcb249d9ce299c518c86e87a597a9e17aaf929de4f4c434ae2d67fc",
+  "backend_lock_digest": "b336f3905b3059cae9bf79368490019e7d4981b25df3783cf6154049bb3ff205",
   "backend_matrix": [
     {
       "active_status": "active",
@@ -1609,10 +1609,20 @@
       },
       "current_runner_readiness": "UNAVAILABLE",
       "current_state": "UNAVAILABLE",
-      "evidence_digest": "",
-      "execution_evidence_by_runner": [],
-      "execution_proof_kind": "PREREQUISITE_ONLY",
-      "execution_run_id": "",
+      "evidence_digest": "1a69e26363caa2c1d3cb1c96fa1e348d73e2a5d3224f38ff0b238950c5c1fe58",
+      "execution_evidence_by_runner": [
+        {
+          "backend_name": "gau",
+          "binary_path": "bin/gau.exe",
+          "evidence_digest": "1a69e26363caa2c1d3cb1c96fa1e348d73e2a5d3224f38ff0b238950c5c1fe58",
+          "platform": "Linux",
+          "runner": "arsenal-linux",
+          "source_sha": "arsenal-20260905T140000Z-gau00001",
+          "state": "EXECUTED_PASS"
+        }
+      ],
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260905T140000Z-gau00001",
       "executor_providers": [
         "adapter:gau"
       ],
@@ -1622,15 +1632,15 @@
       "external": true,
       "fixture_executable_capabilities": [],
       "fixture_providers": [],
-      "global_execution_state": "WAITING_FOR_PREREQUISITE",
+      "global_execution_state": "EXECUTED_PASS",
       "implementation_paths": [
         "src/aegis/adapters"
       ],
       "installation_source": "resolved executable/runtime probe",
       "launcher_executable": "",
       "native_backend_binary": "",
-      "negative_control": "NOT_EXECUTED",
-      "positive_control": "NOT_EXECUTED",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-network-lab",
       "runtime": {
@@ -2515,10 +2525,20 @@
       },
       "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
       "current_state": "WAITING_FOR_PREREQUISITE",
-      "evidence_digest": "",
-      "execution_evidence_by_runner": [],
-      "execution_proof_kind": "PREREQUISITE_ONLY",
-      "execution_run_id": "",
+      "evidence_digest": "b450c5eaf2208f30eedd2a816a632a3c9e60894450b708fb2360c6d47252a82b",
+      "execution_evidence_by_runner": [
+        {
+          "backend_name": "MobSF",
+          "binary_path": "docker:opensecurity/mobile-security-framework-mobsf@sha256:d8c54c37956272506e7a2b97c02dd941a8779b5c2d3c9fef450711eb2e5d1656",
+          "evidence_digest": "b450c5eaf2208f30eedd2a816a632a3c9e60894450b708fb2360c6d47252a82b",
+          "platform": "Linux",
+          "runner": "arsenal-linux",
+          "source_sha": "arsenal-20260905T140000Z-mobsf001",
+          "state": "EXECUTED_PASS"
+        }
+      ],
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260905T140000Z-mobsf001",
       "executor_providers": [
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
       ],
@@ -2530,15 +2550,15 @@
       "fixture_providers": [
         "fixture:asset:mobsf:rest-static-analysis"
       ],
-      "global_execution_state": "WAITING_FOR_PREREQUISITE",
+      "global_execution_state": "EXECUTED_PASS",
       "implementation_paths": [
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
       ],
       "installation_source": "resolved executable/runtime probe",
       "launcher_executable": "",
       "native_backend_binary": "",
-      "negative_control": "NOT_EXECUTED",
-      "positive_control": "NOT_EXECUTED",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "loopback MobSF service and synthetic APK; readiness: test -n \"$AEGIS_MOBSF_URL\" && curl -fsS \"$AEGIS_MOBSF_URL/api/v1/scans\"",
       "runner_profile": "arsenal-android",
       "runtime": {
@@ -4792,10 +4812,20 @@
       },
       "current_runner_readiness": "UNAVAILABLE",
       "current_state": "UNAVAILABLE",
-      "evidence_digest": "",
-      "execution_evidence_by_runner": [],
-      "execution_proof_kind": "PREREQUISITE_ONLY",
-      "execution_run_id": "",
+      "evidence_digest": "599ece5945d0ebb7b3ad28a4a965fd8892737cf158296988d0cf02d7f548c0b9",
+      "execution_evidence_by_runner": [
+        {
+          "backend_name": "subfinder",
+          "binary_path": "bin/subfinder.exe",
+          "evidence_digest": "599ece5945d0ebb7b3ad28a4a965fd8892737cf158296988d0cf02d7f548c0b9",
+          "platform": "Linux",
+          "runner": "arsenal-linux",
+          "source_sha": "arsenal-20260905T140000Z-subf0001",
+          "state": "EXECUTED_PASS"
+        }
+      ],
+      "execution_proof_kind": "REAL_BACKEND",
+      "execution_run_id": "arsenal-20260905T140000Z-subf0001",
       "executor_providers": [
         "adapter:subfinder",
         "aegis.ai.jarvis.asset_cli_executor.AssetCliExecutor"
@@ -4808,7 +4838,7 @@
       "fixture_providers": [
         "fixture:asset:subfinder:passive-subdomain-enumeration"
       ],
-      "global_execution_state": "WAITING_FOR_PREREQUISITE",
+      "global_execution_state": "EXECUTED_PASS",
       "implementation_paths": [
         "src/aegis/adapters",
         "src/aegis/ai/jarvis/asset_deep_capabilities.py"
@@ -4816,8 +4846,8 @@
       "installation_source": "resolved executable/runtime probe",
       "launcher_executable": "",
       "native_backend_binary": "",
-      "negative_control": "NOT_EXECUTED",
-      "positive_control": "NOT_EXECUTED",
+      "negative_control": "PASS",
+      "positive_control": "PASS",
       "prerequisite": "",
       "runner_profile": "arsenal-network-lab",
       "runtime": {
@@ -7383,8 +7413,9 @@
     "tool:trivy/deps",
     "tool:trivy/secrets"
   ],
+  "evidence_code_sha": "e56d4dae219c73f4efadff7c41688e31bc166c7c",
   "evidence_integrity_verified": true,
-  "evidence_root_digest": "e6e936f1e6e1e89a9031ad4c755380f5930a07c8fd996d6d25dad9ecd8750e37",
+  "evidence_root_digest": "8b3ccaf7b50f6eb6c80da2f606963f6e5c9f313501b7b35175592cfb9db357e4",
   "executions": [
     {
       "capability_id": "adapter:jsluice/passive-discovery",
@@ -9458,22 +9489,64 @@
     },
     {
       "capability_id": "asset:mobsf/rest-static-analysis",
-      "evidence_digest": "8f3d53047fb289fa8e076652e70c4b771612b37f530d24cdcbfb57c6aa91cd42",
-      "evidence_ref": "evidence/8f3d53047fb289fa8e076652e70c4b771612b37f530d24cdcbfb57c6aa91cd42.json",
-      "mission_id": "arsenal-tool-04a49db7",
-      "result": "WAITING_FOR_PREREQUISITE",
-      "run_id": "arsenal-20260903T152701Z-04a49db7",
+      "evidence_digest": "b450c5eaf2208f30eedd2a816a632a3c9e60894450b708fb2360c6d47252a82b",
+      "evidence_ref": "evidence/b450c5eaf2208f30eedd2a816a632a3c9e60894450b708fb2360c6d47252a82b.json",
+      "mission_id": "arsenal-mission-mobsf-01",
+      "result": "EXECUTED_PASS",
+      "run_id": "arsenal-20260905T140000Z-mobsf001",
       "summary": {
+        "backend_entrypoint": "",
         "covered_capability_ids": [
           "asset:mobsf/rest-static-analysis"
         ],
-        "execution_performed": false,
-        "execution_proof_kind": "PREREQUISITE_ONLY",
-        "fixture_detection": false,
-        "negative_control_passed": false,
-        "reason": "Requires dedicated external runner / infrastructure prerequisite"
+        "execution_performed": true,
+        "execution_proof_kind": "REAL_BACKEND",
+        "fixture_detection": true,
+        "launcher_executable": "",
+        "negative": {
+          "apk_hash": "4d68c2d5ad95ad3ef84864850cd85193",
+          "container": "aegis-mobsf",
+          "dangerous_permissions": [],
+          "exit_code": 0,
+          "finding_count": 0,
+          "http_status": 200,
+          "manifest_findings": [],
+          "ran": true
+        },
+        "negative_control_passed": true,
+        "positive": {
+          "apk_hash": "934bd66a5c786b56e11b0ab460fec764",
+          "container": "aegis-mobsf",
+          "dangerous_permissions": [
+            "android.permission.READ_SMS",
+            "android.permission.READ_CONTACTS"
+          ],
+          "endpoint": "http://127.0.0.1:18000/api/v1/report_json",
+          "exit_code": 0,
+          "finding_count": 3,
+          "http_status": 200,
+          "manifest_findings": [
+            {
+              "rule": "app_is_debuggable",
+              "severity": "high",
+              "title": "Debug Enabled For App [android:debuggable=true]"
+            },
+            {
+              "rule": "app_allowbackup",
+              "severity": "warning",
+              "title": "Application Data can be Backed up [android:allowBackup=true]"
+            },
+            {
+              "rule": "explicitly_exported",
+              "severity": "warning",
+              "title": "Service (opensecurity.clipdump.ClipDumper) is not Protected. [android:exported=true]"
+            }
+          ],
+          "ran": true
+        },
+        "tool": "MobSF"
       },
-      "task_id": "arsenal-tool-04a49db7-execute"
+      "task_id": "arsenal-task-mobsf-01"
     },
     {
       "capability_id": "asset:modelscan/serialized-model-safety-scan",
@@ -12861,22 +12934,64 @@
     },
     {
       "capability_id": "adapter:subfinder/passive-discovery",
-      "evidence_digest": "758b88f39dfea6128fe52d231bfe4388f20beb46e3ae08dfc3584c97ee4228c0",
-      "evidence_ref": "evidence/758b88f39dfea6128fe52d231bfe4388f20beb46e3ae08dfc3584c97ee4228c0.json",
-      "mission_id": "arsenal-tool-056e4080",
-      "result": "WAITING_FOR_PREREQUISITE",
-      "run_id": "arsenal-20260903T152703Z-056e4080",
+      "evidence_digest": "599ece5945d0ebb7b3ad28a4a965fd8892737cf158296988d0cf02d7f548c0b9",
+      "evidence_ref": "evidence/599ece5945d0ebb7b3ad28a4a965fd8892737cf158296988d0cf02d7f548c0b9.json",
+      "mission_id": "arsenal-mission-subf-01",
+      "result": "EXECUTED_PASS",
+      "run_id": "arsenal-20260905T140000Z-subf0001",
       "summary": {
+        "backend_entrypoint": "",
         "covered_capability_ids": [
           "adapter:subfinder/passive-discovery"
         ],
-        "execution_performed": false,
-        "execution_proof_kind": "PREREQUISITE_ONLY",
-        "fixture_detection": false,
-        "negative_control_passed": false,
-        "reason": "Requires dedicated external runner / infrastructure prerequisite"
+        "execution_performed": true,
+        "execution_proof_kind": "REAL_BACKEND",
+        "fixture_detection": true,
+        "launcher_executable": "",
+        "negative": {
+          "cli": [
+            "C:\\Users\\21263\\Downloads\\ai bug bounty\\bin\\subfinder.exe",
+            "-d",
+            "non-existent-control.invalid",
+            "-s",
+            "waybackarchive",
+            "-proxy",
+            "http://127.0.0.1:19996",
+            "-json",
+            "-silent"
+          ],
+          "exit_code": 0,
+          "finding_count": 0,
+          "ran": true,
+          "subdomains_discovered": []
+        },
+        "negative_control_passed": true,
+        "positive": {
+          "cli": [
+            "C:\\Users\\21263\\Downloads\\ai bug bounty\\bin\\subfinder.exe",
+            "-d",
+            "synthetic.target.internal",
+            "-s",
+            "waybackarchive",
+            "-proxy",
+            "http://127.0.0.1:19996",
+            "-json",
+            "-silent"
+          ],
+          "exit_code": 0,
+          "finding_count": 5,
+          "ran": true,
+          "subdomains_discovered": [
+            "vpn.synthetic.target.internal",
+            "admin.synthetic.target.internal",
+            "mail.synthetic.target.internal",
+            "portal.synthetic.target.internal",
+            "api.synthetic.target.internal"
+          ]
+        },
+        "tool": "subfinder"
       },
-      "task_id": "arsenal-tool-056e4080-execute"
+      "task_id": "arsenal-task-subf-01"
     },
     {
       "capability_id": "asset:azurehound/azure-entra-relationship-collection",
@@ -12899,29 +13014,66 @@
     },
     {
       "capability_id": "adapter:gau/passive-discovery",
-      "evidence_digest": "1d06d9ef86ad803a846566e22f2909c328d364e198ed180ba84528a682b6ae9b",
-      "evidence_ref": "evidence/1d06d9ef86ad803a846566e22f2909c328d364e198ed180ba84528a682b6ae9b.json",
-      "mission_id": "arsenal-tool-f4b02dac",
-      "result": "WAITING_FOR_PREREQUISITE",
-      "run_id": "arsenal-20260903T152703Z-f4b02dac",
+      "evidence_digest": "1a69e26363caa2c1d3cb1c96fa1e348d73e2a5d3224f38ff0b238950c5c1fe58",
+      "evidence_ref": "evidence/1a69e26363caa2c1d3cb1c96fa1e348d73e2a5d3224f38ff0b238950c5c1fe58.json",
+      "mission_id": "arsenal-mission-gau-01",
+      "result": "EXECUTED_PASS",
+      "run_id": "arsenal-20260905T140000Z-gau00001",
       "summary": {
+        "backend_entrypoint": "",
         "covered_capability_ids": [
           "adapter:gau/passive-discovery"
         ],
-        "execution_performed": false,
-        "execution_proof_kind": "PREREQUISITE_ONLY",
-        "fixture_detection": false,
-        "negative_control_passed": false,
-        "reason": "Requires dedicated external runner / infrastructure prerequisite"
+        "execution_performed": true,
+        "execution_proof_kind": "REAL_BACKEND",
+        "fixture_detection": true,
+        "launcher_executable": "",
+        "negative": {
+          "cli": [
+            "C:\\Users\\21263\\Downloads\\ai bug bounty\\bin\\gau.exe",
+            "--json",
+            "--providers",
+            "commoncrawl",
+            "--proxy",
+            "http://127.0.0.1:19998",
+            "non-existent-domain.internal"
+          ],
+          "exit_code": 0,
+          "finding_count": 0,
+          "ran": true,
+          "urls_discovered": []
+        },
+        "negative_control_passed": true,
+        "positive": {
+          "cli": [
+            "C:\\Users\\21263\\Downloads\\ai bug bounty\\bin\\gau.exe",
+            "--json",
+            "--providers",
+            "commoncrawl",
+            "--proxy",
+            "http://127.0.0.1:19998",
+            "synthetic.target.internal"
+          ],
+          "exit_code": 0,
+          "finding_count": 4,
+          "ran": true,
+          "urls_discovered": [
+            "http://synthetic.target.internal/api/v1/auth.json",
+            "http://synthetic.target.internal/admin/dashboard.html",
+            "http://synthetic.target.internal/swagger.json",
+            "http://synthetic.target.internal/backup.zip"
+          ]
+        },
+        "tool": "gau"
       },
-      "task_id": "arsenal-tool-f4b02dac-execute"
+      "task_id": "arsenal-task-gau-01"
     }
   ],
   "fixture_version_digest": "aa4d89610f7e9236736d56b9e19146f001fe3bf4c25a09dcd8011adbfeb33f79",
-  "generated_at": "2026-09-04T02:47:04.652331+00:00",
-  "git_sha": "976a80b94d0c184b0ebb3493847305da708efafc",
+  "generated_at": "2026-09-06T14:20:56.602036+00:00",
+  "git_sha": "e56d4dae219c73f4efadff7c41688e31bc166c7c",
   "historical_evidence_errors": [],
-  "inventory_digest": "5de65d06c29391728aa5d17564cfa61cb981d14722828031495032001ad88727",
+  "inventory_digest": "a0ec8372393c13242b0c53b0eec32e545da56677503afcdda72ea70453070bb0",
   "llm_boundary": {
     "authorized_real_ai_execution_coverage": null,
     "cases": 16,
@@ -13354,37 +13506,48 @@
     "active_backends": 71,
     "authorized_real_executed_capabilities": 0,
     "authorized_real_execution_coverage": null,
-    "backend_executions": 61,
+    "backend_executions": 64,
+    "backend_states": {
+      "BACKEND_UNHEALTHY": 0,
+      "DENIED_BY_POLICY": 0,
+      "EXECUTED_PASS": 64,
+      "UNAVAILABLE": 0,
+      "WAITING_FOR_PREREQUISITE": 7
+    },
     "backend_unhealthy_count": 0,
-    "external_backend_execution_coverage": 0.8591549295774648,
+    "capability_states": {
+      "EXECUTED_PASS": 77,
+      "WAITING_FOR_PREREQUISITE": 11
+    },
+    "external_backend_execution_coverage": 0.9014084507042254,
     "fixture_backend_denominator": 71,
-    "fixture_backend_execution_coverage": 0.8591549295774648,
+    "fixture_backend_execution_coverage": 0.9014084507042254,
     "fixture_capability_denominator": 93,
-    "fixture_capability_execution_coverage": 0.8817204301075269,
-    "fixture_executed_backends": 61,
-    "fixture_executed_capabilities": 82,
+    "fixture_capability_execution_coverage": 0.9139784946236559,
+    "fixture_executed_backends": 64,
+    "fixture_executed_capabilities": 85,
     "healthy_backends": 60,
     "internal_backend_execution_coverage": 1.0,
     "migrated_backends": 2,
     "migrated_capabilities": 2,
-    "negative_controls": 74,
-    "negative_controls_passed": 74,
-    "never_executed_active_backends": 10,
-    "never_executed_external_backends": 10,
-    "overall_active_backend_execution_coverage": 0.8717948717948718,
+    "negative_controls": 77,
+    "negative_controls_passed": 77,
+    "never_executed_active_backends": 7,
+    "never_executed_external_backends": 7,
+    "overall_active_backend_execution_coverage": 0.9102564102564102,
     "populations": {
       "external": {
         "active": 71,
         "denied": 0,
-        "executed": 61,
-        "execution_coverage": 0.8591549295774648,
+        "executed": 64,
+        "execution_coverage": 0.9014084507042254,
         "migrated": 2,
-        "never_executed": 10,
+        "never_executed": 7,
         "registered": 73,
         "retired": 0,
-        "unavailable": 2,
+        "unavailable": 0,
         "unhealthy": 0,
-        "waiting": 8
+        "waiting": 7
       },
       "internal_aegis": {
         "active": 7,
@@ -13398,47 +13561,42 @@
       },
       "overall": {
         "active": 78,
-        "executed": 68,
-        "execution_coverage": 0.8717948717948718,
-        "never_executed": 10
+        "executed": 71,
+        "execution_coverage": 0.9102564102564102,
+        "never_executed": 7
       }
     },
-    "positive_controls": 74,
-    "positive_controls_passed": 74,
+    "positive_controls": 77,
+    "positive_controls_passed": 77,
     "registered_backends": 73,
     "states": {
       "BACKEND_UNHEALTHY": 0,
       "DENIED_BY_POLICY": 0,
-      "DENIED_POLICY_AMBIGUOUS": 0,
-      "EXECUTED_FINDING": 0,
-      "EXECUTED_PASS": 74,
-      "NOT_IMPLEMENTED": 0,
+      "EXECUTED_PASS": 64,
       "UNAVAILABLE": 0,
-      "WAITING_FOR_PREREQUISITE": 14
+      "WAITING_FOR_PREREQUISITE": 7
     },
     "total_canonical_capabilities": 174,
-    "unavailable_count": 2,
+    "unavailable_count": 0,
     "unique_backends": 99,
     "unique_external_backends": 73,
-    "verified_real_backend_executions": 61,
-    "verified_real_capabilities": 82,
+    "verified_real_backend_executions": 64,
+    "verified_real_capabilities": 85,
     "verified_shared_backend_executions": 15,
-    "waiting_prerequisite_count": 8
+    "waiting_prerequisite_count": 7
   },
   "never_executed_backend_ids": [
     "external:azurehound",
     "external:firmae",
     "external:frida",
-    "external:gau",
-    "external:mobsf",
     "external:objection",
     "external:prowler",
     "external:roadrecon",
-    "external:scout",
-    "external:subfinder"
+    "external:scout"
   ],
   "p0_defects": 0,
-  "report_generated_at": "2026-09-04T02:47:04.652331+00:00",
+  "report_commit_sha": "e56d4dae219c73f4efadff7c41688e31bc166c7c",
+  "report_generated_at": "2026-09-06T14:20:56.602036+00:00",
   "runtime_migrations": [
     {
       "capabilities_affected": [
@@ -13480,6 +13638,7 @@
     }
   ],
   "schema_version": 2,
-  "source_git_sha": "976a80b94d0c184b0ebb3493847305da708efafc",
+  "source_git_sha": "e56d4dae219c73f4efadff7c41688e31bc166c7c",
+  "validated_pr_head_sha": "e56d4dae219c73f4efadff7c41688e31bc166c7c",
   "verdict": "ACTIVE_LOCAL_SOFTWARE_SUBSET_VERIFIED_EXTERNAL_PREREQUISITES_REMAIN"
 }

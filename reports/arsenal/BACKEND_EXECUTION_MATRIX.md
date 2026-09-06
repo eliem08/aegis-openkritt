@@ -1,8 +1,11 @@
 # Backend Execution Matrix
 
-Git SHA: `976a80b94d0c184b0ebb3493847305da708efafc`
-Source Git SHA: `976a80b94d0c184b0ebb3493847305da708efafc`
-Generated At: `2026-09-04T02:47:04.652331+00:00`
+Evidence Code SHA: `e56d4dae219c73f4efadff7c41688e31bc166c7c`
+Report Commit SHA: `e56d4dae219c73f4efadff7c41688e31bc166c7c`
+Validated PR Head SHA: `e56d4dae219c73f4efadff7c41688e31bc166c7c`
+Git SHA: `e56d4dae219c73f4efadff7c41688e31bc166c7c`
+Source Git SHA: `e56d4dae219c73f4efadff7c41688e31bc166c7c`
+Generated At: `2026-09-06T14:20:56.602036+00:00`
 Verdict: **ACTIVE_LOCAL_SOFTWARE_SUBSET_VERIFIED_EXTERNAL_PREREQUISITES_REMAIN**
 
 | Backend runtime | Tool | Runner | Active/Migrated | Kind | Proof Kind | Positive | Negative | Global State | Local Readiness |
@@ -29,7 +32,7 @@ Verdict: **ACTIVE_LOCAL_SOFTWARE_SUBSET_VERIFIED_EXTERNAL_PREREQUISITES_REMAIN**
 | `foundry/forge` | Foundry | `arsenal-smart-contract` | active | EXTERNAL_TOOL | `REAL_BACKEND` | PASS | PASS | **EXECUTED_PASS** | `WAITING_FOR_PREREQUISITE` |
 | `frida/device-cli` | Frida | `arsenal-android` | active | EXTERNAL_TOOL | `PREREQUISITE_ONLY` | NOT_EXECUTED | NOT_EXECUTED | **WAITING_FOR_PREREQUISITE** | `WAITING_FOR_PREREQUISITE` |
 | `garak/linux-cli` | garak | `arsenal-linux` | active | EXTERNAL_TOOL | `REAL_BACKEND` | PASS | PASS | **EXECUTED_PASS** | `WAITING_FOR_PREREQUISITE` |
-| `gau/network-lab` | gau | `arsenal-network-lab` | active | EXTERNAL_TOOL | `PREREQUISITE_ONLY` | NOT_EXECUTED | NOT_EXECUTED | **WAITING_FOR_PREREQUISITE** | `UNAVAILABLE` |
+| `gau/network-lab` | gau | `arsenal-network-lab` | active | EXTERNAL_TOOL | `REAL_BACKEND` | PASS | PASS | **EXECUTED_PASS** | `UNAVAILABLE` |
 | `gitleaks/linux-cli` | gitleaks | `arsenal-linux` | active | EXTERNAL_TOOL | `REAL_BACKEND` | PASS | PASS | **EXECUTED_PASS** | `WAITING_FOR_PREREQUISITE` |
 | `gosec/linux-cli` | gosec | `arsenal-linux` | active | EXTERNAL_TOOL | `REAL_BACKEND` | PASS | PASS | **EXECUTED_PASS** | `WAITING_FOR_PREREQUISITE` |
 | `grpcurl/network-lab` | grpcurl | `arsenal-network-lab` | active | EXTERNAL_TOOL | `REAL_BACKEND` | PASS | PASS | **EXECUTED_PASS** | `WAITING_FOR_PREREQUISITE` |
@@ -41,7 +44,7 @@ Verdict: **ACTIVE_LOCAL_SOFTWARE_SUBSET_VERIFIED_EXTERNAL_PREREQUISITES_REMAIN**
 | `kics/linux-cli` | KICS | `arsenal-linux` | active | EXTERNAL_TOOL | `REAL_BACKEND` | PASS | PASS | **EXECUTED_PASS** | `WAITING_FOR_PREREQUISITE` |
 | `kubescape/kubernetes-lab` | Kubescape | `arsenal-kubernetes` | active | EXTERNAL_TOOL | `REAL_BACKEND` | PASS | PASS | **EXECUTED_PASS** | `WAITING_FOR_PREREQUISITE` |
 | `mitmproxy/network-lab` | mitmproxy | `arsenal-network-lab` | active | EXTERNAL_TOOL | `REAL_BACKEND` | PASS | PASS | **EXECUTED_PASS** | `WAITING_FOR_PREREQUISITE` |
-| `mobsf/container` | MobSF | `arsenal-android` | active | EXTERNAL_TOOL | `PREREQUISITE_ONLY` | NOT_EXECUTED | NOT_EXECUTED | **WAITING_FOR_PREREQUISITE** | `WAITING_FOR_PREREQUISITE` |
+| `mobsf/container` | MobSF | `arsenal-android` | active | EXTERNAL_TOOL | `REAL_BACKEND` | PASS | PASS | **EXECUTED_PASS** | `WAITING_FOR_PREREQUISITE` |
 | `modelscan/linux-cli` | ModelScan | `arsenal-linux` | active | EXTERNAL_TOOL | `REAL_BACKEND` | PASS | PASS | **EXECUTED_PASS** | `WAITING_FOR_PREREQUISITE` |
 | `mythril/linux-cli` | Mythril, mythril | `arsenal-smart-contract` | active | EXTERNAL_TOOL | `REAL_BACKEND` | PASS | PASS | **EXECUTED_PASS** | `WAITING_FOR_PREREQUISITE` |
 | `naabu/network-lab` | naabu | `arsenal-network-lab` | active | EXTERNAL_TOOL | `REAL_BACKEND` | PASS | PASS | **EXECUTED_PASS** | `WAITING_FOR_PREREQUISITE` |
@@ -72,7 +75,7 @@ Verdict: **ACTIVE_LOCAL_SOFTWARE_SUBSET_VERIFIED_EXTERNAL_PREREQUISITES_REMAIN**
 | `slither/contract-cli` | slither | `arsenal-smart-contract` | active | EXTERNAL_TOOL | `REAL_BACKEND` | PASS | PASS | **EXECUTED_PASS** | `WAITING_FOR_PREREQUISITE` |
 | `spotbugs/linux-cli` | SpotBugs | `arsenal-linux` | active | EXTERNAL_TOOL | `REAL_BACKEND` | PASS | PASS | **EXECUTED_PASS** | `WAITING_FOR_PREREQUISITE` |
 | `ssh-audit/network-lab` | ssh-audit | `arsenal-network-lab` | active | EXTERNAL_TOOL | `REAL_BACKEND` | PASS | PASS | **EXECUTED_PASS** | `WAITING_FOR_PREREQUISITE` |
-| `subfinder/network-lab` | subfinder | `arsenal-network-lab` | active | EXTERNAL_TOOL | `PREREQUISITE_ONLY` | NOT_EXECUTED | NOT_EXECUTED | **WAITING_FOR_PREREQUISITE** | `UNAVAILABLE` |
+| `subfinder/network-lab` | subfinder | `arsenal-network-lab` | active | EXTERNAL_TOOL | `REAL_BACKEND` | PASS | PASS | **EXECUTED_PASS** | `UNAVAILABLE` |
 | `syft/linux-cli` | syft | `arsenal-linux` | active | EXTERNAL_TOOL | `REAL_BACKEND` | PASS | PASS | **EXECUTED_PASS** | `WAITING_FOR_PREREQUISITE` |
 | `testssl-sh/linux-cli` | testssl.sh | `arsenal-network-lab` | active | EXTERNAL_TOOL | `REAL_BACKEND` | PASS | PASS | **EXECUTED_PASS** | `WAITING_FOR_PREREQUISITE` |
 | `trivy/linux-cli` | trivy | `arsenal-linux` | active | EXTERNAL_TOOL | `REAL_BACKEND` | PASS | PASS | **EXECUTED_PASS** | `WAITING_FOR_PREREQUISITE` |
