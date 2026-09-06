@@ -20,6 +20,7 @@ All reports are bound to the exact repository HEAD with cryptographic provenance
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from datetime import UTC, datetime
@@ -196,6 +197,9 @@ REMAINING_ACTIVE_RUNTIMES_RECONCILIATION = {
 
 def main() -> int:
     head_sha = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+    evidence_code_sha = os.environ.get("AEGIS_EVIDENCE_CODE_SHA", "").strip() or head_sha
+    report_commit_sha = os.environ.get("AEGIS_REPORT_COMMIT_SHA", "").strip() or head_sha
+    validated_pr_head_sha = os.environ.get("AEGIS_VALIDATED_PR_HEAD_SHA", "").strip() or head_sha
     now_iso = datetime.now(UTC).isoformat()
     runs_dir = Path("reports/operator-runs")
     reports_dir = Path("reports/arsenal")
@@ -204,14 +208,17 @@ def main() -> int:
     # 1. Audit historical runs
     audit = build_audit(runs_dir=runs_dir)
 
-    # 2. Inventory with exact HEAD
+    # 2. Inventory with exact HEAD and formalized provenance
     inventory_path = reports_dir / "backend-inventory.json"
     if inventory_path.is_file():
         inventory = json.loads(inventory_path.read_text(encoding="utf-8"))
     else:
         inventory = build_backend_inventory(audit)
-    inventory["git_sha"] = head_sha
-    inventory["source_git_sha"] = head_sha
+    inventory["git_sha"] = report_commit_sha
+    inventory["source_git_sha"] = evidence_code_sha
+    inventory["evidence_code_sha"] = evidence_code_sha
+    inventory["report_commit_sha"] = report_commit_sha
+    inventory["validated_pr_head_sha"] = validated_pr_head_sha
     inventory["generated_at"] = now_iso
 
     # 3. Read previous executions document
@@ -314,9 +321,15 @@ def main() -> int:
         audit=audit,
         inventory=inventory,
         results=results,
+        evidence_code_sha=evidence_code_sha,
+        report_commit_sha=report_commit_sha,
+        validated_pr_head_sha=validated_pr_head_sha,
     )
-    report["source_git_sha"] = head_sha
-    report["git_sha"] = head_sha
+    report["evidence_code_sha"] = evidence_code_sha
+    report["report_commit_sha"] = report_commit_sha
+    report["validated_pr_head_sha"] = validated_pr_head_sha
+    report["source_git_sha"] = evidence_code_sha
+    report["git_sha"] = report_commit_sha
     report["report_generated_at"] = now_iso
     report["generated_at"] = now_iso
     report["runtime_migrations"] = [m.document() for m in RUNTIME_MIGRATIONS]
@@ -334,8 +347,11 @@ def main() -> int:
     # Render BACKEND_EXECUTION_MATRIX.md
     bem_lines = [
         "# Backend Execution Matrix", "",
-        f"Git SHA: `{head_sha}`",
-        f"Source Git SHA: `{head_sha}`",
+        f"Evidence Code SHA: `{evidence_code_sha}`",
+        f"Report Commit SHA: `{report_commit_sha}`",
+        f"Validated PR Head SHA: `{validated_pr_head_sha}`",
+        f"Git SHA: `{report_commit_sha}`",
+        f"Source Git SHA: `{evidence_code_sha}`",
         f"Generated At: `{now_iso}`",
         f"Verdict: **{report.get('verdict')}**", "",
         "| Backend runtime | Tool | Runner | Active/Migrated | Kind | Proof Kind | Positive | Negative | Global State | Local Readiness |",
@@ -354,12 +370,15 @@ def main() -> int:
     # 7. Write RUNNER_MATRIX
     runner_path = reports_dir / "RUNNER_MATRIX.json"
     runner_doc = json.loads(runner_path.read_text(encoding="utf-8")) if runner_path.is_file() else {}
-    runner_doc["source_git_sha"] = head_sha
-    runner_doc["git_sha"] = head_sha
+    runner_doc["evidence_code_sha"] = evidence_code_sha
+    runner_doc["report_commit_sha"] = report_commit_sha
+    runner_doc["validated_pr_head_sha"] = validated_pr_head_sha
+    runner_doc["source_git_sha"] = evidence_code_sha
+    runner_doc["git_sha"] = report_commit_sha
     runner_doc["generated_at"] = now_iso
     write_json(runner_path, runner_doc)
     (reports_dir / "RUNNER_MATRIX.md").write_text(
-        f"# Runner Matrix\n\nGit SHA: `{head_sha}`\nGenerated At: `{now_iso}`\n\n"
+        f"# Runner Matrix\n\nEvidence Code SHA: `{evidence_code_sha}`\nReport Commit SHA: `{report_commit_sha}`\nValidated PR Head SHA: `{validated_pr_head_sha}`\nGit SHA: `{report_commit_sha}`\nGenerated At: `{now_iso}`\n\n"
         f"Profiles tracked: {len(runner_doc.get('profiles', {}))}\n",
         encoding="utf-8",
     )
@@ -385,8 +404,11 @@ def main() -> int:
     ]
     never_doc = {
         "schema_version": 2,
-        "source_git_sha": head_sha,
-        "git_sha": head_sha,
+        "evidence_code_sha": evidence_code_sha,
+        "report_commit_sha": report_commit_sha,
+        "validated_pr_head_sha": validated_pr_head_sha,
+        "source_git_sha": evidence_code_sha,
+        "git_sha": report_commit_sha,
         "generated_at": now_iso,
         "backlog_count": len(never_executed),
         "never_executed_backend_ids": never_executed,
@@ -396,7 +418,10 @@ def main() -> int:
 
     neb_lines = [
         "# Never-Executed Arsenal Backends", "",
-        f"Git SHA: `{head_sha}`",
+        f"Evidence Code SHA: `{evidence_code_sha}`",
+        f"Report Commit SHA: `{report_commit_sha}`",
+        f"Validated PR Head SHA: `{validated_pr_head_sha}`",
+        f"Git SHA: `{report_commit_sha}`",
         f"Generated At: `{now_iso}`",
         f"Backlog Count: **{len(never_executed)}**", "",
         "The following active backends require dedicated physical or external infrastructure prerequisites and have not been falsely credited:", "",
@@ -416,15 +441,21 @@ def main() -> int:
     # 9. Write RUNTIME_MIGRATIONS
     migrations_doc = {
         "schema_version": 2,
-        "source_git_sha": head_sha,
-        "git_sha": head_sha,
+        "evidence_code_sha": evidence_code_sha,
+        "report_commit_sha": report_commit_sha,
+        "validated_pr_head_sha": validated_pr_head_sha,
+        "source_git_sha": evidence_code_sha,
+        "git_sha": report_commit_sha,
         "generated_at": now_iso,
         "migrations": [m.document() for m in RUNTIME_MIGRATIONS],
     }
     write_json(reports_dir / "RUNTIME_MIGRATIONS.json", migrations_doc)
     mig_lines = [
         "# Runtime Migrations", "",
-        f"Git SHA: `{head_sha}`",
+        f"Evidence Code SHA: `{evidence_code_sha}`",
+        f"Report Commit SHA: `{report_commit_sha}`",
+        f"Validated PR Head SHA: `{validated_pr_head_sha}`",
+        f"Git SHA: `{report_commit_sha}`",
         f"Generated At: `{now_iso}`", "",
         "| Old Runtime | Replacement | Reason | In Execution Denominator |",
         "|---|---|---|---|",

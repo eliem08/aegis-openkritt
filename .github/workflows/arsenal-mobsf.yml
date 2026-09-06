@@ -1,0 +1,75 @@
+name: Arsenal MobSF
+
+on:
+  pull_request:
+    paths:
+      - "tests/fixtures/mobile/**"
+      - "scripts/verify_mobsf_execution.py"
+      - ".github/workflows/arsenal-mobsf.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  arsenal-mobsf:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      AEGIS_CHECKOUT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      MOBSF_IMAGE: "opensecurity/mobile-security-framework-mobsf@sha256:d8c54c37956272506e7a2b97c02dd941a8779b5c2d3c9fef450711eb2e5d1656"
+      MOBSF_PORT: "18000"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.AEGIS_CHECKOUT_SHA }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -e ".[dev,api]" httpx
+
+      - name: Provision MobSF Container
+        run: |
+          docker pull "${MOBSF_IMAGE}"
+          docker run -d --name aegis-mobsf-ci \
+            -p 127.0.0.1:${MOBSF_PORT}:8000 \
+            -e MOBSF_API_KEY="aegis-ci-static-key" \
+            "${MOBSF_IMAGE}"
+          
+          # Wait for MobSF service health
+          echo "Waiting for MobSF service on 127.0.0.1:${MOBSF_PORT}..."
+          for i in {1..60}; do
+            if curl -s -f "http://127.0.0.1:${MOBSF_PORT}/api_docs" > /dev/null; then
+              echo "MobSF online and healthy after ${i} checks."
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "MobSF failed to become healthy."
+          docker logs aegis-mobsf-ci --tail 50
+          exit 1
+
+      - name: Execute Native MobSF Analysis on Positive and Negative APK Fixtures
+        run: |
+          mkdir -p runs/evidence/mobsf
+          python scripts/verify_mobsf_execution.py \
+            --mobsf-url "http://127.0.0.1:${MOBSF_PORT}" \
+            --api-key "aegis-ci-static-key" \
+            --positive-apk "tests/fixtures/mobile/positive_insecure.apk" \
+            --negative-apk "tests/fixtures/mobile/negative_clean.apk" \
+            --output-dir "runs/evidence/mobsf"
+
+      - name: Materialize Operator Run and Evidence
+        run: |
+          PYTHONPATH=src python scripts/materialize_operator_runs.py
+
+      - name: Upload MobSF Evidence Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: arsenal-mobsf-${{ env.AEGIS_CHECKOUT_SHA }}
+          path: |
+            runs/evidence/mobsf
+            reports/operator-runs/arsenal-*-mobsf001

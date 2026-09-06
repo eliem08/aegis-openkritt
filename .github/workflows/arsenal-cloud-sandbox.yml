@@ -1,0 +1,100 @@
+name: Arsenal Cloud Sandbox
+
+on:
+  workflow_dispatch:
+    inputs:
+      provider:
+        description: "Cloud Provider (aws / azure / entra)"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - all
+          - aws
+          - azure
+          - entra
+  schedule:
+    - cron: "0 5 * * 0"
+
+permissions:
+  contents: read
+
+jobs:
+  arsenal-cloud-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      AEGIS_CHECKOUT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AEGIS_CLOUD_AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AEGIS_CLOUD_AWS_SECRET_ACCESS_KEY }}
+      AZURE_TENANT_ID: ${{ secrets.AEGIS_CLOUD_AZURE_TENANT_ID }}
+      AZURE_CLIENT_ID: ${{ secrets.AEGIS_CLOUD_AZURE_CLIENT_ID }}
+      AZURE_CLIENT_SECRET: ${{ secrets.AEGIS_CLOUD_AZURE_CLIENT_SECRET }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AEGIS_CLOUD_AZURE_SUBSCRIPTION_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.AEGIS_CHECKOUT_SHA }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Inspect Operator Cloud Credentials Availability
+        id: creds_check
+        run: |
+          echo "=== OPERATOR CLOUD CREDENTIALS DISCOVERY ==="
+          HAS_AWS=false
+          HAS_AZURE=false
+          
+          if [ -n "${AWS_ACCESS_KEY_ID}" ] && [ -n "${AWS_SECRET_ACCESS_KEY}" ]; then
+            echo "AWS operator sandbox credentials present: YES"
+            HAS_AWS=true
+          else
+            echo "AWS operator sandbox credentials present: NO"
+          fi
+          
+          if [ -n "${AZURE_TENANT_ID}" ] && [ -n "${AZURE_CLIENT_ID}" ]; then
+            echo "Azure/Entra operator sandbox credentials present: YES"
+            HAS_AZURE=true
+          else
+            echo "Azure/Entra operator sandbox credentials present: NO"
+          fi
+          
+          echo "has_aws=${HAS_AWS}" >> "$GITHUB_OUTPUT"
+          echo "has_azure=${HAS_AZURE}" >> "$GITHUB_OUTPUT"
+
+      - name: Document Cloud Operator Resource Blockers
+        run: |
+          mkdir -p runs/evidence/cloud
+          cat << 'EOF' > runs/evidence/cloud/operator_resource_audit.json
+          {
+            "status": "EXTERNAL_OPERATOR_RESOURCE_REQUIRED",
+            "backends": {
+              "external:prowler": {
+                "status": "EXTERNAL_OPERATOR_RESOURCE_REQUIRED",
+                "missing_resources": ["AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_DEFAULT_REGION", "operator-owned disposable AWS sandbox account"]
+              },
+              "external:scout": {
+                "status": "EXTERNAL_OPERATOR_RESOURCE_REQUIRED",
+                "missing_resources": ["AWS or Azure read-only audit credentials on operator-owned disposable tenant"]
+              },
+              "external:roadrecon": {
+                "status": "EXTERNAL_OPERATOR_RESOURCE_REQUIRED",
+                "missing_resources": ["AZURE_TENANT_ID", "AZURE_CLIENT_ID", "AZURE_CLIENT_SECRET", "operator-owned test Entra ID tenant with synthetic user/group entities"]
+              },
+              "external:azurehound": {
+                "status": "EXTERNAL_OPERATOR_RESOURCE_REQUIRED",
+                "missing_resources": ["AZURE_TENANT_ID", "AZURE_CLIENT_ID", "AZURE_CLIENT_SECRET", "operator-owned test Entra ID tenant with synthetic relationship graph"]
+              }
+            },
+            "operator_action_required": "Provision dedicated zero-cost disposable test accounts in AWS and Entra ID with synthetic fixtures and store scoped credentials in repository secrets."
+          }
+          EOF
+
+      - name: Upload Cloud Evidence Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: arsenal-cloud-sandbox-${{ env.AEGIS_CHECKOUT_SHA }}
+          path: |
+            runs/evidence/cloud

@@ -1,0 +1,73 @@
+name: Arsenal Passive Provider
+
+on:
+  pull_request:
+    paths:
+      - "scripts/verify_gau_execution.py"
+      - "scripts/verify_subfinder_execution.py"
+      - ".github/workflows/arsenal-passive-provider.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  arsenal-passive:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      AEGIS_CHECKOUT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      GAU_VERSION: "2.2.4"
+      SUBFINDER_VERSION: "2.6.6"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.AEGIS_CHECKOUT_SHA }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -e ".[dev,api]" httpx
+
+      - name: Install Pinned Binaries (gau & subfinder)
+        run: |
+          mkdir -p bin
+          
+          # Install gau v2.2.4
+          curl -sSL -o gau.tar.gz "https://github.com/lc/gau/releases/download/v${GAU_VERSION}/gau_${GAU_VERSION}_linux_amd64.tar.gz"
+          tar -xzf gau.tar.gz -C bin/ gau
+          chmod +x bin/gau
+          
+          # Install subfinder v2.6.6
+          curl -sSL -o subfinder.zip "https://github.com/projectdiscovery/subfinder/releases/download/v${SUBFINDER_VERSION}/subfinder_${SUBFINDER_VERSION}_linux_amd64.zip"
+          unzip -o subfinder.zip -d bin/ subfinder
+          chmod +x bin/subfinder
+          
+          bin/gau --version
+          bin/subfinder -version
+
+      - name: Execute GAU Passive Verification
+        run: |
+          mkdir -p runs/evidence/gau
+          python scripts/verify_gau_execution.py --binary bin/gau --output-dir runs/evidence/gau
+
+      - name: Execute Subfinder Passive Verification
+        run: |
+          mkdir -p runs/evidence/subfinder
+          python scripts/verify_subfinder_execution.py --binary bin/subfinder --output-dir runs/evidence/subfinder
+
+      - name: Materialize Operator Runs and Evidence
+        run: |
+          PYTHONPATH=src python scripts/materialize_operator_runs.py
+
+      - name: Upload Passive Provider Evidence Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: arsenal-passive-provider-${{ env.AEGIS_CHECKOUT_SHA }}
+          path: |
+            runs/evidence/gau
+            runs/evidence/subfinder
+            reports/operator-runs/arsenal-*-gau00001
+            reports/operator-runs/arsenal-*-subf0001

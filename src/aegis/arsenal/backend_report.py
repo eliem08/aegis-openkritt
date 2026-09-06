@@ -86,6 +86,60 @@ def _is_external(binary: str) -> bool:
     return bool(value) and not value.startswith(_INTERNAL_PREFIXES) and value != "crt.sh"
 
 
+def verify_report_provenance(
+    evidence_code_sha: str,
+    report_commit_sha: str,
+    *,
+    approved_paths: Iterable[str] | None = None,
+) -> bool:
+    """Ensure that if report_commit_sha != evidence_code_sha, the intervening diff contains only approved generated-report files.
+
+    No source, runtime, policy, config, or fixture change may exist between the evidence code SHA
+    and report commit SHA.
+    """
+    if not evidence_code_sha or not report_commit_sha or evidence_code_sha == report_commit_sha:
+        return True
+
+    try:
+        output = subprocess.check_output(
+            ["git", "diff", "--name-only", f"{evidence_code_sha}..{report_commit_sha}"],
+            text=True,
+            timeout=10,
+        )
+    except Exception as e:
+        raise AssertionError(f"PROVENANCE_VERIFICATION_FAILED: git diff error: {e}") from e
+
+    changed_files = [line.strip().replace("\\", "/") for line in output.splitlines() if line.strip()]
+    allowed = set(approved_paths or ()) | {
+        "reports/arsenal/BACKEND_EXECUTION_MATRIX.json",
+        "reports/arsenal/BACKEND_EXECUTION_MATRIX.md",
+        "reports/arsenal/FULL_ARSENAL_COVERAGE.json",
+        "reports/arsenal/FULL_ARSENAL_COVERAGE.md",
+        "reports/arsenal/NEVER_EXECUTED_BACKENDS.json",
+        "reports/arsenal/NEVER_EXECUTED_BACKENDS.md",
+        "reports/arsenal/RUNNER_MATRIX.json",
+        "reports/arsenal/RUNNER_MATRIX.md",
+        "reports/arsenal/RUNTIME_MIGRATIONS.json",
+        "reports/arsenal/RUNTIME_MIGRATIONS.md",
+        "reports/arsenal/backend-inventory.json",
+        "reports/arsenal/backend-inventory.md",
+        "reports/arsenal/tool-lock.json",
+        "reports/arsenal/ci-full-fixture.json",
+        "reports/arsenal/ci-full-fixture.md",
+        "reports/arsenal/heavy-readiness.json",
+    }
+    unapproved = [
+        f for f in changed_files
+        if f not in allowed and not f.startswith("reports/arsenal/")
+    ]
+    if unapproved:
+        raise AssertionError(
+            f"PROVENANCE_INTEGRITY_VIOLATION: Unapproved source/config/fixture changes detected between "
+            f"evidence_code_sha ({evidence_code_sha[:10]}) and report_commit_sha ({report_commit_sha[:10]}): {unapproved}"
+        )
+    return True
+
+
 def _git_sha() -> str:
     configured = os.environ.get("AEGIS_GIT_SHA", "").strip()
     if configured:
@@ -324,6 +378,9 @@ def build_full_coverage_report(
     inventory: Mapping[str, Any],
     results: Iterable[Mapping[str, Any]],
     image_digest: str = "",
+    evidence_code_sha: str = "",
+    report_commit_sha: str = "",
+    validated_pr_head_sha: str = "",
 ) -> dict[str, Any]:
     documents = [dict(item) for item in results]
     definition_by_id = {item.capability_id: item for item in audit.definitions}
@@ -405,10 +462,6 @@ def build_full_coverage_report(
     fixture_capabilities = {
         item.capability_id for item in audit.definitions if item.fixture_executable
     }
-    state_counts = {
-        state.value: sum(item.get("result") == state.value for item in documents)
-        for state in ArsenalCoverageState
-    }
     llm = next((
         item.get("summary", {}) for item in documents
         if item.get("capability_id") == "fixture:ai/llm-security-boundary"
@@ -482,6 +535,19 @@ def build_full_coverage_report(
         0, never_executed_external_count - unavailable_count - backend_unhealthy_count - denied_count
     )
 
+    backend_states = {
+        ArsenalCoverageState.EXECUTED_PASS.value: executed_external_count,
+        ArsenalCoverageState.WAITING_FOR_PREREQUISITE.value: waiting_prerequisite_count,
+        ArsenalCoverageState.UNAVAILABLE.value: unavailable_count,
+        ArsenalCoverageState.BACKEND_UNHEALTHY.value: backend_unhealthy_count,
+        ArsenalCoverageState.DENIED_BY_POLICY.value: denied_count,
+    }
+    capability_states = {
+        state.value: sum(item.get("result") == state.value for item in documents)
+        for state in ArsenalCoverageState
+        if any(item.get("result") == state.value for item in documents)
+    }
+
     populations = {
         "external": {
             "registered": registered_external_count,
@@ -514,7 +580,33 @@ def build_full_coverage_report(
         },
     }
 
-    source_sha = inventory.get("git_sha") or _git_sha()
+    evidence_sha = (
+        evidence_code_sha
+        or os.environ.get("AEGIS_EVIDENCE_CODE_SHA", "").strip()
+        or inventory.get("evidence_code_sha", "")
+        or inventory.get("source_git_sha", "")
+        or inventory.get("git_sha", "")
+        or _git_sha()
+    )
+    report_sha = (
+        report_commit_sha
+        or os.environ.get("AEGIS_REPORT_COMMIT_SHA", "").strip()
+        or inventory.get("report_commit_sha", "")
+        or inventory.get("git_sha", "")
+        or _git_sha()
+    )
+    pr_head_sha = (
+        validated_pr_head_sha
+        or os.environ.get("AEGIS_VALIDATED_PR_HEAD_SHA", "").strip()
+        or os.environ.get("AEGIS_CHECKOUT_SHA", "").strip()
+        or report_sha
+    )
+
+    try:
+        verify_report_provenance(evidence_sha, report_sha)
+    except AssertionError as err:
+        audit.historical_evidence_errors.append(str(err))
+
     report_time = _now()
     inv_digest = document_digest(inventory)
     runtime_lock = build_runtime_lock(inventory, image_digest=image_digest)
@@ -627,8 +719,11 @@ def build_full_coverage_report(
 
     return {
         "schema_version": 2,
-        "source_git_sha": source_sha,
-        "git_sha": source_sha,
+        "evidence_code_sha": evidence_sha,
+        "report_commit_sha": report_sha,
+        "validated_pr_head_sha": pr_head_sha,
+        "source_git_sha": evidence_sha,
+        "git_sha": report_sha,
         "report_generated_at": report_time,
         "generated_at": report_time,
         "inventory_digest": inv_digest,
@@ -677,7 +772,9 @@ def build_full_coverage_report(
             "positive_controls_passed": positive_controls,
             "negative_controls_passed": negative_controls,
             "never_executed_external_backends": never_executed_external_count,
-            "states": state_counts,
+            "backend_states": backend_states,
+            "capability_states": capability_states,
+            "states": backend_states,
         },
         "runtime_migrations": [m.document() for m in RUNTIME_MIGRATIONS],
         "backend_matrix": backend_matrix_rows,
@@ -725,6 +822,9 @@ def render_full_coverage_markdown(document: Mapping[str, Any]) -> str:
         "# Full Arsenal Coverage", "",
         f"Verdict: **{document.get('verdict', '')}**", "",
         "## Exact-Head Provenance", "",
+        f"- Evidence Code SHA: `{document.get('evidence_code_sha', document.get('source_git_sha', ''))}`",
+        f"- Report Commit SHA: `{document.get('report_commit_sha', document.get('git_sha', ''))}`",
+        f"- Validated PR Head SHA: `{document.get('validated_pr_head_sha', document.get('report_commit_sha', document.get('git_sha', '')))}`",
         f"- Source Git SHA: `{document.get('source_git_sha', document.get('git_sha', ''))}`",
         f"- Generated At: `{document.get('report_generated_at', document.get('generated_at', ''))}`",
         f"- Inventory Digest: `{document.get('inventory_digest', '')}`",
@@ -801,5 +901,5 @@ __all__ = [
     "backend_prerequisite", "build_backend_inventory", "build_full_coverage_report",
     "build_runtime_lock", "build_tool_lock",
     "canonical_binary", "render_backend_inventory_markdown",
-    "render_full_coverage_markdown", "write_json",
+    "render_full_coverage_markdown", "verify_report_provenance", "write_json",
 ]

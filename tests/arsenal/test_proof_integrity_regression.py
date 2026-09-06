@@ -19,7 +19,11 @@ import pytest
 
 from aegis.ai.tool_runtime import ToolRuntimeRecord, ToolRuntimeStatus
 from aegis.arsenal.audit import build_audit
-from aegis.arsenal.backend_report import build_backend_inventory, build_full_coverage_report
+from aegis.arsenal.backend_report import (
+    build_backend_inventory,
+    build_full_coverage_report,
+    verify_report_provenance,
+)
 from aegis.arsenal.models import (
     ArsenalCoverageState,
     CapabilityCoverageRecord,
@@ -328,4 +332,50 @@ def test_denominator_integrity_test_e_lifecycle_state_enforcement():
         assert mig.migration_target
         assert mig.migration_reason
         assert mig.migration_source
+
+
+def test_regression_provenance_sha_formalization_and_verification():
+    """Test 7: Formalized provenance SHAs and verification that only approved report files differ."""
+    ev_sha = "976a80b94d0c184b0ebb3493847305da708efafc"
+    rep_sha = "6388a8bdbe180ae7ce9f0179077e21f57addd424"
+    assert verify_report_provenance(ev_sha, rep_sha) is True
+
+
+def test_regression_provenance_fails_when_unapproved_source_files_changed(monkeypatch):
+    """Test 8: Intervening diff with source/policy/fixture changes must fail provenance validation."""
+    ev_sha = "976a80b94d0c184b0ebb3493847305da708efafc"
+    rep_sha = "6388a8bdbe180ae7ce9f0179077e21f57addd424"
+
+    # Simulate diff returning unapproved source files
+    fake_diff = "reports/arsenal/FULL_ARSENAL_COVERAGE.json\nsrc/aegis/policy.py\n"
+    monkeypatch.setattr(subprocess, "check_output", lambda *args, **kwargs: fake_diff)
+
+    with pytest.raises(AssertionError, match="PROVENANCE_INTEGRITY_VIOLATION"):
+        verify_report_provenance(ev_sha, rep_sha)
+
+
+def test_regression_split_state_counters_reconcile_to_denominators(tmp_path: Path):
+    """Test 9: State counters must be cleanly split into backend_states and capability_states.
+
+    Backend-state totals must reconcile to active backend denominator.
+    Capability-state totals must reconcile to their own capability denominator.
+    """
+    audit = build_audit(runs_dir=tmp_path, runtime_manager=HealthyRuntime())
+    inventory = build_backend_inventory(audit, runtime_manager=HealthyRuntime())
+    report = build_full_coverage_report(audit=audit, inventory=inventory, results=[])
+
+    metrics = report["metrics"]
+    assert "backend_states" in metrics
+    assert "capability_states" in metrics
+    assert "states" in metrics
+
+    # Backend states reconcile to active external backend denominator
+    backend_states = metrics["backend_states"]
+    assert sum(backend_states.values()) == metrics["active_backends"]
+    assert sum(backend_states.values()) == metrics["fixture_backend_denominator"]
+
+    # Capability states reconcile to capability executions denominator
+    capability_states = metrics["capability_states"]
+    assert sum(capability_states.values()) == len(report["executions"])
+
 

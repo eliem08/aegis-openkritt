@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 
 from aegis.policy import ActionRequest
 
@@ -72,6 +72,8 @@ def list_approvals(engagement: Engagement = Depends(get_engagement)) -> list[App
 @router.delete(
     "/{grant_id}",
     status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+    response_model=None,
     dependencies=[Depends(require_operator)],
     summary="Revoke an approval grant",
 )
