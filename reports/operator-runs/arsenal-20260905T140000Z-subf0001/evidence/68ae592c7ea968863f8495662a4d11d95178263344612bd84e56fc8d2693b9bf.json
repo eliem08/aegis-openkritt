@@ -3,7 +3,7 @@
   "backend_name": "subfinder",
   "backend_package": "subfinder",
   "backend_version": "2.6.6",
-  "binary_path": "bin/subfinder.exe",
+  "binary_path": "C:\\Users\\21263\\Downloads\\ai bug bounty\\bin\\subfinder.exe",
   "blocking_reason": "",
   "capability_id": "adapter:subfinder/passive-discovery",
   "capability_ids": [
@@ -12,8 +12,8 @@
   "container_digest_if_applicable": "",
   "coverage_state": "EXECUTED_PASS",
   "duration_ms": 250,
-  "evidence_digest": "599ece5945d0ebb7b3ad28a4a965fd8892737cf158296988d0cf02d7f548c0b9",
-  "execution_completed_at": "2026-09-06T14:18:38.086856+00:00",
+  "evidence_digest": "68ae592c7ea968863f8495662a4d11d95178263344612bd84e56fc8d2693b9bf",
+  "execution_completed_at": "2026-09-06T14:24:25.403724+00:00",
   "execution_grant_payload": {
     "allowed_destinations": [],
     "allowed_methods": [],
@@ -32,19 +32,19 @@
       "negative_fixture_digest": "b885e0f869a635e7f6b5180ea734d8f61ba7ba07e9f85181fb10c44653931504",
       "positive_fixture_digest": "b885e0f869a635e7f6b5180ea734d8f61ba7ba07e9f85181fb10c44653931504"
     },
-    "decision_fingerprint": "679541b60035ebbfd4260234",
-    "expires_at": "2026-09-06T14:18:38.086856+00:00",
+    "decision_fingerprint": "3b22c37b0e2c7377a49f38a7",
+    "expires_at": "2026-09-06T14:24:25.403724+00:00",
     "external_model_egress_allowed": false,
     "human_approval": false,
-    "issued_at": "2026-09-06T14:18:38.086856+00:00",
+    "issued_at": "2026-09-06T14:24:25.403724+00:00",
     "network_allowed": false,
-    "nonce": "d9825e9d3b352855",
+    "nonce": "251e4be21b3e2bfc",
     "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
     "state_change_allowed": false
   },
   "execution_performed": true,
   "execution_proof_kind": "REAL_BACKEND",
-  "execution_started_at": "2026-09-06T14:18:38.086856+00:00",
+  "execution_started_at": "2026-09-06T14:24:25.403724+00:00",
   "exit_code": 0,
   "fixture_version": "subfinder-v1",
   "kind": "arsenal_tool_fixture_execution",
@@ -56,8 +56,8 @@
   "parsed_result_digest": "f7d7c88b5391364b3232cb46360be329324a53397e35f5204043db4df29201d2",
   "policy_decision": {
     "action": "source_analysis",
-    "authorization_id": "fixture:2026-09-06T14:18:38.086856+00:00",
-    "evaluated_at": "2026-09-06T14:18:38.086856+00:00",
+    "authorization_id": "fixture:2026-09-06T14:24:25.403724+00:00",
+    "evaluated_at": "2026-09-06T14:24:25.403724+00:00",
     "incidents": [],
     "reasons": [
       {

@@ -17,7 +17,7 @@ jobs:
     timeout-minutes: 30
     env:
       AEGIS_CHECKOUT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-      MOBSF_IMAGE: "opensecurity/mobile-security-framework-mobsf@sha256:d8c54c37956272506e7a2b97c02dd941a8779b5c2d3c9fef450711eb2e5d1656"
+      MOBSF_IMAGE: "opensecurity/mobile-security-framework-mobsf:v4.3.2"
       MOBSF_PORT: "18000"
     steps:
       - uses: actions/checkout@v4

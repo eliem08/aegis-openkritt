@@ -1,5 +1,5 @@
 {
-  "audited_at": "2026-09-06T14:18:38.048442+00:00",
+  "audited_at": "2026-09-06T14:24:25.366977+00:00",
   "backend_kind": "EXTERNAL_TOOL",
   "backend_package": "gau",
   "reason": "Native gau binary v2.2.4 executed against bounded CommonCrawl provider proxy with positive discovery and clean negative control.",

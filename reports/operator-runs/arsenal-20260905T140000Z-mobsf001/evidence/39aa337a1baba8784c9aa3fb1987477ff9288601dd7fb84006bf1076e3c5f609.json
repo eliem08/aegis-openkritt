@@ -3,17 +3,17 @@
   "backend_name": "MobSF",
   "backend_package": "opensecurity/mobile-security-framework-mobsf",
   "backend_version": "4.3.2",
-  "binary_path": "docker:opensecurity/mobile-security-framework-mobsf@sha256:d8c54c37956272506e7a2b97c02dd941a8779b5c2d3c9fef450711eb2e5d1656",
+  "binary_path": "docker:opensecurity/mobile-security-framework-mobsf:v4.3.2",
   "blocking_reason": "",
   "capability_id": "asset:mobsf/rest-static-analysis",
   "capability_ids": [
     "asset:mobsf/rest-static-analysis"
   ],
-  "container_digest_if_applicable": "sha256:d8c54c37956272506e7a2b97c02dd941a8779b5c2d3c9fef450711eb2e5d1656",
+  "container_digest_if_applicable": "sha256:e119aca928c5443f01bc94233c0435b96909dc7975f06eb017acb6bc76110516",
   "coverage_state": "EXECUTED_PASS",
   "duration_ms": 250,
-  "evidence_digest": "b450c5eaf2208f30eedd2a816a632a3c9e60894450b708fb2360c6d47252a82b",
-  "execution_completed_at": "2026-09-06T14:18:38.007463+00:00",
+  "evidence_digest": "39aa337a1baba8784c9aa3fb1987477ff9288601dd7fb84006bf1076e3c5f609",
+  "execution_completed_at": "2026-09-06T14:24:25.332251+00:00",
   "execution_grant_payload": {
     "allowed_destinations": [],
     "allowed_methods": [],
@@ -32,19 +32,19 @@
       "negative_fixture_digest": "d9cf4dc5e8fde9dc74581fed8fa3e6090ae21ae73f1480b90900681b00945f75",
       "positive_fixture_digest": "1093a24f0529705dc0d90a9b6b050c556b3f28fac42f833b6a9809e653214e19"
     },
-    "decision_fingerprint": "03ea6d560b63f100bb9e7a7f",
-    "expires_at": "2026-09-06T14:18:38.007463+00:00",
+    "decision_fingerprint": "d97329e93dac6a414c9fa2c3",
+    "expires_at": "2026-09-06T14:24:25.332251+00:00",
     "external_model_egress_allowed": false,
     "human_approval": false,
-    "issued_at": "2026-09-06T14:18:38.007463+00:00",
+    "issued_at": "2026-09-06T14:24:25.332251+00:00",
     "network_allowed": false,
-    "nonce": "abbd5608d0951ed6",
+    "nonce": "f336f60a3861714f",
     "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
     "state_change_allowed": false
   },
   "execution_performed": true,
   "execution_proof_kind": "REAL_BACKEND",
-  "execution_started_at": "2026-09-06T14:18:38.007463+00:00",
+  "execution_started_at": "2026-09-06T14:24:25.332251+00:00",
   "exit_code": 0,
   "fixture_version": "mobsf-v1",
   "kind": "arsenal_tool_fixture_execution",
@@ -56,8 +56,8 @@
   "parsed_result_digest": "436eddedd375fb27014cb5846159ce3c817913ac2dc7196998046f83a2ddebb4",
   "policy_decision": {
     "action": "source_analysis",
-    "authorization_id": "fixture:2026-09-06T14:18:38.007463+00:00",
-    "evaluated_at": "2026-09-06T14:18:38.007463+00:00",
+    "authorization_id": "fixture:2026-09-06T14:24:25.332251+00:00",
+    "evaluated_at": "2026-09-06T14:24:25.332251+00:00",
     "incidents": [],
     "reasons": [
       {

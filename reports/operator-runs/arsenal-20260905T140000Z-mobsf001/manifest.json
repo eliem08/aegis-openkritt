@@ -1,7 +1,7 @@
 {
   "authorization": {
     "approval_required_for": [],
-    "authorization_id": "fixture:20260906T141838Z",
+    "authorization_id": "fixture:20260906T142425Z",
     "cloud_fixture": null,
     "customer_id": "aegis-local-fixture",
     "data_handling": {
@@ -32,15 +32,15 @@
       "max_concurrent_sessions": 1,
       "requests_per_second": 1.0
     },
-    "signature": "8deaf29dab3776335efd3f86e8e09788a6cbf46b7e62e140cefb411fbf5ca966",
+    "signature": "c74841e7485e74003d42694cae20e2cc8f90d5a8014b27964abef78906ae918f",
     "signing_key_id": "fixture-auth",
     "spend_budget": 0.0,
     "targets": [
       "127.0.0.1"
     ],
     "test_identities": [],
-    "valid_from": "2026-09-06T14:18:33.007507Z",
-    "valid_until": "2026-09-06T14:33:38.007507Z"
+    "valid_from": "2026-09-06T14:24:20.332300Z",
+    "valid_until": "2026-09-06T14:39:25.332300Z"
   },
   "budgets": {
     "max_attempts": 1,
@@ -52,10 +52,10 @@
   },
   "canary_asset": null,
   "controlled_identity_refs": [],
-  "created_at": "2026-09-06T14:18:38.007463+00:00",
+  "created_at": "2026-09-06T14:24:25.332251+00:00",
   "evidence_refs": [
-    "b450c5eaf2208f30eedd2a816a632a3c9e60894450b708fb2360c6d47252a82b",
-    "evidence/b450c5eaf2208f30eedd2a816a632a3c9e60894450b708fb2360c6d47252a82b.json"
+    "39aa337a1baba8784c9aa3fb1987477ff9288601dd7fb84006bf1076e3c5f609",
+    "evidence/39aa337a1baba8784c9aa3fb1987477ff9288601dd7fb84006bf1076e3c5f609.json"
   ],
   "execution_grants": [
     {
@@ -76,18 +76,18 @@
         "negative_fixture_digest": "d9cf4dc5e8fde9dc74581fed8fa3e6090ae21ae73f1480b90900681b00945f75",
         "positive_fixture_digest": "1093a24f0529705dc0d90a9b6b050c556b3f28fac42f833b6a9809e653214e19"
       },
-      "decision_fingerprint": "03ea6d560b63f100bb9e7a7f",
-      "expires_at": "2026-09-06T14:18:38.007463+00:00",
+      "decision_fingerprint": "d97329e93dac6a414c9fa2c3",
+      "expires_at": "2026-09-06T14:24:25.332251+00:00",
       "external_model_egress_allowed": false,
       "human_approval": false,
-      "issued_at": "2026-09-06T14:18:38.007463+00:00",
+      "issued_at": "2026-09-06T14:24:25.332251+00:00",
       "network_allowed": false,
-      "nonce": "abbd5608d0951ed6",
+      "nonce": "f336f60a3861714f",
       "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
       "state_change_allowed": false
     }
   ],
-  "manifest_digest": "262b2c3943ac206796c4208f162b40c29b3f0dbaf33f3dfe7cc3d879e290c6cf",
+  "manifest_digest": "557b4e275bef3f9c32f6770ec897733720cd05b143012aa41222e87ec2ccc9d9",
   "mission_ids": [
     "arsenal-mission-mobsf-01"
   ],

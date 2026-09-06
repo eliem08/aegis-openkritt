@@ -1605,12 +1605,12 @@
     },
     "current_runner_readiness": "UNAVAILABLE",
     "current_state": "UNAVAILABLE",
-    "evidence_digest": "1a69e26363caa2c1d3cb1c96fa1e348d73e2a5d3224f38ff0b238950c5c1fe58",
+    "evidence_digest": "4fc0048ec8264e0e73649173cabfb6404b3da01c5862aecf4d5e5caeed2f1019",
     "execution_evidence_by_runner": [
       {
         "backend_name": "gau",
-        "binary_path": "bin/gau.exe",
-        "evidence_digest": "1a69e26363caa2c1d3cb1c96fa1e348d73e2a5d3224f38ff0b238950c5c1fe58",
+        "binary_path": "C:\\Users\\21263\\Downloads\\ai bug bounty\\bin\\gau.exe",
+        "evidence_digest": "4fc0048ec8264e0e73649173cabfb6404b3da01c5862aecf4d5e5caeed2f1019",
         "platform": "Linux",
         "runner": "arsenal-linux",
         "source_sha": "arsenal-20260905T140000Z-gau00001",
@@ -2521,12 +2521,12 @@
     },
     "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
     "current_state": "WAITING_FOR_PREREQUISITE",
-    "evidence_digest": "b450c5eaf2208f30eedd2a816a632a3c9e60894450b708fb2360c6d47252a82b",
+    "evidence_digest": "39aa337a1baba8784c9aa3fb1987477ff9288601dd7fb84006bf1076e3c5f609",
     "execution_evidence_by_runner": [
       {
         "backend_name": "MobSF",
-        "binary_path": "docker:opensecurity/mobile-security-framework-mobsf@sha256:d8c54c37956272506e7a2b97c02dd941a8779b5c2d3c9fef450711eb2e5d1656",
-        "evidence_digest": "b450c5eaf2208f30eedd2a816a632a3c9e60894450b708fb2360c6d47252a82b",
+        "binary_path": "docker:opensecurity/mobile-security-framework-mobsf:v4.3.2",
+        "evidence_digest": "39aa337a1baba8784c9aa3fb1987477ff9288601dd7fb84006bf1076e3c5f609",
         "platform": "Linux",
         "runner": "arsenal-linux",
         "source_sha": "arsenal-20260905T140000Z-mobsf001",
@@ -4808,12 +4808,12 @@
     },
     "current_runner_readiness": "UNAVAILABLE",
     "current_state": "UNAVAILABLE",
-    "evidence_digest": "599ece5945d0ebb7b3ad28a4a965fd8892737cf158296988d0cf02d7f548c0b9",
+    "evidence_digest": "68ae592c7ea968863f8495662a4d11d95178263344612bd84e56fc8d2693b9bf",
     "execution_evidence_by_runner": [
       {
         "backend_name": "subfinder",
-        "binary_path": "bin/subfinder.exe",
-        "evidence_digest": "599ece5945d0ebb7b3ad28a4a965fd8892737cf158296988d0cf02d7f548c0b9",
+        "binary_path": "C:\\Users\\21263\\Downloads\\ai bug bounty\\bin\\subfinder.exe",
+        "evidence_digest": "68ae592c7ea968863f8495662a4d11d95178263344612bd84e56fc8d2693b9bf",
         "platform": "Linux",
         "runner": "arsenal-linux",
         "source_sha": "arsenal-20260905T140000Z-subf0001",

@@ -4,15 +4,15 @@ Verdict: **ACTIVE_LOCAL_SOFTWARE_SUBSET_VERIFIED_EXTERNAL_PREREQUISITES_REMAIN**
 
 ## Exact-Head Provenance
 
-- Evidence Code SHA: `e56d4dae219c73f4efadff7c41688e31bc166c7c`
-- Report Commit SHA: `e56d4dae219c73f4efadff7c41688e31bc166c7c`
-- Validated PR Head SHA: `e56d4dae219c73f4efadff7c41688e31bc166c7c`
-- Source Git SHA: `e56d4dae219c73f4efadff7c41688e31bc166c7c`
-- Generated At: `2026-09-06T14:20:56.602036+00:00`
-- Inventory Digest: `a0ec8372393c13242b0c53b0eec32e545da56677503afcdda72ea70453070bb0`
-- Backend Lock Digest: `b336f3905b3059cae9bf79368490019e7d4981b25df3783cf6154049bb3ff205`
+- Evidence Code SHA: `f2d2433f878734963d05fd76c2e3b927a36d37d7`
+- Report Commit SHA: `f2d2433f878734963d05fd76c2e3b927a36d37d7`
+- Validated PR Head SHA: `f2d2433f878734963d05fd76c2e3b927a36d37d7`
+- Source Git SHA: `f2d2433f878734963d05fd76c2e3b927a36d37d7`
+- Generated At: `2026-09-06T14:24:31.001757+00:00`
+- Inventory Digest: `ca7dcec9e4c9ef5c986555bad63a7db5e72c339d618b159aed1cbf02fe679e81`
+- Backend Lock Digest: `3b2d5ed05ea29987da6552ab1c97faabd7eb883000f13cd03bfe7f5e3c9a3a3d`
 - Fixture Version Digest: `aa4d89610f7e9236736d56b9e19146f001fe3bf4c25a09dcd8011adbfeb33f79`
-- Evidence Root Digest: `8b3ccaf7b50f6eb6c80da2f606963f6e5c9f313501b7b35175592cfb9db357e4`
+- Evidence Root Digest: `c2d1ab810ab9f6ec69daaeb483cb3767f36c892ff8e19bc971436185be6e4c30`
 - Arsenal Image: ``
 
 ## Typed Populations
@@ -211,7 +211,7 @@ Verdict: **ACTIVE_LOCAL_SOFTWARE_SUBSET_VERIFIED_EXTERNAL_PREREQUISITES_REMAIN**
 | `asset:kics/iac-security-scan` | EXECUTED_PASS | `arsenal-20260903T141254Z-50b4b002` | `4e10278e79db9a1f4c35cb1e99b4df855b11c9bdfff7d511df05d8c850d5234e` |
 | `asset:kubescape/kubernetes-posture-and-runtime-scan` | EXECUTED_PASS | `arsenal-20260903T141255Z-6477fce4` | `075bd37c5d6aa9c7a70a7e8d6011213c180fd12404b7913c33a6cb7d3b52fea4` |
 | `asset:mitmproxy/authorized-http-traffic-capture` | EXECUTED_PASS | `arsenal-20260903T141257Z-a45775d0` | `f7515a411e2784300cd7b1c5e5476197ba90634ebf2bbdfa99abab656cefdd2e` |
-| `asset:mobsf/rest-static-analysis` | EXECUTED_PASS | `arsenal-20260905T140000Z-mobsf001` | `b450c5eaf2208f30eedd2a816a632a3c9e60894450b708fb2360c6d47252a82b` |
+| `asset:mobsf/rest-static-analysis` | EXECUTED_PASS | `arsenal-20260905T140000Z-mobsf001` | `39aa337a1baba8784c9aa3fb1987477ff9288601dd7fb84006bf1076e3c5f609` |
 | `asset:modelscan/serialized-model-safety-scan` | EXECUTED_PASS | `arsenal-20260903T141303Z-40016bcf` | `62b90360b4307c6374cbf9d8043aa9cf5df23e20fbb9799bbe6f65a55b4d853c` |
 | `asset:naabu/bounded-port-discovery` | EXECUTED_PASS | `arsenal-20260903T141304Z-3be626df` | `9dadb9f88aac4332f695df42952f3a6b7bac5e02918931d2799556c55a10d26b` |
 | `asset:nmap/bounded-service-fingerprinting` | EXECUTED_PASS | `arsenal-20260903T141310Z-a75f7035` | `90085aacbdd0969a3c9f142f624953216913b8c97869de297bc4686c66db1856` |
@@ -261,9 +261,9 @@ Verdict: **ACTIVE_LOCAL_SOFTWARE_SUBSET_VERIFIED_EXTERNAL_PREREQUISITES_REMAIN**
 | `asset:prowler/aws-security-posture` | WAITING_FOR_PREREQUISITE | `arsenal-20260903T152702Z-1c24fe56` | `df5514437cc1edcfcb11aa98795a5740db3864620802177bcb196cee7e9ab802` |
 | `asset:scoutsuite/aws-attack-surface-audit` | WAITING_FOR_PREREQUISITE | `arsenal-20260903T152702Z-d83dec86` | `84636aa94101946c06cd11da22d3e925f1867d333e658b7df70e447d7c40666d` |
 | `asset:roadtools/entra-identity-analysis` | WAITING_FOR_PREREQUISITE | `arsenal-20260903T152702Z-f4794a5f` | `dff4fdcae6eef6c066725a0b5eb204f07ed81e4333d8cad1d5a025c04a9ebeaa` |
-| `adapter:subfinder/passive-discovery` | EXECUTED_PASS | `arsenal-20260905T140000Z-subf0001` | `599ece5945d0ebb7b3ad28a4a965fd8892737cf158296988d0cf02d7f548c0b9` |
+| `adapter:subfinder/passive-discovery` | EXECUTED_PASS | `arsenal-20260905T140000Z-subf0001` | `68ae592c7ea968863f8495662a4d11d95178263344612bd84e56fc8d2693b9bf` |
 | `asset:azurehound/azure-entra-relationship-collection` | WAITING_FOR_PREREQUISITE | `arsenal-20260903T152703Z-4cbfb5ff` | `18e370a2d9b9d24ceae961e01b15fe21acf253a9b3b1e5762548d2ef6fce91f0` |
-| `adapter:gau/passive-discovery` | EXECUTED_PASS | `arsenal-20260905T140000Z-gau00001` | `1a69e26363caa2c1d3cb1c96fa1e348d73e2a5d3224f38ff0b238950c5c1fe58` |
+| `adapter:gau/passive-discovery` | EXECUTED_PASS | `arsenal-20260905T140000Z-gau00001` | `4fc0048ec8264e0e73649173cabfb6404b3da01c5862aecf4d5e5caeed2f1019` |
 
 ## Never Executed Active Backends
 

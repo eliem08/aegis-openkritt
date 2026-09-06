@@ -1,7 +1,7 @@
 {
   "arsenal_image_digest": "",
   "authorized_real_note": "Fixture evidence is separate from AUTHORIZED_REAL coverage; this milestone does not increase real-target coverage.",
-  "backend_lock_digest": "b336f3905b3059cae9bf79368490019e7d4981b25df3783cf6154049bb3ff205",
+  "backend_lock_digest": "3b2d5ed05ea29987da6552ab1c97faabd7eb883000f13cd03bfe7f5e3c9a3a3d",
   "backend_matrix": [
     {
       "active_status": "active",
@@ -1609,12 +1609,12 @@
       },
       "current_runner_readiness": "UNAVAILABLE",
       "current_state": "UNAVAILABLE",
-      "evidence_digest": "1a69e26363caa2c1d3cb1c96fa1e348d73e2a5d3224f38ff0b238950c5c1fe58",
+      "evidence_digest": "4fc0048ec8264e0e73649173cabfb6404b3da01c5862aecf4d5e5caeed2f1019",
       "execution_evidence_by_runner": [
         {
           "backend_name": "gau",
-          "binary_path": "bin/gau.exe",
-          "evidence_digest": "1a69e26363caa2c1d3cb1c96fa1e348d73e2a5d3224f38ff0b238950c5c1fe58",
+          "binary_path": "C:\\Users\\21263\\Downloads\\ai bug bounty\\bin\\gau.exe",
+          "evidence_digest": "4fc0048ec8264e0e73649173cabfb6404b3da01c5862aecf4d5e5caeed2f1019",
           "platform": "Linux",
           "runner": "arsenal-linux",
           "source_sha": "arsenal-20260905T140000Z-gau00001",
@@ -2525,12 +2525,12 @@
       },
       "current_runner_readiness": "WAITING_FOR_PREREQUISITE",
       "current_state": "WAITING_FOR_PREREQUISITE",
-      "evidence_digest": "b450c5eaf2208f30eedd2a816a632a3c9e60894450b708fb2360c6d47252a82b",
+      "evidence_digest": "39aa337a1baba8784c9aa3fb1987477ff9288601dd7fb84006bf1076e3c5f609",
       "execution_evidence_by_runner": [
         {
           "backend_name": "MobSF",
-          "binary_path": "docker:opensecurity/mobile-security-framework-mobsf@sha256:d8c54c37956272506e7a2b97c02dd941a8779b5c2d3c9fef450711eb2e5d1656",
-          "evidence_digest": "b450c5eaf2208f30eedd2a816a632a3c9e60894450b708fb2360c6d47252a82b",
+          "binary_path": "docker:opensecurity/mobile-security-framework-mobsf:v4.3.2",
+          "evidence_digest": "39aa337a1baba8784c9aa3fb1987477ff9288601dd7fb84006bf1076e3c5f609",
           "platform": "Linux",
           "runner": "arsenal-linux",
           "source_sha": "arsenal-20260905T140000Z-mobsf001",
@@ -4812,12 +4812,12 @@
       },
       "current_runner_readiness": "UNAVAILABLE",
       "current_state": "UNAVAILABLE",
-      "evidence_digest": "599ece5945d0ebb7b3ad28a4a965fd8892737cf158296988d0cf02d7f548c0b9",
+      "evidence_digest": "68ae592c7ea968863f8495662a4d11d95178263344612bd84e56fc8d2693b9bf",
       "execution_evidence_by_runner": [
         {
           "backend_name": "subfinder",
-          "binary_path": "bin/subfinder.exe",
-          "evidence_digest": "599ece5945d0ebb7b3ad28a4a965fd8892737cf158296988d0cf02d7f548c0b9",
+          "binary_path": "C:\\Users\\21263\\Downloads\\ai bug bounty\\bin\\subfinder.exe",
+          "evidence_digest": "68ae592c7ea968863f8495662a4d11d95178263344612bd84e56fc8d2693b9bf",
           "platform": "Linux",
           "runner": "arsenal-linux",
           "source_sha": "arsenal-20260905T140000Z-subf0001",
@@ -7413,9 +7413,9 @@
     "tool:trivy/deps",
     "tool:trivy/secrets"
   ],
-  "evidence_code_sha": "e56d4dae219c73f4efadff7c41688e31bc166c7c",
+  "evidence_code_sha": "f2d2433f878734963d05fd76c2e3b927a36d37d7",
   "evidence_integrity_verified": true,
-  "evidence_root_digest": "8b3ccaf7b50f6eb6c80da2f606963f6e5c9f313501b7b35175592cfb9db357e4",
+  "evidence_root_digest": "c2d1ab810ab9f6ec69daaeb483cb3767f36c892ff8e19bc971436185be6e4c30",
   "executions": [
     {
       "capability_id": "adapter:jsluice/passive-discovery",
@@ -9489,8 +9489,8 @@
     },
     {
       "capability_id": "asset:mobsf/rest-static-analysis",
-      "evidence_digest": "b450c5eaf2208f30eedd2a816a632a3c9e60894450b708fb2360c6d47252a82b",
-      "evidence_ref": "evidence/b450c5eaf2208f30eedd2a816a632a3c9e60894450b708fb2360c6d47252a82b.json",
+      "evidence_digest": "39aa337a1baba8784c9aa3fb1987477ff9288601dd7fb84006bf1076e3c5f609",
+      "evidence_ref": "evidence/39aa337a1baba8784c9aa3fb1987477ff9288601dd7fb84006bf1076e3c5f609.json",
       "mission_id": "arsenal-mission-mobsf-01",
       "result": "EXECUTED_PASS",
       "run_id": "arsenal-20260905T140000Z-mobsf001",
@@ -12934,8 +12934,8 @@
     },
     {
       "capability_id": "adapter:subfinder/passive-discovery",
-      "evidence_digest": "599ece5945d0ebb7b3ad28a4a965fd8892737cf158296988d0cf02d7f548c0b9",
-      "evidence_ref": "evidence/599ece5945d0ebb7b3ad28a4a965fd8892737cf158296988d0cf02d7f548c0b9.json",
+      "evidence_digest": "68ae592c7ea968863f8495662a4d11d95178263344612bd84e56fc8d2693b9bf",
+      "evidence_ref": "evidence/68ae592c7ea968863f8495662a4d11d95178263344612bd84e56fc8d2693b9bf.json",
       "mission_id": "arsenal-mission-subf-01",
       "result": "EXECUTED_PASS",
       "run_id": "arsenal-20260905T140000Z-subf0001",
@@ -13014,8 +13014,8 @@
     },
     {
       "capability_id": "adapter:gau/passive-discovery",
-      "evidence_digest": "1a69e26363caa2c1d3cb1c96fa1e348d73e2a5d3224f38ff0b238950c5c1fe58",
-      "evidence_ref": "evidence/1a69e26363caa2c1d3cb1c96fa1e348d73e2a5d3224f38ff0b238950c5c1fe58.json",
+      "evidence_digest": "4fc0048ec8264e0e73649173cabfb6404b3da01c5862aecf4d5e5caeed2f1019",
+      "evidence_ref": "evidence/4fc0048ec8264e0e73649173cabfb6404b3da01c5862aecf4d5e5caeed2f1019.json",
       "mission_id": "arsenal-mission-gau-01",
       "result": "EXECUTED_PASS",
       "run_id": "arsenal-20260905T140000Z-gau00001",
@@ -13070,10 +13070,10 @@
     }
   ],
   "fixture_version_digest": "aa4d89610f7e9236736d56b9e19146f001fe3bf4c25a09dcd8011adbfeb33f79",
-  "generated_at": "2026-09-06T14:20:56.602036+00:00",
-  "git_sha": "e56d4dae219c73f4efadff7c41688e31bc166c7c",
+  "generated_at": "2026-09-06T14:24:31.001757+00:00",
+  "git_sha": "f2d2433f878734963d05fd76c2e3b927a36d37d7",
   "historical_evidence_errors": [],
-  "inventory_digest": "a0ec8372393c13242b0c53b0eec32e545da56677503afcdda72ea70453070bb0",
+  "inventory_digest": "ca7dcec9e4c9ef5c986555bad63a7db5e72c339d618b159aed1cbf02fe679e81",
   "llm_boundary": {
     "authorized_real_ai_execution_coverage": null,
     "cases": 16,
@@ -13595,8 +13595,8 @@
     "external:scout"
   ],
   "p0_defects": 0,
-  "report_commit_sha": "e56d4dae219c73f4efadff7c41688e31bc166c7c",
-  "report_generated_at": "2026-09-06T14:20:56.602036+00:00",
+  "report_commit_sha": "f2d2433f878734963d05fd76c2e3b927a36d37d7",
+  "report_generated_at": "2026-09-06T14:24:31.001757+00:00",
   "runtime_migrations": [
     {
       "capabilities_affected": [
@@ -13638,7 +13638,7 @@
     }
   ],
   "schema_version": 2,
-  "source_git_sha": "e56d4dae219c73f4efadff7c41688e31bc166c7c",
-  "validated_pr_head_sha": "e56d4dae219c73f4efadff7c41688e31bc166c7c",
+  "source_git_sha": "f2d2433f878734963d05fd76c2e3b927a36d37d7",
+  "validated_pr_head_sha": "f2d2433f878734963d05fd76c2e3b927a36d37d7",
   "verdict": "ACTIVE_LOCAL_SOFTWARE_SUBSET_VERIFIED_EXTERNAL_PREREQUISITES_REMAIN"
 }
