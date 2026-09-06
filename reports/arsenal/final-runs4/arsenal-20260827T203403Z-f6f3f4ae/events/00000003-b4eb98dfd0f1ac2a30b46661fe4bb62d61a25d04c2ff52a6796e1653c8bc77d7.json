@@ -1,0 +1,13 @@
+{
+  "detail": {
+    "capability_id": "tool:osv-scanner/deps",
+    "mission_id": "arsenal-tool-f6f3f4aee974",
+    "task_id": "arsenal-tool-f6f3f4aee974-execute"
+  },
+  "digest": "b4eb98dfd0f1ac2a30b46661fe4bb62d61a25d04c2ff52a6796e1653c8bc77d7",
+  "event_type": "arsenal_task_started",
+  "observed_at": "2026-08-27T20:34:03.457451+00:00",
+  "previous_digest": "a21b902786bd6f72779a0440b68b58620428954d1f6ed39fc8d540827bb59e9c",
+  "sequence": 3,
+  "status": "running"
+}

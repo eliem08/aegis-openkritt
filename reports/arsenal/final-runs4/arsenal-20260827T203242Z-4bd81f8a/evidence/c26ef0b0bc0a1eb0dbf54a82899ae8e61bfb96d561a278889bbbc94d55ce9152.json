@@ -1,0 +1,13 @@
+{
+  "blocking_reason": "binary not found",
+  "capability_id": "asset:restler/stateful-openapi-sequence-testing",
+  "coverage_state": "UNAVAILABLE",
+  "evidence_digest": "c26ef0b0bc0a1eb0dbf54a82899ae8e61bfb96d561a278889bbbc94d55ce9152",
+  "execution_grant_issued": false,
+  "execution_performed": false,
+  "kind": "arsenal_fixture_blocked",
+  "mission_id": "arsenal-blocked-4bd81f8ab3ef266e",
+  "mode": "FIXTURE",
+  "run_id": "arsenal-20260827T203242Z-4bd81f8a",
+  "task_id": "arsenal-blocked-4bd81f8ab3ef266e-execute"
+}

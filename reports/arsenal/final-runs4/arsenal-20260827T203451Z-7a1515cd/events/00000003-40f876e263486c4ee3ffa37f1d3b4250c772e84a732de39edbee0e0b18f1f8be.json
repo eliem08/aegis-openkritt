@@ -1,0 +1,13 @@
+{
+  "detail": {
+    "capability_id": "tool:slither/contract",
+    "mission_id": "arsenal-tool-7a1515cd61c8",
+    "task_id": "arsenal-tool-7a1515cd61c8-execute"
+  },
+  "digest": "40f876e263486c4ee3ffa37f1d3b4250c772e84a732de39edbee0e0b18f1f8be",
+  "event_type": "arsenal_task_started",
+  "observed_at": "2026-08-27T20:34:51.804242+00:00",
+  "previous_digest": "4eddb04c3335031c5eebfb3af54e66418ea6d2f3c44a90007ce5b505e632b425",
+  "sequence": 3,
+  "status": "running"
+}

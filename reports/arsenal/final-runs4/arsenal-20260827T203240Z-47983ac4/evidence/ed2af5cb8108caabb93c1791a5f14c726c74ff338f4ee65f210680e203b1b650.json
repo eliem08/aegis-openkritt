@@ -1,0 +1,13 @@
+{
+  "blocking_reason": "binary not found",
+  "capability_id": "asset:kics/iac-security-scan",
+  "coverage_state": "UNAVAILABLE",
+  "evidence_digest": "ed2af5cb8108caabb93c1791a5f14c726c74ff338f4ee65f210680e203b1b650",
+  "execution_grant_issued": false,
+  "execution_performed": false,
+  "kind": "arsenal_fixture_blocked",
+  "mission_id": "arsenal-blocked-47983ac416f3112d",
+  "mode": "FIXTURE",
+  "run_id": "arsenal-20260827T203240Z-47983ac4",
+  "task_id": "arsenal-blocked-47983ac416f3112d-execute"
+}

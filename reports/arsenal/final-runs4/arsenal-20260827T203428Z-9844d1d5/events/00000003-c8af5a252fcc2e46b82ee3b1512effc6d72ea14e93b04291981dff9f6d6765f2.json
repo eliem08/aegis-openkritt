@@ -1,0 +1,13 @@
+{
+  "detail": {
+    "capability_id": "tool:psalm/code",
+    "mission_id": "arsenal-tool-9844d1d57522",
+    "task_id": "arsenal-tool-9844d1d57522-execute"
+  },
+  "digest": "c8af5a252fcc2e46b82ee3b1512effc6d72ea14e93b04291981dff9f6d6765f2",
+  "event_type": "arsenal_task_started",
+  "observed_at": "2026-08-27T20:34:28.463307+00:00",
+  "previous_digest": "d1c5e5dbdd0090f72a447dc5645a4557df48f37d485c06857051f508456b2ce2",
+  "sequence": 3,
+  "status": "running"
+}

@@ -1,0 +1,137 @@
+{
+  "adapter_version": "2.2.4",
+  "backend_name": "gau",
+  "backend_version": "Python 3.14.5",
+  "binary_path": "C:\\Python314\\python.exe",
+  "blocking_reason": "",
+  "capability_id": "adapter:gau/passive-discovery",
+  "capability_ids": [
+    "adapter:gau/passive-discovery"
+  ],
+  "container_digest_if_applicable": "",
+  "coverage_state": "EXECUTED_PASS",
+  "duration_ms": 133,
+  "evidence_digest": "1d06d9ef86ad803a846566e22f2909c328d364e198ed180ba84528a682b6ae9b",
+  "execution_completed_at": "2026-09-03T15:27:03.443449+00:00",
+  "execution_grant_payload": {
+    "allowed_destinations": [],
+    "allowed_methods": [],
+    "budget": {
+      "max_cost_usd": 0.0,
+      "max_human_minutes": 0.0,
+      "max_requests": 0
+    },
+    "constraints": {
+      "authorization_class": "LOCAL_FIXTURE_ONLY",
+      "capability_id": "adapter:gau/passive-discovery",
+      "covered_capability_ids": [
+        "adapter:gau/passive-discovery"
+      ],
+      "fixture_version": "gau-passive-discovery-v1",
+      "negative_fixture_digest": "5aca3b96a6251465a2078aa866205ffdee672cd2921cbfbfb1b9acf1c17b9be3",
+      "positive_fixture_digest": "538321b9c2eeaf556aa6f0805b27242e40c429ef2c40a529b1d169d72949a412"
+    },
+    "decision_fingerprint": "2a739b0944d59ca785d2ee68",
+    "expires_at": "2026-09-03T15:42:03.275404+00:00",
+    "external_model_egress_allowed": false,
+    "human_approval": false,
+    "issued_at": "2026-09-03T15:27:03.275404+00:00",
+    "network_allowed": false,
+    "nonce": "306db4376475f146",
+    "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+    "state_change_allowed": false
+  },
+  "execution_performed": true,
+  "execution_proof_kind": "REAL_BACKEND",
+  "execution_started_at": "2026-09-03T15:27:03.309770+00:00",
+  "exit_code": 0,
+  "fixture_version": "gau-passive-discovery-v1",
+  "kind": "arsenal_tool_fixture_execution",
+  "mission_id": "arsenal-tool-f4b02dac5ae7",
+  "mode": "FIXTURE",
+  "negative_control_clean": true,
+  "negative_control_status": "PASSED",
+  "negative_fixture_digest": "5aca3b96a6251465a2078aa866205ffdee672cd2921cbfbfb1b9acf1c17b9be3",
+  "parsed_result_digest": "13b3e14b08e5f066a205dccf557cd02c73af467927e3cda7809dfcbe1f58443c",
+  "policy_decision": {
+    "action": "source_analysis",
+    "authorization_id": "fixture:20260903T152703Z",
+    "evaluated_at": "2026-09-03T15:27:03.275370+00:00",
+    "incidents": [],
+    "reasons": [
+      {
+        "code": "ok",
+        "message": "all policy gates passed",
+        "verdict": "allow"
+      }
+    ],
+    "request_id": "arsenal:adapter:gau/passive-discovery",
+    "required_approvals": [],
+    "target": "127.0.0.1",
+    "tier": "passive",
+    "verdict": "allow"
+  },
+  "positive_control_detected": true,
+  "positive_fixture_digest": "538321b9c2eeaf556aa6f0805b27242e40c429ef2c40a529b1d169d72949a412",
+  "run_id": "arsenal-20260903T152703Z-f4b02dac",
+  "runtime_disposition": "ready",
+  "runtime_reason": "internal hunter capability completed",
+  "stderr_digest": "1b60320976d31a6c8ea434b79341b13eb109dcb76abcdb78ce01376a39a5ce6b",
+  "stdout_digest": "35b518b46a475b7bbb98e5de6e335f9730daeee4bcc78d38112365245757b77e",
+  "summary": {
+    "blocking_reason": "",
+    "covered_capability_ids": [
+      "adapter:gau/passive-discovery"
+    ],
+    "execution_error_class": null,
+    "execution_proof_kind": "REAL_BACKEND",
+    "fixture_detection": true,
+    "negative": {
+      "duration_ms": 65,
+      "error": "",
+      "execution_completed_at": "2026-09-03T15:27:03.443449+00:00",
+      "execution_started_at": "2026-09-03T15:27:03.378304+00:00",
+      "exit_code": 0,
+      "finding_count": 0,
+      "parsed_result_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "ran": true,
+      "runtime": {
+        "binary": "python",
+        "checked_at": "2026-09-03T15:27:03.297816+00:00",
+        "name": "gau",
+        "reason": "healthy",
+        "resolved_path": "C:\\Python314\\python.exe",
+        "sha256": "3adbbf2af609e206e3ca18cd55fc7c4b52f5c8bb8218dd99fd5a9e50d7a193cd",
+        "status": "ready",
+        "version": "Python 3.14.5"
+      },
+      "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_digest": "aad47f054dfc39cd0681069f3f3665a1786743d1cd9cfe7033feb48e7ac324dc"
+    },
+    "negative_control_passed": true,
+    "positive": {
+      "duration_ms": 68,
+      "error": "",
+      "execution_completed_at": "2026-09-03T15:27:03.378061+00:00",
+      "execution_started_at": "2026-09-03T15:27:03.309770+00:00",
+      "exit_code": 0,
+      "finding_count": 1,
+      "parsed_result_digest": "08a53e5f162011e9551509737ffae8ae53a7a99a698a46fd0ff0e864f1cd02af",
+      "ran": true,
+      "runtime": {
+        "binary": "python",
+        "checked_at": "2026-09-03T15:27:03.297816+00:00",
+        "name": "gau",
+        "reason": "healthy",
+        "resolved_path": "C:\\Python314\\python.exe",
+        "sha256": "3adbbf2af609e206e3ca18cd55fc7c4b52f5c8bb8218dd99fd5a9e50d7a193cd",
+        "status": "ready",
+        "version": "Python 3.14.5"
+      },
+      "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_digest": "56edb807806dd367fd73337f6519dd46526d376fea9f08f543a32015e614468b"
+    },
+    "tool": "gau"
+  },
+  "task_id": "arsenal-tool-f4b02dac5ae7-execute"
+}

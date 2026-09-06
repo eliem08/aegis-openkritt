@@ -1,0 +1,138 @@
+{
+  "adapter_version": "tool-bridge/1",
+  "backend_name": "mythril",
+  "backend_version": "Mythril version v0.24.8",
+  "binary_path": "/opt/aegis-tools/mythril/bin/myth",
+  "blocking_reason": "",
+  "capability_id": "tool:mythril/contract",
+  "capability_ids": [
+    "tool:mythril/contract",
+    "asset:mythril/evm-symbolic-execution"
+  ],
+  "container_digest_if_applicable": "sha256:3766088055a72f82346bf7318cb0acf9ec6b2e82ddf6df6bcba9558f70e9c40d",
+  "coverage_state": "EXECUTED_PASS",
+  "duration_ms": 23586,
+  "evidence_digest": "5e2d001da170c6b7a10663eb343bca49594ed7743a893e2d8c6b84e3e1729fa9",
+  "execution_completed_at": "2026-08-27T20:33:47.951462+00:00",
+  "execution_grant_payload": {
+    "allowed_destinations": [],
+    "allowed_methods": [],
+    "budget": {
+      "max_cost_usd": 0.0,
+      "max_human_minutes": 0.0,
+      "max_requests": 0
+    },
+    "constraints": {
+      "authorization_class": "LOCAL_FIXTURE_ONLY",
+      "capability_id": "tool:mythril/contract",
+      "covered_capability_ids": [
+        "tool:mythril/contract",
+        "asset:mythril/evm-symbolic-execution"
+      ],
+      "fixture_version": "scanner-fixture-v2",
+      "negative_fixture_digest": "ad2b0799492915f1624a3f2530c8eb9042405d68381e8d3411872dffc0b3841a",
+      "positive_fixture_digest": "f8363406f4a0e237270db88e9e65a8e164558e302d3b0cba39ce4e4d48d02ceb"
+    },
+    "decision_fingerprint": "eab57d1f5f57d666df706f56",
+    "expires_at": "2026-08-27T20:48:18.219007+00:00",
+    "external_model_egress_allowed": false,
+    "human_approval": false,
+    "issued_at": "2026-08-27T20:33:18.219007+00:00",
+    "network_allowed": false,
+    "nonce": "3837d4a2a34180c5",
+    "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+    "state_change_allowed": false
+  },
+  "execution_performed": true,
+  "execution_started_at": "2026-08-27T20:33:24.369891+00:00",
+  "exit_code": 1,
+  "fixture_version": "scanner-fixture-v2",
+  "kind": "arsenal_tool_fixture_execution",
+  "mission_id": "arsenal-tool-0d641fa22b4c",
+  "mode": "FIXTURE",
+  "negative_control_clean": true,
+  "negative_control_status": "PASSED",
+  "negative_fixture_digest": "ad2b0799492915f1624a3f2530c8eb9042405d68381e8d3411872dffc0b3841a",
+  "parsed_result_digest": "88b220d6c917827724afd689400b4eb54c40d90f295085f97b5faa3f665f5183",
+  "policy_decision": {
+    "action": "source_analysis",
+    "authorization_id": "fixture:20260827T203318Z",
+    "evaluated_at": "2026-08-27T20:33:18.218946+00:00",
+    "incidents": [],
+    "reasons": [
+      {
+        "code": "ok",
+        "message": "all policy gates passed",
+        "verdict": "allow"
+      }
+    ],
+    "request_id": "arsenal:tool:mythril/contract",
+    "required_approvals": [],
+    "target": "127.0.0.1",
+    "tier": "passive",
+    "verdict": "allow"
+  },
+  "positive_control_detected": true,
+  "positive_fixture_digest": "f8363406f4a0e237270db88e9e65a8e164558e302d3b0cba39ce4e4d48d02ceb",
+  "run_id": "arsenal-20260827T203318Z-0d641fa2",
+  "runtime_disposition": "ready",
+  "runtime_reason": "internal hunter capability completed",
+  "stderr_digest": "3f38cfc9fbd90e733a58e129d93d3540f87bdd2a6f54fc723e86bf6b8044aff5",
+  "stdout_digest": "fc7c117e7bafe6c71d6c9000f17272913078480a986ef2409dec74eff6a43f1b",
+  "summary": {
+    "blocking_reason": "",
+    "covered_capability_ids": [
+      "tool:mythril/contract",
+      "asset:mythril/evm-symbolic-execution"
+    ],
+    "execution_error_class": null,
+    "fixture_detection": true,
+    "negative": {
+      "duration_ms": 5583,
+      "error": "/opt/aegis-tools/mythril/lib/python3.12/site-packages/eth/__init__.py:1: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resour",
+      "execution_completed_at": "2026-08-27T20:33:47.951462+00:00",
+      "execution_started_at": "2026-08-27T20:33:42.368827+00:00",
+      "exit_code": 0,
+      "finding_count": 0,
+      "parsed_result_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "ran": true,
+      "runtime": {
+        "binary": "myth",
+        "checked_at": "2026-08-27T20:33:18.304539+00:00",
+        "name": "mythril",
+        "reason": "healthy",
+        "resolved_path": "/opt/aegis-tools/mythril/bin/myth",
+        "sha256": "8fe9178fd9157ba015fcc58ddf24699f5c75445556b76cf1b367ffee888240fb",
+        "status": "ready",
+        "version": "Mythril version v0.24.8"
+      },
+      "stderr_digest": "c96e23dd2c154e4d084ad1c46932c78a40ce0681e184703a51d4d6893c6f5f03",
+      "stdout_digest": "8e0e13688f5b10060dc34ec868bbdcf9cd72e01f93b0ca447c33ff4e87b6be8a"
+    },
+    "negative_control_passed": true,
+    "positive": {
+      "duration_ms": 18003,
+      "error": "",
+      "execution_completed_at": "2026-08-27T20:33:42.368552+00:00",
+      "execution_started_at": "2026-08-27T20:33:24.369891+00:00",
+      "exit_code": 1,
+      "finding_count": 3,
+      "parsed_result_digest": "12d0b10bb8a3bdb2396deaa416673a0f38698ae74ef16e8e2326372b5927eb17",
+      "ran": true,
+      "runtime": {
+        "binary": "myth",
+        "checked_at": "2026-08-27T20:33:18.304539+00:00",
+        "name": "mythril",
+        "reason": "healthy",
+        "resolved_path": "/opt/aegis-tools/mythril/bin/myth",
+        "sha256": "8fe9178fd9157ba015fcc58ddf24699f5c75445556b76cf1b367ffee888240fb",
+        "status": "ready",
+        "version": "Mythril version v0.24.8"
+      },
+      "stderr_digest": "c96e23dd2c154e4d084ad1c46932c78a40ce0681e184703a51d4d6893c6f5f03",
+      "stdout_digest": "a8a69e9c164f01d202b6f6c9e924dd65cd28eb9ea25ffb2bae93022f2f8ee48a"
+    },
+    "tool": "mythril"
+  },
+  "task_id": "arsenal-tool-0d641fa22b4c-execute"
+}

@@ -1,0 +1,140 @@
+{
+  "adapter_version": "2.6.6",
+  "backend_name": "subfinder",
+  "backend_version": "Python 3.14.5",
+  "binary_path": "C:\\Python314\\python.exe",
+  "blocking_reason": "",
+  "capability_id": "adapter:subfinder/passive-discovery",
+  "capability_ids": [
+    "adapter:subfinder/passive-discovery",
+    "asset:subfinder/passive-subdomain-enumeration"
+  ],
+  "container_digest_if_applicable": "",
+  "coverage_state": "EXECUTED_PASS",
+  "duration_ms": 122,
+  "evidence_digest": "758b88f39dfea6128fe52d231bfe4388f20beb46e3ae08dfc3584c97ee4228c0",
+  "execution_completed_at": "2026-09-03T15:27:03.683576+00:00",
+  "execution_grant_payload": {
+    "allowed_destinations": [],
+    "allowed_methods": [],
+    "budget": {
+      "max_cost_usd": 0.0,
+      "max_human_minutes": 0.0,
+      "max_requests": 0
+    },
+    "constraints": {
+      "authorization_class": "LOCAL_FIXTURE_ONLY",
+      "capability_id": "adapter:subfinder/passive-discovery",
+      "covered_capability_ids": [
+        "adapter:subfinder/passive-discovery",
+        "asset:subfinder/passive-subdomain-enumeration"
+      ],
+      "fixture_version": "subfinder-passive-discovery-v1",
+      "negative_fixture_digest": "14c1375321a9b4162ce198b4cf88d2ddf70489e4d69f01fd40f79da6db824729",
+      "positive_fixture_digest": "7b5bef63c2e9bf72c6d6d9acc6f545e505ff9e3502f858d8d50e17015b986047"
+    },
+    "decision_fingerprint": "bfbfb192d19a98e1449e07ad",
+    "expires_at": "2026-09-03T15:42:03.516456+00:00",
+    "external_model_egress_allowed": false,
+    "human_approval": false,
+    "issued_at": "2026-09-03T15:27:03.516456+00:00",
+    "network_allowed": false,
+    "nonce": "a465a0e83b554c8a",
+    "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+    "state_change_allowed": false
+  },
+  "execution_performed": true,
+  "execution_proof_kind": "REAL_BACKEND",
+  "execution_started_at": "2026-09-03T15:27:03.561071+00:00",
+  "exit_code": 0,
+  "fixture_version": "subfinder-passive-discovery-v1",
+  "kind": "arsenal_tool_fixture_execution",
+  "mission_id": "arsenal-tool-056e408059a8",
+  "mode": "FIXTURE",
+  "negative_control_clean": true,
+  "negative_control_status": "PASSED",
+  "negative_fixture_digest": "14c1375321a9b4162ce198b4cf88d2ddf70489e4d69f01fd40f79da6db824729",
+  "parsed_result_digest": "2968cf6887d313895a2059ba91e68950ff80c7c5eba9b4ac010ca980290517a7",
+  "policy_decision": {
+    "action": "source_analysis",
+    "authorization_id": "fixture:20260903T152703Z",
+    "evaluated_at": "2026-09-03T15:27:03.516409+00:00",
+    "incidents": [],
+    "reasons": [
+      {
+        "code": "ok",
+        "message": "all policy gates passed",
+        "verdict": "allow"
+      }
+    ],
+    "request_id": "arsenal:adapter:subfinder/passive-discovery",
+    "required_approvals": [],
+    "target": "127.0.0.1",
+    "tier": "passive",
+    "verdict": "allow"
+  },
+  "positive_control_detected": true,
+  "positive_fixture_digest": "7b5bef63c2e9bf72c6d6d9acc6f545e505ff9e3502f858d8d50e17015b986047",
+  "run_id": "arsenal-20260903T152703Z-056e4080",
+  "runtime_disposition": "ready",
+  "runtime_reason": "internal hunter capability completed",
+  "stderr_digest": "1b60320976d31a6c8ea434b79341b13eb109dcb76abcdb78ce01376a39a5ce6b",
+  "stdout_digest": "d332e0e1224dabbda6077bd495e9dbdaf9924945a2e4a0f7ca191c60c7cb6037",
+  "summary": {
+    "blocking_reason": "",
+    "covered_capability_ids": [
+      "adapter:subfinder/passive-discovery",
+      "asset:subfinder/passive-subdomain-enumeration"
+    ],
+    "execution_error_class": null,
+    "execution_proof_kind": "REAL_BACKEND",
+    "fixture_detection": true,
+    "negative": {
+      "duration_ms": 58,
+      "error": "",
+      "execution_completed_at": "2026-09-03T15:27:03.683576+00:00",
+      "execution_started_at": "2026-09-03T15:27:03.625222+00:00",
+      "exit_code": 0,
+      "finding_count": 0,
+      "parsed_result_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "ran": true,
+      "runtime": {
+        "binary": "python",
+        "checked_at": "2026-09-03T15:27:03.546482+00:00",
+        "name": "subfinder",
+        "reason": "healthy",
+        "resolved_path": "C:\\Python314\\python.exe",
+        "sha256": "3adbbf2af609e206e3ca18cd55fc7c4b52f5c8bb8218dd99fd5a9e50d7a193cd",
+        "status": "ready",
+        "version": "Python 3.14.5"
+      },
+      "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_digest": "4c717257b75607bccf16916050f1cc80cbbaef8c53857010aabb288510e049e8"
+    },
+    "negative_control_passed": true,
+    "positive": {
+      "duration_ms": 64,
+      "error": "",
+      "execution_completed_at": "2026-09-03T15:27:03.625000+00:00",
+      "execution_started_at": "2026-09-03T15:27:03.561071+00:00",
+      "exit_code": 0,
+      "finding_count": 1,
+      "parsed_result_digest": "4f04ac1a4efb0c77634f9cd529c779a1deb9d674632a6de5a79b0c024e9cbe21",
+      "ran": true,
+      "runtime": {
+        "binary": "python",
+        "checked_at": "2026-09-03T15:27:03.546482+00:00",
+        "name": "subfinder",
+        "reason": "healthy",
+        "resolved_path": "C:\\Python314\\python.exe",
+        "sha256": "3adbbf2af609e206e3ca18cd55fc7c4b52f5c8bb8218dd99fd5a9e50d7a193cd",
+        "status": "ready",
+        "version": "Python 3.14.5"
+      },
+      "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_digest": "5b2a85f16866e294094c691ed3ba050e6cca39310a5e6b7e35b28f75f558887b"
+    },
+    "tool": "subfinder"
+  },
+  "task_id": "arsenal-tool-056e408059a8-execute"
+}

@@ -1,0 +1,18 @@
+{
+  "detail": {
+    "blocking_reason": "binary not found",
+    "capability_id": "asset:floss/static-string-deobfuscation",
+    "evidence_digest": "9cf72912a493532cec19dad042037f29e4f17f605f5a8522bc40af9a6bbe3dd0",
+    "evidence_ref": "evidence/9cf72912a493532cec19dad042037f29e4f17f605f5a8522bc40af9a6bbe3dd0.json",
+    "execution_grant_id": null,
+    "mission_id": "arsenal-blocked-a6e451eae6199739",
+    "result": "UNAVAILABLE",
+    "task_id": "arsenal-blocked-a6e451eae6199739-execute"
+  },
+  "digest": "dfcf2d897be98c2ef44aec799214d8ca662b83d654012e9c05baa87a1da591c8",
+  "event_type": "arsenal_task_blocked",
+  "observed_at": "2026-08-27T20:32:39.323702+00:00",
+  "previous_digest": "d3d747764b108404d52a96cf92783adf91bbd12ea504163335136eda3b15b2ed",
+  "sequence": 2,
+  "status": "failed"
+}

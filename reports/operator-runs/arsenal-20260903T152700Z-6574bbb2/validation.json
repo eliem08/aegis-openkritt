@@ -1,0 +1,7 @@
+{
+  "validation_status": "VALID_INTERNAL_AEGIS_EXECUTION",
+  "backend_kind": "INTERNAL_AEGIS",
+  "backend_package": "aegis",
+  "reason": "Internal Aegis analyzer aegis-agent-permission-audit executed via Python runtime.",
+  "audited_at": "2026-09-04T00:00:00Z"
+}

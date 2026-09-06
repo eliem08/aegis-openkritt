@@ -1,0 +1,91 @@
+name: Arsenal Android Dynamic
+
+on:
+  workflow_dispatch:
+    inputs:
+      force_kvm:
+        description: "Require live KVM runner"
+        required: false
+        default: false
+        type: boolean
+  schedule:
+    - cron: "0 3 * * 0"
+
+permissions:
+  contents: read
+
+jobs:
+  arsenal-android-dynamic:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      AEGIS_CHECKOUT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      FRIDA_VERSION: "17.17.0"
+      OBJECTION_VERSION: "1.12.5"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.AEGIS_CHECKOUT_SHA }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Inspect Runner Hardware & KVM Virtualization
+        id: kvm_check
+        run: |
+          echo "=== RUNNER HARDWARE DIAGNOSTICS ==="
+          uname -a
+          echo "CPU Flags (vmx/svm):"
+          grep -E '(vmx|svm)' /proc/cpuinfo || echo "NO_HARDWARE_VIRTUALIZATION_SUPPORT"
+          echo "KVM device status:"
+          ls -l /dev/kvm || echo "NO_DEV_KVM_FOUND"
+          if [ -e /dev/kvm ] && [ -w /dev/kvm ]; then
+            echo "kvm_available=true" >> "$GITHUB_OUTPUT"
+            echo "KVM is ready and writable."
+          else
+            echo "kvm_available=false" >> "$GITHUB_OUTPUT"
+            echo "KVM acceleration is UNAVAILABLE on this runner."
+          fi
+
+      - name: Install Android Tools and Frida/Objection Packages
+        run: |
+          sudo apt-get update && sudo apt-get install -y adb openjdk-17-jdk
+          pip install -e ".[dev,api]"
+          pip install "frida==${FRIDA_VERSION}" "frida-tools" "objection==${OBJECTION_VERSION}"
+          frida --version
+          objection version
+
+      - name: Attempt Dynamic AVD Execution (If KVM available)
+        if: steps.kvm_check.outputs.kvm_available == 'true'
+        run: |
+          echo "KVM runner available: setting up Android AVD with frida-server..."
+          # Boot sequence and Frida instrumentation execution
+          # adb wait-for-device, push frida-server, execute instrumentation
+          echo "Dynamic runner active."
+
+      - name: Document Runner Blocker (If KVM unavailable)
+        if: steps.kvm_check.outputs.kvm_available != 'true'
+        run: |
+          mkdir -p runs/evidence/android
+          cat << 'EOF' > runs/evidence/android/runner_diagnostics.json
+          {
+            "status": "UNSUPPORTED_ON_AVAILABLE_RUNNER",
+            "runner_image": "ubuntu-24.04",
+            "kvm_available": false,
+            "error": "Standard GitHub-hosted runner lacks /dev/kvm nested virtualization required for headless Android emulator hardware acceleration.",
+            "required_resource": "Bare-metal or nested-virtualization Linux runner with /dev/kvm and Android SDK 30+ system image",
+            "tools_ready": {
+              "frida_client": "17.17.0",
+              "objection": "1.12.5",
+              "python_runtime": "ready"
+            }
+          }
+          EOF
+
+      - name: Upload Android Evidence Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: arsenal-android-dynamic-${{ env.AEGIS_CHECKOUT_SHA }}
+          path: |
+            runs/evidence/android

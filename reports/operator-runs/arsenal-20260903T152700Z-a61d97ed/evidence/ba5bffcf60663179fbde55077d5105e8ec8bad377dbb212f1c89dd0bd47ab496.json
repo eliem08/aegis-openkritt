@@ -1,0 +1,137 @@
+{
+  "adapter_version": "deep-asset/1",
+  "backend_name": "aegis-firmware-arch",
+  "backend_version": "Python 3.14.5",
+  "binary_path": "C:\\Python314\\python.exe",
+  "blocking_reason": "",
+  "capability_id": "asset:aegis-firmware-arch/firmware-architecture-detection",
+  "capability_ids": [
+    "asset:aegis-firmware-arch/firmware-architecture-detection"
+  ],
+  "container_digest_if_applicable": "",
+  "coverage_state": "EXECUTED_PASS",
+  "duration_ms": 110,
+  "evidence_digest": "ba5bffcf60663179fbde55077d5105e8ec8bad377dbb212f1c89dd0bd47ab496",
+  "execution_completed_at": "2026-09-03T15:27:00.197469+00:00",
+  "execution_grant_payload": {
+    "allowed_destinations": [],
+    "allowed_methods": [],
+    "budget": {
+      "max_cost_usd": 0.0,
+      "max_human_minutes": 0.0,
+      "max_requests": 0
+    },
+    "constraints": {
+      "authorization_class": "LOCAL_FIXTURE_ONLY",
+      "capability_id": "asset:aegis-firmware-arch/firmware-architecture-detection",
+      "covered_capability_ids": [
+        "asset:aegis-firmware-arch/firmware-architecture-detection"
+      ],
+      "fixture_version": "aegis-firmware-arch-v1",
+      "negative_fixture_digest": "8969f729db1f3c1166701edb401e1b90e378ebc11bd79f78d5b485b82898e55c",
+      "positive_fixture_digest": "92a5bfb8e727417738cfb6b40913d8c1bff57f7c0af53aaebcbea45ba29a5547"
+    },
+    "decision_fingerprint": "e7399923762654ebd0339f30",
+    "expires_at": "2026-09-03T15:42:00.043208+00:00",
+    "external_model_egress_allowed": false,
+    "human_approval": false,
+    "issued_at": "2026-09-03T15:27:00.043208+00:00",
+    "network_allowed": false,
+    "nonce": "22d85e190b284b99",
+    "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+    "state_change_allowed": false
+  },
+  "execution_performed": true,
+  "execution_proof_kind": "REAL_BACKEND",
+  "execution_started_at": "2026-09-03T15:27:00.079991+00:00",
+  "exit_code": 0,
+  "fixture_version": "aegis-firmware-arch-v1",
+  "kind": "arsenal_tool_fixture_execution",
+  "mission_id": "arsenal-tool-a61d97edadc5",
+  "mode": "FIXTURE",
+  "negative_control_clean": true,
+  "negative_control_status": "PASSED",
+  "negative_fixture_digest": "8969f729db1f3c1166701edb401e1b90e378ebc11bd79f78d5b485b82898e55c",
+  "parsed_result_digest": "7c527945fe325e3a741183eece3c6495763d64fbe20f58ff1cd839c5f9b7423d",
+  "policy_decision": {
+    "action": "source_analysis",
+    "authorization_id": "fixture:20260903T152700Z",
+    "evaluated_at": "2026-09-03T15:27:00.043158+00:00",
+    "incidents": [],
+    "reasons": [
+      {
+        "code": "ok",
+        "message": "all policy gates passed",
+        "verdict": "allow"
+      }
+    ],
+    "request_id": "arsenal:asset:aegis-firmware-arch/firmware-architecture-detection",
+    "required_approvals": [],
+    "target": "127.0.0.1",
+    "tier": "passive",
+    "verdict": "allow"
+  },
+  "positive_control_detected": true,
+  "positive_fixture_digest": "92a5bfb8e727417738cfb6b40913d8c1bff57f7c0af53aaebcbea45ba29a5547",
+  "run_id": "arsenal-20260903T152700Z-a61d97ed",
+  "runtime_disposition": "ready",
+  "runtime_reason": "internal hunter capability completed",
+  "stderr_digest": "1b60320976d31a6c8ea434b79341b13eb109dcb76abcdb78ce01376a39a5ce6b",
+  "stdout_digest": "a7e4b5d7e1df886b972166af3f586ac5007fc07a0776098320600e6e8def2836",
+  "summary": {
+    "blocking_reason": "",
+    "covered_capability_ids": [
+      "asset:aegis-firmware-arch/firmware-architecture-detection"
+    ],
+    "execution_error_class": null,
+    "execution_proof_kind": "REAL_BACKEND",
+    "fixture_detection": true,
+    "negative": {
+      "duration_ms": 55,
+      "error": "",
+      "execution_completed_at": "2026-09-03T15:27:00.197469+00:00",
+      "execution_started_at": "2026-09-03T15:27:00.142016+00:00",
+      "exit_code": 0,
+      "finding_count": 0,
+      "parsed_result_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "ran": true,
+      "runtime": {
+        "binary": "python",
+        "checked_at": "2026-09-03T15:27:00.065353+00:00",
+        "name": "aegis-firmware-arch",
+        "reason": "healthy",
+        "resolved_path": "C:\\Python314\\python.exe",
+        "sha256": "3adbbf2af609e206e3ca18cd55fc7c4b52f5c8bb8218dd99fd5a9e50d7a193cd",
+        "status": "ready",
+        "version": "Python 3.14.5"
+      },
+      "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_digest": "2afab6a1c063e671ab2b90bc7fae1a515d55096fd3bedc15983b20c46dfd0d64"
+    },
+    "negative_control_passed": true,
+    "positive": {
+      "duration_ms": 55,
+      "error": "",
+      "execution_completed_at": "2026-09-03T15:27:00.135120+00:00",
+      "execution_started_at": "2026-09-03T15:27:00.079991+00:00",
+      "exit_code": 0,
+      "finding_count": 1,
+      "parsed_result_digest": "413e575075265917b20c8a1cf19668d512467e6f35271d7552716e452432cc5a",
+      "ran": true,
+      "runtime": {
+        "binary": "python",
+        "checked_at": "2026-09-03T15:27:00.065353+00:00",
+        "name": "aegis-firmware-arch",
+        "reason": "healthy",
+        "resolved_path": "C:\\Python314\\python.exe",
+        "sha256": "3adbbf2af609e206e3ca18cd55fc7c4b52f5c8bb8218dd99fd5a9e50d7a193cd",
+        "status": "ready",
+        "version": "Python 3.14.5"
+      },
+      "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_digest": "7aa2a7f309acb71e4953f521644542d46ea9d8484d87d1fc5b7af054dd0bccae"
+    },
+    "tool": "aegis-firmware-arch"
+  },
+  "task_id": "arsenal-tool-a61d97edadc5-execute"
+}

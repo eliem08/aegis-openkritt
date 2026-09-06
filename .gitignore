@@ -55,4 +55,8 @@ reports/fresh_watch_state.json
 !reports/contract_corpus_0xsimao.jsonl
 
 # learning-loop store
-aegis-learn.db
+.tmp/
+reports/campaign-artifacts/
+bin/
+runs/
+*.db

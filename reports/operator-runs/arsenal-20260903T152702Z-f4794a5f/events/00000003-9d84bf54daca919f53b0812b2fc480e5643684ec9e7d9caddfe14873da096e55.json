@@ -1,0 +1,13 @@
+{
+  "detail": {
+    "capability_id": "asset:roadtools/entra-identity-analysis",
+    "mission_id": "arsenal-tool-f4794a5f4eaa",
+    "task_id": "arsenal-tool-f4794a5f4eaa-execute"
+  },
+  "digest": "9d84bf54daca919f53b0812b2fc480e5643684ec9e7d9caddfe14873da096e55",
+  "event_type": "arsenal_task_started",
+  "observed_at": "2026-09-03T15:27:02.902270+00:00",
+  "previous_digest": "1a4ab34aca0db9ab47824d30759b1c95d92e074cbe8c31c7790146147fe35869",
+  "sequence": 3,
+  "status": "running"
+}

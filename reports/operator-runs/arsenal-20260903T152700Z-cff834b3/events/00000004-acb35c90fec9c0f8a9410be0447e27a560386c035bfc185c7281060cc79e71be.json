@@ -1,0 +1,28 @@
+{
+  "detail": {
+    "asset": "127.0.0.1",
+    "authorization_decision": "arsenal:asset:aegis-model-provenance/model-provenance-and-hash-ledger",
+    "backend": "aegis-model-provenance",
+    "backend_version": "Python 3.14.5",
+    "blocking_reason": "",
+    "capability_id": "asset:aegis-model-provenance/model-provenance-and-hash-ledger",
+    "evidence_digest": "9fe6903ab2af4ea71d1cb201a88eacfd6496dc5e931282f3f0b23f318766aa1e",
+    "evidence_ref": "evidence/9fe6903ab2af4ea71d1cb201a88eacfd6496dc5e931282f3f0b23f318766aa1e.json",
+    "execution_error_class": null,
+    "execution_grant_id": "f7d5b7f4a249f355",
+    "finding_ids": [],
+    "fixture_detection": true,
+    "mission_id": "arsenal-tool-cff834b35457",
+    "mode": "FIXTURE",
+    "negative_control_status": "PASSED",
+    "policy_snapshot_digest": "e9dc52e97b35225a0c936cbb21cf6a57125fab156ebe781fbf0dd01d0c147d2f",
+    "result": "EXECUTED_PASS",
+    "task_id": "arsenal-tool-cff834b35457-execute"
+  },
+  "digest": "acb35c90fec9c0f8a9410be0447e27a560386c035bfc185c7281060cc79e71be",
+  "event_type": "arsenal_task_completed",
+  "observed_at": "2026-09-03T15:27:00.614389+00:00",
+  "previous_digest": "0f6cd8945989a5ed6708f28fae86d9d39ffb8fc14aa373573333d0f0ae7cf944",
+  "sequence": 4,
+  "status": "completed"
+}

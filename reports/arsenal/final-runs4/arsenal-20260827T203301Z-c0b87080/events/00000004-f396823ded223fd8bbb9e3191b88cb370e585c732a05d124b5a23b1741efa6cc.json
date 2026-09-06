@@ -1,0 +1,28 @@
+{
+  "detail": {
+    "asset": "127.0.0.1",
+    "authorization_decision": "arsenal:tool:gosec/code",
+    "backend": "gosec",
+    "backend_version": "Version: dev",
+    "blocking_reason": "",
+    "capability_id": "tool:gosec/code",
+    "evidence_digest": "93d6d1fc2b6449ee65b3ddf1669441b48ced9988e837db5f28219bb1c3336298",
+    "evidence_ref": "evidence/93d6d1fc2b6449ee65b3ddf1669441b48ced9988e837db5f28219bb1c3336298.json",
+    "execution_error_class": null,
+    "execution_grant_id": "d0cca8210732bfe1",
+    "finding_ids": [],
+    "fixture_detection": true,
+    "mission_id": "arsenal-tool-c0b87080a668",
+    "mode": "FIXTURE",
+    "negative_control_status": "PASSED",
+    "policy_snapshot_digest": "e9dc52e97b35225a0c936cbb21cf6a57125fab156ebe781fbf0dd01d0c147d2f",
+    "result": "EXECUTED_PASS",
+    "task_id": "arsenal-tool-c0b87080a668-execute"
+  },
+  "digest": "f396823ded223fd8bbb9e3191b88cb370e585c732a05d124b5a23b1741efa6cc",
+  "event_type": "arsenal_task_completed",
+  "observed_at": "2026-08-27T20:33:07.036570+00:00",
+  "previous_digest": "e77cabe9ee5cf009220475ffa955b9a7ed8397abb4fcf1f839b53fb41fd662e3",
+  "sequence": 4,
+  "status": "completed"
+}

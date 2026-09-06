@@ -213,12 +213,28 @@ class ImmutableRunStore:
             "last_event_digest": events[-1].digest if events else "",
         }
 
+    def record_manifest_evidence_ref(self, run_id: str, evidence_ref: str) -> None:
+        """Record an evidence reference into the run's manifest without breaking integrity."""
+        path = self.root / run_id / "manifest.json"
+        if not path.is_file():
+            raise OperatorRunError(f"manifest for run {run_id} not found")
+        document = json.loads(path.read_text(encoding="utf-8"))
+        document.pop("manifest_digest", None)
+        refs = list(document.get("evidence_refs") or [])
+        if evidence_ref not in refs:
+            refs.append(evidence_ref)
+        document["evidence_refs"] = refs
+        digest = document_digest(document)
+        path.write_text(json.dumps(document | {"manifest_digest": digest}, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
     def persist_evidence(self, run_id: str, document: Mapping[str, Any]) -> tuple[str, str]:
         """Persist one immutable evidence document and return its path and digest."""
         self.verify(run_id)
         digest = document_digest(document)
         relative = f"evidence/{digest}.json"
         self._exclusive_json(self.root / run_id / relative, document | {"evidence_digest": digest})
+        self.record_manifest_evidence_ref(run_id, digest)
+        self.record_manifest_evidence_ref(run_id, relative)
         return relative, digest
 
     def load_manifest(self, run_id: str) -> OperatorRunManifest:

@@ -1,0 +1,13 @@
+{
+  "detail": {
+    "capability_id": "fixture:ai/llm-security-boundary",
+    "mission_id": "arsenal-llm-71e38599e8c29abd",
+    "task_id": "arsenal-llm-71e38599e8c29abd-execute"
+  },
+  "digest": "b63b106e7f308357c7be506c59f1bff8caa782e739914fc9710c50a2a3d5dd7a",
+  "event_type": "arsenal_task_started",
+  "observed_at": "2026-08-27T20:32:44.690743+00:00",
+  "previous_digest": "450ae191a782058ec0e4efab02c7125925f4323f6d744c2250042544f132ff01",
+  "sequence": 3,
+  "status": "running"
+}

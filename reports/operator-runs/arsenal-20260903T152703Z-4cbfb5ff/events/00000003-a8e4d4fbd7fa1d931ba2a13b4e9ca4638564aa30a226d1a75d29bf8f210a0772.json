@@ -1,0 +1,13 @@
+{
+  "detail": {
+    "capability_id": "asset:azurehound/azure-entra-relationship-collection",
+    "mission_id": "arsenal-tool-4cbfb5ff5738",
+    "task_id": "arsenal-tool-4cbfb5ff5738-execute"
+  },
+  "digest": "a8e4d4fbd7fa1d931ba2a13b4e9ca4638564aa30a226d1a75d29bf8f210a0772",
+  "event_type": "arsenal_task_started",
+  "observed_at": "2026-09-03T15:27:03.101102+00:00",
+  "previous_digest": "3f323f29d5cf3e225ae0a94c09b56bf1c3be449d3439ab204ed66b330962ac4d",
+  "sequence": 3,
+  "status": "running"
+}

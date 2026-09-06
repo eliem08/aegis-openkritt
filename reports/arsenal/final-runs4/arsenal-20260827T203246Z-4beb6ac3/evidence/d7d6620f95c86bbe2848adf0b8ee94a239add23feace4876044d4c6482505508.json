@@ -1,0 +1,138 @@
+{
+  "adapter_version": "tool-bridge/1",
+  "backend_name": "brakeman",
+  "backend_version": "brakeman 7.1.1",
+  "binary_path": "/usr/local/bin/brakeman",
+  "blocking_reason": "",
+  "capability_id": "tool:brakeman/code",
+  "capability_ids": [
+    "tool:brakeman/code",
+    "asset:brakeman/rails-security-static-analysis"
+  ],
+  "container_digest_if_applicable": "sha256:3766088055a72f82346bf7318cb0acf9ec6b2e82ddf6df6bcba9558f70e9c40d",
+  "coverage_state": "EXECUTED_PASS",
+  "duration_ms": 1258,
+  "evidence_digest": "d7d6620f95c86bbe2848adf0b8ee94a239add23feace4876044d4c6482505508",
+  "execution_completed_at": "2026-08-27T20:32:47.621755+00:00",
+  "execution_grant_payload": {
+    "allowed_destinations": [],
+    "allowed_methods": [],
+    "budget": {
+      "max_cost_usd": 0.0,
+      "max_human_minutes": 0.0,
+      "max_requests": 0
+    },
+    "constraints": {
+      "authorization_class": "LOCAL_FIXTURE_ONLY",
+      "capability_id": "tool:brakeman/code",
+      "covered_capability_ids": [
+        "tool:brakeman/code",
+        "asset:brakeman/rails-security-static-analysis"
+      ],
+      "fixture_version": "scanner-fixture-v2",
+      "negative_fixture_digest": "ad2b0799492915f1624a3f2530c8eb9042405d68381e8d3411872dffc0b3841a",
+      "positive_fixture_digest": "f8363406f4a0e237270db88e9e65a8e164558e302d3b0cba39ce4e4d48d02ceb"
+    },
+    "decision_fingerprint": "372d917bdfac3217578c03a2",
+    "expires_at": "2026-08-27T20:47:46.166888+00:00",
+    "external_model_egress_allowed": false,
+    "human_approval": false,
+    "issued_at": "2026-08-27T20:32:46.166888+00:00",
+    "network_allowed": false,
+    "nonce": "9cc51042a812f818",
+    "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+    "state_change_allowed": false
+  },
+  "execution_performed": true,
+  "execution_started_at": "2026-08-27T20:32:46.363693+00:00",
+  "exit_code": 3,
+  "fixture_version": "scanner-fixture-v2",
+  "kind": "arsenal_tool_fixture_execution",
+  "mission_id": "arsenal-tool-4beb6ac31c9c",
+  "mode": "FIXTURE",
+  "negative_control_clean": true,
+  "negative_control_status": "PASSED",
+  "negative_fixture_digest": "ad2b0799492915f1624a3f2530c8eb9042405d68381e8d3411872dffc0b3841a",
+  "parsed_result_digest": "39deda6c1f2513064020de8214ca0b18aaf97e6204b351484c003928fc66eb7e",
+  "policy_decision": {
+    "action": "source_analysis",
+    "authorization_id": "fixture:20260827T203246Z",
+    "evaluated_at": "2026-08-27T20:32:46.166839+00:00",
+    "incidents": [],
+    "reasons": [
+      {
+        "code": "ok",
+        "message": "all policy gates passed",
+        "verdict": "allow"
+      }
+    ],
+    "request_id": "arsenal:tool:brakeman/code",
+    "required_approvals": [],
+    "target": "127.0.0.1",
+    "tier": "passive",
+    "verdict": "allow"
+  },
+  "positive_control_detected": true,
+  "positive_fixture_digest": "f8363406f4a0e237270db88e9e65a8e164558e302d3b0cba39ce4e4d48d02ceb",
+  "run_id": "arsenal-20260827T203246Z-4beb6ac3",
+  "runtime_disposition": "ready",
+  "runtime_reason": "internal hunter capability completed",
+  "stderr_digest": "1b60320976d31a6c8ea434b79341b13eb109dcb76abcdb78ce01376a39a5ce6b",
+  "stdout_digest": "5f8f6b51901ca1d891b878a85018b2cc3202d949b4381af41a15c114d3415d7a",
+  "summary": {
+    "blocking_reason": "",
+    "covered_capability_ids": [
+      "tool:brakeman/code",
+      "asset:brakeman/rails-security-static-analysis"
+    ],
+    "execution_error_class": null,
+    "fixture_detection": true,
+    "negative": {
+      "duration_ms": 595,
+      "error": "",
+      "execution_completed_at": "2026-08-27T20:32:47.621755+00:00",
+      "execution_started_at": "2026-08-27T20:32:47.026998+00:00",
+      "exit_code": 0,
+      "finding_count": 0,
+      "parsed_result_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "ran": true,
+      "runtime": {
+        "binary": "brakeman",
+        "checked_at": "2026-08-27T20:32:46.252478+00:00",
+        "name": "brakeman",
+        "reason": "healthy",
+        "resolved_path": "/usr/local/bin/brakeman",
+        "sha256": "465aaa233fd9f9655ccac5d8e2931b1ffe6a27803102bc2c7c9dbb9092093070",
+        "status": "ready",
+        "version": "brakeman 7.1.1"
+      },
+      "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_digest": "3532c443b1965b9544d367959f0590b93091df9a2b580f0c334e33da74c11036"
+    },
+    "negative_control_passed": true,
+    "positive": {
+      "duration_ms": 663,
+      "error": "",
+      "execution_completed_at": "2026-08-27T20:32:47.026739+00:00",
+      "execution_started_at": "2026-08-27T20:32:46.363693+00:00",
+      "exit_code": 3,
+      "finding_count": 1,
+      "parsed_result_digest": "e2f1d63c70e7ee5b12129b875c5c9d4b5b178a715102cc7bcbbb142709eb2a56",
+      "ran": true,
+      "runtime": {
+        "binary": "brakeman",
+        "checked_at": "2026-08-27T20:32:46.252478+00:00",
+        "name": "brakeman",
+        "reason": "healthy",
+        "resolved_path": "/usr/local/bin/brakeman",
+        "sha256": "465aaa233fd9f9655ccac5d8e2931b1ffe6a27803102bc2c7c9dbb9092093070",
+        "status": "ready",
+        "version": "brakeman 7.1.1"
+      },
+      "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_digest": "842d6d926c663f9cd37fbd005603786ac587928175f8903f85bd935fda838af3"
+    },
+    "tool": "brakeman"
+  },
+  "task_id": "arsenal-tool-4beb6ac31c9c-execute"
+}

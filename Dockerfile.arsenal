@@ -10,13 +10,105 @@
 #   docker run --rm --env-file .env aegis-arsenal \
 #       python -m aegis.ai.hunt_repo owner/repo --files 12 --samples 3
 #
-FROM python:3.12-slim-bookworm
+FROM checkmarx/kics@sha256:b29ec62a21fb97f0b65aee2307fcb29dd334c1e39e2c1f1cfe56102fce1c6be4 AS kics_source
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0.419-bookworm-slim-amd64@sha256:3e7b0cefe1b00a350ffb0e06b4e1271a4e791df6b8ac4239be05f1ae2736fcff AS restler_builder
+ARG RESTLER_VERSION=9.3.1
+ARG RESTLER_SOURCE_SHA256=be3328b251179dcd398385cdb88f648aabd12d9a49b55d03aa2dda1bcd6d4865
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      ca-certificates curl python3 \
+    && rm -rf /var/lib/apt/lists/* \
+    && curl -fsSL --retry 3 \
+      "https://github.com/microsoft/restler-fuzzer/archive/refs/tags/v${RESTLER_VERSION}.tar.gz" \
+      -o /tmp/restler.tar.gz \
+    && echo "${RESTLER_SOURCE_SHA256}  /tmp/restler.tar.gz" | sha256sum -c - \
+    && mkdir -p /tmp/restler-src /opt/restler \
+    && tar -xzf /tmp/restler.tar.gz -C /tmp/restler-src --strip-components=1 \
+    && python3 /tmp/restler-src/build-restler.py --dest_dir /opt/restler \
+    && test -f /opt/restler/restler/Restler.dll \
+    && rm -rf /tmp/restler-src /tmp/restler.tar.gz
+
+FROM eclipse-temurin:21.0.8_9-jdk-jammy@sha256:7db733aadd907ea0a5168163d1f0df57e2f611cfa879836878e0872d4e6476dc AS java21_source
+
+FROM python:3.12-slim-bookworm@sha256:0f5b26b9518d002b6173fd61daad821fa340635ebfec5bba471013f9ca114579 AS arsenal_runtime
+
+ARG SEMGREP_VERSION=1.172.0
+ARG BANDIT_VERSION=1.9.4
+ARG NJSSCAN_VERSION=0.4.3
+ARG SLITHER_VERSION=0.11.6
+ARG DETECT_SECRETS_VERSION=1.5.0
+ARG CHECKOV_VERSION=3.3.9
+ARG MYTHRIL_VERSION=0.24.8
+ARG BRAKEMAN_VERSION=7.1.1
+ARG PSALM_VERSION=6.16.1
+ARG RETIRE_VERSION=5.4.3
+ARG GOSEC_VERSION=v2.22.8
+ARG OSV_SCANNER_VERSION=2.5.1
+ARG TRIVY_VERSION=0.73.0
+ARG GRYPE_VERSION=0.116.1
+ARG GITLEAKS_VERSION=8.21.2
+ARG SYFT_VERSION=1.51.1
+ARG SYFT_SHA256=8fcb33017a0dc1058298c923c436d19dfa68ae93968e0b423248542e3afb9fc3
+ARG ZIZMOR_VERSION=1.29.0
+ARG ZIZMOR_SHA256=dd96df044a6e8538d5f423790f453bdd03d49e5b2bcc38214acc41a2f1297839
+ARG SPOTBUGS_VERSION=4.10.4
+ARG SPOTBUGS_SHA256=72bc0d4edd686e462c0f71f42a049b27bf4da6708797ff7b2b56dd202714b4e5
+ARG RUSTSCAN_VERSION=2.4.1
+ARG RUSTSCAN_SHA256=f3a4365d939e3b81f25ba8c37852ce9ac9e938c3cc882c5b3e6fff6152c740be
+ARG APKTOOL_VERSION=3.0.3
+ARG APKTOOL_SHA256=dbf930b076c6b9be08d57c449cacefc3bdd6b71ebd59b3066fc0e1f5b14f9423
+ARG ASAR_VERSION=3.4.1
+ARG WEB_EXT_VERSION=8.10.0
+ARG HTTPX_VERSION=1.10.0
+ARG HTTPX_SHA256=63eac4dcd6e5c9867c94765fdaaf66e7b4eeae3474a1f06e600e266a1c81a53e
+ARG NAABU_VERSION=2.6.1
+ARG NAABU_SHA256=018c4c9884dea971eda860435ede3021d1150732f34cfd245498c6726d8cab90
+ARG WEBSOCAT_VERSION=1.14.1
+ARG WEBSOCAT_SHA256=66f8dd3a0394761556339117f8bb5123bddefd44e087af2a72ec22b0bd08d514
+ARG GRPCURL_VERSION=1.9.3
+ARG GRPCURL_SHA256=a926b62a85787ccf73ef8736b3ae554f1242e39d92bb8767a79d6dd23b11d1d5
+ARG GRPCIO_VERSION=1.76.0
+ARG RETIRE_REPOSITORY_COMMIT=7ddda6314785f7e4dbca442296aa399520e13c13
+ARG KICS_DIGEST=b29ec62a21fb97f0b65aee2307fcb29dd334c1e39e2c1f1cfe56102fce1c6be4
+ARG MODELSCAN_VERSION=0.8.8
+ARG PEFILE_VERSION=2024.8.26
+ARG ANGR_VERSION=9.3.3
+ARG CAPA_VERSION=9.4.0
+ARG SCHEMATHESIS_VERSION=4.25.2
+ARG CAPA_RULES_SHA256=273591b11737181b3bdaac18964f23627cf10c21c2b143fc9be88e4a33217669
+ARG FOUNDRY_VERSION=1.8.0
+ARG FOUNDRY_SHA256=8c8560de380d58d1ee145934427887b107182367600a3c33aa71f16f2ce7ac57
+ARG ECHIDNA_VERSION=2.3.3
+ARG ECHIDNA_SHA256=436d26cb5af34c6c525812b857ac53f218c7f6ad07d69495ef88bc4cdc85c764
+ARG SOLC_VERSION=0.8.36
+ARG SOLC_SHA256=c8d35afdddc3cd2743ee88b8f25e0fecd16e2bdd5f2120f37e52cd9cc45ae0e6
+ARG CODEQL_VERSION=2.26.4
+ARG CODEQL_SHA256=d372d54345e058fe6f7ff8074acd155522fff6770b8d72ee1371ea89deafa193
+ARG FLOSS_VERSION=3.1.1
+ARG FLOSS_SHA256=40c05a869f34f7e2417b17ca290cc54bd3671ee1f0a2d9bd5103284c01a54666
+ARG GHIDRA_VERSION=12.1.3
+ARG GHIDRA_RELEASE_DATE=20260817
+ARG GHIDRA_SHA256=93a5d11a9ad510622acaaf908c556a7b9b764d338e78a7567f3689bf5081fd54
+ARG JADX_VERSION=1.5.6
+ARG JADX_SHA256=545ea2be9c242511bc145755cf4bda2485ade42966e096f8b4d3da2a230e8974
+ARG PIP_AUDIT_VERSION=2.10.1
+ARG RESTLER_VERSION=9.3.1
+ARG RIZIN_VERSION=0.9.1
+ARG RIZIN_SHA256=9102249a9f0b6319c5334a2e5cf8d9cc3f2035e1d3def027c41f6a90f647e8cf
+ARG DNSX_VERSION=v1.2.2
+ARG JSLUICE_COMMIT=0ddfab153e060a9eeaded4d8669233f7c071e7e4
+ARG KATANA_VERSION=v1.1.0
 
 ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     AEGIS_HOST=0.0.0.0 \
     AEGIS_PORT=8000 \
-    PATH="/root/.composer/vendor/bin:/root/go/bin:/usr/local/go/bin:${PATH}" \
+    AEGIS_SCANNER_HOME=/root \
+    JAVA_HOME=/opt/java21 \
+    DOTNET_ROOT=/usr/share/dotnet \
+    GRYPE_DB_AUTO_UPDATE=false \
+    GRYPE_CHECK_FOR_APP_UPDATE=false \
+    PATH="/opt/java21/bin:/usr/share/dotnet:/root/.composer/vendor/bin:/root/go/bin:/usr/local/go/bin:${PATH}" \
     AEGIS_SKILLS_DIR=/root/.aegis/skills \
     AEGIS_SKILL_CMD="{python} -m aegis.ai.skill_runner --skill {source} --target {target}" \
     # Auto-start the hunt on boot: launching the container becomes the whole pipeline
@@ -48,21 +140,57 @@ ENV PYTHONUNBUFFERED=1 \
 # --- OS packages: language runtimes for the language-specific scanners ---
 RUN apt-get update && apt-get install -y --no-install-recommends \
       git curl ca-certificates unzip xz-utils \
+      bubblewrap \
+      default-jdk-headless=2:1.17-74 yara=4.2.3-4 \
       php-cli php-xml php-mbstring composer \
-      ruby-full ruby-dev build-essential \
+      ruby-full ruby-dev build-essential gcc-mingw-w64-x86-64 \
       nodejs npm \
     && rm -rf /var/lib/apt/lists/*
+
+COPY --from=java21_source /opt/java/openjdk /opt/java21
+COPY --from=restler_builder /opt/restler /opt/restler
+COPY --from=restler_builder /usr/share/dotnet /usr/share/dotnet
+RUN ln -sf /usr/share/dotnet/dotnet /usr/local/bin/dotnet \
+    && printf '%s\n' '#!/bin/sh' \
+      'if test "${1:-}" = "--version"; then echo "RESTler 9.3.1"; exit 0; fi' \
+      'exec dotnet /opt/restler/restler/Restler.dll "$@"' \
+      > /usr/local/bin/restler \
+    && chmod 0755 /usr/local/bin/restler \
+    && restler --version
 
 # --- Modern Go (Debian's 1.19 is too old). GOTOOLCHAIN=auto (default) lets `go install`
 #     fetch the exact newer toolchain a tool pins (e.g. gosec needs go >= 1.25). ---
 RUN curl -sfL https://go.dev/dl/go1.22.5.linux-amd64.tar.gz | tar -C /usr/local -xz
+RUN go install "github.com/projectdiscovery/dnsx/cmd/dnsx@${DNSX_VERSION}" \
+    && go install "github.com/BishopFox/jsluice/cmd/jsluice@${JSLUICE_COMMIT}" \
+    && go install "github.com/projectdiscovery/katana/cmd/katana@${KATANA_VERSION}" \
+    && dnsx -version \
+    && jsluice --help >/dev/null \
+    && katana -version
 
-# --- Python scanners (semgrep, bandit, njsscan, slither, checkov, detect-secrets, mythril) ---
-RUN pip install --upgrade pip && \
-    pip install semgrep bandit njsscan slither-analyzer detect-secrets checkov
-# mythril (Solidity symbolic exec) + a solc via solc-select (no apt solc package exists)
-RUN pip install mythril solc-select && solc-select install 0.8.24 && solc-select use 0.8.24 \
-    || echo "mythril/solc install skipped (heavy build)"
+# --- Python scanners. Every production binary is version-pinned; build failures are fatal. ---
+RUN pip install --upgrade "pip==25.2" "setuptools<81" && \
+    pip install \
+      "semgrep==${SEMGREP_VERSION}" \
+      "bandit==${BANDIT_VERSION}" \
+      "slither-analyzer==${SLITHER_VERSION}" \
+      "detect-secrets==${DETECT_SECRETS_VERSION}" \
+      "checkov==${CHECKOV_VERSION}"
+# njsscan pins a different Semgrep release; keep its interpreter and engine isolated.
+RUN python -m venv /opt/aegis-tools/njsscan && \
+    /opt/aegis-tools/njsscan/bin/pip install "pip==25.2" && \
+    /opt/aegis-tools/njsscan/bin/pip install "njsscan==${NJSSCAN_VERSION}" && \
+    ln -s /opt/aegis-tools/njsscan/bin/njsscan /usr/local/bin/njsscan
+# Mythril has an older dependency surface, so isolate it from the control-plane environment.
+RUN python -m venv /opt/aegis-tools/mythril && \
+    /opt/aegis-tools/mythril/bin/pip install "pip==25.2" "setuptools<81" && \
+    /opt/aegis-tools/mythril/bin/pip install \
+      "mythril==${MYTHRIL_VERSION}" "solc-select==1.1.0" && \
+    ln -s /opt/aegis-tools/mythril/bin/myth /usr/local/bin/myth
+RUN curl -fL \
+      "https://github.com/ethereum/solidity/releases/download/v0.8.24/solc-static-linux" \
+      -o /usr/local/bin/solc && chmod 0755 /usr/local/bin/solc && \
+    solc --version | grep -F "0.8.24"
 
 # --- PHP: Psalm (taint) · Ruby: Brakeman · Node: retire.js ---
 # Each install is its OWN layer and non-fatal: a transient network blip on one tool can't
@@ -72,41 +200,384 @@ ENV COMPOSER_ALLOW_SUPERUSER=1 COMPOSER_PROCESS_TIMEOUT=900
 # Psalm + WordPress stubs so taint analysis resolves wp_*/$wpdb and traces through them
 # (psalm on a WP plugin is near-blind without these). AEGIS_PHP_STUBS is injected into the
 # psalm command when the file exists.
-RUN for i in 1 2 3; do composer global require --no-interaction vimeo/psalm php-stubs/wordpress-stubs && break || sleep 5; done \
-    || echo "psalm skipped"
+RUN composer global require --no-interaction \
+      "vimeo/psalm:${PSALM_VERSION}" "php-stubs/wordpress-stubs:^6.7"
 ENV AEGIS_PHP_STUBS=/root/.composer/vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
-RUN gem install --no-document brakeman || echo "brakeman skipped"
-RUN npm install -g retire || echo "retire.js skipped"
+RUN gem install --no-document brakeman -v "${BRAKEMAN_VERSION}"
+RUN npm install -g "retire@${RETIRE_VERSION}"
+RUN mkdir -p /opt/aegis-data/retire && curl -fL \
+      "https://raw.githubusercontent.com/RetireJS/retire.js/${RETIRE_REPOSITORY_COMMIT}/repository/jsrepository.json" \
+      -o /opt/aegis-data/retire/jsrepository.json
 
 # --- Go-based scanners: gosec + osv-scanner via modern Go's go install ---
-RUN go install github.com/securego/gosec/v2/cmd/gosec@latest || echo "gosec skipped"
-RUN go install github.com/google/osv-scanner/cmd/osv-scanner@v1.9.2 || echo "osv-scanner skipped"
+RUN go install "github.com/securego/gosec/v2/cmd/gosec@${GOSEC_VERSION}" \
+    && rm -rf /root/.cache/go-build /root/go/pkg/mod
+RUN curl -fL \
+      "https://github.com/google/osv-scanner/releases/download/v${OSV_SCANNER_VERSION}/osv-scanner_linux_amd64" \
+      -o /usr/local/bin/osv-scanner && chmod 0755 /usr/local/bin/osv-scanner
+RUN mkdir -p /root/.cache/osv-scalibr/npm && curl -fL \
+      "https://osv-vulnerabilities.storage.googleapis.com/npm/all.zip" \
+      -o /root/.cache/osv-scalibr/npm/all.zip
 
 # --- Prebuilt-binary scanners: trivy, grype, gitleaks (to /usr/local/bin) ---
-RUN curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh \
-      | sh -s -- -b /usr/local/bin || echo "trivy skipped"
-RUN curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh \
-      | sh -s -- -b /usr/local/bin || echo "grype skipped"
-RUN GL=8.21.2 && curl -sfL \
-      "https://github.com/gitleaks/gitleaks/releases/download/v${GL}/gitleaks_${GL}_linux_x64.tar.gz" \
-      | tar -xz -C /usr/local/bin gitleaks || echo "gitleaks skipped"
+RUN curl -sfL \
+      "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz" \
+      | tar -xz -C /usr/local/bin trivy
+RUN curl -sfL \
+      "https://github.com/anchore/grype/releases/download/v${GRYPE_VERSION}/grype_${GRYPE_VERSION}_linux_amd64.tar.gz" \
+      | tar -xz -C /usr/local/bin grype
+RUN curl -sfL \
+      "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
+      | tar -xz -C /usr/local/bin gitleaks
 
-# --- docker CLI (late layer to keep the heavy scanner layers cached). Strix's sandbox +
-#     reproduction's compose talk to the HOST daemon via a mounted /var/run/docker.sock. ---
-RUN apt-get update && apt-get install -y --no-install-recommends docker.io \
-    && rm -rf /var/lib/apt/lists/* || echo "docker cli skipped"
+# --- Additional canonical Linux fixture backends. Downloads are version + digest pinned. ---
+RUN curl -fL \
+      "https://github.com/anchore/syft/releases/download/v${SYFT_VERSION}/syft_${SYFT_VERSION}_linux_amd64.tar.gz" \
+      -o /tmp/syft.tgz && echo "${SYFT_SHA256}  /tmp/syft.tgz" | sha256sum -c - && \
+    tar -xzf /tmp/syft.tgz -C /usr/local/bin syft && rm /tmp/syft.tgz
+RUN curl -fL \
+      "https://github.com/zizmorcore/zizmor/releases/download/v${ZIZMOR_VERSION}/zizmor-x86_64-unknown-linux-gnu.tar.gz" \
+      -o /tmp/zizmor.tgz && echo "${ZIZMOR_SHA256}  /tmp/zizmor.tgz" | sha256sum -c - && \
+    tar -xzf /tmp/zizmor.tgz -C /usr/local/bin zizmor && chmod 0755 /usr/local/bin/zizmor && \
+    rm /tmp/zizmor.tgz
+RUN curl -fL \
+      "https://github.com/spotbugs/spotbugs/releases/download/${SPOTBUGS_VERSION}/spotbugs-${SPOTBUGS_VERSION}.tgz" \
+      -o /tmp/spotbugs.tgz && echo "${SPOTBUGS_SHA256}  /tmp/spotbugs.tgz" | sha256sum -c - && \
+    mkdir -p /opt/spotbugs && tar -xzf /tmp/spotbugs.tgz -C /opt/spotbugs --strip-components=1 && \
+    ln -s /opt/spotbugs/bin/spotbugs /usr/local/bin/spotbugs && rm /tmp/spotbugs.tgz
+
+# --- Isolated network-lab clients. The exercise binds only controlled loopback fixtures. ---
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      nmap=7.93+dfsg1-1 binwalk=2.3.4+dfsg1-1 && \
+    rm -rf /var/lib/apt/lists/*
+RUN curl -fL \
+      "https://github.com/bee-san/RustScan/releases/download/${RUSTSCAN_VERSION}/x86_64-linux-rustscan.tar.gz.zip" \
+      -o /tmp/rustscan.zip && echo "${RUSTSCAN_SHA256}  /tmp/rustscan.zip" | sha256sum -c - && \
+    unzip -q /tmp/rustscan.zip -d /tmp/rustscan && \
+    tar -xzf /tmp/rustscan/x86_64-linux-rustscan.tar.gz -C /usr/local/bin rustscan && \
+    chmod 0755 /usr/local/bin/rustscan && rm -rf /tmp/rustscan /tmp/rustscan.zip
+RUN curl -fL \
+      "https://github.com/projectdiscovery/httpx/releases/download/v${HTTPX_VERSION}/httpx_${HTTPX_VERSION}_linux_amd64.zip" \
+      -o /tmp/httpx.zip && echo "${HTTPX_SHA256}  /tmp/httpx.zip" | sha256sum -c - && \
+    unzip -qo /tmp/httpx.zip httpx -d /usr/local/bin && chmod 0755 /usr/local/bin/httpx && \
+    rm /tmp/httpx.zip
+RUN curl -fL \
+      "https://github.com/projectdiscovery/naabu/releases/download/v${NAABU_VERSION}/naabu_${NAABU_VERSION}_linux_amd64.zip" \
+      -o /tmp/naabu.zip && echo "${NAABU_SHA256}  /tmp/naabu.zip" | sha256sum -c - && \
+    unzip -q /tmp/naabu.zip naabu -d /usr/local/bin && chmod 0755 /usr/local/bin/naabu && \
+    rm /tmp/naabu.zip
+RUN curl -fL \
+      "https://github.com/vi/websocat/releases/download/v${WEBSOCAT_VERSION}/websocat.x86_64-unknown-linux-musl" \
+      -o /usr/local/bin/websocat && \
+    echo "${WEBSOCAT_SHA256}  /usr/local/bin/websocat" | sha256sum -c - && \
+    chmod 0755 /usr/local/bin/websocat
+RUN curl -fL \
+      "https://github.com/fullstorydev/grpcurl/releases/download/v${GRPCURL_VERSION}/grpcurl_${GRPCURL_VERSION}_linux_x86_64.tar.gz" \
+      -o /tmp/grpcurl.tgz && echo "${GRPCURL_SHA256}  /tmp/grpcurl.tgz" | sha256sum -c - && \
+    tar -xzf /tmp/grpcurl.tgz -C /usr/local/bin grpcurl && chmod 0755 /usr/local/bin/grpcurl && \
+    rm /tmp/grpcurl.tgz
+
+# --- Static Android/Electron artifact tooling; no emulator or external target is used here. ---
+RUN curl -fL \
+      "https://github.com/iBotPeaches/Apktool/releases/download/v${APKTOOL_VERSION}/apktool_${APKTOOL_VERSION}.jar" \
+      -o /opt/apktool.jar && echo "${APKTOOL_SHA256}  /opt/apktool.jar" | sha256sum -c - && \
+    printf '%s\n' '#!/bin/sh' 'exec java -jar /opt/apktool.jar "$@"' > /usr/local/bin/apktool && \
+    chmod 0755 /usr/local/bin/apktool
+RUN npm install -g "@electron/asar@${ASAR_VERSION}"
+RUN npm install -g "web-ext@${WEB_EXT_VERSION}"
+RUN pip install \
+      "grpcio==${GRPCIO_VERSION}" "grpcio-tools==${GRPCIO_VERSION}" \
+      "grpcio-reflection==${GRPCIO_VERSION}"
+
+# --- Additional pinned analysis backends. These run only against local, isolated fixtures. ---
+COPY --from=kics_source /app/bin /opt/kics
+RUN ln -sf /opt/kics/kics /usr/local/bin/kics \
+    && pip install --no-cache-dir "modelscan==${MODELSCAN_VERSION}" "pefile==${PEFILE_VERSION}"
+COPY scripts/arsenal/pefile_cli.py /usr/local/bin/pefile
+RUN chmod 0755 /usr/local/bin/pefile
+RUN apt-get update && apt-get install -y --no-install-recommends skopeo \
+    && rm -rf /var/lib/apt/lists/*
+RUN python -m venv /opt/venvs/angr \
+    && /opt/venvs/angr/bin/pip install --no-cache-dir "angr==${ANGR_VERSION}" \
+    && python -m venv /opt/venvs/capa \
+    && /opt/venvs/capa/bin/pip install --no-cache-dir "flare-capa==${CAPA_VERSION}" \
+    && python -m venv /opt/venvs/schemathesis \
+    && /opt/venvs/schemathesis/bin/pip install --no-cache-dir "schemathesis==${SCHEMATHESIS_VERSION}" \
+    && curl -fsSL --retry 3 \
+        https://github.com/mandiant/capa-rules/archive/refs/tags/v${CAPA_VERSION}.tar.gz \
+        -o /tmp/capa-rules.tar.gz \
+    && echo "${CAPA_RULES_SHA256}  /tmp/capa-rules.tar.gz" | sha256sum -c - \
+    && mkdir -p /opt/capa-rules \
+    && tar -xzf /tmp/capa-rules.tar.gz -C /opt/capa-rules --strip-components=1 \
+    && rm /tmp/capa-rules.tar.gz \
+    && ln -sf /opt/venvs/capa/bin/capa /usr/local/bin/capa \
+    && ln -sf /opt/venvs/schemathesis/bin/schemathesis /usr/local/bin/schemathesis
+COPY scripts/arsenal/angr_cli.py /usr/local/bin/angr
+RUN chmod 0755 /usr/local/bin/angr
+RUN curl -fsSL --retry 3 \
+        https://github.com/foundry-rs/foundry/releases/download/v${FOUNDRY_VERSION}/foundry_v${FOUNDRY_VERSION}_linux_amd64.tar.gz \
+        -o /tmp/foundry.tar.gz \
+    && echo "${FOUNDRY_SHA256}  /tmp/foundry.tar.gz" | sha256sum -c - \
+    && tar -xzf /tmp/foundry.tar.gz -C /usr/local/bin forge cast anvil chisel \
+    && rm /tmp/foundry.tar.gz \
+    && curl -fsSL --retry 3 \
+        https://github.com/crytic/echidna/releases/download/v${ECHIDNA_VERSION}/echidna-${ECHIDNA_VERSION}-x86_64-linux.tar.gz \
+        -o /tmp/echidna.tar.gz \
+    && echo "${ECHIDNA_SHA256}  /tmp/echidna.tar.gz" | sha256sum -c - \
+    && tar -xzf /tmp/echidna.tar.gz -C /usr/local/bin echidna \
+    && ln -sf /usr/local/bin/echidna /usr/local/bin/echidna-test \
+    && rm /tmp/echidna.tar.gz \
+    && curl -fsSL --retry 3 \
+        https://github.com/argotorg/solidity/releases/download/v${SOLC_VERSION}/solc-static-linux \
+        -o /usr/local/bin/solc \
+    && echo "${SOLC_SHA256}  /usr/local/bin/solc" | sha256sum -c - \
+    && chmod 0755 /usr/local/bin/solc
+
+# --- Final software-unavailable closure: real pinned analyzers, not version shims. ---
+RUN curl -fsSL --retry 3 \
+      "https://github.com/github/codeql-cli-binaries/releases/download/v${CODEQL_VERSION}/codeql-linux64.zip" \
+      -o /tmp/codeql.zip \
+    && echo "${CODEQL_SHA256}  /tmp/codeql.zip" | sha256sum -c - \
+    && unzip -q /tmp/codeql.zip -d /opt \
+    && ln -sf /opt/codeql/codeql /usr/local/bin/codeql \
+    && rm /tmp/codeql.zip \
+    && codeql version --format=terse | grep -F "${CODEQL_VERSION}" \
+    && codeql pack download "codeql/javascript-all@2.10.0"
+RUN curl -fsSL --retry 3 \
+      "https://github.com/mandiant/flare-floss/releases/download/v${FLOSS_VERSION}/floss-v${FLOSS_VERSION}-linux.zip" \
+      -o /tmp/floss.zip \
+    && echo "${FLOSS_SHA256}  /tmp/floss.zip" | sha256sum -c - \
+    && unzip -q /tmp/floss.zip -d /usr/local/bin \
+    && chmod 0755 /usr/local/bin/floss \
+    && rm /tmp/floss.zip \
+    && floss --version | grep -F "${FLOSS_VERSION}"
+RUN curl -fsSL --retry 3 \
+      "https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_${GHIDRA_VERSION}_build/ghidra_${GHIDRA_VERSION}_PUBLIC_${GHIDRA_RELEASE_DATE}.zip" \
+      -o /tmp/ghidra.zip \
+    && echo "${GHIDRA_SHA256}  /tmp/ghidra.zip" | sha256sum -c - \
+    && unzip -q /tmp/ghidra.zip -d /opt \
+    && mv "/opt/ghidra_${GHIDRA_VERSION}_PUBLIC" /opt/ghidra \
+    && rm /tmp/ghidra.zip \
+    && printf '%s\n' '#!/bin/sh' \
+      'if test "${1:-}" = "--version"; then echo "Ghidra 12.1.3"; exit 0; fi' \
+      'exec /opt/ghidra/support/analyzeHeadless "$@"' \
+      > /usr/local/bin/analyzeHeadless \
+    && chmod 0755 /usr/local/bin/analyzeHeadless \
+    && analyzeHeadless --version
+RUN curl -fsSL --retry 3 \
+      "https://github.com/skylot/jadx/releases/download/v${JADX_VERSION}/jadx-${JADX_VERSION}.zip" \
+      -o /tmp/jadx.zip \
+    && echo "${JADX_SHA256}  /tmp/jadx.zip" | sha256sum -c - \
+    && mkdir -p /opt/jadx \
+    && unzip -q /tmp/jadx.zip -d /opt/jadx \
+    && ln -sf /opt/jadx/bin/jadx /usr/local/bin/jadx \
+    && rm /tmp/jadx.zip \
+    && jadx --version | grep -F "${JADX_VERSION}"
+RUN python -m venv /opt/venvs/pip-audit \
+    && /opt/venvs/pip-audit/bin/pip install --no-cache-dir "pip-audit==${PIP_AUDIT_VERSION}" \
+    && ln -sf /opt/venvs/pip-audit/bin/pip-audit /usr/local/bin/pip-audit \
+    && pip-audit --version | grep -F "${PIP_AUDIT_VERSION}"
+RUN curl -fsSL --retry 3 \
+      "https://github.com/rizinorg/rizin/releases/download/v${RIZIN_VERSION}/rizin-v${RIZIN_VERSION}-static-x86_64.tar.xz" \
+      -o /tmp/rizin.tar.xz \
+    && echo "${RIZIN_SHA256}  /tmp/rizin.tar.xz" | sha256sum -c - \
+    && mkdir -p /opt/rizin \
+    && tar -xJf /tmp/rizin.tar.xz -C /opt/rizin \
+    && ln -sf /opt/rizin/bin/rizin /usr/local/bin/rizin \
+    && rm /tmp/rizin.tar.xz \
+    && rizin -v | grep -F "${RIZIN_VERSION}"
+
+# Dependency databases are baked into the image so fixture runs can use --network none.
+RUN trivy image --download-db-only --no-progress
+RUN grype db update
+
+# Resolve and cache the complete CodeQL query-pack dependency graph while the
+# image is built. Runtime fixtures are deliberately executed with --network
+# none, so downloading only javascript-all itself is insufficient: its
+# transitive dataflow/controlflow/type-tracking packs must be present too.
+RUN mkdir -p /tmp/aegis-codeql-pack \
+    && printf '%s\n' \
+      'name: aegis/codeql-runtime-dependencies' \
+      'version: 0.0.1' \
+      'dependencies:' \
+      '  codeql/javascript-all: "2.10.0"' \
+      > /tmp/aegis-codeql-pack/qlpack.yml \
+    && codeql pack install /tmp/aegis-codeql-pack \
+    && rm -rf /tmp/aegis-codeql-pack
 
 # --- Strix (usestrix/strix) — arm's-length autonomous AI pentester, Apache-2.0.
 #     Invoked opt-in (AEGIS_ALLOW_STRIX=1) on local source; drives its own LLM (point
 #     STRIX_LLM/LLM_API_KEY at your model). Installed here so the bin resolves. ---
-RUN pip install strix-agent || echo "strix-agent skipped"
-
 # --- Aegis itself (editable) ---
 WORKDIR /app
 COPY pyproject.toml README.md ./
 COPY src ./src
-RUN pip install -e ".[api]" || pip install -e .
-COPY . .
+RUN pip install -e ".[api,postgres]"
+
+# Canonical fixture execution runs commands through a sanitized non-login shell.
+# Expose Go-installed tools on the system path instead of relying on /root/go/bin
+# from the interactive image environment.
+RUN for tool in dnsx jsluice katana; do \
+      ln -sf "/root/go/bin/${tool}" "/usr/local/bin/${tool}"; \
+    done \
+    && dnsx -version \
+    && jsluice --help >/dev/null \
+    && katana -version
+
+# Network-lab analyzers.  Keep these late in the image so the core scanner layers
+# remain cacheable while the pinned Python and source releases are refreshed.
+ARG MITMPROXY_VERSION=12.2.3
+ARG SSH_AUDIT_VERSION=3.9.0
+ARG TESTSSL_VERSION=3.2.4
+ARG TESTSSL_SHA256=98528f8a0ac07f1e226efaa8ead438247df8efcb8fee4e056a937ab82a305490
+ARG NUCLEI_VERSION=3.3.0
+ARG NUCLEI_SHA256=235f264d32e47e1ccf58d534e2eb4d0d4eeb47f1cae1ebb30a584b8b52565202
+ARG PLAYWRIGHT_VERSION=1.60.0
+ARG PROMPTFOO_VERSION=0.122.2
+ARG NODE_VERSION=22.22.0
+ARG NODE_SHA256=9aa8e9d2298ab68c600bd6fb86a6c13bce11a4eca1ba9b39d79fa021755d7c37
+ARG SCORECARD_VERSION=5.5.0
+ARG SCORECARD_SHA256=83b90a05c1540ef1390db1cd5711e5fd04be9c1d8537fb84d39d02092d6a8dff
+ARG KUBESCAPE_VERSION=4.0.12
+ARG KUBESCAPE_SHA256=707aec6c708b7e90c1aeba71d9f7ce8050a03a84c6c146227d8c050e8155a7bc
+ARG KUBESCAPE_NSA_SHA256=1a8b06dec9f75c1beb80d3a062fb81ea3ccbfc7fc09bdf1b5061bc96f05f493e
+ARG KUBESCAPE_EXCEPTIONS_SHA256=bf44e01e6b212c8e8c0ca0686d1bd84488e3f9ce5375cd36511c8faef3a44e7b
+ARG KUBESCAPE_DEFAULT_INPUTS_SHA256=df4e2431e8f560961ce56aa06e022caf9b2f82f98752de78df1cd0706b42cf3a
+ARG GARAK_VERSION=0.16.0
+ARG GARAK_SHA256=871100d78e2bc5a7ee6de58ff8301bdd3de3a41236032690d1a6da21a05e9f06
+ARG AEGIS_ANYIO_VERSION=4.11.0
+ARG AEGIS_TYPING_EXTENSIONS_VERSION=4.16.0
+ARG PYRIT_VERSION=1.0.1
+ARG PYRIT_SHA256=de3a73f38a4ddbe1930724f0f6c19924ddc87c2bee0e8209c4f67c70b4e7db03
+RUN python -m venv /opt/venvs/mitmproxy \
+    && /opt/venvs/mitmproxy/bin/pip install --no-cache-dir "mitmproxy==${MITMPROXY_VERSION}" \
+    && ln -sf /opt/venvs/mitmproxy/bin/mitmproxy /usr/local/bin/mitmproxy \
+    && ln -sf /opt/venvs/mitmproxy/bin/mitmdump /usr/local/bin/mitmdump \
+    && ln -sf /opt/venvs/mitmproxy/bin/mitmweb /usr/local/bin/mitmweb \
+    && mitmproxy --version \
+    && mitmdump --version \
+    && pip install --no-cache-dir "ssh-audit==${SSH_AUDIT_VERSION}" \
+    && ssh-audit -h >/dev/null
+RUN apt-get update && apt-get install -y --no-install-recommends bsdextrautils procps dnsutils openssh-server \
+    && rm -rf /var/lib/apt/lists/*
+RUN curl -fsSL --retry 3 \
+      "https://github.com/testssl/testssl.sh/archive/refs/tags/v${TESTSSL_VERSION}.tar.gz" \
+      -o /tmp/testssl.tgz \
+    && echo "${TESTSSL_SHA256}  /tmp/testssl.tgz" | sha256sum -c - \
+    && tar -xzf /tmp/testssl.tgz -C /opt \
+    && mv "/opt/testssl.sh-${TESTSSL_VERSION}" /opt/testssl \
+    && ln -sf /opt/testssl/testssl.sh /usr/local/bin/testssl.sh \
+    && rm /tmp/testssl.tgz \
+    && testssl.sh --version | grep -F "3.2.4"
+RUN curl -fsSL --retry 3 \
+      "https://github.com/projectdiscovery/nuclei/releases/download/v${NUCLEI_VERSION}/nuclei_${NUCLEI_VERSION}_linux_amd64.zip" \
+      -o /tmp/nuclei.zip \
+    && echo "${NUCLEI_SHA256}  /tmp/nuclei.zip" | sha256sum -c - \
+    && unzip -qo /tmp/nuclei.zip nuclei -d /usr/local/bin \
+    && chmod 0755 /usr/local/bin/nuclei \
+    && rm /tmp/nuclei.zip \
+    && nuclei -version 2>&1 | grep -F "3.3.0"
+RUN curl -fsSL --retry 3 \
+      "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" \
+      -o /tmp/node.tar.xz \
+    && echo "${NODE_SHA256}  /tmp/node.tar.xz" | sha256sum -c - \
+    && tar -xJf /tmp/node.tar.xz -C /usr/local --strip-components=1 \
+    && rm /tmp/node.tar.xz \
+    && node --version | grep -F "v${NODE_VERSION}"
+RUN npm install -g \
+      "@playwright/test@${PLAYWRIGHT_VERSION}" \
+      "promptfoo@${PROMPTFOO_VERSION}" \
+    && playwright install --with-deps chromium \
+    && playwright --version | grep -F "${PLAYWRIGHT_VERSION}" \
+    && promptfoo --version | grep -F "${PROMPTFOO_VERSION}" \
+    && npm cache clean --force \
+    && find /root/.cache/ms-playwright -mindepth 1 -maxdepth 1 -type d \
+      ! -name chromium-1223 ! -name chromium_headless_shell-1223 \
+      -exec rm -rf '{}' +
+RUN curl -fsSL --retry 3 \
+      "https://github.com/ossf/scorecard/releases/download/v${SCORECARD_VERSION}/scorecard_${SCORECARD_VERSION}_linux_amd64.tar.gz" \
+      -o /tmp/scorecard.tar.gz \
+    && echo "${SCORECARD_SHA256}  /tmp/scorecard.tar.gz" | sha256sum -c - \
+    && mkdir -p /opt/scorecard \
+    && tar -xzf /tmp/scorecard.tar.gz -C /opt/scorecard scorecard \
+    && chmod 0755 /opt/scorecard/scorecard \
+    && rm /tmp/scorecard.tar.gz \
+    && printf '%s\n' '#!/bin/sh' \
+      "if test \"\${1:-}\" = \"--version\"; then echo \"OpenSSF Scorecard v${SCORECARD_VERSION}\"; exit 0; fi" \
+      'exec /opt/scorecard/scorecard "$@"' \
+      > /usr/local/bin/scorecard \
+    && chmod 0755 /usr/local/bin/scorecard \
+    && scorecard --version | grep -F "v${SCORECARD_VERSION}" \
+    && scorecard version 2>&1 | grep -F "v${SCORECARD_VERSION}"
+RUN curl -fsSL --retry 3 \
+      "https://github.com/kubescape/kubescape/releases/download/v${KUBESCAPE_VERSION}/kubescape_${KUBESCAPE_VERSION}_linux_amd64.tar.gz" \
+      -o /tmp/kubescape.tar.gz \
+    && echo "${KUBESCAPE_SHA256}  /tmp/kubescape.tar.gz" | sha256sum -c - \
+    && tar -xzf /tmp/kubescape.tar.gz -C /usr/local/bin kubescape \
+    && chmod 0755 /usr/local/bin/kubescape \
+    && rm /tmp/kubescape.tar.gz \
+    && kubescape version | grep -F "v${KUBESCAPE_VERSION}" \
+    && mkdir -p /opt/kubescape-policies \
+    && curl -fsSL --retry 3 \
+      "https://github.com/kubescape/regolibrary/releases/download/v2/nsa" \
+      -o /opt/kubescape-policies/nsa.json \
+    && echo "${KUBESCAPE_NSA_SHA256}  /opt/kubescape-policies/nsa.json" | sha256sum -c - \
+    && curl -fsSL --retry 3 \
+      "https://github.com/kubescape/regolibrary/releases/download/v2/exceptions" \
+      -o /opt/kubescape-policies/exceptions.json \
+    && echo "${KUBESCAPE_EXCEPTIONS_SHA256}  /opt/kubescape-policies/exceptions.json" | sha256sum -c - \
+    && curl -fsSL --retry 3 \
+      "https://github.com/kubescape/regolibrary/releases/download/v2/default_config_inputs" \
+      -o /tmp/kubescape-default-inputs.json \
+    && echo "${KUBESCAPE_DEFAULT_INPUTS_SHA256}  /tmp/kubescape-default-inputs.json" | sha256sum -c - \
+    && python -c "import json; from pathlib import Path; source=json.loads(Path('/tmp/kubescape-default-inputs.json').read_text()); Path('/opt/kubescape-policies/controls-inputs.json').write_text(json.dumps(source['settings']['postureControlInputs'], sort_keys=True, separators=(',', ':')))" \
+    && rm /tmp/kubescape-default-inputs.json
+# Garak's controlled fixture uses its real PromptInject probe/detector with built-in local
+# generators. Provider-specific plugins remain separately prerequisite-bound.
+RUN curl -fsSL --retry 3 \
+      "https://files.pythonhosted.org/packages/58/72/cd5da6217006113497fe070edf2748e20b08ffb05762369c52f8255af8b2/garak-${GARAK_VERSION}-py3-none-any.whl" \
+      -o "/tmp/garak-${GARAK_VERSION}-py3-none-any.whl" \
+    && echo "${GARAK_SHA256}  /tmp/garak-${GARAK_VERSION}-py3-none-any.whl" | sha256sum -c - \
+    && python -m venv /opt/venvs/garak --system-site-packages \
+    && /opt/venvs/garak/bin/pip install --no-deps "/tmp/garak-${GARAK_VERSION}-py3-none-any.whl" \
+    && /opt/venvs/garak/bin/pip install \
+      "xdg-base-dirs==6.0.2" "lorem==0.1.1" "colorama==0.4.6" \
+      "nltk==3.10.0" "langdetect==1.0.9" \
+      "numpy==2.2.3" "markdown==3.7" \
+    && rm "/tmp/garak-${GARAK_VERSION}-py3-none-any.whl" \
+    && printf '%s\n' '#!/bin/sh' \
+      'exec /opt/venvs/garak/bin/python -m garak "$@"' \
+      > /usr/local/bin/garak \
+    && chmod 0755 /usr/local/bin/garak \
+    && garak --version | grep -F "v${GARAK_VERSION}" \
+    && garak --target_type test.Blank --spec probes.promptinject.HijackHateHumans --generations 1 --narrow_output >/dev/null
+# PyRIT runs a deterministic, local PromptSendingAttack and scorer. The isolated
+# environment prevents its provider dependencies from changing Aegis's runtime.
+RUN curl -fsSL --retry 3 \
+      "https://files.pythonhosted.org/packages/53/80/5ae92fdee8829798ff73b87001ccfaa6d7b71c0d03afdfd9164865079568/pyrit-${PYRIT_VERSION}-py3-none-any.whl" \
+      -o "/tmp/pyrit-${PYRIT_VERSION}-py3-none-any.whl" \
+    && echo "${PYRIT_SHA256}  /tmp/pyrit-${PYRIT_VERSION}-py3-none-any.whl" | sha256sum -c - \
+    && python -m venv /opt/venvs/pyrit \
+    && /opt/venvs/pyrit/bin/pip install "/tmp/pyrit-${PYRIT_VERSION}-py3-none-any.whl" \
+    && rm "/tmp/pyrit-${PYRIT_VERSION}-py3-none-any.whl" \
+    && printf '%s\n' '#!/bin/sh' \
+      'if [ "$1" = "--version" ]; then' \
+      '  exec /opt/venvs/pyrit/bin/python -c "from importlib.metadata import version; print(version('"'"'pyrit'"'"'))"' \
+      'fi' \
+      'exec /opt/venvs/pyrit/bin/pyrit_scan "$@"' \
+      > /usr/local/bin/pyrit \
+    && chmod 0755 /usr/local/bin/pyrit \
+    && test "$(pyrit --version)" = "${PYRIT_VERSION}"
+
+# Keep provider-specific Python environments from inheriting resolver drift into
+# the Aegis control plane.  These versions are part of the base runtime, not the
+# isolated PyRIT environment.  Import the real FastAPI/AnyIO boundary here so an
+# incompatible pair fails while the image is built instead of during evidence
+# generation.
+RUN pip install --no-cache-dir \
+      "anyio==${AEGIS_ANYIO_VERSION}" \
+      "typing-extensions==${AEGIS_TYPING_EXTENSIONS_VERSION}" \
+    && python -c "from anyio.abc import ObjectReceiveStream; from fastapi import FastAPI; assert ObjectReceiveStream and FastAPI"
 
 # clone the arm's-length skill catalog so the prompt-only runner can read their instructions
 # (never executes a skill's own scripts — only reads SKILL.md and runs it via DeepSeek)
@@ -114,17 +585,48 @@ COPY . .
 # and runs it via the LLM over LOCAL source; it never executes a skill's own scripts, never
 # copies their text into Aegis, and never performs the live-target actions some describe.
 # Gabson0x/bountyforge is unlicensed, so it is invoke-only here (read, never vendored).
-RUN mkdir -p "$AEGIS_SKILLS_DIR" && \
-    for repo in pashov/skills cloudflare/security-audit-skill github/awesome-copilot \
-                trailofbits/skills getsentry/skills NMitchem/SkillScan \
-                dstiliadis/security-review-skill Gabson0x/bountyforge ; do \
-      name=$(echo "$repo" | tr '/' '_') ; \
-      git clone --depth 1 "https://github.com/$repo.git" "$AEGIS_SKILLS_DIR/$name" 2>/dev/null || true ; \
-    done
-
-# report which scanners resolved (non-fatal) so the build log shows the live arsenal
-RUN python -c "from aegis.ai.tool_bridge import available_tools; \
-print('SCANNERS AVAILABLE:', sorted({t.name for ln in ('code','secrets','deps','contract') for t in available_tools(ln)}))" || true
+# Fail packaging if a required scanner is absent. This is not execution credit: only the
+# signed fixture path can produce an EXECUTED_* coverage record.
+COPY . .
+RUN python -c "from aegis.ai.tool_registry import TOOLS; from aegis.ai.tool_bridge import available_tools; \
+expected={t.name for t in TOOLS}; actual={t.name for t in available_tools()}; \
+assert expected == actual, f'missing packaged scanners: {sorted(expected-actual)}'; \
+print('PACKAGED SCANNERS:', sorted(actual))"
 
 EXPOSE 8000
 CMD ["python", "-m", "aegis.api"]
+
+# Hosted CI must prove the real pinned runtime without exporting its 20+ GB image
+# through the ephemeral runner image store. Execute the canonical fixture suite in
+# that exact runtime, with external networking disabled, then expose only its small
+# immutable evidence bundle as a BuildKit local-output target. This stage does not
+# award coverage itself: the existing exercise command, signed manifests, controls,
+# parsers, and coverage ledger remain the only sources of EXECUTED_* records.
+FROM arsenal_runtime AS arsenal_fixture_runner
+ARG AEGIS_BUILD_GIT_SHA=""
+ENV AEGIS_SCANNER_HOME=/root \
+    AEGIS_FIXTURE_TOOL_TIMEOUT_SECONDS=120 \
+    AEGIS_GIT_SHA=${AEGIS_BUILD_GIT_SHA}
+WORKDIR /app
+RUN --network=none mkdir -p reports/arsenal/ci-runs \
+    && set +e \
+    && python -m aegis.cli arsenal exercise --all-fixture-tools \
+      --coverage-sqlite reports/arsenal/ci-coverage.db \
+      --runs-dir reports/arsenal/ci-runs \
+      --release-lock config/arsenal-release-lock.json \
+      --json reports/arsenal/ci-full-fixture.json \
+      --markdown reports/arsenal/ci-full-fixture.md \
+      --backend-inventory-json reports/arsenal/ci-backend-inventory.json \
+      --backend-inventory-markdown reports/arsenal/ci-backend-inventory.md \
+      --tool-lock-json reports/arsenal/ci-tool-lock.json \
+    ; exercise_exit=$? \
+    ; set -e \
+    ; echo "fixture command exit: ${exercise_exit} (partial coverage is evaluated from evidence)" \
+    ; test -s reports/arsenal/ci-full-fixture.json
+
+FROM scratch AS arsenal_fixture_evidence
+COPY --from=arsenal_fixture_runner /app/reports/arsenal/ /reports/arsenal/
+
+# Preserve the historical default build result: callers that do not select a
+# target still receive the runnable arsenal image, never the evidence-only stage.
+FROM arsenal_runtime AS arsenal

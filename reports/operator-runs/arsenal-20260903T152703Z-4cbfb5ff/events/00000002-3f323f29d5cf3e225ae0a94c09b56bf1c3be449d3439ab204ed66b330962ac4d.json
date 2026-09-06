@@ -1,0 +1,57 @@
+{
+  "detail": {
+    "capability_id": "asset:azurehound/azure-entra-relationship-collection",
+    "grant": {
+      "allowed_destinations": [],
+      "allowed_methods": [],
+      "budget": {
+        "max_cost_usd": 0.0,
+        "max_human_minutes": 0.0,
+        "max_requests": 0
+      },
+      "constraints": {
+        "authorization_class": "LOCAL_FIXTURE_ONLY",
+        "capability_id": "asset:azurehound/azure-entra-relationship-collection",
+        "covered_capability_ids": [
+          "asset:azurehound/azure-entra-relationship-collection"
+        ],
+        "fixture_version": "azurehound-graph-v1",
+        "negative_fixture_digest": "51f92344ec36d43e07dcbd8a49fcf6356652907f647372c79eb3304761915849",
+        "positive_fixture_digest": "88696e22c1dede8261b80a8d2d3adccaee4e701918973504930f6a2b38a59010"
+      },
+      "decision_fingerprint": "3530c508f930fe5b96857e7c",
+      "expires_at": "2026-09-03T15:42:03.082613+00:00",
+      "external_model_egress_allowed": false,
+      "human_approval": false,
+      "issued_at": "2026-09-03T15:27:03.082613+00:00",
+      "network_allowed": false,
+      "nonce": "ceef954278af1ea6",
+      "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+      "state_change_allowed": false
+    },
+    "policy_decision": {
+      "action": "source_analysis",
+      "authorization_id": "fixture:20260903T152703Z",
+      "evaluated_at": "2026-09-03T15:27:03.082586+00:00",
+      "incidents": [],
+      "reasons": [
+        {
+          "code": "ok",
+          "message": "all policy gates passed",
+          "verdict": "allow"
+        }
+      ],
+      "request_id": "arsenal:asset:azurehound/azure-entra-relationship-collection",
+      "required_approvals": [],
+      "target": "127.0.0.1",
+      "tier": "passive",
+      "verdict": "allow"
+    }
+  },
+  "digest": "3f323f29d5cf3e225ae0a94c09b56bf1c3be449d3439ab204ed66b330962ac4d",
+  "event_type": "arsenal_fixture_authorized",
+  "observed_at": "2026-09-03T15:27:03.091877+00:00",
+  "previous_digest": "43cb6c8966962473cd184351d6c805e180878fd37c3c99e978a3f75eddc20909",
+  "sequence": 2,
+  "status": "authorized"
+}

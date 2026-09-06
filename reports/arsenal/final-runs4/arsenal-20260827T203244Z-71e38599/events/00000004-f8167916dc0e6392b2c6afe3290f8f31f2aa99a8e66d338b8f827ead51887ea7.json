@@ -1,0 +1,25 @@
+{
+  "detail": {
+    "asset": "127.0.0.1",
+    "authorization_decision": "arsenal:llm-security-fixture",
+    "backend": "canonical-llm-lab",
+    "backend_version": "1",
+    "capability_id": "fixture:ai/llm-security-boundary",
+    "evidence_digest": "1e241c3bf8b224a5651067483f0f9e86a60e32fd79d541c9cb2db8f3bd2f7f36",
+    "evidence_ref": "evidence/1e241c3bf8b224a5651067483f0f9e86a60e32fd79d541c9cb2db8f3bd2f7f36.json",
+    "execution_grant_id": "ecfdfe976d17dd11",
+    "finding_ids": [],
+    "mission_id": "arsenal-llm-71e38599e8c29abd",
+    "mode": "FIXTURE",
+    "negative_control_status": "PASSED",
+    "policy_snapshot_digest": "e9dc52e97b35225a0c936cbb21cf6a57125fab156ebe781fbf0dd01d0c147d2f",
+    "result": "EXECUTED_PASS",
+    "task_id": "arsenal-llm-71e38599e8c29abd-execute"
+  },
+  "digest": "f8167916dc0e6392b2c6afe3290f8f31f2aa99a8e66d338b8f827ead51887ea7",
+  "event_type": "arsenal_task_completed",
+  "observed_at": "2026-08-27T20:32:44.778008+00:00",
+  "previous_digest": "b63b106e7f308357c7be506c59f1bff8caa782e739914fc9710c50a2a3d5dd7a",
+  "sequence": 4,
+  "status": "completed"
+}

@@ -1,0 +1,18 @@
+{
+  "detail": {
+    "blocking_reason": "binary not found",
+    "capability_id": "asset:echidna/smart-contract-property-fuzzing",
+    "evidence_digest": "a8a17be5d55ce6931a42dd649e3d7edf7f0d28b9c77a913c13d7622f3628eb4c",
+    "evidence_ref": "evidence/a8a17be5d55ce6931a42dd649e3d7edf7f0d28b9c77a913c13d7622f3628eb4c.json",
+    "execution_grant_id": null,
+    "mission_id": "arsenal-blocked-2430a94d4136a6eb",
+    "result": "UNAVAILABLE",
+    "task_id": "arsenal-blocked-2430a94d4136a6eb-execute"
+  },
+  "digest": "7b762325d235feb066ef5031087755357e16c8d87c81cffa89be1f0d80e8072c",
+  "event_type": "arsenal_task_blocked",
+  "observed_at": "2026-08-27T20:32:38.771478+00:00",
+  "previous_digest": "1aa78fb7b6b23f8a201102a3f912e879c641b722a914b4cdd7e4f691f5cabf9f",
+  "sequence": 2,
+  "status": "failed"
+}

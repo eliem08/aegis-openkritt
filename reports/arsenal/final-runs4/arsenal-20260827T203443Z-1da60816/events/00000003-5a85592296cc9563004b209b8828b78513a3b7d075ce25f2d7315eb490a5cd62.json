@@ -1,0 +1,13 @@
+{
+  "detail": {
+    "capability_id": "tool:semgrep/code",
+    "mission_id": "arsenal-tool-1da608166902",
+    "task_id": "arsenal-tool-1da608166902-execute"
+  },
+  "digest": "5a85592296cc9563004b209b8828b78513a3b7d075ce25f2d7315eb490a5cd62",
+  "event_type": "arsenal_task_started",
+  "observed_at": "2026-08-27T20:34:43.800136+00:00",
+  "previous_digest": "ef17e587b6fb69427a2a8451f375ded5f4fa01325a7ee11844dbb8e2e3dfe11f",
+  "sequence": 3,
+  "status": "running"
+}

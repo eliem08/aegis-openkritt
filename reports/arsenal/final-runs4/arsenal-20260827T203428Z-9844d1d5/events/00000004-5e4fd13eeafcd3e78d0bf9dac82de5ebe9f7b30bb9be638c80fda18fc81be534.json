@@ -1,0 +1,28 @@
+{
+  "detail": {
+    "asset": "127.0.0.1",
+    "authorization_decision": "arsenal:tool:psalm/code",
+    "backend": "psalm",
+    "backend_version": "Psalm 6.16.1@f1f5de594dc76faf8784e02d3dc4716c91c6f6ac",
+    "blocking_reason": "",
+    "capability_id": "tool:psalm/code",
+    "evidence_digest": "06e4f6aa05ca66a6f872aa3dc502c39f65aec78d50702639a2facec7cfc90f05",
+    "evidence_ref": "evidence/06e4f6aa05ca66a6f872aa3dc502c39f65aec78d50702639a2facec7cfc90f05.json",
+    "execution_error_class": null,
+    "execution_grant_id": "69145ce6ed2ae2d3",
+    "finding_ids": [],
+    "fixture_detection": true,
+    "mission_id": "arsenal-tool-9844d1d57522",
+    "mode": "FIXTURE",
+    "negative_control_status": "PASSED",
+    "policy_snapshot_digest": "e9dc52e97b35225a0c936cbb21cf6a57125fab156ebe781fbf0dd01d0c147d2f",
+    "result": "EXECUTED_PASS",
+    "task_id": "arsenal-tool-9844d1d57522-execute"
+  },
+  "digest": "5e4fd13eeafcd3e78d0bf9dac82de5ebe9f7b30bb9be638c80fda18fc81be534",
+  "event_type": "arsenal_task_completed",
+  "observed_at": "2026-08-27T20:34:40.679982+00:00",
+  "previous_digest": "c8af5a252fcc2e46b82ee3b1512effc6d72ea14e93b04291981dff9f6d6765f2",
+  "sequence": 4,
+  "status": "completed"
+}

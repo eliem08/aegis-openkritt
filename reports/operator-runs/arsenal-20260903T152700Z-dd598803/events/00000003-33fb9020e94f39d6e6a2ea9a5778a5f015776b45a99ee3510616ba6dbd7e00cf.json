@@ -1,0 +1,13 @@
+{
+  "detail": {
+    "capability_id": "asset:aegis-asset-classifier/deterministic-asset-classification",
+    "mission_id": "arsenal-tool-dd598803d924",
+    "task_id": "arsenal-tool-dd598803d924-execute"
+  },
+  "digest": "33fb9020e94f39d6e6a2ea9a5778a5f015776b45a99ee3510616ba6dbd7e00cf",
+  "event_type": "arsenal_task_started",
+  "observed_at": "2026-09-03T15:27:00.269733+00:00",
+  "previous_digest": "e5e0be6cf44c5002060eabc2e9d911ecf39ad3b62a67a68f3a72ffb6868f5ab6",
+  "sequence": 3,
+  "status": "running"
+}

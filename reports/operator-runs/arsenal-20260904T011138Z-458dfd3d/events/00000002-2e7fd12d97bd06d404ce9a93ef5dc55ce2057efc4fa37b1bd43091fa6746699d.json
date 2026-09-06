@@ -1,0 +1,57 @@
+{
+  "detail": {
+    "capability_id": "asset:otool/ios-macos-load-command-analysis",
+    "grant": {
+      "allowed_destinations": [],
+      "allowed_methods": [],
+      "budget": {
+        "max_cost_usd": 0.0,
+        "max_human_minutes": 0.0,
+        "max_requests": 0
+      },
+      "constraints": {
+        "authorization_class": "LOCAL_FIXTURE_ONLY",
+        "capability_id": "asset:otool/ios-macos-load-command-analysis",
+        "covered_capability_ids": [
+          "asset:otool/ios-macos-load-command-analysis"
+        ],
+        "fixture_version": "otool-load-commands-v1",
+        "negative_fixture_digest": "b134745e6124239b183ebe57f4546cfc0b84b41be0b8cb45657f0fb86eb27fc7",
+        "positive_fixture_digest": "cdd468469ab524b25ebebd69105d4a93b3efce80ce04c28b3d909ad9a3707948"
+      },
+      "decision_fingerprint": "33f8725978ced7f84880d484",
+      "expires_at": "2026-09-04T01:26:38.506630+00:00",
+      "external_model_egress_allowed": false,
+      "human_approval": false,
+      "issued_at": "2026-09-04T01:11:38.506630+00:00",
+      "network_allowed": false,
+      "nonce": "6625a76fcbe755c6",
+      "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+      "state_change_allowed": false
+    },
+    "policy_decision": {
+      "action": "source_analysis",
+      "authorization_id": "fixture:20260904T011138Z",
+      "evaluated_at": "2026-09-04T01:11:38.506581+00:00",
+      "incidents": [],
+      "reasons": [
+        {
+          "code": "ok",
+          "message": "all policy gates passed",
+          "verdict": "allow"
+        }
+      ],
+      "request_id": "arsenal:asset:otool/ios-macos-load-command-analysis",
+      "required_approvals": [],
+      "target": "127.0.0.1",
+      "tier": "passive",
+      "verdict": "allow"
+    }
+  },
+  "digest": "2e7fd12d97bd06d404ce9a93ef5dc55ce2057efc4fa37b1bd43091fa6746699d",
+  "event_type": "arsenal_fixture_authorized",
+  "observed_at": "2026-09-04T01:11:38.507628+00:00",
+  "previous_digest": "55a2c5f85208cc14bd1d9f246bfcbb3aca37ad86ae9eba40732156a54b1f11b9",
+  "sequence": 2,
+  "status": "authorized"
+}

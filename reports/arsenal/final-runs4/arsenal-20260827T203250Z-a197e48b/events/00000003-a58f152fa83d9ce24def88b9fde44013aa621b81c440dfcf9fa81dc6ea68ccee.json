@@ -1,0 +1,13 @@
+{
+  "detail": {
+    "capability_id": "tool:checkov/deps",
+    "mission_id": "arsenal-tool-a197e48b736c",
+    "task_id": "arsenal-tool-a197e48b736c-execute"
+  },
+  "digest": "a58f152fa83d9ce24def88b9fde44013aa621b81c440dfcf9fa81dc6ea68ccee",
+  "event_type": "arsenal_task_started",
+  "observed_at": "2026-08-27T20:32:50.453449+00:00",
+  "previous_digest": "3c8b1641498a8f655fb2c00c01d4b143560cf1f58ce4c8a92bffd45a1b6b76fa",
+  "sequence": 3,
+  "status": "running"
+}

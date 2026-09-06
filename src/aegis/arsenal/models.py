@@ -23,6 +23,24 @@ class CapabilityMode(str, Enum):
     AUTHORIZED_REAL = "AUTHORIZED_REAL"
 
 
+class ExecutionProofKind(str, Enum):
+    """Provenance class for an execution claim.
+
+    Only REAL_BACKEND and REAL_BACKEND_SHARED_CAPABILITIES are eligible for
+    actual runtime execution credit. MIGRATED_EQUIVALENT may count for capability semantic
+    coverage but NOT as an independently executed backend.
+    """
+
+    REAL_BACKEND = "REAL_BACKEND"
+    REAL_BACKEND_SHARED_CAPABILITIES = "REAL_BACKEND_SHARED_CAPABILITIES"
+    MIGRATED_EQUIVALENT = "MIGRATED_EQUIVALENT"
+    SIMULATED_INTEGRATION = "SIMULATED_INTEGRATION"
+    INTEGRATION_SIMULATION = "INTEGRATION_SIMULATION"
+    UNIT_MOCK = "UNIT_MOCK"
+    PREREQUISITE_ONLY = "PREREQUISITE_ONLY"
+    LEGACY_UNVERIFIED = "LEGACY_UNVERIFIED"
+
+
 @dataclass(frozen=True, slots=True)
 class CapabilityProvenance:
     field: str
@@ -137,11 +155,15 @@ class HistoricalExecution:
     finding_ids: tuple[str, ...] = ()
     error_or_block_reason: str = ""
     historical_evidence_invalid: bool = False
+    execution_proof_kind: ExecutionProofKind = ExecutionProofKind.REAL_BACKEND
+    backend_kind: str = "EXTERNAL_TOOL"
+    binary_path: str = ""
 
     def document(self) -> dict[str, Any]:
         value = asdict(self)
         value["mode"] = self.mode.value
         value["state"] = self.state.value
+        value["execution_proof_kind"] = self.execution_proof_kind.value
         return value
 
 
@@ -177,6 +199,35 @@ class CapabilityCoverageRecord:
     negative_control_status: str = "NOT_APPLICABLE"
     historical_evidence_invalid: bool = False
     schema_version: int = 1
+    backend_execution_id: str = ""
+    binary_path: str = ""
+    container_digest: str = ""
+    adapter_version: str = ""
+    capability_ids: tuple[str, ...] = ()
+    fixture_version: str = ""
+    positive_fixture_digest: str = ""
+    negative_fixture_digest: str = ""
+    execution_started_at: str = ""
+    execution_completed_at: str = ""
+    duration_ms: int = 0
+    exit_code: int | None = None
+    stdout_digest: str = ""
+    stderr_digest: str = ""
+    parsed_result_digest: str = ""
+    positive_control_detected: bool | None = None
+    negative_control_clean: bool | None = None
+    supersedes_coverage_record_id: str | None = None
+    execution_proof_kind: ExecutionProofKind = ExecutionProofKind.LEGACY_UNVERIFIED
+    backend_kind: str = "EXTERNAL_TOOL"
+    launcher_executable: str = ""
+    launcher_sha256: str = ""
+    backend_entrypoint: str = ""
+    backend_package: str = ""
+    backend_package_version: str = ""
+    native_backend_binary: str = ""
+    native_backend_binary_sha256: str = ""
+    host_platform: str = ""
+    host_architecture: str = ""
 
     def __post_init__(self) -> None:
         if not all((self.coverage_record_id, self.idempotency_key, self.capability_id)):
@@ -187,12 +238,95 @@ class CapabilityCoverageRecord:
             raise ValueError("EXECUTED_FINDING requires canonical human-reviewed finding IDs")
         if self.executed and not all((self.execution_timestamp, self.evidence_digest)):
             raise ValueError("executed coverage requires timestamp and evidence digest")
+        if self.schema_version >= 2 and self.executed:
+            if not all((
+                self.backend_execution_id,
+                self.binary_path,
+                self.adapter_version,
+                self.capability_ids,
+                self.fixture_version,
+                self.positive_fixture_digest,
+                self.negative_fixture_digest,
+                self.execution_started_at,
+                self.execution_completed_at,
+                self.stdout_digest,
+                self.stderr_digest,
+                self.parsed_result_digest,
+            )):
+                raise ValueError("schema-v2 execution coverage requires complete backend evidence")
+            if self.execution_proof_kind not in {
+                ExecutionProofKind.REAL_BACKEND,
+                ExecutionProofKind.REAL_BACKEND_SHARED_CAPABILITIES,
+                ExecutionProofKind.MIGRATED_EQUIVALENT,
+            }:
+                raise ValueError("schema-v2 execution coverage requires valid REAL_BACKEND proof")
+            if self.execution_proof_kind in {
+                ExecutionProofKind.REAL_BACKEND,
+                ExecutionProofKind.REAL_BACKEND_SHARED_CAPABILITIES,
+            }:
+                from pathlib import Path
+                raw_path = self.binary_path.replace("\\", "/")
+                base_binary = Path(raw_path).stem.lower()
+                if self.backend_kind == "EXTERNAL_TOOL" and base_binary in {"python", "python3", "pythonw"}:
+                    if not (self.backend_package or self.backend_entrypoint):
+                        raise ValueError(
+                            f"BACKEND_IDENTITY_MISMATCH: external backend {self.backend!r} "
+                            f"cannot resolve to generic python binary {self.binary_path!r} "
+                            f"without package and entrypoint metadata"
+                        )
+                from aegis.arsenal.migrations import RUNTIME_MIGRATIONS
+                if (
+                    self.backend in {"class-dump", "firmadyne"}
+                    or any(self.capability_id in m.capabilities_affected for m in RUNTIME_MIGRATIONS)
+                ) and self.execution_proof_kind is ExecutionProofKind.REAL_BACKEND:
+                    raise ValueError(
+                        f"MIGRATION_CONFLICT: migrated backend {self.backend!r} cannot be "
+                        f"credited as independent REAL_BACKEND execution"
+                    )
+        if self.result is ArsenalCoverageState.EXECUTED_PASS and self.schema_version >= 2:
+            if self.positive_control_detected is not True:
+                raise ValueError("EXECUTED_PASS requires a detected positive control")
+            if self.negative_control_clean is not True:
+                raise ValueError("EXECUTED_PASS requires a clean negative control")
 
     def document(self) -> dict[str, Any]:
         value = asdict(self)
         value["mode"] = self.mode.value
         value["result"] = self.result.value
         return value
+
+    def execution_metadata(self) -> dict[str, Any]:
+        return {
+            "backend_execution_id": self.backend_execution_id,
+            "binary_path": self.binary_path,
+            "container_digest": self.container_digest,
+            "adapter_version": self.adapter_version,
+            "capability_ids": list(self.capability_ids),
+            "fixture_version": self.fixture_version,
+            "positive_fixture_digest": self.positive_fixture_digest,
+            "negative_fixture_digest": self.negative_fixture_digest,
+            "execution_started_at": self.execution_started_at,
+            "execution_completed_at": self.execution_completed_at,
+            "duration_ms": self.duration_ms,
+            "exit_code": self.exit_code,
+            "stdout_digest": self.stdout_digest,
+            "stderr_digest": self.stderr_digest,
+            "parsed_result_digest": self.parsed_result_digest,
+            "positive_control_detected": self.positive_control_detected,
+            "negative_control_clean": self.negative_control_clean,
+            "supersedes_coverage_record_id": self.supersedes_coverage_record_id,
+            "execution_proof_kind": self.execution_proof_kind.value,
+            "backend_kind": self.backend_kind,
+            "launcher_executable": self.launcher_executable,
+            "launcher_sha256": self.launcher_sha256,
+            "backend_entrypoint": self.backend_entrypoint,
+            "backend_package": self.backend_package,
+            "backend_package_version": self.backend_package_version,
+            "native_backend_binary": self.native_backend_binary,
+            "native_backend_binary_sha256": self.native_backend_binary_sha256,
+            "host_platform": self.host_platform,
+            "host_architecture": self.host_architecture,
+        }
 
 
 @dataclass(frozen=True, slots=True)

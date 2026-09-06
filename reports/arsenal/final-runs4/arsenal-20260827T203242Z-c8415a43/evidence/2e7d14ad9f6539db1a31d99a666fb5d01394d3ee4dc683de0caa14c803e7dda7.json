@@ -1,0 +1,13 @@
+{
+  "blocking_reason": "macOS worker; readiness: command -v otool && uname -s | grep Darwin",
+  "capability_id": "asset:otool/ios-macos-load-command-analysis",
+  "coverage_state": "WAITING_FOR_PREREQUISITE",
+  "evidence_digest": "2e7d14ad9f6539db1a31d99a666fb5d01394d3ee4dc683de0caa14c803e7dda7",
+  "execution_grant_issued": false,
+  "execution_performed": false,
+  "kind": "arsenal_fixture_blocked",
+  "mission_id": "arsenal-blocked-c8415a434553373d",
+  "mode": "FIXTURE",
+  "run_id": "arsenal-20260827T203242Z-c8415a43",
+  "task_id": "arsenal-blocked-c8415a434553373d-execute"
+}

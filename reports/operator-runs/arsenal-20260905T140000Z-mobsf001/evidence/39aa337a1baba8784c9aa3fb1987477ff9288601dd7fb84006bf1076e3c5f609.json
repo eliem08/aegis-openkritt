@@ -1,0 +1,134 @@
+{
+  "adapter_version": "deep-asset/1",
+  "backend_name": "MobSF",
+  "backend_package": "opensecurity/mobile-security-framework-mobsf",
+  "backend_version": "4.3.2",
+  "binary_path": "docker:opensecurity/mobile-security-framework-mobsf:v4.3.2",
+  "blocking_reason": "",
+  "capability_id": "asset:mobsf/rest-static-analysis",
+  "capability_ids": [
+    "asset:mobsf/rest-static-analysis"
+  ],
+  "container_digest_if_applicable": "sha256:e119aca928c5443f01bc94233c0435b96909dc7975f06eb017acb6bc76110516",
+  "coverage_state": "EXECUTED_PASS",
+  "duration_ms": 250,
+  "evidence_digest": "39aa337a1baba8784c9aa3fb1987477ff9288601dd7fb84006bf1076e3c5f609",
+  "execution_completed_at": "2026-09-06T14:24:25.332251+00:00",
+  "execution_grant_payload": {
+    "allowed_destinations": [],
+    "allowed_methods": [],
+    "budget": {
+      "max_cost_usd": 0.0,
+      "max_human_minutes": 0.0,
+      "max_requests": 0
+    },
+    "constraints": {
+      "authorization_class": "LOCAL_FIXTURE_ONLY",
+      "capability_id": "asset:mobsf/rest-static-analysis",
+      "covered_capability_ids": [
+        "asset:mobsf/rest-static-analysis"
+      ],
+      "fixture_version": "mobsf-v1",
+      "negative_fixture_digest": "d9cf4dc5e8fde9dc74581fed8fa3e6090ae21ae73f1480b90900681b00945f75",
+      "positive_fixture_digest": "1093a24f0529705dc0d90a9b6b050c556b3f28fac42f833b6a9809e653214e19"
+    },
+    "decision_fingerprint": "d97329e93dac6a414c9fa2c3",
+    "expires_at": "2026-09-06T14:24:25.332251+00:00",
+    "external_model_egress_allowed": false,
+    "human_approval": false,
+    "issued_at": "2026-09-06T14:24:25.332251+00:00",
+    "network_allowed": false,
+    "nonce": "f336f60a3861714f",
+    "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+    "state_change_allowed": false
+  },
+  "execution_performed": true,
+  "execution_proof_kind": "REAL_BACKEND",
+  "execution_started_at": "2026-09-06T14:24:25.332251+00:00",
+  "exit_code": 0,
+  "fixture_version": "mobsf-v1",
+  "kind": "arsenal_tool_fixture_execution",
+  "mission_id": "arsenal-mission-mobsf-01",
+  "mode": "FIXTURE",
+  "negative_control_clean": true,
+  "negative_control_status": "PASSED",
+  "negative_fixture_digest": "d9cf4dc5e8fde9dc74581fed8fa3e6090ae21ae73f1480b90900681b00945f75",
+  "parsed_result_digest": "436eddedd375fb27014cb5846159ce3c817913ac2dc7196998046f83a2ddebb4",
+  "policy_decision": {
+    "action": "source_analysis",
+    "authorization_id": "fixture:2026-09-06T14:24:25.332251+00:00",
+    "evaluated_at": "2026-09-06T14:24:25.332251+00:00",
+    "incidents": [],
+    "reasons": [
+      {
+        "code": "ok",
+        "message": "all policy gates passed",
+        "verdict": "allow"
+      }
+    ],
+    "request_id": "arsenal:asset:mobsf/rest-static-analysis",
+    "required_approvals": [],
+    "target": "127.0.0.1",
+    "tier": "passive",
+    "verdict": "allow"
+  },
+  "positive_control_detected": true,
+  "positive_fixture_digest": "1093a24f0529705dc0d90a9b6b050c556b3f28fac42f833b6a9809e653214e19",
+  "run_id": "arsenal-20260905T140000Z-mobsf001",
+  "runtime_disposition": "ready",
+  "runtime_reason": "external tool capability completed with native evidence",
+  "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_digest": "71613b8ee2e66df4a1b5c28469d3ca28e25d1e1f8a697d47aad7ee0bc41b9576",
+  "summary": {
+    "blocking_reason": "",
+    "covered_capability_ids": [
+      "asset:mobsf/rest-static-analysis"
+    ],
+    "execution_error_class": null,
+    "execution_proof_kind": "REAL_BACKEND",
+    "fixture_detection": true,
+    "negative": {
+      "apk_hash": "4d68c2d5ad95ad3ef84864850cd85193",
+      "container": "aegis-mobsf",
+      "dangerous_permissions": [],
+      "exit_code": 0,
+      "finding_count": 0,
+      "http_status": 200,
+      "manifest_findings": [],
+      "ran": true
+    },
+    "negative_control_passed": true,
+    "positive": {
+      "apk_hash": "934bd66a5c786b56e11b0ab460fec764",
+      "container": "aegis-mobsf",
+      "dangerous_permissions": [
+        "android.permission.READ_SMS",
+        "android.permission.READ_CONTACTS"
+      ],
+      "endpoint": "http://127.0.0.1:18000/api/v1/report_json",
+      "exit_code": 0,
+      "finding_count": 3,
+      "http_status": 200,
+      "manifest_findings": [
+        {
+          "rule": "app_is_debuggable",
+          "severity": "high",
+          "title": "Debug Enabled For App [android:debuggable=true]"
+        },
+        {
+          "rule": "app_allowbackup",
+          "severity": "warning",
+          "title": "Application Data can be Backed up [android:allowBackup=true]"
+        },
+        {
+          "rule": "explicitly_exported",
+          "severity": "warning",
+          "title": "Service (opensecurity.clipdump.ClipDumper) is not Protected. [android:exported=true]"
+        }
+      ],
+      "ran": true
+    },
+    "tool": "MobSF"
+  },
+  "task_id": "arsenal-task-mobsf-01"
+}

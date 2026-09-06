@@ -1,0 +1,13 @@
+{
+  "blocking_reason": "binary not found",
+  "capability_id": "asset:web-ext/browser-extension-structure-lint",
+  "coverage_state": "UNAVAILABLE",
+  "evidence_digest": "f48c50d3b72e46eb09e616405013a3ce06513115caf75aa800225fbbd8891d49",
+  "execution_grant_issued": false,
+  "execution_performed": false,
+  "kind": "arsenal_fixture_blocked",
+  "mission_id": "arsenal-blocked-ef268afeca01f1b4",
+  "mode": "FIXTURE",
+  "run_id": "arsenal-20260827T203243Z-ef268afe",
+  "task_id": "arsenal-blocked-ef268afeca01f1b4-execute"
+}

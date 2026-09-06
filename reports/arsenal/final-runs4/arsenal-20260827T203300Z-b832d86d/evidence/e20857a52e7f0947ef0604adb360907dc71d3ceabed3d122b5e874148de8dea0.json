@@ -1,0 +1,138 @@
+{
+  "adapter_version": "tool-bridge/1",
+  "backend_name": "gitleaks",
+  "backend_version": "gitleaks version 8.21.2",
+  "binary_path": "/usr/local/bin/gitleaks",
+  "blocking_reason": "",
+  "capability_id": "tool:gitleaks/secrets",
+  "capability_ids": [
+    "tool:gitleaks/secrets",
+    "asset:gitleaks/git-secret-detection"
+  ],
+  "container_digest_if_applicable": "sha256:3766088055a72f82346bf7318cb0acf9ec6b2e82ddf6df6bcba9558f70e9c40d",
+  "coverage_state": "EXECUTED_PASS",
+  "duration_ms": 78,
+  "evidence_digest": "e20857a52e7f0947ef0604adb360907dc71d3ceabed3d122b5e874148de8dea0",
+  "execution_completed_at": "2026-08-27T20:33:00.953112+00:00",
+  "execution_grant_payload": {
+    "allowed_destinations": [],
+    "allowed_methods": [],
+    "budget": {
+      "max_cost_usd": 0.0,
+      "max_human_minutes": 0.0,
+      "max_requests": 0
+    },
+    "constraints": {
+      "authorization_class": "LOCAL_FIXTURE_ONLY",
+      "capability_id": "tool:gitleaks/secrets",
+      "covered_capability_ids": [
+        "tool:gitleaks/secrets",
+        "asset:gitleaks/git-secret-detection"
+      ],
+      "fixture_version": "scanner-fixture-v2",
+      "negative_fixture_digest": "ad2b0799492915f1624a3f2530c8eb9042405d68381e8d3411872dffc0b3841a",
+      "positive_fixture_digest": "f8363406f4a0e237270db88e9e65a8e164558e302d3b0cba39ce4e4d48d02ceb"
+    },
+    "decision_fingerprint": "abb67b5a759d2c3a0bb2570a",
+    "expires_at": "2026-08-27T20:48:00.765412+00:00",
+    "external_model_egress_allowed": false,
+    "human_approval": false,
+    "issued_at": "2026-08-27T20:33:00.765412+00:00",
+    "network_allowed": false,
+    "nonce": "5d1a539646f28e16",
+    "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+    "state_change_allowed": false
+  },
+  "execution_performed": true,
+  "execution_started_at": "2026-08-27T20:33:00.874461+00:00",
+  "exit_code": 0,
+  "fixture_version": "scanner-fixture-v2",
+  "kind": "arsenal_tool_fixture_execution",
+  "mission_id": "arsenal-tool-b832d86d82be",
+  "mode": "FIXTURE",
+  "negative_control_clean": true,
+  "negative_control_status": "PASSED",
+  "negative_fixture_digest": "ad2b0799492915f1624a3f2530c8eb9042405d68381e8d3411872dffc0b3841a",
+  "parsed_result_digest": "daef7d48dbb39502457427cba7f4620e918cf2f836c735d653d710d562d952bb",
+  "policy_decision": {
+    "action": "source_analysis",
+    "authorization_id": "fixture:20260827T203300Z",
+    "evaluated_at": "2026-08-27T20:33:00.765335+00:00",
+    "incidents": [],
+    "reasons": [
+      {
+        "code": "ok",
+        "message": "all policy gates passed",
+        "verdict": "allow"
+      }
+    ],
+    "request_id": "arsenal:tool:gitleaks/secrets",
+    "required_approvals": [],
+    "target": "127.0.0.1",
+    "tier": "passive",
+    "verdict": "allow"
+  },
+  "positive_control_detected": true,
+  "positive_fixture_digest": "f8363406f4a0e237270db88e9e65a8e164558e302d3b0cba39ce4e4d48d02ceb",
+  "run_id": "arsenal-20260827T203300Z-b832d86d",
+  "runtime_disposition": "ready",
+  "runtime_reason": "internal hunter capability completed",
+  "stderr_digest": "3a1b8d21319e2b18c6d597609727285e99566d3cc6532a5c4e352ae40219e215",
+  "stdout_digest": "9b33d25abe2e10d4d7b4e6116c7cf7ab7692683f6a32499b36c5c167456536e1",
+  "summary": {
+    "blocking_reason": "",
+    "covered_capability_ids": [
+      "tool:gitleaks/secrets",
+      "asset:gitleaks/git-secret-detection"
+    ],
+    "execution_error_class": null,
+    "fixture_detection": true,
+    "negative": {
+      "duration_ms": 38,
+      "error": "\n    \u25cb\n    \u2502\u2572\n    \u2502 \u25cb\n    \u25cb \u2591\n    \u2591    gitleaks\n\n\u001b[90m8:33PM\u001b[0m \u001b[32mINF\u001b[0m scan completed in 6.32ms\n\u001b[90m8:33PM\u001b[0m \u001b[32mINF\u001b[0m no leaks found\n",
+      "execution_completed_at": "2026-08-27T20:33:00.953112+00:00",
+      "execution_started_at": "2026-08-27T20:33:00.914870+00:00",
+      "exit_code": 0,
+      "finding_count": 0,
+      "parsed_result_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "ran": true,
+      "runtime": {
+        "binary": "gitleaks",
+        "checked_at": "2026-08-27T20:33:00.859942+00:00",
+        "name": "gitleaks",
+        "reason": "healthy",
+        "resolved_path": "/usr/local/bin/gitleaks",
+        "sha256": "50b742abd7daad8bbddb6301f3017efb680632d9a5b3b4d8f137b3aac250e359",
+        "status": "ready",
+        "version": "gitleaks version 8.21.2"
+      },
+      "stderr_digest": "c9ce46472e72d69d25034a50743c1643ce3f5ec714906cf1b56c8b9223e54d6b",
+      "stdout_digest": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    "negative_control_passed": true,
+    "positive": {
+      "duration_ms": 40,
+      "error": "",
+      "execution_completed_at": "2026-08-27T20:33:00.914134+00:00",
+      "execution_started_at": "2026-08-27T20:33:00.874461+00:00",
+      "exit_code": 0,
+      "finding_count": 4,
+      "parsed_result_digest": "6991f77259b6bf1ce0472cb8dd38ba5bc2bdee476af1593dec3fe3191c15af97",
+      "ran": true,
+      "runtime": {
+        "binary": "gitleaks",
+        "checked_at": "2026-08-27T20:33:00.859942+00:00",
+        "name": "gitleaks",
+        "reason": "healthy",
+        "resolved_path": "/usr/local/bin/gitleaks",
+        "sha256": "50b742abd7daad8bbddb6301f3017efb680632d9a5b3b4d8f137b3aac250e359",
+        "status": "ready",
+        "version": "gitleaks version 8.21.2"
+      },
+      "stderr_digest": "850a811f35203d73b2352a81f3cc4f1b687f5075ebbe4b0e1941d7c513acb5f7",
+      "stdout_digest": "febb43dc7ba9e379f76aaadfce5be2d54baa42b34534f43d88f9cdc1d464d05b"
+    },
+    "tool": "gitleaks"
+  },
+  "task_id": "arsenal-tool-b832d86d82be-execute"
+}

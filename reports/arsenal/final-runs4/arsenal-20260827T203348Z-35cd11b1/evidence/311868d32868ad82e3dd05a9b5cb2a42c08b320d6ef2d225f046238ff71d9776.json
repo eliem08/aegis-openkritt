@@ -1,0 +1,135 @@
+{
+  "adapter_version": "tool-bridge/1",
+  "backend_name": "njsscan",
+  "backend_version": "\u001b[34m",
+  "binary_path": "/opt/aegis-tools/njsscan/bin/njsscan",
+  "blocking_reason": "",
+  "capability_id": "tool:njsscan/code",
+  "capability_ids": [
+    "tool:njsscan/code"
+  ],
+  "container_digest_if_applicable": "sha256:3766088055a72f82346bf7318cb0acf9ec6b2e82ddf6df6bcba9558f70e9c40d",
+  "coverage_state": "EXECUTED_PASS",
+  "duration_ms": 14423,
+  "evidence_digest": "311868d32868ad82e3dd05a9b5cb2a42c08b320d6ef2d225f046238ff71d9776",
+  "execution_completed_at": "2026-08-27T20:34:03.136308+00:00",
+  "execution_grant_payload": {
+    "allowed_destinations": [],
+    "allowed_methods": [],
+    "budget": {
+      "max_cost_usd": 0.0,
+      "max_human_minutes": 0.0,
+      "max_requests": 0
+    },
+    "constraints": {
+      "authorization_class": "LOCAL_FIXTURE_ONLY",
+      "capability_id": "tool:njsscan/code",
+      "covered_capability_ids": [
+        "tool:njsscan/code"
+      ],
+      "fixture_version": "scanner-fixture-v2",
+      "negative_fixture_digest": "ad2b0799492915f1624a3f2530c8eb9042405d68381e8d3411872dffc0b3841a",
+      "positive_fixture_digest": "f8363406f4a0e237270db88e9e65a8e164558e302d3b0cba39ce4e4d48d02ceb"
+    },
+    "decision_fingerprint": "50f1cd07c1a1bd092840b84a",
+    "expires_at": "2026-08-27T20:48:48.343053+00:00",
+    "external_model_egress_allowed": false,
+    "human_approval": false,
+    "issued_at": "2026-08-27T20:33:48.343053+00:00",
+    "network_allowed": false,
+    "nonce": "8c22a263f6e0aa2e",
+    "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+    "state_change_allowed": false
+  },
+  "execution_performed": true,
+  "execution_started_at": "2026-08-27T20:33:48.710900+00:00",
+  "exit_code": 1,
+  "fixture_version": "scanner-fixture-v2",
+  "kind": "arsenal_tool_fixture_execution",
+  "mission_id": "arsenal-tool-35cd11b1091a",
+  "mode": "FIXTURE",
+  "negative_control_clean": true,
+  "negative_control_status": "PASSED",
+  "negative_fixture_digest": "ad2b0799492915f1624a3f2530c8eb9042405d68381e8d3411872dffc0b3841a",
+  "parsed_result_digest": "c254595dc73b3f467300a97bad40f226ca2b6a0f8bb613bd9073799d611295ca",
+  "policy_decision": {
+    "action": "source_analysis",
+    "authorization_id": "fixture:20260827T203348Z",
+    "evaluated_at": "2026-08-27T20:33:48.342991+00:00",
+    "incidents": [],
+    "reasons": [
+      {
+        "code": "ok",
+        "message": "all policy gates passed",
+        "verdict": "allow"
+      }
+    ],
+    "request_id": "arsenal:tool:njsscan/code",
+    "required_approvals": [],
+    "target": "127.0.0.1",
+    "tier": "passive",
+    "verdict": "allow"
+  },
+  "positive_control_detected": true,
+  "positive_fixture_digest": "f8363406f4a0e237270db88e9e65a8e164558e302d3b0cba39ce4e4d48d02ceb",
+  "run_id": "arsenal-20260827T203348Z-35cd11b1",
+  "runtime_disposition": "ready",
+  "runtime_reason": "internal hunter capability completed",
+  "stderr_digest": "1b60320976d31a6c8ea434b79341b13eb109dcb76abcdb78ce01376a39a5ce6b",
+  "stdout_digest": "1961a7464d96055390177f22511dce88036b8dda992cdd6f303ee6ad385d43b9",
+  "summary": {
+    "blocking_reason": "",
+    "covered_capability_ids": [
+      "tool:njsscan/code"
+    ],
+    "execution_error_class": null,
+    "fixture_detection": true,
+    "negative": {
+      "duration_ms": 7256,
+      "error": "",
+      "execution_completed_at": "2026-08-27T20:34:03.136308+00:00",
+      "execution_started_at": "2026-08-27T20:33:55.878580+00:00",
+      "exit_code": 0,
+      "finding_count": 0,
+      "parsed_result_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "ran": true,
+      "runtime": {
+        "binary": "njsscan",
+        "checked_at": "2026-08-27T20:33:48.436920+00:00",
+        "name": "njsscan",
+        "reason": "healthy",
+        "resolved_path": "/opt/aegis-tools/njsscan/bin/njsscan",
+        "sha256": "4784e4300260da62238c6fd5922865d8c4f65466abc9e1b76abb6c696999eee7",
+        "status": "ready",
+        "version": "\u001b[34m"
+      },
+      "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_digest": "d9500d409f173da83a33151a5d9fa01785342768f110e5316bebe113147234f9"
+    },
+    "negative_control_passed": true,
+    "positive": {
+      "duration_ms": 7167,
+      "error": "",
+      "execution_completed_at": "2026-08-27T20:33:55.878188+00:00",
+      "execution_started_at": "2026-08-27T20:33:48.710900+00:00",
+      "exit_code": 1,
+      "finding_count": 3,
+      "parsed_result_digest": "56ec48dc3c710548d39108bfdd70e3c1083aaa8b5a374774d536b8a419dee311",
+      "ran": true,
+      "runtime": {
+        "binary": "njsscan",
+        "checked_at": "2026-08-27T20:33:48.436920+00:00",
+        "name": "njsscan",
+        "reason": "healthy",
+        "resolved_path": "/opt/aegis-tools/njsscan/bin/njsscan",
+        "sha256": "4784e4300260da62238c6fd5922865d8c4f65466abc9e1b76abb6c696999eee7",
+        "status": "ready",
+        "version": "\u001b[34m"
+      },
+      "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_digest": "1e64ae3c653401d2fcd5e6d438218db00334ada63b40447a04c0db717e773125"
+    },
+    "tool": "njsscan"
+  },
+  "task_id": "arsenal-tool-35cd11b1091a-execute"
+}

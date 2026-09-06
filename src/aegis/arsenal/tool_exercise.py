@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
+import os
+import platform
 import secrets
+import sys
 import tempfile
+from dataclasses import replace
 from datetime import UTC, datetime
 from hashlib import sha256
 from pathlib import Path
@@ -35,6 +39,7 @@ from aegis.production.operator_manifest import (
 )
 
 from .exercise import ExerciseResult
+from .external_fixtures import external_fixture_spec
 from .fixture_authority import (
     LOCAL_FIXTURE_ONLY,
     LocalFixtureSignatureVerifier,
@@ -42,16 +47,30 @@ from .fixture_authority import (
 )
 from .inventory import ArsenalInventoryBuilder
 from .ledger import CoverageRepository
-from .models import ArsenalCoverageState, CapabilityCoverageRecord, CapabilityMode
+from .models import (
+    ArsenalCoverageState,
+    CapabilityCoverageRecord,
+    CapabilityMode,
+    ExecutionProofKind,
+)
 
 TOOL_FIXTURE_CAPABILITY = "jarvis:arsenal:tool-fixture"
 
 _POSITIVE_FIXTURES = {
     "app.py": "import os\ndef unsafe(value):\n    return os.system(value)\n",
-    "app.js": "const cp=require('child_process'); module.exports=x=>cp.exec(x);\n",
+    "app.js": (
+        "const cp=require('child_process');\n"
+        "const libxml=require('libxmljs');\n"
+        "module.exports=(req,res)=>{ eval(req.body.code); "
+        "libxml.parseXml(req.body.xml,{noent:true}); "
+        "return cp.exec(req.body.cmd,(e,out)=>res.send(out)); };\n"
+    ),
     "main.go": "package main\nimport (\"os/exec\")\nfunc main(){exec.Command(\"sh\",\"-c\",\"input\").Run()}\n",
-    "unsafe.php": "<?php $pdo->query(\"SELECT * FROM users WHERE id=\".$_GET['id']);\n",
-    "Unsafe.sol": (
+    "unsafe.php": (
+        "<?php $id=$_GET['id']; $pdo->query(\"SELECT * FROM users WHERE id=\".$id); "
+        "system($_GET['cmd']);\n"
+    ),
+    "Contract.sol": (
         "pragma solidity ^0.8.0; contract Unsafe { mapping(address=>uint) b; "
         "function w() public {(bool ok,)=msg.sender.call{value:b[msg.sender]}(''); "
         "require(ok); b[msg.sender]=0;} }\n"
@@ -66,19 +85,136 @@ _POSITIVE_FIXTURES = {
         '"dependencies":{"lodash":"4.17.19"}}\n'
     ),
     "Gemfile.lock": "GEM\n  specs:\n    rails (5.2.0)\nDEPENDENCIES\n  rails (= 5.2.0)\n",
+    "Gemfile": "source 'https://rubygems.org'\ngem 'rails', '5.2.0'\n",
+    "config/application.rb": (
+        "require 'rails/all'\nmodule Fixture\n  class Application < Rails::Application; end\nend\n"
+    ),
+    "config/routes.rb": "Rails.application.routes.draw { get '/users', to: 'users#index' }\n",
+    "app/controllers/users_controller.rb": (
+        "class UsersController < ApplicationController\n"
+        "  def index\n    render html: params[:content].html_safe\n  end\nend\n"
+    ),
+    "fixture-secrets.txt": (
+        "AEGIS_FIXTURE_ONLY_AWS_ACCESS_KEY_ID=AKIAJ7M4Q2R8W6X9Z3KP\n"
+        "AWS_SECRET_ACCESS_KEY='wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY'\n"
+        "AEGIS_FIXTURE_ONLY_GITHUB_TOKEN=ghp_1234567890abcdefghijklmnopqrstuvwx\n"
+        "AEGIS_FIXTURE_ONLY_HEX_SECRET="
+        "2f5d4e9c7a1b3d8e6f0123456789abcdef0123456789abcdef0123456789abcd\n"
+        "-----BEGIN PRIVATE KEY-----\nAEGIS-FIXTURE-NOT-A-REAL-KEY\n"
+        "-----END PRIVATE KEY-----\n"
+    ),
+    "jquery-1.8.3.js": "/*! jQuery v1.8.3 | Aegis deterministic fixture */\n",
+    "package-lock.json": (
+        '{"name":"aegis-positive-fixture","version":"1.0.0","lockfileVersion":3,'
+        '"packages":{"":{"dependencies":{"lodash":"4.17.19"}},'
+        '"node_modules/lodash":{"version":"4.17.19"}},'
+        '"dependencies":{"lodash":{"version":"4.17.19"}}}\n'
+    ),
 }
 _NEGATIVE_FIXTURES = {
     "app.py": "def add(left: int, right: int) -> int:\n    return left + right\n",
     "app.js": "module.exports=(left,right)=>left+right;\n",
     "main.go": 'package main\nimport "fmt"\nfunc main(){fmt.Println("fixture")}\n',
     "safe.php": "<?php function add(int $a,int $b): int { return $a+$b; }\n",
-    "Safe.sol": (
+    "Contract.sol": (
         "pragma solidity ^0.8.0; contract Safe { function add(uint a,uint b) "
         "public pure returns(uint){return a+b;} }\n"
     ),
     "main.tf": 'terraform { required_version = ">= 1.5.0" }\n',
     "package.json": '{"name":"aegis-negative-fixture","version":"1.0.0"}\n',
+    "Gemfile": "source 'https://rubygems.org'\ngem 'rails', '7.2.0'\n",
+    "config/application.rb": (
+        "require 'rails/all'\nmodule Fixture\n  class Application < Rails::Application; end\nend\n"
+    ),
+    "config/routes.rb": "Rails.application.routes.draw { get '/users', to: 'users#index' }\n",
+    "app/controllers/users_controller.rb": (
+        "class UsersController < ApplicationController\n"
+        "  def index\n    render plain: 'fixture'\n  end\nend\n"
+    ),
+    "fixture-secrets.txt": "AEGIS_FIXTURE_ONLY=true\n",
+    "jquery-3.7.1.js": "/*! jQuery v3.7.1 | Aegis deterministic fixture */\n",
+    "package-lock.json": (
+        '{"name":"aegis-negative-fixture","version":"1.0.0",'
+        '"lockfileVersion":3,"packages":{"":{"dependencies":{"lodash":"4.18.0"}},'
+        '"node_modules/lodash":{"version":"4.18.0"}}}\n'
+    ),
 }
+
+
+_FIXTURE_COMMANDS = {
+    ("detect-secrets", "secrets"): (
+        'cd "{target}" && detect-secrets scan --all-files --no-verify .'
+    ),
+    ("brakeman", "code"): (
+        'brakeman -f json -q -x EOLRails "{target}"'
+    ),
+    ("checkov", "deps"): (
+        'checkov -d "{target}" -o json --compact --quiet --skip-download'
+    ),
+    ("mythril", "contract"): 'myth analyze "{target}/Contract.sol" -o json',
+    ("gitleaks", "secrets"): (
+        'gitleaks detect --no-git --source "{target}" --report-format json '
+        '--report-path /dev/stdout --exit-code 0'
+    ),
+    ("retire.js", "deps"): (
+        'retire --outputformat json --path "{target}" '
+        '--jsrepo /opt/aegis-data/retire/jsrepository.json'
+    ),
+    ("slither", "contract"): (
+        'slither "{target}/Contract.sol" --exclude-low --exclude-informational --json -'
+    ),
+    ("osv-scanner", "deps"): (
+        'osv-scanner scan source --offline --format json --lockfile "{target}/package-lock.json"'
+    ),
+    ("grype", "deps"): (
+        'grype "dir:{target}" -o json'
+    ),
+    ("trivy", "deps"): (
+        'trivy fs --scanners vuln --skip-db-update --offline-scan '
+        '--format json --quiet "{target}"'
+    ),
+    ("trivy", "secrets"): (
+        'trivy fs --scanners secret --skip-db-update --format json --quiet "{target}"'
+    ),
+}
+
+# A shared binary execution may cover another canonical capability only when this exact
+# positive/negative fixture validates the same semantics. Image/container modes are excluded.
+_EQUIVALENT_CAPABILITIES = {
+    "asset:nmap/bounded-service-fingerprinting": ("asset-lane:service-identification",),
+    "tool:bandit/code": ("asset:bandit/python-security-static-analysis",),
+    "tool:brakeman/code": ("asset:brakeman/rails-security-static-analysis",),
+    "tool:checkov/deps": (
+        "asset:checkov/iac-cicd-and-container-policy-scan",
+        "asset:checkov/container-image-policy-scan",
+    ),
+    "tool:gitleaks/secrets": ("asset:gitleaks/git-secret-detection",),
+    "tool:gosec/code": ("asset:gosec/go-security-static-analysis",),
+    "tool:grype/deps": (
+        "asset:grype/artifact-vulnerability-scan",
+        "asset:grype/container-image-vulnerability-scan",
+    ),
+    "asset:syft/artifact-sbom": ("asset:syft/container-image-sbom",),
+    "tool:mythril/contract": ("asset:mythril/evm-symbolic-execution",),
+    "tool:osv-scanner/deps": ("asset:osv-scanner/dependency-vulnerability-analysis",),
+    "tool:semgrep/code": ("asset:semgrep/source-static-analysis",),
+    "tool:slither/contract": ("asset:slither/solidity-vyper-static-analysis",),
+    "tool:trivy/deps": (
+        "asset:trivy/filesystem-security-scan",
+        "asset:trivy/container-image-security-scan",
+    ),
+    "adapter:subfinder/passive-discovery": ("asset:subfinder/passive-subdomain-enumeration",),
+}
+
+
+def equivalent_capability_ids(capability_id: str) -> tuple[str, ...]:
+    """Return exact canonical aliases covered by the same fixture execution."""
+    return _EQUIVALENT_CAPABILITIES.get(capability_id, ())
+
+
+def fixture_version_for_capability(capability_id: str) -> str:
+    spec = external_fixture_spec(capability_id)
+    return spec.fixture_version if spec else "scanner-fixture-v2"
 
 
 def _materialize_builtin_fixtures() -> tuple[tempfile.TemporaryDirectory, Path]:
@@ -89,25 +225,45 @@ def _materialize_builtin_fixtures() -> tuple[tempfile.TemporaryDirectory, Path]:
         directory = root / control
         directory.mkdir()
         for name, content in documents.items():
-            (directory / name).write_text(content, encoding="utf-8")
+            destination = directory / name
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_text(content, encoding="utf-8")
     return temporary, root
+
+
+def _directory_digest(path: Path) -> str:
+    rows = []
+    for item in sorted(candidate for candidate in path.rglob("*") if candidate.is_file()):
+        rows.append({
+            "path": item.relative_to(path).as_posix(),
+            "sha256": sha256(item.read_bytes()).hexdigest(),
+        })
+    return document_digest(rows)
 
 
 def _definition(capability_id: str):
     matches = [
         item for item in ArsenalInventoryBuilder().build()
-        if item.capability_id == capability_id and item.capability_id.startswith("tool:")
+        if item.capability_id == capability_id
     ]
-    if len(matches) != 1 or not matches[0].tool_backends:
+    if (
+        len(matches) != 1
+        or not matches[0].tool_backends
+        or not (
+            capability_id.startswith("tool:")
+            or external_fixture_spec(capability_id) is not None
+        )
+    ):
         raise ValueError(f"unknown tool fixture capability: {capability_id}")
     return matches[0]
 
 
 class _ToolFixtureProvider:
-    def __init__(self, *, capability_id: str, tool_name: str, bridge: ToolBridge,
+    def __init__(self, *, capability_id: str, tool, bridge: ToolBridge,
                  positive: Path, negative: Path) -> None:
         self.capability_id = capability_id
-        self.tool_name = tool_name
+        self.tool = tool
+        self.tool_name = tool.name
         self.bridge = bridge
         self.positive = positive
         self.negative = negative
@@ -122,7 +278,11 @@ class _ToolFixtureProvider:
                 or constraints.get("capability_id") != self.capability_id
             ):
                 raise PermissionError("tool fixture grant is missing or bound to another capability")
-            tool = next(item for item in TOOLS if item.name == self.tool_name)
+            tool = self.tool
+            lane = self.capability_id.rsplit("/", 1)[-1]
+            command = _FIXTURE_COMMANDS.get((tool.name, lane))
+            if command:
+                tool = replace(tool, cmd=command)
             positive = self.bridge.scan(str(self.positive), tools=[tool])[0]
             negative = self.bridge.scan(str(self.negative), tools=[tool])[0]
             return {
@@ -130,10 +290,22 @@ class _ToolFixtureProvider:
                 "positive": {
                     "ran": positive.ran, "finding_count": len(positive.findings),
                     "error": positive.error, "runtime": positive.runtime,
+                    "exit_code": positive.exit_code, "duration_ms": positive.duration_ms,
+                    "execution_started_at": positive.execution_started_at,
+                    "execution_completed_at": positive.execution_completed_at,
+                    "stdout_digest": positive.stdout_digest,
+                    "stderr_digest": positive.stderr_digest,
+                    "parsed_result_digest": positive.parsed_result_digest,
                 },
                 "negative": {
                     "ran": negative.ran, "finding_count": len(negative.findings),
                     "error": negative.error, "runtime": negative.runtime,
+                    "exit_code": negative.exit_code, "duration_ms": negative.duration_ms,
+                    "execution_started_at": negative.execution_started_at,
+                    "execution_completed_at": negative.execution_completed_at,
+                    "stdout_digest": negative.stdout_digest,
+                    "stderr_digest": negative.stderr_digest,
+                    "parsed_result_digest": negative.parsed_result_digest,
                 },
                 "fixture_detection": bool(positive.findings),
                 "negative_control_passed": negative.ran and not negative.findings,
@@ -152,14 +324,29 @@ def execute_tool_fixture(
 ) -> ExerciseResult:
     definition = _definition(capability_id)
     backend = definition.tool_backends[0]
+    external_spec = external_fixture_spec(capability_id)
+    covered_capability_ids = (capability_id, *_EQUIVALENT_CAPABILITIES.get(capability_id, ()))
     temporary = None
     if fixture_root:
         root = Path(fixture_root)
+        fixture_version = external_spec.fixture_version if external_spec else "scanner-fixture-v2"
     else:
-        temporary, root = _materialize_builtin_fixtures()
+        if external_spec:
+            temporary = tempfile.TemporaryDirectory(prefix="aegis-arsenal-external-fixture-")
+            root = Path(temporary.name)
+            positive, negative = root / "positive", root / "negative"
+            positive.mkdir()
+            negative.mkdir()
+            external_spec.materialize(positive, negative)
+            fixture_version = external_spec.fixture_version
+        else:
+            temporary, root = _materialize_builtin_fixtures()
+            fixture_version = "scanner-fixture-v2"
     positive, negative = root / "positive", root / "negative"
     if not positive.is_dir() or not negative.is_dir():
         raise FileNotFoundError("both positive and negative scanner fixture directories are required")
+    positive_fixture_digest = _directory_digest(positive)
+    negative_fixture_digest = _directory_digest(negative)
 
     raw = HmacSignatureVerifier({
         "fixture-auth": secrets.token_bytes(32), "grant": secrets.token_bytes(32),
@@ -180,8 +367,10 @@ def execute_tool_fixture(
         decision, scope_digest=scope_digest, budget=Budget(), verifier=verifier,
         constraints={
             "authorization_class": LOCAL_FIXTURE_ONLY, "capability_id": capability_id,
-            "positive_fixture_digest": document_digest({"path": str(positive.resolve())}),
-            "negative_fixture_digest": document_digest({"path": str(negative.resolve())}),
+            "covered_capability_ids": list(covered_capability_ids),
+            "positive_fixture_digest": positive_fixture_digest,
+            "negative_fixture_digest": negative_fixture_digest,
+            "fixture_version": fixture_version,
         },
     )
     now = datetime.now(UTC)
@@ -200,16 +389,19 @@ def execute_tool_fixture(
         {"capabilities": [capability_id]},
         RunBudgets(1, 1.0, 0.0, max_duration_seconds=1200, max_attempts=1),
         authorization.model_dump(mode="json"),
+        execution_grants=(grant._payload(),),
+        mission_ids=(mission_id,),
     ))
     store.append_event(run_id, "arsenal_fixture_authorized", RunStatus.AUTHORIZED, {
         "capability_id": capability_id, "policy_decision": decision.as_dict(),
         "grant": grant._payload(),
     })
+    asset_kind = definition.supported_asset_classes[0] if definition.supported_asset_classes else "source_code"
     task = MissionTask(
         task_id, "reproduction", "execute_scanner_fixture",
         payload={"authorization_class": LOCAL_FIXTURE_ONLY, "capability_id": capability_id},
-        opportunity_id=f"fixture-opp-{suffix}", asset_id="fixture:source-code",
-        asset_kind="source_code", asset_locator="127.0.0.1",
+        opportunity_id=f"fixture-opp-{suffix}", asset_id=f"fixture:{asset_kind}",
+        asset_kind=asset_kind, asset_locator="127.0.0.1",
         executor_capability=TOOL_FIXTURE_CAPABILITY, risk="offline", expected_cost_usd=0.0,
         evidence_required=("positive_fixture", "negative_control"),
         idempotency_key=f"{mission_id}:{task_id}",
@@ -223,16 +415,21 @@ def execute_tool_fixture(
     state_store = JarvisStateStore(":memory:")
     scheduler = MissionScheduler(state_store)
     provider = _ToolFixtureProvider(
-        capability_id=capability_id, tool_name=backend.tool_name,
+        capability_id=capability_id,
+        tool=(
+            external_spec.tool if external_spec
+            else next(item for item in TOOLS if item.name == backend.tool_name)
+        ),
         bridge=bridge or ToolBridge(
-            timeout=300, runtime_manager=ToolRuntimeManager(version_timeout=15.0),
+            timeout=max(1, int(os.environ.get("AEGIS_FIXTURE_TOOL_TIMEOUT_SECONDS", "120"))),
+            runtime_manager=ToolRuntimeManager(version_timeout=15.0),
         ), positive=positive, negative=negative,
     )
     runtime = UniversalMissionRuntime(
         scheduler, grant_verifier=verifier,
         workers=MissionWorkerRegistry((WorkerCapability(
             TOOL_FIXTURE_CAPABILITY, ExecutionClass.INTERNAL_EXECUTOR,
-            asset_kinds=("source_code",), risk_classes=("offline",),
+            asset_kinds=(asset_kind,), risk_classes=("offline",),
         ),)), executor_providers=(provider,),
     )
     plan = scheduler.create(plan)
@@ -244,17 +441,58 @@ def execute_tool_fixture(
         availability=CapabilityAvailability(artifact_available=True),
     )
     summary = dict(execution.outcome or {})
+    summary["covered_capability_ids"] = list(covered_capability_ids)
     actually_ran = bool(summary.get("positive", {}).get("ran")) and bool(
         summary.get("negative", {}).get("ran")
     )
+    positive_detected = bool(summary.get("fixture_detection"))
+    negative_clean = bool(summary.get("negative_control_passed"))
+    passed = actually_ran and positive_detected and negative_clean
     result_state = (
-        ArsenalCoverageState.EXECUTED_PASS if actually_ran
+        ArsenalCoverageState.EXECUTED_PASS if passed
         else ArsenalCoverageState.BACKEND_UNHEALTHY
     )
     negative_status = (
         "PASSED" if summary.get("negative_control_passed")
         else "FAILED" if actually_ran else "NOT_RUN"
     )
+    if not actually_ran:
+        blocking_reason = str(
+            summary.get("positive", {}).get("error")
+            or summary.get("negative", {}).get("error")
+            or execution.reason
+            or "scanner process did not complete both controls"
+        )
+        error_class = "TOOL_CRASH"
+    elif not positive_detected:
+        blocking_reason = "positive control was not detected"
+        error_class = "POSITIVE_CONTROL_MISSED"
+    elif not negative_clean:
+        blocking_reason = "negative control produced findings"
+        error_class = "NEGATIVE_CONTROL_FAILED"
+    else:
+        blocking_reason = ""
+        error_class = None
+    summary["blocking_reason"] = blocking_reason
+    summary["execution_error_class"] = error_class
+    summary["execution_proof_kind"] = ExecutionProofKind.REAL_BACKEND.value
+    runtime_document = dict(summary.get("positive", {}).get("runtime", {}) or {})
+    evidence_complete = bool(
+        actually_ran
+        and runtime_document.get("resolved_path")
+        and summary.get("positive", {}).get("execution_started_at")
+        and summary.get("negative", {}).get("execution_completed_at")
+        and summary.get("positive", {}).get("stdout_digest")
+        and summary.get("negative", {}).get("stdout_digest")
+    )
+    is_internal = backend.tool_name.startswith("aegis-") or backend.tool_name.startswith("stdlib-")
+    backend_kind = "INTERNAL_AEGIS" if is_internal else "EXTERNAL_TOOL"
+    backend_package = "aegis" if is_internal else ""
+    backend_entrypoint = "aegis.arsenal.external_fixtures" if is_internal else ""
+    launcher_executable = sys.executable if is_internal else ""
+    native_backend_binary = str(summary.get("positive", {}).get("runtime", {}).get("resolved_path", ""))
+    host_platform = platform.system()
+    host_architecture = platform.machine()
     evidence = {
         "kind": "arsenal_tool_fixture_execution", "capability_id": capability_id,
         "mode": CapabilityMode.FIXTURE.value, "run_id": run_id, "mission_id": mission_id,
@@ -262,9 +500,52 @@ def execute_tool_fixture(
         "execution_grant_payload": grant._payload(), "runtime_disposition": execution.disposition.value,
         "runtime_reason": execution.reason, "summary": summary,
         "negative_control_status": negative_status, "execution_performed": actually_ran,
+        "backend_name": backend.tool_name,
+        "backend_version": str(summary.get("positive", {}).get("runtime", {}).get("version", "")),
+        "binary_path": str(
+            summary.get("positive", {}).get("runtime", {}).get("resolved_path", "")
+        ),
+        "backend_kind": backend_kind,
+        "backend_package": backend_package,
+        "backend_entrypoint": backend_entrypoint,
+        "launcher_executable": launcher_executable,
+        "native_backend_binary": native_backend_binary,
+        "host_platform": host_platform,
+        "host_architecture": host_architecture,
+        "container_digest_if_applicable": os.environ.get("AEGIS_ARSENAL_IMAGE_DIGEST", ""),
+        "adapter_version": backend.adapter_version,
+        "capability_ids": list(covered_capability_ids),
+        "fixture_version": fixture_version,
+        "positive_fixture_digest": positive_fixture_digest,
+        "negative_fixture_digest": negative_fixture_digest,
+        "execution_started_at": summary.get("positive", {}).get("execution_started_at", ""),
+        "execution_completed_at": summary.get("negative", {}).get("execution_completed_at", ""),
+        "duration_ms": int(summary.get("positive", {}).get("duration_ms", 0))
+        + int(summary.get("negative", {}).get("duration_ms", 0)),
+        "exit_code": summary.get("positive", {}).get("exit_code"),
+        "stdout_digest": document_digest([
+            summary.get("positive", {}).get("stdout_digest", ""),
+            summary.get("negative", {}).get("stdout_digest", ""),
+        ]),
+        "stderr_digest": document_digest([
+            summary.get("positive", {}).get("stderr_digest", ""),
+            summary.get("negative", {}).get("stderr_digest", ""),
+        ]),
+        "parsed_result_digest": document_digest([
+            summary.get("positive", {}).get("parsed_result_digest", ""),
+            summary.get("negative", {}).get("parsed_result_digest", ""),
+        ]),
+        "positive_control_detected": positive_detected,
+        "negative_control_clean": negative_clean,
+        "coverage_state": result_state.value,
+        "execution_proof_kind": ExecutionProofKind.REAL_BACKEND.value,
+        "blocking_reason": blocking_reason,
     }
     evidence_ref, evidence_digest = store.persist_evidence(run_id, evidence)
-    store.append_event(run_id, "arsenal_task_completed", RunStatus.COMPLETED, {
+    store.append_event(
+        run_id, "arsenal_task_completed",
+        RunStatus.COMPLETED if passed else RunStatus.FAILED,
+        {
         "capability_id": capability_id, "mode": CapabilityMode.FIXTURE.value,
         "mission_id": mission_id, "task_id": task_id, "backend": backend.tool_name,
         "backend_version": str(summary.get("positive", {}).get("runtime", {}).get("version", "")),
@@ -272,7 +553,8 @@ def execute_tool_fixture(
         "authorization_decision": decision.request_id or "", "execution_grant_id": grant.nonce,
         "evidence_ref": evidence_ref, "evidence_digest": evidence_digest,
         "result": result_state.value, "negative_control_status": negative_status,
-        "finding_ids": [], "fixture_detection": bool(summary.get("fixture_detection")),
+        "finding_ids": [], "fixture_detection": positive_detected,
+        "blocking_reason": blocking_reason, "execution_error_class": error_class,
     })
     recorded, degraded = False, coverage_repository is None
     if coverage_repository is not None:
@@ -286,8 +568,50 @@ def execute_tool_fixture(
             "127.0.0.1", decision.request_id or "", None, grant.nonce, run_id, mission_id,
             task_id, actually_ran, now.isoformat() if actually_ran else None,
             evidence_digest if actually_ran else None, result_state, (),
-            "" if actually_ran else str(summary.get("positive", {}).get("error", execution.reason)),
-            None if actually_ran else "TOOL_CRASH", negative_status,
+            blocking_reason, error_class, negative_status,
+            schema_version=2 if evidence_complete else 1,
+            backend_execution_id=f"{run_id}:{task_id}",
+            binary_path=str(
+                summary.get("positive", {}).get("runtime", {}).get("resolved_path", "")
+            ),
+            container_digest=os.environ.get("AEGIS_ARSENAL_IMAGE_DIGEST", ""),
+            adapter_version=backend.adapter_version,
+            capability_ids=covered_capability_ids,
+            fixture_version=fixture_version,
+            positive_fixture_digest=positive_fixture_digest,
+            negative_fixture_digest=negative_fixture_digest,
+            execution_started_at=str(
+                summary.get("positive", {}).get("execution_started_at", "")
+            ),
+            execution_completed_at=str(
+                summary.get("negative", {}).get("execution_completed_at", "")
+            ),
+            duration_ms=int(summary.get("positive", {}).get("duration_ms", 0))
+            + int(summary.get("negative", {}).get("duration_ms", 0)),
+            exit_code=summary.get("positive", {}).get("exit_code"),
+            stdout_digest=document_digest([
+                summary.get("positive", {}).get("stdout_digest", ""),
+                summary.get("negative", {}).get("stdout_digest", ""),
+            ]),
+            stderr_digest=document_digest([
+                summary.get("positive", {}).get("stderr_digest", ""),
+                summary.get("negative", {}).get("stderr_digest", ""),
+            ]),
+            parsed_result_digest=document_digest([
+                summary.get("positive", {}).get("parsed_result_digest", ""),
+                summary.get("negative", {}).get("parsed_result_digest", ""),
+            ]),
+            positive_control_detected=positive_detected,
+            negative_control_clean=negative_clean,
+            execution_proof_kind=ExecutionProofKind.REAL_BACKEND,
+            backend_kind=backend_kind,
+            launcher_executable=launcher_executable,
+            backend_entrypoint=backend_entrypoint,
+            backend_package=backend_package,
+            backend_package_version="aegis-2.0" if is_internal else "",
+            native_backend_binary=native_backend_binary,
+            host_platform=host_platform,
+            host_architecture=host_architecture,
         )
         try:
             _, recorded = coverage_repository.record(record)
@@ -312,4 +636,6 @@ def execute_tool_fixture(
     return result
 
 
-__all__ = ["execute_tool_fixture"]
+__all__ = [
+    "equivalent_capability_ids", "execute_tool_fixture", "fixture_version_for_capability",
+]

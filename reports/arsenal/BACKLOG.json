@@ -1,0 +1,12 @@
+{
+  "backends": [],
+  "generated_at": "2026-09-03T15:34:17.196705+00:00",
+  "metrics": {
+    "backlog_count": 0,
+    "missing_executor_count": 0,
+    "missing_fixture_count": 0,
+    "missing_parser_count": 0,
+    "missing_runtime_count": 0
+  },
+  "schema_version": 2
+}

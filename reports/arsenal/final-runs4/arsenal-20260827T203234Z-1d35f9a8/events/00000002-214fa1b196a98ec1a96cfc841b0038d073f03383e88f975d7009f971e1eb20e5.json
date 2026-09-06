@@ -1,0 +1,18 @@
+{
+  "detail": {
+    "blocking_reason": "backend is present but its deterministic positive/negative fixture provider is not connected to the canonical executor",
+    "capability_id": "asset:aegis-model-provenance/model-provenance-and-hash-ledger",
+    "evidence_digest": "fc36d09655b2f3fd27801f63ad72d7761c6afa70465d3b3d548495ca055c843b",
+    "evidence_ref": "evidence/fc36d09655b2f3fd27801f63ad72d7761c6afa70465d3b3d548495ca055c843b.json",
+    "execution_grant_id": null,
+    "mission_id": "arsenal-blocked-1d35f9a8b05129a3",
+    "result": "WAITING_FOR_PREREQUISITE",
+    "task_id": "arsenal-blocked-1d35f9a8b05129a3-execute"
+  },
+  "digest": "214fa1b196a98ec1a96cfc841b0038d073f03383e88f975d7009f971e1eb20e5",
+  "event_type": "arsenal_task_blocked",
+  "observed_at": "2026-08-27T20:32:34.124116+00:00",
+  "previous_digest": "ee9a3a676a64bdc313a07e23c224ea9eac0eabf740b32a3bb8dd3e8a5a7f9aa0",
+  "sequence": 2,
+  "status": "failed"
+}

@@ -1,0 +1,13 @@
+{
+  "blocking_reason": "binary not found",
+  "capability_id": "asset:binwalk/firmware-structure-analysis",
+  "coverage_state": "UNAVAILABLE",
+  "evidence_digest": "d2c243679147324e4dda83a1230b055e20219c79bccec86ecbe9b2f6fde0109e",
+  "execution_grant_issued": false,
+  "execution_performed": false,
+  "kind": "arsenal_fixture_blocked",
+  "mission_id": "arsenal-blocked-5cad75d34b088027",
+  "mode": "FIXTURE",
+  "run_id": "arsenal-20260827T203234Z-5cad75d3",
+  "task_id": "arsenal-blocked-5cad75d34b088027-execute"
+}

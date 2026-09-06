@@ -1,0 +1,18 @@
+{
+  "detail": {
+    "blocking_reason": "binary not found",
+    "capability_id": "asset:binwalk/firmware-structure-analysis",
+    "evidence_digest": "d2c243679147324e4dda83a1230b055e20219c79bccec86ecbe9b2f6fde0109e",
+    "evidence_ref": "evidence/d2c243679147324e4dda83a1230b055e20219c79bccec86ecbe9b2f6fde0109e.json",
+    "execution_grant_id": null,
+    "mission_id": "arsenal-blocked-5cad75d34b088027",
+    "result": "UNAVAILABLE",
+    "task_id": "arsenal-blocked-5cad75d34b088027-execute"
+  },
+  "digest": "1a411211c2499f7822a4db8240b306b38ff1096ff060988bcbe13b2085802211",
+  "event_type": "arsenal_task_blocked",
+  "observed_at": "2026-08-27T20:32:34.523628+00:00",
+  "previous_digest": "cac2e9e0d12fb1b43c47d5365701d71b8abca198b2d122f1164e5ff5847749a3",
+  "sequence": 2,
+  "status": "failed"
+}

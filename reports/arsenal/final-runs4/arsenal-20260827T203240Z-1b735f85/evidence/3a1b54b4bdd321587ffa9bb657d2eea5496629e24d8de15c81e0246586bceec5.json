@@ -1,0 +1,13 @@
+{
+  "blocking_reason": "loopback MobSF service and synthetic APK; readiness: test -n \"$AEGIS_MOBSF_URL\" && curl -fsS \"$AEGIS_MOBSF_URL/api/v1/scans\"",
+  "capability_id": "asset:mobsf/rest-static-analysis",
+  "coverage_state": "WAITING_FOR_PREREQUISITE",
+  "evidence_digest": "3a1b54b4bdd321587ffa9bb657d2eea5496629e24d8de15c81e0246586bceec5",
+  "execution_grant_issued": false,
+  "execution_performed": false,
+  "kind": "arsenal_fixture_blocked",
+  "mission_id": "arsenal-blocked-1b735f85eebb38b0",
+  "mode": "FIXTURE",
+  "run_id": "arsenal-20260827T203240Z-1b735f85",
+  "task_id": "arsenal-blocked-1b735f85eebb38b0-execute"
+}

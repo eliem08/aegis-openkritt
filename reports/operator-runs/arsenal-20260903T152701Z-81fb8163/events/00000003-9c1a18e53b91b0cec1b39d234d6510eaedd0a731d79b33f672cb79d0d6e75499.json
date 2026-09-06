@@ -1,0 +1,13 @@
+{
+  "detail": {
+    "capability_id": "asset:firmae/firmware-emulation",
+    "mission_id": "arsenal-tool-81fb81637912",
+    "task_id": "arsenal-tool-81fb81637912-execute"
+  },
+  "digest": "9c1a18e53b91b0cec1b39d234d6510eaedd0a731d79b33f672cb79d0d6e75499",
+  "event_type": "arsenal_task_started",
+  "observed_at": "2026-09-03T15:27:01.870104+00:00",
+  "previous_digest": "1681142b5ada1ae8a1e9312e8ecb0ad6ec2a88db388bda9892191cedb88fb3d9",
+  "sequence": 3,
+  "status": "running"
+}

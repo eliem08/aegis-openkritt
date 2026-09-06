@@ -1,0 +1,137 @@
+{
+  "adapter_version": "deep-asset/1",
+  "backend_name": "aegis-rag-boundary",
+  "backend_version": "Python 3.14.5",
+  "binary_path": "C:\\Python314\\python.exe",
+  "blocking_reason": "",
+  "capability_id": "asset:aegis-rag-boundary/rag-retrieval-trust-analysis",
+  "capability_ids": [
+    "asset:aegis-rag-boundary/rag-retrieval-trust-analysis"
+  ],
+  "container_digest_if_applicable": "",
+  "coverage_state": "EXECUTED_PASS",
+  "duration_ms": 140,
+  "evidence_digest": "5217937d25b6ae5f91dac7d878e4b390eb0018162678492029895643f1e3ace0",
+  "execution_completed_at": "2026-09-03T15:27:01.208093+00:00",
+  "execution_grant_payload": {
+    "allowed_destinations": [],
+    "allowed_methods": [],
+    "budget": {
+      "max_cost_usd": 0.0,
+      "max_human_minutes": 0.0,
+      "max_requests": 0
+    },
+    "constraints": {
+      "authorization_class": "LOCAL_FIXTURE_ONLY",
+      "capability_id": "asset:aegis-rag-boundary/rag-retrieval-trust-analysis",
+      "covered_capability_ids": [
+        "asset:aegis-rag-boundary/rag-retrieval-trust-analysis"
+      ],
+      "fixture_version": "aegis-rag-boundary-v1",
+      "negative_fixture_digest": "7dc839357ab07fb95e987e55cec2722530161ce76180c87d5d3dbc3b8d5d1ad0",
+      "positive_fixture_digest": "58bc84b7fe44c7f89302f90c5e84f3a7ada1e5334898aaa18e5e3754ce1ece21"
+    },
+    "decision_fingerprint": "81632017eeae44d0c2b1df7e",
+    "expires_at": "2026-09-03T15:42:01.033035+00:00",
+    "external_model_egress_allowed": false,
+    "human_approval": false,
+    "issued_at": "2026-09-03T15:27:01.033035+00:00",
+    "network_allowed": false,
+    "nonce": "596362d5074039fb",
+    "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+    "state_change_allowed": false
+  },
+  "execution_performed": true,
+  "execution_proof_kind": "REAL_BACKEND",
+  "execution_started_at": "2026-09-03T15:27:01.067920+00:00",
+  "exit_code": 0,
+  "fixture_version": "aegis-rag-boundary-v1",
+  "kind": "arsenal_tool_fixture_execution",
+  "mission_id": "arsenal-tool-69845317ea76",
+  "mode": "FIXTURE",
+  "negative_control_clean": true,
+  "negative_control_status": "PASSED",
+  "negative_fixture_digest": "7dc839357ab07fb95e987e55cec2722530161ce76180c87d5d3dbc3b8d5d1ad0",
+  "parsed_result_digest": "6864d7b1b24e105c2be4183e470cee573faf93e5b358f656040e34c0ddbb3302",
+  "policy_decision": {
+    "action": "source_analysis",
+    "authorization_id": "fixture:20260903T152701Z",
+    "evaluated_at": "2026-09-03T15:27:01.033006+00:00",
+    "incidents": [],
+    "reasons": [
+      {
+        "code": "ok",
+        "message": "all policy gates passed",
+        "verdict": "allow"
+      }
+    ],
+    "request_id": "arsenal:asset:aegis-rag-boundary/rag-retrieval-trust-analysis",
+    "required_approvals": [],
+    "target": "127.0.0.1",
+    "tier": "passive",
+    "verdict": "allow"
+  },
+  "positive_control_detected": true,
+  "positive_fixture_digest": "58bc84b7fe44c7f89302f90c5e84f3a7ada1e5334898aaa18e5e3754ce1ece21",
+  "run_id": "arsenal-20260903T152701Z-69845317",
+  "runtime_disposition": "ready",
+  "runtime_reason": "internal hunter capability completed",
+  "stderr_digest": "1b60320976d31a6c8ea434b79341b13eb109dcb76abcdb78ce01376a39a5ce6b",
+  "stdout_digest": "6e3e0e5460a2df3fb04c926d1b4a981d04b3f7367c79f9e199a99511cb24dd3f",
+  "summary": {
+    "blocking_reason": "",
+    "covered_capability_ids": [
+      "asset:aegis-rag-boundary/rag-retrieval-trust-analysis"
+    ],
+    "execution_error_class": null,
+    "execution_proof_kind": "REAL_BACKEND",
+    "fixture_detection": true,
+    "negative": {
+      "duration_ms": 68,
+      "error": "",
+      "execution_completed_at": "2026-09-03T15:27:01.208093+00:00",
+      "execution_started_at": "2026-09-03T15:27:01.139858+00:00",
+      "exit_code": 0,
+      "finding_count": 0,
+      "parsed_result_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "ran": true,
+      "runtime": {
+        "binary": "python",
+        "checked_at": "2026-09-03T15:27:01.056201+00:00",
+        "name": "aegis-rag-boundary",
+        "reason": "healthy",
+        "resolved_path": "C:\\Python314\\python.exe",
+        "sha256": "3adbbf2af609e206e3ca18cd55fc7c4b52f5c8bb8218dd99fd5a9e50d7a193cd",
+        "status": "ready",
+        "version": "Python 3.14.5"
+      },
+      "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_digest": "e4019731e790d776f6a39eb048b6c3905dc79b6abdeea5ff8ac6459e1ef1747a"
+    },
+    "negative_control_passed": true,
+    "positive": {
+      "duration_ms": 72,
+      "error": "",
+      "execution_completed_at": "2026-09-03T15:27:01.139450+00:00",
+      "execution_started_at": "2026-09-03T15:27:01.067920+00:00",
+      "exit_code": 0,
+      "finding_count": 1,
+      "parsed_result_digest": "6074529c8ec81ad28cd447fa259b0537e2c782998089f3a87e7f25b618dd4390",
+      "ran": true,
+      "runtime": {
+        "binary": "python",
+        "checked_at": "2026-09-03T15:27:01.056201+00:00",
+        "name": "aegis-rag-boundary",
+        "reason": "healthy",
+        "resolved_path": "C:\\Python314\\python.exe",
+        "sha256": "3adbbf2af609e206e3ca18cd55fc7c4b52f5c8bb8218dd99fd5a9e50d7a193cd",
+        "status": "ready",
+        "version": "Python 3.14.5"
+      },
+      "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_digest": "ac9423b94ad11d49a43b1f85912662f31f5d05069a363d208f19de5145810819"
+    },
+    "tool": "aegis-rag-boundary"
+  },
+  "task_id": "arsenal-tool-69845317ea76-execute"
+}

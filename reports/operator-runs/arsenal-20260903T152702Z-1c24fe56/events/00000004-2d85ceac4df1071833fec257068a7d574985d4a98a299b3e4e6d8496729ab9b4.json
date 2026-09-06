@@ -1,0 +1,28 @@
+{
+  "detail": {
+    "asset": "127.0.0.1",
+    "authorization_decision": "arsenal:asset:prowler/aws-security-posture",
+    "backend": "Prowler",
+    "backend_version": "Python 3.14.5",
+    "blocking_reason": "",
+    "capability_id": "asset:prowler/aws-security-posture",
+    "evidence_digest": "df5514437cc1edcfcb11aa98795a5740db3864620802177bcb196cee7e9ab802",
+    "evidence_ref": "evidence/df5514437cc1edcfcb11aa98795a5740db3864620802177bcb196cee7e9ab802.json",
+    "execution_error_class": null,
+    "execution_grant_id": "ac5cbc4da589d101",
+    "finding_ids": [],
+    "fixture_detection": true,
+    "mission_id": "arsenal-tool-1c24fe5668c3",
+    "mode": "FIXTURE",
+    "negative_control_status": "PASSED",
+    "policy_snapshot_digest": "e9dc52e97b35225a0c936cbb21cf6a57125fab156ebe781fbf0dd01d0c147d2f",
+    "result": "EXECUTED_PASS",
+    "task_id": "arsenal-tool-1c24fe5668c3-execute"
+  },
+  "digest": "2d85ceac4df1071833fec257068a7d574985d4a98a299b3e4e6d8496729ab9b4",
+  "event_type": "arsenal_task_completed",
+  "observed_at": "2026-09-03T15:27:02.661146+00:00",
+  "previous_digest": "8e624f324e196d546e7746b0bf0fe369fb972646432064d0ab612217e611c4b5",
+  "sequence": 4,
+  "status": "completed"
+}

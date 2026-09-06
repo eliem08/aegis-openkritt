@@ -1,0 +1,28 @@
+{
+  "detail": {
+    "asset": "127.0.0.1",
+    "authorization_decision": "arsenal:asset:aegis-memory-poisoning/agent-memory-poisoning-regression",
+    "backend": "aegis-memory-poisoning",
+    "backend_version": "Python 3.14.5",
+    "blocking_reason": "",
+    "capability_id": "asset:aegis-memory-poisoning/agent-memory-poisoning-regression",
+    "evidence_digest": "eea2d1441399372ec0668d0d489835187fe63b4a69b11ac5a553dd1647657b2e",
+    "evidence_ref": "evidence/eea2d1441399372ec0668d0d489835187fe63b4a69b11ac5a553dd1647657b2e.json",
+    "execution_error_class": null,
+    "execution_grant_id": "ae3c93079036f118",
+    "finding_ids": [],
+    "fixture_detection": true,
+    "mission_id": "arsenal-tool-536a27eb132f",
+    "mode": "FIXTURE",
+    "negative_control_status": "PASSED",
+    "policy_snapshot_digest": "e9dc52e97b35225a0c936cbb21cf6a57125fab156ebe781fbf0dd01d0c147d2f",
+    "result": "EXECUTED_PASS",
+    "task_id": "arsenal-tool-536a27eb132f-execute"
+  },
+  "digest": "7403a6bfb15ff0ddc08c04486414c8f1a76817c1dc0b1c77da447bc2cbb131a9",
+  "event_type": "arsenal_task_completed",
+  "observed_at": "2026-09-03T15:27:00.995909+00:00",
+  "previous_digest": "221f01c338ab181b1ca818eff471a41731444b1b53b78cbe19faa58f91d7bad6",
+  "sequence": 4,
+  "status": "completed"
+}

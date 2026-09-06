@@ -24,6 +24,7 @@ class Tool:
     cmd: str                    # command template, {target} substituted
     license: str
     parse: Callable[[dict | list], list[dict]]   # native output -> Aegis rows
+    output_format: str = "json"  # json | text | xml (text/xml is wrapped as {"text": ...})
 
 
 def _row(source, vtype, path, line, summary, severity="medium", detail="", *,
@@ -190,6 +191,13 @@ def _parse_trivy(data) -> list[dict]:
             rows.append(_row("trivy", f"{v.get('VulnerabilityID','CVE')} in {v.get('PkgName','')}",
                              res.get("Target"), 0, v.get("Title", ""),
                              str(v.get("Severity", "medium")).lower(), v.get("Description", "")))
+        for secret in res.get("Secrets", []) or []:
+            rows.append(_row(
+                "trivy", secret.get("RuleID", "secret"), res.get("Target"),
+                secret.get("StartLine", 0), secret.get("Title", "secret detected"),
+                str(secret.get("Severity", "medium")).lower(),
+                secret.get("Category", "potential secret"),
+            ))
     return rows
 
 

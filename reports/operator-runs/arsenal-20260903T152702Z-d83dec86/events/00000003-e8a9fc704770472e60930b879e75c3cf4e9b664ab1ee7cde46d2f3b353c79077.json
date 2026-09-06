@@ -1,0 +1,13 @@
+{
+  "detail": {
+    "capability_id": "asset:scoutsuite/aws-attack-surface-audit",
+    "mission_id": "arsenal-tool-d83dec8615ec",
+    "task_id": "arsenal-tool-d83dec8615ec-execute"
+  },
+  "digest": "e8a9fc704770472e60930b879e75c3cf4e9b664ab1ee7cde46d2f3b353c79077",
+  "event_type": "arsenal_task_started",
+  "observed_at": "2026-09-03T15:27:02.712386+00:00",
+  "previous_digest": "413aff662964a049c10588b53f5a1e77442c2707089402fbfc66057123f088ea",
+  "sequence": 3,
+  "status": "running"
+}

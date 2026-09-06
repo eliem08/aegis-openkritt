@@ -1,0 +1,13 @@
+{
+  "blocking_reason": "opt-in privileged Linux worker with FirmAE/QEMU/binfmt; readiness: test -e /dev/kvm && command -v qemu-system-x86_64 && test -d /opt/FirmAE",
+  "capability_id": "asset:firmae/firmware-emulation",
+  "coverage_state": "WAITING_FOR_PREREQUISITE",
+  "evidence_digest": "61b719569a676e1394b90f971f9e198bfc8b62ef16fba4865a64819a3af37109",
+  "execution_grant_issued": false,
+  "execution_performed": false,
+  "kind": "arsenal_fixture_blocked",
+  "mission_id": "arsenal-blocked-4c2750b09dbf5114",
+  "mode": "FIXTURE",
+  "run_id": "arsenal-20260827T203239Z-4c2750b0",
+  "task_id": "arsenal-blocked-4c2750b09dbf5114-execute"
+}

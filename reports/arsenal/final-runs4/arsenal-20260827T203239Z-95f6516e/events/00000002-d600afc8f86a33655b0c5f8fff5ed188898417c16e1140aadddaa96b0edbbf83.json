@@ -1,0 +1,18 @@
+{
+  "detail": {
+    "blocking_reason": "binary not found",
+    "capability_id": "asset:ghidra/headless-binary-analysis",
+    "evidence_digest": "678a9a8dda3093a1fce3854f989f1b2345d814b25e93ddc4d0afa185facb0653",
+    "evidence_ref": "evidence/678a9a8dda3093a1fce3854f989f1b2345d814b25e93ddc4d0afa185facb0653.json",
+    "execution_grant_id": null,
+    "mission_id": "arsenal-blocked-95f6516e3079fb75",
+    "result": "UNAVAILABLE",
+    "task_id": "arsenal-blocked-95f6516e3079fb75-execute"
+  },
+  "digest": "d600afc8f86a33655b0c5f8fff5ed188898417c16e1140aadddaa96b0edbbf83",
+  "event_type": "arsenal_task_blocked",
+  "observed_at": "2026-08-27T20:32:39.805597+00:00",
+  "previous_digest": "02c63e23dec1ddcbfc40e0903e31f6fe107adb9b21f57c7019db39fdbb2315da",
+  "sequence": 2,
+  "status": "failed"
+}

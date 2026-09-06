@@ -1,0 +1,58 @@
+{
+  "detail": {
+    "capability_id": "asset:frida/android-runtime-instrumentation",
+    "grant": {
+      "allowed_destinations": [],
+      "allowed_methods": [],
+      "budget": {
+        "max_cost_usd": 0.0,
+        "max_human_minutes": 0.0,
+        "max_requests": 0
+      },
+      "constraints": {
+        "authorization_class": "LOCAL_FIXTURE_ONLY",
+        "capability_id": "asset:frida/android-runtime-instrumentation",
+        "covered_capability_ids": [
+          "asset:frida/android-runtime-instrumentation",
+          "asset:frida/ios-runtime-instrumentation"
+        ],
+        "fixture_version": "frida-instrumentation-v1",
+        "negative_fixture_digest": "2466b0940ba42da09a44c15bd2351d87511d22ce2e0a8edfc82a16c25ad76aa0",
+        "positive_fixture_digest": "c7d1d76aaaeeff496a1d4170ace8dcfdc5e9b06e409fd3ed13d6f2ef8841ce22"
+      },
+      "decision_fingerprint": "535894c4855284d8d58f7d09",
+      "expires_at": "2026-09-03T15:42:01.261745+00:00",
+      "external_model_egress_allowed": false,
+      "human_approval": false,
+      "issued_at": "2026-09-03T15:27:01.261745+00:00",
+      "network_allowed": false,
+      "nonce": "47b30f1504a52b4b",
+      "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+      "state_change_allowed": false
+    },
+    "policy_decision": {
+      "action": "source_analysis",
+      "authorization_id": "fixture:20260903T152701Z",
+      "evaluated_at": "2026-09-03T15:27:01.261707+00:00",
+      "incidents": [],
+      "reasons": [
+        {
+          "code": "ok",
+          "message": "all policy gates passed",
+          "verdict": "allow"
+        }
+      ],
+      "request_id": "arsenal:asset:frida/android-runtime-instrumentation",
+      "required_approvals": [],
+      "target": "127.0.0.1",
+      "tier": "passive",
+      "verdict": "allow"
+    }
+  },
+  "digest": "df7b6d96e516582bf26c62208cc394b77e0fea8a5c9ace5f4ad1144474c6444f",
+  "event_type": "arsenal_fixture_authorized",
+  "observed_at": "2026-09-03T15:27:01.273163+00:00",
+  "previous_digest": "9176e1adeaf5e75263b744017cbc9f95b86aa331770a253e130db60a10bbd6c4",
+  "sequence": 2,
+  "status": "authorized"
+}

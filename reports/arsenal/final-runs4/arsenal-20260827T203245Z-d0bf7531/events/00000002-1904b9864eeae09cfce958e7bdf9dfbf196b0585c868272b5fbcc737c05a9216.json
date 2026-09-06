@@ -1,0 +1,58 @@
+{
+  "detail": {
+    "capability_id": "tool:bandit/code",
+    "grant": {
+      "allowed_destinations": [],
+      "allowed_methods": [],
+      "budget": {
+        "max_cost_usd": 0.0,
+        "max_human_minutes": 0.0,
+        "max_requests": 0
+      },
+      "constraints": {
+        "authorization_class": "LOCAL_FIXTURE_ONLY",
+        "capability_id": "tool:bandit/code",
+        "covered_capability_ids": [
+          "tool:bandit/code",
+          "asset:bandit/python-security-static-analysis"
+        ],
+        "fixture_version": "scanner-fixture-v2",
+        "negative_fixture_digest": "ad2b0799492915f1624a3f2530c8eb9042405d68381e8d3411872dffc0b3841a",
+        "positive_fixture_digest": "f8363406f4a0e237270db88e9e65a8e164558e302d3b0cba39ce4e4d48d02ceb"
+      },
+      "decision_fingerprint": "4c59385518b86a7a61cfd30f",
+      "expires_at": "2026-08-27T20:47:45.160238+00:00",
+      "external_model_egress_allowed": false,
+      "human_approval": false,
+      "issued_at": "2026-08-27T20:32:45.160238+00:00",
+      "network_allowed": false,
+      "nonce": "a9dafd422e37dadd",
+      "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+      "state_change_allowed": false
+    },
+    "policy_decision": {
+      "action": "source_analysis",
+      "authorization_id": "fixture:20260827T203245Z",
+      "evaluated_at": "2026-08-27T20:32:45.160177+00:00",
+      "incidents": [],
+      "reasons": [
+        {
+          "code": "ok",
+          "message": "all policy gates passed",
+          "verdict": "allow"
+        }
+      ],
+      "request_id": "arsenal:tool:bandit/code",
+      "required_approvals": [],
+      "target": "127.0.0.1",
+      "tier": "passive",
+      "verdict": "allow"
+    }
+  },
+  "digest": "1904b9864eeae09cfce958e7bdf9dfbf196b0585c868272b5fbcc737c05a9216",
+  "event_type": "arsenal_fixture_authorized",
+  "observed_at": "2026-08-27T20:32:45.222987+00:00",
+  "previous_digest": "a9a7d624865ed642fdade9cae84fba64a6f73679b1605d59742b57a6c52dee1b",
+  "sequence": 2,
+  "status": "authorized"
+}

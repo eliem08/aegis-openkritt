@@ -1,0 +1,28 @@
+{
+  "detail": {
+    "asset": "127.0.0.1",
+    "authorization_decision": "arsenal:tool:gitleaks/secrets",
+    "backend": "gitleaks",
+    "backend_version": "gitleaks version 8.21.2",
+    "blocking_reason": "",
+    "capability_id": "tool:gitleaks/secrets",
+    "evidence_digest": "e20857a52e7f0947ef0604adb360907dc71d3ceabed3d122b5e874148de8dea0",
+    "evidence_ref": "evidence/e20857a52e7f0947ef0604adb360907dc71d3ceabed3d122b5e874148de8dea0.json",
+    "execution_error_class": null,
+    "execution_grant_id": "5d1a539646f28e16",
+    "finding_ids": [],
+    "fixture_detection": true,
+    "mission_id": "arsenal-tool-b832d86d82be",
+    "mode": "FIXTURE",
+    "negative_control_status": "PASSED",
+    "policy_snapshot_digest": "e9dc52e97b35225a0c936cbb21cf6a57125fab156ebe781fbf0dd01d0c147d2f",
+    "result": "EXECUTED_PASS",
+    "task_id": "arsenal-tool-b832d86d82be-execute"
+  },
+  "digest": "3826d5e73ced33cc71fd3e9b53bec8b7ef76d9990614978436c113db6cb3768b",
+  "event_type": "arsenal_task_completed",
+  "observed_at": "2026-08-27T20:33:01.018462+00:00",
+  "previous_digest": "87678e1c1cf11b2f65896a3aa0b7e8cc5d706694d4c9c18d2da14c885cd4c7f7",
+  "sequence": 4,
+  "status": "completed"
+}

@@ -1,0 +1,18 @@
+{
+  "detail": {
+    "blocking_reason": "binary not found",
+    "capability_id": "asset:modelscan/serialized-model-safety-scan",
+    "evidence_digest": "a8e5cbae561801bb4140d4d7f238127c501b3bf8e0e853d24876d77cc71e6f76",
+    "evidence_ref": "evidence/a8e5cbae561801bb4140d4d7f238127c501b3bf8e0e853d24876d77cc71e6f76.json",
+    "execution_grant_id": null,
+    "mission_id": "arsenal-blocked-a966f3d645664b07",
+    "result": "UNAVAILABLE",
+    "task_id": "arsenal-blocked-a966f3d645664b07-execute"
+  },
+  "digest": "92fbdb230affa6da8a3f19ed87158b1436e4a9d20215576ba0867f494a2357ed",
+  "event_type": "arsenal_task_blocked",
+  "observed_at": "2026-08-27T20:32:40.808758+00:00",
+  "previous_digest": "34e6940da3d4bc0dfbb6774e94c46c65b35eede773757b54d6e46fbdfbd2b8b7",
+  "sequence": 2,
+  "status": "failed"
+}

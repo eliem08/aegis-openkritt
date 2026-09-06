@@ -1,0 +1,6 @@
+{
+  "validation_status": "INVALID_FOR_REAL_BACKEND_CREDIT",
+  "reason": "Backend FirmAE executed via generic Python interpreter without native package/binary identity proof (BACKEND_IDENTITY_MISMATCH); requires real dedicated infrastructure.",
+  "superseded_by": null,
+  "audited_at": "2026-09-04T00:00:00Z"
+}

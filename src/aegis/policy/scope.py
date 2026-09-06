@@ -31,9 +31,11 @@ def normalize_host(destination: str) -> str:
     if not raw:
         raise ValueError("empty destination")
 
-    # If it looks like a URL, let urlsplit find the host. Otherwise synthesise a
-    # scheme so urlsplit treats the whole thing as netloc rather than path.
-    candidate = raw if "//" in raw else f"//{raw}"
+    # If it looks like a bare IPv6 literal (2+ colons without brackets), bracket it.
+    if raw.count(":") >= 2 and "[" not in raw:
+        candidate = f"//[{raw}]"
+    else:
+        candidate = raw if "//" in raw else f"//{raw}"
     parts = urlsplit(candidate)
     host = parts.hostname
     if not host:
@@ -97,6 +99,33 @@ class ScopeGuard:
 
     def is_allowed(self, destination: str) -> bool:
         return self.evaluate(destination).in_scope
+
+    @classmethod
+    def for_fixture(
+        cls,
+        allowed_destinations: list[str] | None = None,
+        *,
+        include_loopback: bool = True,
+    ) -> ScopeGuard:
+        destinations = list(allowed_destinations or [])
+        if include_loopback:
+            destinations.extend(["127.0.0.1", "localhost", "::1"])
+        return cls(destinations)
+
+    @classmethod
+    def is_loopback_or_private(cls, destination: str) -> bool:
+        try:
+            host = normalize_host(destination)
+        except ValueError:
+            return False
+        if host in {"localhost", "127.0.0.1", "::1"}:
+            return True
+        import ipaddress
+        try:
+            ip = ipaddress.ip_address(host)
+            return ip.is_loopback or ip.is_private
+        except ValueError:
+            return False
 
     @property
     def size(self) -> int:

@@ -1,0 +1,13 @@
+{
+  "detail": {
+    "capability_id": "adapter:subfinder/passive-discovery",
+    "mission_id": "arsenal-tool-056e408059a8",
+    "task_id": "arsenal-tool-056e408059a8-execute"
+  },
+  "digest": "cccbd8a8755d7276c3f575b1043cdaca85b81127d677737b3fd5e60303f2c23a",
+  "event_type": "arsenal_task_started",
+  "observed_at": "2026-09-03T15:27:03.544831+00:00",
+  "previous_digest": "b6347d072d8b9d6e5d946f368b8d3d21d2e64cdbf5070d965a006ac76c84dc4d",
+  "sequence": 3,
+  "status": "running"
+}

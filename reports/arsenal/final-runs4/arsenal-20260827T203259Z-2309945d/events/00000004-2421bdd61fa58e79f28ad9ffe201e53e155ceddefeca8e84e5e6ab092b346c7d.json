@@ -1,0 +1,28 @@
+{
+  "detail": {
+    "asset": "127.0.0.1",
+    "authorization_decision": "arsenal:tool:detect-secrets/secrets",
+    "backend": "detect-secrets",
+    "backend_version": "1.5.47",
+    "blocking_reason": "",
+    "capability_id": "tool:detect-secrets/secrets",
+    "evidence_digest": "d22c5998047fe4be3d8c253bfb8332426beefb2f3131c116bc673d9ed2720170",
+    "evidence_ref": "evidence/d22c5998047fe4be3d8c253bfb8332426beefb2f3131c116bc673d9ed2720170.json",
+    "execution_error_class": null,
+    "execution_grant_id": "c9947498a48a55f9",
+    "finding_ids": [],
+    "fixture_detection": true,
+    "mission_id": "arsenal-tool-2309945d97ff",
+    "mode": "FIXTURE",
+    "negative_control_status": "PASSED",
+    "policy_snapshot_digest": "e9dc52e97b35225a0c936cbb21cf6a57125fab156ebe781fbf0dd01d0c147d2f",
+    "result": "EXECUTED_PASS",
+    "task_id": "arsenal-tool-2309945d97ff-execute"
+  },
+  "digest": "2421bdd61fa58e79f28ad9ffe201e53e155ceddefeca8e84e5e6ab092b346c7d",
+  "event_type": "arsenal_task_completed",
+  "observed_at": "2026-08-27T20:33:00.694630+00:00",
+  "previous_digest": "0cc12935f1535823ee27241d70d1b1dbfebb2ac273c649601f227650e0792883",
+  "sequence": 4,
+  "status": "completed"
+}

@@ -1,0 +1,13 @@
+{
+  "detail": {
+    "capability_id": "asset:aegis-agent-permission-audit/agent-tool-permission-analysis",
+    "mission_id": "arsenal-tool-6574bbb26472",
+    "task_id": "arsenal-tool-6574bbb26472-execute"
+  },
+  "digest": "6f239bb41203a99e09c76e78c011eb91acb223d50f83b3bae0248b3af372a5e0",
+  "event_type": "arsenal_task_started",
+  "observed_at": "2026-09-03T15:27:00.663125+00:00",
+  "previous_digest": "c4509e88c60e140ee01b39da9f2852fc3d5a84c8d1982c9ad4496d2b9c789923",
+  "sequence": 3,
+  "status": "running"
+}

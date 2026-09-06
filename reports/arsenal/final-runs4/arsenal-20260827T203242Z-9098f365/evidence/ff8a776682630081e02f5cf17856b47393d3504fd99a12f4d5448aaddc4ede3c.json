@@ -1,0 +1,13 @@
+{
+  "blocking_reason": "binary not found",
+  "capability_id": "asset:rizin/binary-reverse-engineering",
+  "coverage_state": "UNAVAILABLE",
+  "evidence_digest": "ff8a776682630081e02f5cf17856b47393d3504fd99a12f4d5448aaddc4ede3c",
+  "execution_grant_issued": false,
+  "execution_performed": false,
+  "kind": "arsenal_fixture_blocked",
+  "mission_id": "arsenal-blocked-9098f3658141fa87",
+  "mode": "FIXTURE",
+  "run_id": "arsenal-20260827T203242Z-9098f365",
+  "task_id": "arsenal-blocked-9098f3658141fa87-execute"
+}

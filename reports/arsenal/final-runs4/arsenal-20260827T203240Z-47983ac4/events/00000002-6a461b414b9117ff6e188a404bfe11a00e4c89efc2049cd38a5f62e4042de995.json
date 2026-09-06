@@ -1,0 +1,18 @@
+{
+  "detail": {
+    "blocking_reason": "binary not found",
+    "capability_id": "asset:kics/iac-security-scan",
+    "evidence_digest": "ed2af5cb8108caabb93c1791a5f14c726c74ff338f4ee65f210680e203b1b650",
+    "evidence_ref": "evidence/ed2af5cb8108caabb93c1791a5f14c726c74ff338f4ee65f210680e203b1b650.json",
+    "execution_grant_id": null,
+    "mission_id": "arsenal-blocked-47983ac416f3112d",
+    "result": "UNAVAILABLE",
+    "task_id": "arsenal-blocked-47983ac416f3112d-execute"
+  },
+  "digest": "6a461b414b9117ff6e188a404bfe11a00e4c89efc2049cd38a5f62e4042de995",
+  "event_type": "arsenal_task_blocked",
+  "observed_at": "2026-08-27T20:32:40.506069+00:00",
+  "previous_digest": "6dfe9fe3dfcb5927cc8ee61dd7cc9824f1ddb70cb8e1cb8eea9280de40607c92",
+  "sequence": 2,
+  "status": "failed"
+}

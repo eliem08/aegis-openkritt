@@ -1,0 +1,137 @@
+{
+  "adapter_version": "deep-asset/1",
+  "backend_name": "aegis-memory-poisoning",
+  "backend_version": "Python 3.14.5",
+  "binary_path": "C:\\Python314\\python.exe",
+  "blocking_reason": "",
+  "capability_id": "asset:aegis-memory-poisoning/agent-memory-poisoning-regression",
+  "capability_ids": [
+    "asset:aegis-memory-poisoning/agent-memory-poisoning-regression"
+  ],
+  "container_digest_if_applicable": "",
+  "coverage_state": "EXECUTED_PASS",
+  "duration_ms": 112,
+  "evidence_digest": "eea2d1441399372ec0668d0d489835187fe63b4a69b11ac5a553dd1647657b2e",
+  "execution_completed_at": "2026-09-03T15:27:00.980031+00:00",
+  "execution_grant_payload": {
+    "allowed_destinations": [],
+    "allowed_methods": [],
+    "budget": {
+      "max_cost_usd": 0.0,
+      "max_human_minutes": 0.0,
+      "max_requests": 0
+    },
+    "constraints": {
+      "authorization_class": "LOCAL_FIXTURE_ONLY",
+      "capability_id": "asset:aegis-memory-poisoning/agent-memory-poisoning-regression",
+      "covered_capability_ids": [
+        "asset:aegis-memory-poisoning/agent-memory-poisoning-regression"
+      ],
+      "fixture_version": "aegis-memory-poisoning-v1",
+      "negative_fixture_digest": "324345b5404d05f49c5c53e6ef500b962f2a4f9839c794fb76842f873c022e12",
+      "positive_fixture_digest": "d6e3df1644dc281dcdd35852621e99071cbafc6640087ab3afa067c042e3cda6"
+    },
+    "decision_fingerprint": "0d3d381e6c806285e952cfd3",
+    "expires_at": "2026-09-03T15:42:00.834970+00:00",
+    "external_model_egress_allowed": false,
+    "human_approval": false,
+    "issued_at": "2026-09-03T15:27:00.834970+00:00",
+    "network_allowed": false,
+    "nonce": "ae3c93079036f118",
+    "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+    "state_change_allowed": false
+  },
+  "execution_performed": true,
+  "execution_proof_kind": "REAL_BACKEND",
+  "execution_started_at": "2026-09-03T15:27:00.867969+00:00",
+  "exit_code": 0,
+  "fixture_version": "aegis-memory-poisoning-v1",
+  "kind": "arsenal_tool_fixture_execution",
+  "mission_id": "arsenal-tool-536a27eb132f",
+  "mode": "FIXTURE",
+  "negative_control_clean": true,
+  "negative_control_status": "PASSED",
+  "negative_fixture_digest": "324345b5404d05f49c5c53e6ef500b962f2a4f9839c794fb76842f873c022e12",
+  "parsed_result_digest": "0a5045fcea051d3747487d2be4878ff6d12eb623109421b2cb00ae8ba79aeac0",
+  "policy_decision": {
+    "action": "source_analysis",
+    "authorization_id": "fixture:20260903T152700Z",
+    "evaluated_at": "2026-09-03T15:27:00.834944+00:00",
+    "incidents": [],
+    "reasons": [
+      {
+        "code": "ok",
+        "message": "all policy gates passed",
+        "verdict": "allow"
+      }
+    ],
+    "request_id": "arsenal:asset:aegis-memory-poisoning/agent-memory-poisoning-regression",
+    "required_approvals": [],
+    "target": "127.0.0.1",
+    "tier": "passive",
+    "verdict": "allow"
+  },
+  "positive_control_detected": true,
+  "positive_fixture_digest": "d6e3df1644dc281dcdd35852621e99071cbafc6640087ab3afa067c042e3cda6",
+  "run_id": "arsenal-20260903T152700Z-536a27eb",
+  "runtime_disposition": "ready",
+  "runtime_reason": "internal hunter capability completed",
+  "stderr_digest": "1b60320976d31a6c8ea434b79341b13eb109dcb76abcdb78ce01376a39a5ce6b",
+  "stdout_digest": "1fb3a70511cfef91c7b8f1b129693fff24db08328187c1f0d14622ce8a44b8e3",
+  "summary": {
+    "blocking_reason": "",
+    "covered_capability_ids": [
+      "asset:aegis-memory-poisoning/agent-memory-poisoning-regression"
+    ],
+    "execution_error_class": null,
+    "execution_proof_kind": "REAL_BACKEND",
+    "fixture_detection": true,
+    "negative": {
+      "duration_ms": 57,
+      "error": "",
+      "execution_completed_at": "2026-09-03T15:27:00.980031+00:00",
+      "execution_started_at": "2026-09-03T15:27:00.922973+00:00",
+      "exit_code": 0,
+      "finding_count": 0,
+      "parsed_result_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "ran": true,
+      "runtime": {
+        "binary": "python",
+        "checked_at": "2026-09-03T15:27:00.857828+00:00",
+        "name": "aegis-memory-poisoning",
+        "reason": "healthy",
+        "resolved_path": "C:\\Python314\\python.exe",
+        "sha256": "3adbbf2af609e206e3ca18cd55fc7c4b52f5c8bb8218dd99fd5a9e50d7a193cd",
+        "status": "ready",
+        "version": "Python 3.14.5"
+      },
+      "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_digest": "904902050955643511900fc60109511892cc322c9989b2dfe2ea49a434c381bb"
+    },
+    "negative_control_passed": true,
+    "positive": {
+      "duration_ms": 55,
+      "error": "",
+      "execution_completed_at": "2026-09-03T15:27:00.922796+00:00",
+      "execution_started_at": "2026-09-03T15:27:00.867969+00:00",
+      "exit_code": 0,
+      "finding_count": 1,
+      "parsed_result_digest": "3fc86cf0b06103653453bb3311586d495d10d663d34ffe0541e60df2963c6a72",
+      "ran": true,
+      "runtime": {
+        "binary": "python",
+        "checked_at": "2026-09-03T15:27:00.857828+00:00",
+        "name": "aegis-memory-poisoning",
+        "reason": "healthy",
+        "resolved_path": "C:\\Python314\\python.exe",
+        "sha256": "3adbbf2af609e206e3ca18cd55fc7c4b52f5c8bb8218dd99fd5a9e50d7a193cd",
+        "status": "ready",
+        "version": "Python 3.14.5"
+      },
+      "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_digest": "6de0863159865121e0b237dbfba94303cfef44e2b298d234e064c15b489df808"
+    },
+    "tool": "aegis-memory-poisoning"
+  },
+  "task_id": "arsenal-tool-536a27eb132f-execute"
+}

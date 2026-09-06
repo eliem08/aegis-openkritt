@@ -1,0 +1,138 @@
+{
+  "adapter_version": "tool-bridge/1",
+  "backend_name": "grype",
+  "backend_version": "grype 0.116.1",
+  "binary_path": "/usr/local/bin/grype",
+  "blocking_reason": "",
+  "capability_id": "tool:grype/deps",
+  "capability_ids": [
+    "tool:grype/deps",
+    "asset:grype/artifact-vulnerability-scan"
+  ],
+  "container_digest_if_applicable": "sha256:3766088055a72f82346bf7318cb0acf9ec6b2e82ddf6df6bcba9558f70e9c40d",
+  "coverage_state": "EXECUTED_PASS",
+  "duration_ms": 3980,
+  "evidence_digest": "f0de750328fc8cfab1d691875e4a714c1fca15719786a4d561aa597e9fd833e1",
+  "execution_completed_at": "2026-08-27T20:33:11.453460+00:00",
+  "execution_grant_payload": {
+    "allowed_destinations": [],
+    "allowed_methods": [],
+    "budget": {
+      "max_cost_usd": 0.0,
+      "max_human_minutes": 0.0,
+      "max_requests": 0
+    },
+    "constraints": {
+      "authorization_class": "LOCAL_FIXTURE_ONLY",
+      "capability_id": "tool:grype/deps",
+      "covered_capability_ids": [
+        "tool:grype/deps",
+        "asset:grype/artifact-vulnerability-scan"
+      ],
+      "fixture_version": "scanner-fixture-v2",
+      "negative_fixture_digest": "ad2b0799492915f1624a3f2530c8eb9042405d68381e8d3411872dffc0b3841a",
+      "positive_fixture_digest": "f8363406f4a0e237270db88e9e65a8e164558e302d3b0cba39ce4e4d48d02ceb"
+    },
+    "decision_fingerprint": "933a7466d7bd309d081d195f",
+    "expires_at": "2026-08-27T20:48:07.238684+00:00",
+    "external_model_egress_allowed": false,
+    "human_approval": false,
+    "issued_at": "2026-08-27T20:33:07.238684+00:00",
+    "network_allowed": false,
+    "nonce": "66cdf85f8c311e22",
+    "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+    "state_change_allowed": false
+  },
+  "execution_performed": true,
+  "execution_started_at": "2026-08-27T20:33:07.473021+00:00",
+  "exit_code": 0,
+  "fixture_version": "scanner-fixture-v2",
+  "kind": "arsenal_tool_fixture_execution",
+  "mission_id": "arsenal-tool-d8ef174d8873",
+  "mode": "FIXTURE",
+  "negative_control_clean": true,
+  "negative_control_status": "PASSED",
+  "negative_fixture_digest": "ad2b0799492915f1624a3f2530c8eb9042405d68381e8d3411872dffc0b3841a",
+  "parsed_result_digest": "95ba3badeec95e5a6872b56daa8a3981f8080c544fc7c79607908599a3dc3fb6",
+  "policy_decision": {
+    "action": "source_analysis",
+    "authorization_id": "fixture:20260827T203307Z",
+    "evaluated_at": "2026-08-27T20:33:07.238642+00:00",
+    "incidents": [],
+    "reasons": [
+      {
+        "code": "ok",
+        "message": "all policy gates passed",
+        "verdict": "allow"
+      }
+    ],
+    "request_id": "arsenal:tool:grype/deps",
+    "required_approvals": [],
+    "target": "127.0.0.1",
+    "tier": "passive",
+    "verdict": "allow"
+  },
+  "positive_control_detected": true,
+  "positive_fixture_digest": "f8363406f4a0e237270db88e9e65a8e164558e302d3b0cba39ce4e4d48d02ceb",
+  "run_id": "arsenal-20260827T203307Z-d8ef174d",
+  "runtime_disposition": "ready",
+  "runtime_reason": "internal hunter capability completed",
+  "stderr_digest": "ef5f5a47cea1bfd284a7770a46dfe4c706671bfdbf81ba31cac64259aad885f6",
+  "stdout_digest": "096197b327510ad87d041e89275b62bb37723e103adf8622d4480abe25e4cfe7",
+  "summary": {
+    "blocking_reason": "",
+    "covered_capability_ids": [
+      "tool:grype/deps",
+      "asset:grype/artifact-vulnerability-scan"
+    ],
+    "execution_error_class": null,
+    "fixture_detection": true,
+    "negative": {
+      "duration_ms": 1409,
+      "error": "[0000]  WARN no explicit name and version provided for directory source, deriving artifact ID from the given path (which is not ideal) from=syft\n",
+      "execution_completed_at": "2026-08-27T20:33:11.453460+00:00",
+      "execution_started_at": "2026-08-27T20:33:10.044722+00:00",
+      "exit_code": 0,
+      "finding_count": 0,
+      "parsed_result_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "ran": true,
+      "runtime": {
+        "binary": "grype",
+        "checked_at": "2026-08-27T20:33:07.332549+00:00",
+        "name": "grype",
+        "reason": "healthy",
+        "resolved_path": "/usr/local/bin/grype",
+        "sha256": "a8fff88f37a08af6a536e162f37f9902ec94af03df9928ee6295dffe7044dc43",
+        "status": "ready",
+        "version": "grype 0.116.1"
+      },
+      "stderr_digest": "8a9bd4734ade0890c4003c16adc5450932a35a8b059e3421af32de93c07a806f",
+      "stdout_digest": "66c869809ddf11a0ab82e753109a059c3dc83f5628473b23909a049a6baefc7e"
+    },
+    "negative_control_passed": true,
+    "positive": {
+      "duration_ms": 2571,
+      "error": "",
+      "execution_completed_at": "2026-08-27T20:33:10.043823+00:00",
+      "execution_started_at": "2026-08-27T20:33:07.473021+00:00",
+      "exit_code": 0,
+      "finding_count": 5,
+      "parsed_result_digest": "4b26d5c737e0ee5ee15dc2b865a4840c83bf5b75a61182f8fc25781b2cf513e9",
+      "ran": true,
+      "runtime": {
+        "binary": "grype",
+        "checked_at": "2026-08-27T20:33:07.332549+00:00",
+        "name": "grype",
+        "reason": "healthy",
+        "resolved_path": "/usr/local/bin/grype",
+        "sha256": "a8fff88f37a08af6a536e162f37f9902ec94af03df9928ee6295dffe7044dc43",
+        "status": "ready",
+        "version": "grype 0.116.1"
+      },
+      "stderr_digest": "8a9bd4734ade0890c4003c16adc5450932a35a8b059e3421af32de93c07a806f",
+      "stdout_digest": "096429331b059c5269e7b38b3ea41916ec55aa8045376029731d9cbfc19ba7fb"
+    },
+    "tool": "grype"
+  },
+  "task_id": "arsenal-tool-d8ef174d8873-execute"
+}

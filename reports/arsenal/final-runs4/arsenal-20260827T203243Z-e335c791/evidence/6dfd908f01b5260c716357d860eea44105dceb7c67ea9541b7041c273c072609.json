@@ -1,0 +1,13 @@
+{
+  "blocking_reason": "backend is present but its deterministic positive/negative fixture provider is not connected to the canonical executor",
+  "capability_id": "asset:trivy/container-image-security-scan",
+  "coverage_state": "WAITING_FOR_PREREQUISITE",
+  "evidence_digest": "6dfd908f01b5260c716357d860eea44105dceb7c67ea9541b7041c273c072609",
+  "execution_grant_issued": false,
+  "execution_performed": false,
+  "kind": "arsenal_fixture_blocked",
+  "mission_id": "arsenal-blocked-e335c79174b8913f",
+  "mode": "FIXTURE",
+  "run_id": "arsenal-20260827T203243Z-e335c791",
+  "task_id": "arsenal-blocked-e335c79174b8913f-execute"
+}

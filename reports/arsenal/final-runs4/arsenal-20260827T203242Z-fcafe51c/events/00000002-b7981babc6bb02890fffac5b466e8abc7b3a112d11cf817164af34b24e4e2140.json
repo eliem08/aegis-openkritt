@@ -1,0 +1,18 @@
+{
+  "detail": {
+    "blocking_reason": "binary not found",
+    "capability_id": "asset:pefile/pe-structure-analysis",
+    "evidence_digest": "7bde7aee7be20c37d9b0e6ba2bdf0de43ba31289418e74584646b4d88f98ecc5",
+    "evidence_ref": "evidence/7bde7aee7be20c37d9b0e6ba2bdf0de43ba31289418e74584646b4d88f98ecc5.json",
+    "execution_grant_id": null,
+    "mission_id": "arsenal-blocked-fcafe51cace9e4f8",
+    "result": "UNAVAILABLE",
+    "task_id": "arsenal-blocked-fcafe51cace9e4f8-execute"
+  },
+  "digest": "b7981babc6bb02890fffac5b466e8abc7b3a112d11cf817164af34b24e4e2140",
+  "event_type": "arsenal_task_blocked",
+  "observed_at": "2026-08-27T20:32:42.443169+00:00",
+  "previous_digest": "828a18fb7608e6783d0861283ac6796b7111dee79dbf868ad667aa9db294af09",
+  "sequence": 2,
+  "status": "failed"
+}

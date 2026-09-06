@@ -1,0 +1,13 @@
+{
+  "blocking_reason": "binary not found",
+  "capability_id": "asset:capa/binary-capability-analysis",
+  "coverage_state": "UNAVAILABLE",
+  "evidence_digest": "f50ca06e136e2fc1f98fddf7faaac123a8ec66f21316b1db527ff7424022b74e",
+  "execution_grant_issued": false,
+  "execution_performed": false,
+  "kind": "arsenal_fixture_blocked",
+  "mission_id": "arsenal-blocked-36acda864ce36643",
+  "mode": "FIXTURE",
+  "run_id": "arsenal-20260827T203234Z-36acda86",
+  "task_id": "arsenal-blocked-36acda864ce36643-execute"
+}

@@ -1,0 +1,28 @@
+{
+  "detail": {
+    "asset": "127.0.0.1",
+    "authorization_decision": "arsenal:asset:roadtools/entra-identity-analysis",
+    "backend": "ROADtools",
+    "backend_version": "Python 3.14.5",
+    "blocking_reason": "",
+    "capability_id": "asset:roadtools/entra-identity-analysis",
+    "evidence_digest": "dff4fdcae6eef6c066725a0b5eb204f07ed81e4333d8cad1d5a025c04a9ebeaa",
+    "evidence_ref": "evidence/dff4fdcae6eef6c066725a0b5eb204f07ed81e4333d8cad1d5a025c04a9ebeaa.json",
+    "execution_error_class": null,
+    "execution_grant_id": "95c89b849ede9674",
+    "finding_ids": [],
+    "fixture_detection": true,
+    "mission_id": "arsenal-tool-f4794a5f4eaa",
+    "mode": "FIXTURE",
+    "negative_control_status": "PASSED",
+    "policy_snapshot_digest": "e9dc52e97b35225a0c936cbb21cf6a57125fab156ebe781fbf0dd01d0c147d2f",
+    "result": "EXECUTED_PASS",
+    "task_id": "arsenal-tool-f4794a5f4eaa-execute"
+  },
+  "digest": "b093f2da3466903c4c741173aff50a3849b162aff60b55faaac29a413fb6f781",
+  "event_type": "arsenal_task_completed",
+  "observed_at": "2026-09-03T15:27:03.048240+00:00",
+  "previous_digest": "9d84bf54daca919f53b0812b2fc480e5643684ec9e7d9caddfe14873da096e55",
+  "sequence": 4,
+  "status": "completed"
+}

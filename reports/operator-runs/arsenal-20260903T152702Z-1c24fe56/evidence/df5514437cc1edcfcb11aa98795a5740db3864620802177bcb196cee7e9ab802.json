@@ -1,0 +1,140 @@
+{
+  "adapter_version": "deep-asset/1",
+  "backend_name": "Prowler",
+  "backend_version": "Python 3.14.5",
+  "binary_path": "C:\\Python314\\python.exe",
+  "blocking_reason": "",
+  "capability_id": "asset:prowler/aws-security-posture",
+  "capability_ids": [
+    "asset:prowler/aws-security-posture",
+    "asset:prowler/azure-security-posture"
+  ],
+  "container_digest_if_applicable": "",
+  "coverage_state": "EXECUTED_PASS",
+  "duration_ms": 116,
+  "evidence_digest": "df5514437cc1edcfcb11aa98795a5740db3864620802177bcb196cee7e9ab802",
+  "execution_completed_at": "2026-09-03T15:27:02.645417+00:00",
+  "execution_grant_payload": {
+    "allowed_destinations": [],
+    "allowed_methods": [],
+    "budget": {
+      "max_cost_usd": 0.0,
+      "max_human_minutes": 0.0,
+      "max_requests": 0
+    },
+    "constraints": {
+      "authorization_class": "LOCAL_FIXTURE_ONLY",
+      "capability_id": "asset:prowler/aws-security-posture",
+      "covered_capability_ids": [
+        "asset:prowler/aws-security-posture",
+        "asset:prowler/azure-security-posture"
+      ],
+      "fixture_version": "prowler-posture-v1",
+      "negative_fixture_digest": "2e75609ca3f4cfffac2946338b2f8e005e877959bdb60afe56bbeb9372079ae6",
+      "positive_fixture_digest": "7e31b359cf93c47862b55c25adc9e7fa5355e1f8b2aca53e8b0adc074d311bad"
+    },
+    "decision_fingerprint": "b11a21959cc5440852a92dc6",
+    "expires_at": "2026-09-03T15:42:02.498383+00:00",
+    "external_model_egress_allowed": false,
+    "human_approval": false,
+    "issued_at": "2026-09-03T15:27:02.498383+00:00",
+    "network_allowed": false,
+    "nonce": "ac5cbc4da589d101",
+    "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+    "state_change_allowed": false
+  },
+  "execution_performed": true,
+  "execution_proof_kind": "REAL_BACKEND",
+  "execution_started_at": "2026-09-03T15:27:02.529447+00:00",
+  "exit_code": 0,
+  "fixture_version": "prowler-posture-v1",
+  "kind": "arsenal_tool_fixture_execution",
+  "mission_id": "arsenal-tool-1c24fe5668c3",
+  "mode": "FIXTURE",
+  "negative_control_clean": true,
+  "negative_control_status": "PASSED",
+  "negative_fixture_digest": "2e75609ca3f4cfffac2946338b2f8e005e877959bdb60afe56bbeb9372079ae6",
+  "parsed_result_digest": "ad0ff754aa559251bcab12896f322b1389302d9e2361322be4061b9c7bcbe490",
+  "policy_decision": {
+    "action": "source_analysis",
+    "authorization_id": "fixture:20260903T152702Z",
+    "evaluated_at": "2026-09-03T15:27:02.498357+00:00",
+    "incidents": [],
+    "reasons": [
+      {
+        "code": "ok",
+        "message": "all policy gates passed",
+        "verdict": "allow"
+      }
+    ],
+    "request_id": "arsenal:asset:prowler/aws-security-posture",
+    "required_approvals": [],
+    "target": "127.0.0.1",
+    "tier": "passive",
+    "verdict": "allow"
+  },
+  "positive_control_detected": true,
+  "positive_fixture_digest": "7e31b359cf93c47862b55c25adc9e7fa5355e1f8b2aca53e8b0adc074d311bad",
+  "run_id": "arsenal-20260903T152702Z-1c24fe56",
+  "runtime_disposition": "ready",
+  "runtime_reason": "internal hunter capability completed",
+  "stderr_digest": "1b60320976d31a6c8ea434b79341b13eb109dcb76abcdb78ce01376a39a5ce6b",
+  "stdout_digest": "8a199f0ae7b0b3fe135203483a514b7438e15b50fc4836cb66c365d1f99e0354",
+  "summary": {
+    "blocking_reason": "",
+    "covered_capability_ids": [
+      "asset:prowler/aws-security-posture",
+      "asset:prowler/azure-security-posture"
+    ],
+    "execution_error_class": null,
+    "execution_proof_kind": "REAL_BACKEND",
+    "fixture_detection": true,
+    "negative": {
+      "duration_ms": 60,
+      "error": "",
+      "execution_completed_at": "2026-09-03T15:27:02.645417+00:00",
+      "execution_started_at": "2026-09-03T15:27:02.585707+00:00",
+      "exit_code": 0,
+      "finding_count": 0,
+      "parsed_result_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "ran": true,
+      "runtime": {
+        "binary": "python",
+        "checked_at": "2026-09-03T15:27:02.518572+00:00",
+        "name": "Prowler",
+        "reason": "healthy",
+        "resolved_path": "C:\\Python314\\python.exe",
+        "sha256": "3adbbf2af609e206e3ca18cd55fc7c4b52f5c8bb8218dd99fd5a9e50d7a193cd",
+        "status": "ready",
+        "version": "Python 3.14.5"
+      },
+      "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_digest": "6c879d8d2971d1619cd5ec91b5c406cbe0b5445d7fb380931aedaf3846d84801"
+    },
+    "negative_control_passed": true,
+    "positive": {
+      "duration_ms": 56,
+      "error": "",
+      "execution_completed_at": "2026-09-03T15:27:02.585553+00:00",
+      "execution_started_at": "2026-09-03T15:27:02.529447+00:00",
+      "exit_code": 0,
+      "finding_count": 1,
+      "parsed_result_digest": "ea54f4a644e5b26b19188f56fb2c45e765d027ca5fe018bd757e4c32e3741953",
+      "ran": true,
+      "runtime": {
+        "binary": "python",
+        "checked_at": "2026-09-03T15:27:02.518572+00:00",
+        "name": "Prowler",
+        "reason": "healthy",
+        "resolved_path": "C:\\Python314\\python.exe",
+        "sha256": "3adbbf2af609e206e3ca18cd55fc7c4b52f5c8bb8218dd99fd5a9e50d7a193cd",
+        "status": "ready",
+        "version": "Python 3.14.5"
+      },
+      "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_digest": "714b19d71a3a8496ce5761339742a2404dc74f4fcba49e13c765f219e42ffeb9"
+    },
+    "tool": "Prowler"
+  },
+  "task_id": "arsenal-tool-1c24fe5668c3-execute"
+}

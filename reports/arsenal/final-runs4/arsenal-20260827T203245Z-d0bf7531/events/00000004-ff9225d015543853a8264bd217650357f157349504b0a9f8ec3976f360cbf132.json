@@ -1,0 +1,28 @@
+{
+  "detail": {
+    "asset": "127.0.0.1",
+    "authorization_decision": "arsenal:tool:bandit/code",
+    "backend": "bandit",
+    "backend_version": "bandit 1.9.4",
+    "blocking_reason": "",
+    "capability_id": "tool:bandit/code",
+    "evidence_digest": "44f814ef2964ba6e5aafa7465b90419c69dbc0f1524972c000116e0770c65142",
+    "evidence_ref": "evidence/44f814ef2964ba6e5aafa7465b90419c69dbc0f1524972c000116e0770c65142.json",
+    "execution_error_class": null,
+    "execution_grant_id": "a9dafd422e37dadd",
+    "finding_ids": [],
+    "fixture_detection": true,
+    "mission_id": "arsenal-tool-d0bf7531a2c1",
+    "mode": "FIXTURE",
+    "negative_control_status": "PASSED",
+    "policy_snapshot_digest": "e9dc52e97b35225a0c936cbb21cf6a57125fab156ebe781fbf0dd01d0c147d2f",
+    "result": "EXECUTED_PASS",
+    "task_id": "arsenal-tool-d0bf7531a2c1-execute"
+  },
+  "digest": "ff9225d015543853a8264bd217650357f157349504b0a9f8ec3976f360cbf132",
+  "event_type": "arsenal_task_completed",
+  "observed_at": "2026-08-27T20:32:46.001641+00:00",
+  "previous_digest": "be0cc3d3d05a0f374b60d5dc236314050edb852d3fc2fbbfc3070e4435c376e5",
+  "sequence": 4,
+  "status": "completed"
+}

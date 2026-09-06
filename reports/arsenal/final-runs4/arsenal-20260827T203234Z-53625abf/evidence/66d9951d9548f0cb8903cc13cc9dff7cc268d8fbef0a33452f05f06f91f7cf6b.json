@@ -1,0 +1,13 @@
+{
+  "blocking_reason": "binary not found",
+  "capability_id": "asset:apktool/android-resource-and-manifest-decode",
+  "coverage_state": "UNAVAILABLE",
+  "evidence_digest": "66d9951d9548f0cb8903cc13cc9dff7cc268d8fbef0a33452f05f06f91f7cf6b",
+  "execution_grant_issued": false,
+  "execution_performed": false,
+  "kind": "arsenal_fixture_blocked",
+  "mission_id": "arsenal-blocked-53625abfcb9123fe",
+  "mode": "FIXTURE",
+  "run_id": "arsenal-20260827T203234Z-53625abf",
+  "task_id": "arsenal-blocked-53625abfcb9123fe-execute"
+}

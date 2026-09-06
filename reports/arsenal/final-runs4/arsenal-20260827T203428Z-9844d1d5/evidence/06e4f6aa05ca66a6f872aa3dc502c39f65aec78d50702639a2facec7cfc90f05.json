@@ -1,0 +1,135 @@
+{
+  "adapter_version": "tool-bridge/1",
+  "backend_name": "psalm",
+  "backend_version": "Psalm 6.16.1@f1f5de594dc76faf8784e02d3dc4716c91c6f6ac",
+  "binary_path": "/root/.composer/vendor/bin/psalm",
+  "blocking_reason": "",
+  "capability_id": "tool:psalm/code",
+  "capability_ids": [
+    "tool:psalm/code"
+  ],
+  "container_digest_if_applicable": "sha256:3766088055a72f82346bf7318cb0acf9ec6b2e82ddf6df6bcba9558f70e9c40d",
+  "coverage_state": "EXECUTED_PASS",
+  "duration_ms": 12129,
+  "evidence_digest": "06e4f6aa05ca66a6f872aa3dc502c39f65aec78d50702639a2facec7cfc90f05",
+  "execution_completed_at": "2026-08-27T20:34:40.632380+00:00",
+  "execution_grant_payload": {
+    "allowed_destinations": [],
+    "allowed_methods": [],
+    "budget": {
+      "max_cost_usd": 0.0,
+      "max_human_minutes": 0.0,
+      "max_requests": 0
+    },
+    "constraints": {
+      "authorization_class": "LOCAL_FIXTURE_ONLY",
+      "capability_id": "tool:psalm/code",
+      "covered_capability_ids": [
+        "tool:psalm/code"
+      ],
+      "fixture_version": "scanner-fixture-v2",
+      "negative_fixture_digest": "ad2b0799492915f1624a3f2530c8eb9042405d68381e8d3411872dffc0b3841a",
+      "positive_fixture_digest": "f8363406f4a0e237270db88e9e65a8e164558e302d3b0cba39ce4e4d48d02ceb"
+    },
+    "decision_fingerprint": "4359b60353798a3e71f27193",
+    "expires_at": "2026-08-27T20:49:28.383382+00:00",
+    "external_model_egress_allowed": false,
+    "human_approval": false,
+    "issued_at": "2026-08-27T20:34:28.383382+00:00",
+    "network_allowed": false,
+    "nonce": "69145ce6ed2ae2d3",
+    "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+    "state_change_allowed": false
+  },
+  "execution_performed": true,
+  "execution_started_at": "2026-08-27T20:34:28.505202+00:00",
+  "exit_code": 2,
+  "fixture_version": "scanner-fixture-v2",
+  "kind": "arsenal_tool_fixture_execution",
+  "mission_id": "arsenal-tool-9844d1d57522",
+  "mode": "FIXTURE",
+  "negative_control_clean": true,
+  "negative_control_status": "PASSED",
+  "negative_fixture_digest": "ad2b0799492915f1624a3f2530c8eb9042405d68381e8d3411872dffc0b3841a",
+  "parsed_result_digest": "c5aecad8dbbf56d8460c3cab8985d34d4f4473c82fb08a5f6a967038e5c1d650",
+  "policy_decision": {
+    "action": "source_analysis",
+    "authorization_id": "fixture:20260827T203428Z",
+    "evaluated_at": "2026-08-27T20:34:28.383342+00:00",
+    "incidents": [],
+    "reasons": [
+      {
+        "code": "ok",
+        "message": "all policy gates passed",
+        "verdict": "allow"
+      }
+    ],
+    "request_id": "arsenal:tool:psalm/code",
+    "required_approvals": [],
+    "target": "127.0.0.1",
+    "tier": "passive",
+    "verdict": "allow"
+  },
+  "positive_control_detected": true,
+  "positive_fixture_digest": "f8363406f4a0e237270db88e9e65a8e164558e302d3b0cba39ce4e4d48d02ceb",
+  "run_id": "arsenal-20260827T203428Z-9844d1d5",
+  "runtime_disposition": "ready",
+  "runtime_reason": "internal hunter capability completed",
+  "stderr_digest": "1b60320976d31a6c8ea434b79341b13eb109dcb76abcdb78ce01376a39a5ce6b",
+  "stdout_digest": "d1863d4f29ce1311df91170673fc5624d071df41b25f6a08f0d7b785050b34a9",
+  "summary": {
+    "blocking_reason": "",
+    "covered_capability_ids": [
+      "tool:psalm/code"
+    ],
+    "execution_error_class": null,
+    "fixture_detection": true,
+    "negative": {
+      "duration_ms": 6030,
+      "error": "",
+      "execution_completed_at": "2026-08-27T20:34:40.632380+00:00",
+      "execution_started_at": "2026-08-27T20:34:34.602527+00:00",
+      "exit_code": 0,
+      "finding_count": 0,
+      "parsed_result_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "ran": true,
+      "runtime": {
+        "binary": "psalm",
+        "checked_at": "2026-08-27T20:34:28.472514+00:00",
+        "name": "psalm",
+        "reason": "healthy",
+        "resolved_path": "/root/.composer/vendor/bin/psalm",
+        "sha256": "3f11e55364339adc1b31fcabe8704f69e5192c83f7913d71670695f234c2979b",
+        "status": "ready",
+        "version": "Psalm 6.16.1@f1f5de594dc76faf8784e02d3dc4716c91c6f6ac"
+      },
+      "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_digest": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    "negative_control_passed": true,
+    "positive": {
+      "duration_ms": 6099,
+      "error": "",
+      "execution_completed_at": "2026-08-27T20:34:34.602054+00:00",
+      "execution_started_at": "2026-08-27T20:34:28.505202+00:00",
+      "exit_code": 2,
+      "finding_count": 1,
+      "parsed_result_digest": "2afba6f136f54c958a32a073805a4f5dcfa4dc8092a7a81af8c38a616462047a",
+      "ran": true,
+      "runtime": {
+        "binary": "psalm",
+        "checked_at": "2026-08-27T20:34:28.472514+00:00",
+        "name": "psalm",
+        "reason": "healthy",
+        "resolved_path": "/root/.composer/vendor/bin/psalm",
+        "sha256": "3f11e55364339adc1b31fcabe8704f69e5192c83f7913d71670695f234c2979b",
+        "status": "ready",
+        "version": "Psalm 6.16.1@f1f5de594dc76faf8784e02d3dc4716c91c6f6ac"
+      },
+      "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_digest": "aa4351c17b61c8ea8604d150106835f212fa628be724efd2e59b60dc800f7352"
+    },
+    "tool": "psalm"
+  },
+  "task_id": "arsenal-tool-9844d1d57522-execute"
+}

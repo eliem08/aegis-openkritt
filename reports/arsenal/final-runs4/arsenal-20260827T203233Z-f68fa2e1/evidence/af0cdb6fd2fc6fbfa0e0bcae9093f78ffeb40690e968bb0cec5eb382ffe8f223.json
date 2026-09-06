@@ -1,0 +1,13 @@
+{
+  "blocking_reason": "backend is present but its deterministic positive/negative fixture provider is not connected to the canonical executor",
+  "capability_id": "asset:aegis-memory-poisoning/agent-memory-poisoning-regression",
+  "coverage_state": "WAITING_FOR_PREREQUISITE",
+  "evidence_digest": "af0cdb6fd2fc6fbfa0e0bcae9093f78ffeb40690e968bb0cec5eb382ffe8f223",
+  "execution_grant_issued": false,
+  "execution_performed": false,
+  "kind": "arsenal_fixture_blocked",
+  "mission_id": "arsenal-blocked-f68fa2e14675ba38",
+  "mode": "FIXTURE",
+  "run_id": "arsenal-20260827T203233Z-f68fa2e1",
+  "task_id": "arsenal-blocked-f68fa2e14675ba38-execute"
+}

@@ -1,0 +1,28 @@
+{
+  "detail": {
+    "asset": "127.0.0.1",
+    "authorization_decision": "arsenal:tool:brakeman/code",
+    "backend": "brakeman",
+    "backend_version": "brakeman 7.1.1",
+    "blocking_reason": "",
+    "capability_id": "tool:brakeman/code",
+    "evidence_digest": "d7d6620f95c86bbe2848adf0b8ee94a239add23feace4876044d4c6482505508",
+    "evidence_ref": "evidence/d7d6620f95c86bbe2848adf0b8ee94a239add23feace4876044d4c6482505508.json",
+    "execution_error_class": null,
+    "execution_grant_id": "9cc51042a812f818",
+    "finding_ids": [],
+    "fixture_detection": true,
+    "mission_id": "arsenal-tool-4beb6ac31c9c",
+    "mode": "FIXTURE",
+    "negative_control_status": "PASSED",
+    "policy_snapshot_digest": "e9dc52e97b35225a0c936cbb21cf6a57125fab156ebe781fbf0dd01d0c147d2f",
+    "result": "EXECUTED_PASS",
+    "task_id": "arsenal-tool-4beb6ac31c9c-execute"
+  },
+  "digest": "21c253d7e6afdbbca959044919e918f8655a0817414cdf318827a100a74ae8c5",
+  "event_type": "arsenal_task_completed",
+  "observed_at": "2026-08-27T20:32:47.667873+00:00",
+  "previous_digest": "bf129425ac75a2765f757be0d986e01c4fb1e38e5e95b73824f02f09b6e03784",
+  "sequence": 4,
+  "status": "completed"
+}
