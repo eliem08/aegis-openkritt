@@ -1,0 +1,28 @@
+{
+  "detail": {
+    "asset": "127.0.0.1",
+    "authorization_decision": "arsenal:tool:slither/contract",
+    "backend": "slither",
+    "backend_version": "0.11.6",
+    "blocking_reason": "",
+    "capability_id": "tool:slither/contract",
+    "evidence_digest": "07580f57133e4bb5eadc07d6966adcf7a921be5c3de35f181a9939acaeff948e",
+    "evidence_ref": "evidence/07580f57133e4bb5eadc07d6966adcf7a921be5c3de35f181a9939acaeff948e.json",
+    "execution_error_class": null,
+    "execution_grant_id": "74a661f1ef8b9ff4",
+    "finding_ids": [],
+    "fixture_detection": true,
+    "mission_id": "arsenal-tool-7a1515cd61c8",
+    "mode": "FIXTURE",
+    "negative_control_status": "PASSED",
+    "policy_snapshot_digest": "e9dc52e97b35225a0c936cbb21cf6a57125fab156ebe781fbf0dd01d0c147d2f",
+    "result": "EXECUTED_PASS",
+    "task_id": "arsenal-tool-7a1515cd61c8-execute"
+  },
+  "digest": "5c49d68c899b4d3d3af4dafd379422fba50da60a61bcc55ad08b87463a86e990",
+  "event_type": "arsenal_task_completed",
+  "observed_at": "2026-08-27T20:34:53.141095+00:00",
+  "previous_digest": "40f876e263486c4ee3ffa37f1d3b4250c772e84a732de39edbee0e0b18f1f8be",
+  "sequence": 4,
+  "status": "completed"
+}

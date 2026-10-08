@@ -1,0 +1,59 @@
+name: Arsenal macOS iOS
+
+on:
+  pull_request:
+    paths:
+      - "src/aegis/arsenal/**"
+      - "tests/arsenal/**"
+      - ".github/workflows/arsenal-macos.yml"
+  push:
+    branches: [main]
+    paths:
+      - "src/aegis/arsenal/**"
+      - "tests/arsenal/**"
+      - ".github/workflows/arsenal-macos.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  arsenal-macos:
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Aegis
+        run: pip install -e ".[dev,api]"
+      - name: Record macOS runner environment
+        run: |
+          mkdir -p reports/arsenal
+          python - <<'PY'
+          import json, platform, subprocess, shutil
+          env_info = {
+              "os": platform.system(),
+              "os_version": platform.mac_ver()[0],
+              "architecture": platform.machine(),
+              "xcode_version": subprocess.getoutput("xcodebuild -version").splitlines()[0] if shutil.which("xcodebuild") else "",
+              "clang_version": subprocess.getoutput("clang --version").splitlines()[0] if shutil.which("clang") else "",
+              "otool_version": subprocess.getoutput("otool --version").splitlines()[0] if shutil.which("otool") else "",
+          }
+          print("macOS Runner Environment:", json.dumps(env_info, indent=2))
+          with open("reports/arsenal/MACOS_RUNNER_ENV.json", "w") as f:
+              json.dump(env_info, f, indent=2)
+          PY
+      - name: Execute Darwin otool fixture suite
+        run: |
+          pytest -q tests/arsenal/test_external_fixtures.py
+          python -m aegis.cli arsenal exercise --capability asset:otool/ios-macos-load-command-analysis --runs-dir reports/operator-runs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: arsenal-macos-${{ github.sha }}
+          path: |
+            reports/arsenal/MACOS_RUNNER_ENV.json
+            reports/operator-runs
+          retention-days: 14

@@ -1,0 +1,18 @@
+{
+  "detail": {
+    "blocking_reason": "binary not found",
+    "capability_id": "asset:angr/binary-control-flow-analysis",
+    "evidence_digest": "0c2ef15f9ee21dfa8b949581eb47f90cb20ebeb60183964f32f828367c138941",
+    "evidence_ref": "evidence/0c2ef15f9ee21dfa8b949581eb47f90cb20ebeb60183964f32f828367c138941.json",
+    "execution_grant_id": null,
+    "mission_id": "arsenal-blocked-8cf548dfad4cacf7",
+    "result": "UNAVAILABLE",
+    "task_id": "arsenal-blocked-8cf548dfad4cacf7-execute"
+  },
+  "digest": "7ffd453c3995e23a658626233a9df373d42596109eb0fe61c3407aaf1a0cb809",
+  "event_type": "arsenal_task_blocked",
+  "observed_at": "2026-08-27T20:32:34.332144+00:00",
+  "previous_digest": "79d887ccd8c4d3ffb8b4398e1496f515fe40dc41f337d24823c15eeed303e565",
+  "sequence": 2,
+  "status": "failed"
+}

@@ -1,0 +1,18 @@
+{
+  "detail": {
+    "blocking_reason": "binary not found",
+    "capability_id": "asset:capa/binary-capability-analysis",
+    "evidence_digest": "f50ca06e136e2fc1f98fddf7faaac123a8ec66f21316b1db527ff7424022b74e",
+    "evidence_ref": "evidence/f50ca06e136e2fc1f98fddf7faaac123a8ec66f21316b1db527ff7424022b74e.json",
+    "execution_grant_id": null,
+    "mission_id": "arsenal-blocked-36acda864ce36643",
+    "result": "UNAVAILABLE",
+    "task_id": "arsenal-blocked-36acda864ce36643-execute"
+  },
+  "digest": "84740e28c6f6b007e43d7c1291d9e7f3d7b1da71001b3abf74d34340f90e0278",
+  "event_type": "arsenal_task_blocked",
+  "observed_at": "2026-08-27T20:32:34.623314+00:00",
+  "previous_digest": "c7b4cbe2dfa0c3f6637c5b2470b2cbd55203e965c047aaf7627ce69d2d4a5afa",
+  "sequence": 2,
+  "status": "failed"
+}

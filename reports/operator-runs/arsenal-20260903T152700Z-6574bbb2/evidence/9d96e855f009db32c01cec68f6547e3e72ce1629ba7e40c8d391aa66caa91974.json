@@ -1,0 +1,137 @@
+{
+  "adapter_version": "deep-asset/1",
+  "backend_name": "aegis-agent-permission-audit",
+  "backend_version": "Python 3.14.5",
+  "binary_path": "C:\\Python314\\python.exe",
+  "blocking_reason": "",
+  "capability_id": "asset:aegis-agent-permission-audit/agent-tool-permission-analysis",
+  "capability_ids": [
+    "asset:aegis-agent-permission-audit/agent-tool-permission-analysis"
+  ],
+  "container_digest_if_applicable": "",
+  "coverage_state": "EXECUTED_PASS",
+  "duration_ms": 112,
+  "evidence_digest": "9d96e855f009db32c01cec68f6547e3e72ce1629ba7e40c8d391aa66caa91974",
+  "execution_completed_at": "2026-09-03T15:27:00.787152+00:00",
+  "execution_grant_payload": {
+    "allowed_destinations": [],
+    "allowed_methods": [],
+    "budget": {
+      "max_cost_usd": 0.0,
+      "max_human_minutes": 0.0,
+      "max_requests": 0
+    },
+    "constraints": {
+      "authorization_class": "LOCAL_FIXTURE_ONLY",
+      "capability_id": "asset:aegis-agent-permission-audit/agent-tool-permission-analysis",
+      "covered_capability_ids": [
+        "asset:aegis-agent-permission-audit/agent-tool-permission-analysis"
+      ],
+      "fixture_version": "aegis-agent-permission-v1",
+      "negative_fixture_digest": "41d374f915e12105f3bbc13d55fd16214b753318a477c6108d4372579ddc3b5f",
+      "positive_fixture_digest": "9437e3e5f7fff0c0d6577c960c1ae28b605b48046069dfd2d081248a64d0886e"
+    },
+    "decision_fingerprint": "aa7329f3e5061b22e8352899",
+    "expires_at": "2026-09-03T15:42:00.645810+00:00",
+    "external_model_egress_allowed": false,
+    "human_approval": false,
+    "issued_at": "2026-09-03T15:27:00.645810+00:00",
+    "network_allowed": false,
+    "nonce": "2b969f58b644e9f4",
+    "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+    "state_change_allowed": false
+  },
+  "execution_performed": true,
+  "execution_proof_kind": "REAL_BACKEND",
+  "execution_started_at": "2026-09-03T15:27:00.675342+00:00",
+  "exit_code": 0,
+  "fixture_version": "aegis-agent-permission-v1",
+  "kind": "arsenal_tool_fixture_execution",
+  "mission_id": "arsenal-tool-6574bbb26472",
+  "mode": "FIXTURE",
+  "negative_control_clean": true,
+  "negative_control_status": "PASSED",
+  "negative_fixture_digest": "41d374f915e12105f3bbc13d55fd16214b753318a477c6108d4372579ddc3b5f",
+  "parsed_result_digest": "26ddf8194f4008e7bb731a06ff9ed9a2e41c0d588ce20339fe1d8d55e5213ca4",
+  "policy_decision": {
+    "action": "source_analysis",
+    "authorization_id": "fixture:20260903T152700Z",
+    "evaluated_at": "2026-09-03T15:27:00.645783+00:00",
+    "incidents": [],
+    "reasons": [
+      {
+        "code": "ok",
+        "message": "all policy gates passed",
+        "verdict": "allow"
+      }
+    ],
+    "request_id": "arsenal:asset:aegis-agent-permission-audit/agent-tool-permission-analysis",
+    "required_approvals": [],
+    "target": "127.0.0.1",
+    "tier": "passive",
+    "verdict": "allow"
+  },
+  "positive_control_detected": true,
+  "positive_fixture_digest": "9437e3e5f7fff0c0d6577c960c1ae28b605b48046069dfd2d081248a64d0886e",
+  "run_id": "arsenal-20260903T152700Z-6574bbb2",
+  "runtime_disposition": "ready",
+  "runtime_reason": "internal hunter capability completed",
+  "stderr_digest": "1b60320976d31a6c8ea434b79341b13eb109dcb76abcdb78ce01376a39a5ce6b",
+  "stdout_digest": "4ae483683db7a494a64c90c765e5b08e0cf16b9310d3a7244aa2126064898022",
+  "summary": {
+    "blocking_reason": "",
+    "covered_capability_ids": [
+      "asset:aegis-agent-permission-audit/agent-tool-permission-analysis"
+    ],
+    "execution_error_class": null,
+    "execution_proof_kind": "REAL_BACKEND",
+    "fixture_detection": true,
+    "negative": {
+      "duration_ms": 56,
+      "error": "",
+      "execution_completed_at": "2026-09-03T15:27:00.787152+00:00",
+      "execution_started_at": "2026-09-03T15:27:00.731318+00:00",
+      "exit_code": 0,
+      "finding_count": 0,
+      "parsed_result_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "ran": true,
+      "runtime": {
+        "binary": "python",
+        "checked_at": "2026-09-03T15:27:00.664306+00:00",
+        "name": "aegis-agent-permission-audit",
+        "reason": "healthy",
+        "resolved_path": "C:\\Python314\\python.exe",
+        "sha256": "3adbbf2af609e206e3ca18cd55fc7c4b52f5c8bb8218dd99fd5a9e50d7a193cd",
+        "status": "ready",
+        "version": "Python 3.14.5"
+      },
+      "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_digest": "a7017e8ad5a85d053d3d4155cf3e6530db5f8a924f0d9074b0429f6b28d2b41e"
+    },
+    "negative_control_passed": true,
+    "positive": {
+      "duration_ms": 56,
+      "error": "",
+      "execution_completed_at": "2026-09-03T15:27:00.731176+00:00",
+      "execution_started_at": "2026-09-03T15:27:00.675342+00:00",
+      "exit_code": 0,
+      "finding_count": 1,
+      "parsed_result_digest": "fe341ccefa644e0138a7a7f094e6093b36372e83b00d182f4554ce7472a57c1b",
+      "ran": true,
+      "runtime": {
+        "binary": "python",
+        "checked_at": "2026-09-03T15:27:00.664306+00:00",
+        "name": "aegis-agent-permission-audit",
+        "reason": "healthy",
+        "resolved_path": "C:\\Python314\\python.exe",
+        "sha256": "3adbbf2af609e206e3ca18cd55fc7c4b52f5c8bb8218dd99fd5a9e50d7a193cd",
+        "status": "ready",
+        "version": "Python 3.14.5"
+      },
+      "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_digest": "cec1afae64b02c96a4d01e9933a8ace3b6daf2d0645ae3060026572fab5192f5"
+    },
+    "tool": "aegis-agent-permission-audit"
+  },
+  "task_id": "arsenal-tool-6574bbb26472-execute"
+}

@@ -1,0 +1,17 @@
+{
+  "detail": {
+    "backend": "MobSF",
+    "backend_version": "4.3.2",
+    "capability_id": "asset:mobsf/rest-static-analysis",
+    "evidence_digest": "39aa337a1baba8784c9aa3fb1987477ff9288601dd7fb84006bf1076e3c5f609",
+    "evidence_ref": "evidence/39aa337a1baba8784c9aa3fb1987477ff9288601dd7fb84006bf1076e3c5f609.json",
+    "result": "EXECUTED_PASS",
+    "task_id": "arsenal-task-mobsf-01"
+  },
+  "digest": "82d58bd6d3249c2b5f5cba7ec6a33487b281460187b76c58072bd7ef282ef9e3",
+  "event_type": "arsenal_task_completed",
+  "observed_at": "2026-09-06T14:24:25.364423+00:00",
+  "previous_digest": "24a44333d9c610c6b61880a33600d970fce1f3d79e6b71019d77a14899484839",
+  "sequence": 2,
+  "status": "completed"
+}

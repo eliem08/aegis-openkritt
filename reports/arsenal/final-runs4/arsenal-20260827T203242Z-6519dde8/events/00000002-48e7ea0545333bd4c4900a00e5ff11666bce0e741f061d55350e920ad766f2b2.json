@@ -1,0 +1,18 @@
+{
+  "detail": {
+    "blocking_reason": "binary not found",
+    "capability_id": "asset:spotbugs/java-bytecode-static-analysis",
+    "evidence_digest": "c230e5737cf7fed5692c7cba7b868bc92c010e28e6ef46717f5b3981c627e41c",
+    "evidence_ref": "evidence/c230e5737cf7fed5692c7cba7b868bc92c010e28e6ef46717f5b3981c627e41c.json",
+    "execution_grant_id": null,
+    "mission_id": "arsenal-blocked-6519dde8693fbe35",
+    "result": "UNAVAILABLE",
+    "task_id": "arsenal-blocked-6519dde8693fbe35-execute"
+  },
+  "digest": "48e7ea0545333bd4c4900a00e5ff11666bce0e741f061d55350e920ad766f2b2",
+  "event_type": "arsenal_task_blocked",
+  "observed_at": "2026-08-27T20:32:43.102956+00:00",
+  "previous_digest": "939b3bf3f16e34e99437f813d31a6fb461f8b6833dea43e9bad3a2b2c95f98b5",
+  "sequence": 2,
+  "status": "failed"
+}

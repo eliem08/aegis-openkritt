@@ -1,0 +1,28 @@
+{
+  "detail": {
+    "asset": "127.0.0.1",
+    "authorization_decision": "arsenal:asset:otool/ios-macos-load-command-analysis",
+    "backend": "otool",
+    "backend_version": "llvm-otool(1): Apple Inc. version cctools-1040",
+    "blocking_reason": "",
+    "capability_id": "asset:otool/ios-macos-load-command-analysis",
+    "evidence_digest": "e97a797792ae5231d722f16bd8b82d3afdd493c041fb9892f0d80f297f3f42da",
+    "evidence_ref": "evidence/e97a797792ae5231d722f16bd8b82d3afdd493c041fb9892f0d80f297f3f42da.json",
+    "execution_error_class": null,
+    "execution_grant_id": "6625a76fcbe755c6",
+    "finding_ids": [],
+    "fixture_detection": true,
+    "mission_id": "arsenal-tool-458dfd3d5e91",
+    "mode": "FIXTURE",
+    "negative_control_status": "PASSED",
+    "policy_snapshot_digest": "e9dc52e97b35225a0c936cbb21cf6a57125fab156ebe781fbf0dd01d0c147d2f",
+    "result": "EXECUTED_PASS",
+    "task_id": "arsenal-tool-458dfd3d5e91-execute"
+  },
+  "digest": "b8763d92b70fc989f3cb0a4c5f9356ab78d9fa9896e82dc5564c0b0d8ac6ce78",
+  "event_type": "arsenal_task_completed",
+  "observed_at": "2026-09-04T01:11:38.627074+00:00",
+  "previous_digest": "4d5e1529fcf846fb8d2b8393c941c8f29629775e7377bbc6e7ce0d05c5ed3af2",
+  "sequence": 4,
+  "status": "completed"
+}

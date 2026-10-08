@@ -1,0 +1,13 @@
+{
+  "detail": {
+    "capability_id": "tool:brakeman/code",
+    "mission_id": "arsenal-tool-4beb6ac31c9c",
+    "task_id": "arsenal-tool-4beb6ac31c9c-execute"
+  },
+  "digest": "bf129425ac75a2765f757be0d986e01c4fb1e38e5e95b73824f02f09b6e03784",
+  "event_type": "arsenal_task_started",
+  "observed_at": "2026-08-27T20:32:46.241697+00:00",
+  "previous_digest": "4b23f32e04dbf0f6f874b99c501527c4509c6aba0ead2faa0c5e77ef2f7ef686",
+  "sequence": 3,
+  "status": "running"
+}

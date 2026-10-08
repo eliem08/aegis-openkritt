@@ -1,0 +1,18 @@
+{
+  "detail": {
+    "blocking_reason": "Frida-capable operator-owned emulator/device; readiness: adb devices && frida-ps -U && objection --version",
+    "capability_id": "asset:objection/android-runtime-exploration",
+    "evidence_digest": "cdcaf83b9b39ee26f80e5c3d31cfdb3a521aef75cf990783d4cb3a0c37a4f985",
+    "evidence_ref": "evidence/cdcaf83b9b39ee26f80e5c3d31cfdb3a521aef75cf990783d4cb3a0c37a4f985.json",
+    "execution_grant_id": null,
+    "mission_id": "arsenal-blocked-fbe20b87a642a53e",
+    "result": "WAITING_FOR_PREREQUISITE",
+    "task_id": "arsenal-blocked-fbe20b87a642a53e-execute"
+  },
+  "digest": "af70a37133e48536ca600d28568a293dc750b693b6217da6e7ff31e294245e01",
+  "event_type": "arsenal_task_blocked",
+  "observed_at": "2026-08-27T20:32:41.923508+00:00",
+  "previous_digest": "1bd3050f88c7b934373d92197b0cc7c67021089f6fcf271db0540e0e4a28fcaa",
+  "sequence": 2,
+  "status": "failed"
+}

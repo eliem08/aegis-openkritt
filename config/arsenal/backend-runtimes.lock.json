@@ -1,0 +1,2545 @@
+{
+  "generated_at": "2026-09-03T15:34:53.971843+00:00",
+  "git_sha": "d9351a3b65759c0c66972ea50b2f6ae810190592",
+  "runtimes": [
+    {
+      "backend_runtime_id": "angr/linux-cli",
+      "binary": "angr",
+      "capability_ids": [
+        "asset:angr/binary-control-flow-analysis"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:angr:binary-control-flow-analysis"
+      ],
+      "health_probe": [
+        "angr",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "angr",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-binary"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-binary",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "9.3.3"
+    },
+    {
+      "backend_runtime_id": "apktool/linux-cli",
+      "binary": "apktool",
+      "capability_ids": [
+        "asset:apktool/android-resource-and-manifest-decode"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:apktool:android-resource-and-manifest-decode"
+      ],
+      "health_probe": [
+        "apktool",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "apktool",
+      "network_policy": "isolated-fixture-network",
+      "platforms": [
+        "arsenal-android"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-android",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "3.0.3"
+    },
+    {
+      "backend_runtime_id": "azurehound/cloud-lab",
+      "binary": "azurehound",
+      "capability_ids": [
+        "asset:azurehound/azure-entra-relationship-collection"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:azurehound:azure-entra-relationship-collection"
+      ],
+      "health_probe": [
+        "azurehound",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "AzureHound",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-cloud-lab"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-cloud-lab",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "UNRESOLVED"
+    },
+    {
+      "backend_runtime_id": "bandit/linux-cli",
+      "binary": "bandit",
+      "capability_ids": [
+        "asset-lane:source-scanner-sweep",
+        "asset:bandit/python-security-static-analysis",
+        "tool:bandit/code"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:bandit:python-security-static-analysis",
+        "fixture:scanner:bandit"
+      ],
+      "health_probe": [
+        "bandit",
+        "--version"
+      ],
+      "installation_method": "pinned-container-image",
+      "name": "Bandit,bandit",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-linux"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-linux",
+      "sha256": "408a0f3a5e6a58a62981a08e107b0f0e212dca8dfcdad1afdbc5eae02d3ed2e3",
+      "source": "resolved executable/runtime probe",
+      "status": "ready",
+      "version": "python.exe C:\\Users\\21263\\Downloads\\ai bug bounty\\.venv\\Scripts\\bandit 1.9.4"
+    },
+    {
+      "backend_runtime_id": "binwalk/firmware-lab",
+      "binary": "binwalk",
+      "capability_ids": [
+        "asset:binwalk/firmware-structure-analysis"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:binwalk:firmware-structure-analysis"
+      ],
+      "health_probe": [
+        "binwalk",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "binwalk",
+      "network_policy": "isolated-fixture-network",
+      "platforms": [
+        "arsenal-firmware"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-firmware",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "2.3.4"
+    },
+    {
+      "backend_runtime_id": "brakeman/linux-cli",
+      "binary": "brakeman",
+      "capability_ids": [
+        "asset:brakeman/rails-security-static-analysis",
+        "tool:brakeman/code"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:brakeman:rails-security-static-analysis",
+        "fixture:scanner:brakeman"
+      ],
+      "health_probe": [
+        "brakeman",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "Brakeman,brakeman",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-linux"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-linux",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "7.1.1"
+    },
+    {
+      "backend_runtime_id": "capa/linux-cli",
+      "binary": "capa",
+      "capability_ids": [
+        "asset:capa/binary-capability-analysis"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:capa:binary-capability-analysis"
+      ],
+      "health_probe": [
+        "capa",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "capa",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-binary"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-binary",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "9.4.0"
+    },
+    {
+      "backend_runtime_id": "checkov/linux-cli",
+      "binary": "checkov",
+      "capability_ids": [
+        "asset:checkov/container-image-policy-scan",
+        "asset:checkov/iac-cicd-and-container-policy-scan",
+        "tool:checkov/deps"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:checkov:container-image-policy-scan",
+        "fixture:asset:checkov:iac-cicd-and-container-policy-scan",
+        "fixture:scanner:checkov"
+      ],
+      "health_probe": [
+        "checkov",
+        "--version"
+      ],
+      "installation_method": "pinned-container-image",
+      "name": "Checkov,checkov",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-linux"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-linux",
+      "sha256": "bcf2675b4528e0f94abd7f459eb55da948ccb1879c14cd9d34c8aa8a628d221d",
+      "source": "resolved executable/runtime probe",
+      "status": "stale",
+      "version": "3.3.9"
+    },
+    {
+      "backend_runtime_id": "class-dump/macos-cli",
+      "binary": "class-dump",
+      "capability_ids": [
+        "asset:class-dump/objective-c-interface-recovery"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:class-dump:objective-c-interface-recovery"
+      ],
+      "health_probe": [
+        "class-dump",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "class-dump",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-macos-ios"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-macos-ios",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "UNRESOLVED"
+    },
+    {
+      "backend_runtime_id": "cloudsplaining/cloud-lab",
+      "binary": "cloudsplaining",
+      "capability_ids": [
+        "asset:cloudsplaining/aws-iam-risk-analysis"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:cloudsplaining:aws-iam-risk-analysis"
+      ],
+      "health_probe": [
+        "cloudsplaining",
+        "--version"
+      ],
+      "installation_method": "pinned-container-image",
+      "name": "Cloudsplaining",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-cloud-lab"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-cloud-lab",
+      "sha256": "f7bb9ee1aadfe56b0fb1587972cb57d559e80d9b674e318fc486f533e292c0b9",
+      "source": "resolved executable/runtime probe",
+      "status": "ready",
+      "version": "cloudsplaining, version 0.7.0"
+    },
+    {
+      "backend_runtime_id": "codeql/linux-cli",
+      "binary": "codeql",
+      "capability_ids": [
+        "asset:codeql/cross-file-dataflow"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:codeql:cross-file-dataflow"
+      ],
+      "health_probe": [
+        "codeql",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "CodeQL",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-linux"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-linux",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "2.26.4"
+    },
+    {
+      "backend_runtime_id": "detect-secrets/linux-cli",
+      "binary": "detect-secrets",
+      "capability_ids": [
+        "tool:detect-secrets/secrets"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:scanner:detect-secrets"
+      ],
+      "health_probe": [
+        "detect-secrets",
+        "--version"
+      ],
+      "installation_method": "pinned-container-image",
+      "name": "detect-secrets",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-linux"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-linux",
+      "sha256": "398308ddcba272b21607e2a6f44fcf4c41e90019a87e6cde09da39e1a4239935",
+      "source": "resolved executable/runtime probe",
+      "status": "ready",
+      "version": "1.5.47"
+    },
+    {
+      "backend_runtime_id": "dnsx/network-lab",
+      "binary": "dnsx",
+      "capability_ids": [
+        "asset:dnsx/dns-resolution-and-wildcard-filtering"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:dnsx:dns-resolution-and-wildcard-filtering"
+      ],
+      "health_probe": [
+        "dnsx",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "dnsx",
+      "network_policy": "isolated-fixture-network",
+      "platforms": [
+        "arsenal-network-lab"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-network-lab",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "1.2.2"
+    },
+    {
+      "backend_runtime_id": "echidna/contract-cli",
+      "binary": "echidna",
+      "capability_ids": [
+        "asset:echidna/smart-contract-property-fuzzing"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:echidna:smart-contract-property-fuzzing"
+      ],
+      "health_probe": [
+        "echidna",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "Echidna",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-smart-contract"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-smart-contract",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "2.3.3"
+    },
+    {
+      "backend_runtime_id": "electron-asar/node-cli",
+      "binary": "asar",
+      "capability_ids": [
+        "asset:electron-asar/electron-package-extraction"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:electron-asar:electron-package-extraction"
+      ],
+      "health_probe": [
+        "asar",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "@electron/asar",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-linux"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-linux",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "UNRESOLVED"
+    },
+    {
+      "backend_runtime_id": "firmadyne/qemu-lab",
+      "binary": "firmadyne",
+      "capability_ids": [
+        "asset:firmadyne/firmware-emulation-fallback"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:firmadyne:firmware-emulation-fallback"
+      ],
+      "health_probe": [
+        "firmadyne",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "Firmadyne",
+      "network_policy": "isolated-fixture-network",
+      "platforms": [
+        "arsenal-firmware"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-firmware",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "UNRESOLVED"
+    },
+    {
+      "backend_runtime_id": "firmae/qemu-lab",
+      "binary": "firmae",
+      "capability_ids": [
+        "asset:firmae/firmware-emulation"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:firmae:firmware-emulation"
+      ],
+      "health_probe": [
+        "firmae",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "FirmAE",
+      "network_policy": "isolated-fixture-network",
+      "platforms": [
+        "arsenal-firmware"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-firmware",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "UNRESOLVED"
+    },
+    {
+      "backend_runtime_id": "floss/linux-cli",
+      "binary": "floss",
+      "capability_ids": [
+        "asset:floss/static-string-deobfuscation"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:floss:static-string-deobfuscation"
+      ],
+      "health_probe": [
+        "floss",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "FLOSS",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-binary"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-binary",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "3.1.1"
+    },
+    {
+      "backend_runtime_id": "foundry/forge",
+      "binary": "forge",
+      "capability_ids": [
+        "asset:foundry/smart-contract-fuzz-and-invariant-tests"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:foundry:smart-contract-fuzz-and-invariant-tests"
+      ],
+      "health_probe": [
+        "forge",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "Foundry",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-smart-contract"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-smart-contract",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "1.8.0"
+    },
+    {
+      "backend_runtime_id": "frida/device-cli",
+      "binary": "frida",
+      "capability_ids": [
+        "asset:frida/android-runtime-instrumentation",
+        "asset:frida/ios-runtime-instrumentation"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:frida:android-runtime-instrumentation",
+        "fixture:asset:frida:ios-runtime-instrumentation"
+      ],
+      "health_probe": [
+        "frida",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "Frida",
+      "network_policy": "isolated-fixture-network",
+      "platforms": [
+        "arsenal-android"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-android",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "UNRESOLVED"
+    },
+    {
+      "backend_runtime_id": "garak/linux-cli",
+      "binary": "garak",
+      "capability_ids": [
+        "asset:garak/llm-security-probing"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:garak:llm-security-probing"
+      ],
+      "health_probe": [
+        "garak",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "garak",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-linux"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-linux",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "UNRESOLVED"
+    },
+    {
+      "backend_runtime_id": "gau/network-lab",
+      "binary": "gau",
+      "capability_ids": [
+        "adapter:gau/passive-discovery"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:adapter:gau"
+      ],
+      "health_probe": [
+        "gau",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "gau",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-passive-provider"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-passive-provider",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "2.2.4"
+    },
+    {
+      "backend_runtime_id": "ghidra/headless",
+      "binary": "analyzeHeadless",
+      "capability_ids": [
+        "asset:ghidra/headless-binary-analysis"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:ghidra:headless-binary-analysis"
+      ],
+      "health_probe": [
+        "analyzeHeadless",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "Ghidra",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-binary"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-binary",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "12.1.3"
+    },
+    {
+      "backend_runtime_id": "gitleaks/linux-cli",
+      "binary": "gitleaks",
+      "capability_ids": [
+        "adapter:gitleaks/passive-discovery",
+        "asset-lane:source-scanner-sweep",
+        "asset:gitleaks/git-secret-detection",
+        "tool:gitleaks/secrets"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:gitleaks:git-secret-detection",
+        "fixture:scanner:gitleaks"
+      ],
+      "health_probe": [
+        "gitleaks",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "gitleaks",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-linux"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-linux",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "8.21.2"
+    },
+    {
+      "backend_runtime_id": "gosec/linux-cli",
+      "binary": "gosec",
+      "capability_ids": [
+        "asset:gosec/go-security-static-analysis",
+        "tool:gosec/code"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:gosec:go-security-static-analysis",
+        "fixture:scanner:gosec"
+      ],
+      "health_probe": [
+        "gosec",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "gosec",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-linux"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-linux",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "2.22.8"
+    },
+    {
+      "backend_runtime_id": "grpcurl/network-lab",
+      "binary": "grpcurl",
+      "capability_ids": [
+        "asset:grpcurl/grpc-service-introspection"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:grpcurl:grpc-service-introspection"
+      ],
+      "health_probe": [
+        "grpcurl",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "grpcurl",
+      "network_policy": "isolated-fixture-network",
+      "platforms": [
+        "arsenal-network-lab"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-network-lab",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "1.9.3"
+    },
+    {
+      "backend_runtime_id": "grype/linux-cli",
+      "binary": "grype",
+      "capability_ids": [
+        "asset:grype/artifact-vulnerability-scan",
+        "asset:grype/container-image-vulnerability-scan",
+        "tool:grype/deps"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:grype:artifact-vulnerability-scan",
+        "fixture:asset:grype:container-image-vulnerability-scan",
+        "fixture:scanner:grype"
+      ],
+      "health_probe": [
+        "grype",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "grype",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-linux"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-linux",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "0.116.1"
+    },
+    {
+      "backend_runtime_id": "httpx/network-lab",
+      "binary": "httpx",
+      "capability_ids": [
+        "adapter:http-probe/passive-discovery",
+        "asset:httpx/http-service-enrichment"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:httpx:http-service-enrichment"
+      ],
+      "health_probe": [
+        "httpx",
+        "--version"
+      ],
+      "installation_method": "pinned-container-image",
+      "name": "http-probe,httpx",
+      "network_policy": "isolated-fixture-network",
+      "platforms": [
+        "arsenal-network-lab"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-network-lab",
+      "sha256": "f50e47064e406acff2ac00fac25eca576938c18e08aae053b7256dc94f7b9ac8",
+      "source": "resolved executable/runtime probe",
+      "status": "stale",
+      "version": "1.10.0"
+    },
+    {
+      "backend_runtime_id": "jadx/android-lab",
+      "binary": "jadx",
+      "capability_ids": [
+        "asset:jadx/android-decompile"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:jadx:android-decompile"
+      ],
+      "health_probe": [
+        "jadx",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "jadx",
+      "network_policy": "isolated-fixture-network",
+      "platforms": [
+        "arsenal-android"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-android",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "1.5.6"
+    },
+    {
+      "backend_runtime_id": "jsluice/linux-cli",
+      "binary": "jsluice",
+      "capability_ids": [
+        "adapter:jsluice/passive-discovery"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:adapter:jsluice"
+      ],
+      "health_probe": [
+        "jsluice",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "jsluice",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-linux"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-linux",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "0.0.3"
+    },
+    {
+      "backend_runtime_id": "katana/network-lab",
+      "binary": "katana",
+      "capability_ids": [
+        "adapter:katana/passive-discovery",
+        "asset:katana/scoped-endpoint-crawl"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:katana:scoped-endpoint-crawl"
+      ],
+      "health_probe": [
+        "katana",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "katana",
+      "network_policy": "isolated-fixture-network",
+      "platforms": [
+        "arsenal-network-lab"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-network-lab",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "1.1.0"
+    },
+    {
+      "backend_runtime_id": "kics/linux-cli",
+      "binary": "kics",
+      "capability_ids": [
+        "asset:kics/iac-security-scan"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:kics:iac-security-scan"
+      ],
+      "health_probe": [
+        "kics",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "KICS",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-linux"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-linux",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "2.1.20"
+    },
+    {
+      "backend_runtime_id": "kubescape/kubernetes-lab",
+      "binary": "kubescape",
+      "capability_ids": [
+        "asset:kubescape/kubernetes-posture-and-runtime-scan"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:kubescape:kubernetes-posture-and-runtime-scan"
+      ],
+      "health_probe": [
+        "kubescape",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "Kubescape",
+      "network_policy": "isolated-fixture-network",
+      "platforms": [
+        "arsenal-kubernetes"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-kubernetes",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "UNRESOLVED"
+    },
+    {
+      "backend_runtime_id": "mitmproxy/network-lab",
+      "binary": "mitmproxy",
+      "capability_ids": [
+        "asset:mitmproxy/authorized-http-traffic-capture"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:mitmproxy:authorized-http-traffic-capture"
+      ],
+      "health_probe": [
+        "mitmproxy",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "mitmproxy",
+      "network_policy": "isolated-fixture-network",
+      "platforms": [
+        "arsenal-network-lab"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-network-lab",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "12.2.3"
+    },
+    {
+      "backend_runtime_id": "mobsf/container",
+      "binary": "mobsf",
+      "capability_ids": [
+        "asset:mobsf/rest-static-analysis"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:mobsf:rest-static-analysis"
+      ],
+      "health_probe": [
+        "mobsf",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "MobSF",
+      "network_policy": "isolated-fixture-network",
+      "platforms": [
+        "arsenal-android"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-android",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "UNRESOLVED"
+    },
+    {
+      "backend_runtime_id": "modelscan/linux-cli",
+      "binary": "modelscan",
+      "capability_ids": [
+        "asset:modelscan/serialized-model-safety-scan"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:modelscan:serialized-model-safety-scan"
+      ],
+      "health_probe": [
+        "modelscan",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "ModelScan",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-linux"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-linux",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "0.8.8"
+    },
+    {
+      "backend_runtime_id": "mythril/linux-cli",
+      "binary": "myth",
+      "capability_ids": [
+        "asset-lane:contract-static-analysis",
+        "asset:mythril/evm-symbolic-execution",
+        "tool:mythril/contract"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:mythril:evm-symbolic-execution",
+        "fixture:scanner:mythril"
+      ],
+      "health_probe": [
+        "myth",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "Mythril,mythril",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-smart-contract"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-smart-contract",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "0.24.8"
+    },
+    {
+      "backend_runtime_id": "naabu/network-lab",
+      "binary": "naabu",
+      "capability_ids": [
+        "asset:naabu/bounded-port-discovery"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:naabu:bounded-port-discovery"
+      ],
+      "health_probe": [
+        "naabu",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "naabu",
+      "network_policy": "isolated-fixture-network",
+      "platforms": [
+        "arsenal-network-lab"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-network-lab",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "2.6.1"
+    },
+    {
+      "backend_runtime_id": "njsscan/linux-cli",
+      "binary": "njsscan",
+      "capability_ids": [
+        "tool:njsscan/code"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:scanner:njsscan"
+      ],
+      "health_probe": [
+        "njsscan",
+        "--version"
+      ],
+      "installation_method": "pinned-container-image",
+      "name": "njsscan",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-linux"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-linux",
+      "sha256": "761e191d08d63cfdbdae974a5307b935399ec43225ce4122925cf3cfaf4f135f",
+      "source": "resolved executable/runtime probe",
+      "status": "ready",
+      "version": "\u001b[34m"
+    },
+    {
+      "backend_runtime_id": "nmap/network-lab",
+      "binary": "nmap",
+      "capability_ids": [
+        "asset-lane:service-identification",
+        "asset:nmap/bounded-service-fingerprinting"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:nmap:bounded-service-fingerprinting"
+      ],
+      "health_probe": [
+        "nmap",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "nmap",
+      "network_policy": "isolated-fixture-network",
+      "platforms": [
+        "arsenal-network-lab"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-network-lab",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "7.93"
+    },
+    {
+      "backend_runtime_id": "npm/linux-cli",
+      "binary": "npm",
+      "capability_ids": [
+        "asset:npm/npm-dependency-audit"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:npm:npm-dependency-audit"
+      ],
+      "health_probe": [
+        "npm",
+        "--version"
+      ],
+      "installation_method": "pinned-container-image",
+      "name": "npm",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-linux"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-linux",
+      "sha256": "21b46c69ad6e2f231f02a9e120f4ba6c8e75fef5a45637103002eab99f888ab8",
+      "source": "resolved executable/runtime probe",
+      "status": "ready",
+      "version": "10.9.8"
+    },
+    {
+      "backend_runtime_id": "nuclei/network-lab",
+      "binary": "nuclei",
+      "capability_ids": [
+        "asset:nuclei/signed-safe-template-validation"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:nuclei:signed-safe-template-validation"
+      ],
+      "health_probe": [
+        "nuclei",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "nuclei",
+      "network_policy": "isolated-fixture-network",
+      "platforms": [
+        "arsenal-network-lab"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-network-lab",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "3.3.0"
+    },
+    {
+      "backend_runtime_id": "objection/android-lab",
+      "binary": "objection",
+      "capability_ids": [
+        "asset:objection/android-runtime-exploration",
+        "asset:objection/ios-runtime-exploration"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:objection:android-runtime-exploration",
+        "fixture:asset:objection:ios-runtime-exploration"
+      ],
+      "health_probe": [
+        "objection",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "objection",
+      "network_policy": "isolated-fixture-network",
+      "platforms": [
+        "arsenal-android"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-android",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "UNRESOLVED"
+    },
+    {
+      "backend_runtime_id": "osv-scanner/linux-cli",
+      "binary": "osv-scanner",
+      "capability_ids": [
+        "adapter:osv-scanner/passive-discovery",
+        "asset:osv-scanner/dependency-vulnerability-analysis",
+        "tool:osv-scanner/deps"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:osv-scanner:dependency-vulnerability-analysis",
+        "fixture:scanner:osv-scanner"
+      ],
+      "health_probe": [
+        "osv-scanner",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "osv-scanner",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-linux"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-linux",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "2.4.0"
+    },
+    {
+      "backend_runtime_id": "otool/macos-cli",
+      "binary": "otool",
+      "capability_ids": [
+        "asset:otool/ios-macos-load-command-analysis"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:otool:ios-macos-load-command-analysis"
+      ],
+      "health_probe": [
+        "otool",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "otool",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-macos-ios"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-macos-ios",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "UNRESOLVED"
+    },
+    {
+      "backend_runtime_id": "pefile/linux-cli",
+      "binary": "pefile",
+      "capability_ids": [
+        "asset:pefile/pe-structure-analysis"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:pefile:pe-structure-analysis"
+      ],
+      "health_probe": [
+        "pefile",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "pefile",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-binary"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-binary",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "2024.8.26"
+    },
+    {
+      "backend_runtime_id": "pip-audit/linux-cli",
+      "binary": "pip-audit",
+      "capability_ids": [
+        "asset:pip-audit/python-dependency-vulnerability-analysis"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:pip-audit:python-dependency-vulnerability-analysis"
+      ],
+      "health_probe": [
+        "pip-audit",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "pip-audit",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-linux"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-linux",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "2.10.1"
+    },
+    {
+      "backend_runtime_id": "playwright/linux-cli",
+      "binary": "playwright",
+      "capability_ids": [
+        "asset:playwright/authenticated-browser-traffic-learning"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:playwright:authenticated-browser-traffic-learning"
+      ],
+      "health_probe": [
+        "playwright",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "Playwright",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-linux"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-linux",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "1.60.0"
+    },
+    {
+      "backend_runtime_id": "promptfoo/linux-cli",
+      "binary": "promptfoo",
+      "capability_ids": [
+        "asset:promptfoo/ai-red-team-evaluation"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:promptfoo:ai-red-team-evaluation"
+      ],
+      "health_probe": [
+        "promptfoo",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "promptfoo",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-linux"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-linux",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "0.122.2"
+    },
+    {
+      "backend_runtime_id": "prowler/cloud-lab",
+      "binary": "prowler",
+      "capability_ids": [
+        "asset:prowler/aws-security-posture",
+        "asset:prowler/azure-security-posture"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:prowler:aws-security-posture",
+        "fixture:asset:prowler:azure-security-posture"
+      ],
+      "health_probe": [
+        "prowler",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "Prowler",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-cloud-lab"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-cloud-lab",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "UNRESOLVED"
+    },
+    {
+      "backend_runtime_id": "psalm/linux-cli",
+      "binary": "psalm",
+      "capability_ids": [
+        "tool:psalm/code"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:scanner:psalm"
+      ],
+      "health_probe": [
+        "psalm",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "psalm",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-linux"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-linux",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "6.16.1"
+    },
+    {
+      "backend_runtime_id": "pyrit/linux-cli",
+      "binary": "pyrit",
+      "capability_ids": [
+        "asset:pyrit/generative-ai-risk-identification"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:pyrit:generative-ai-risk-identification"
+      ],
+      "health_probe": [
+        "pyrit",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "PyRIT",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-linux"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-linux",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "UNRESOLVED"
+    },
+    {
+      "backend_runtime_id": "restler/network-lab",
+      "binary": "restler",
+      "capability_ids": [
+        "asset:restler/stateful-openapi-sequence-testing"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:restler:stateful-openapi-sequence-testing"
+      ],
+      "health_probe": [
+        "restler",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "RESTler",
+      "network_policy": "isolated-fixture-network",
+      "platforms": [
+        "arsenal-network-lab"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-network-lab",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "9.3.1"
+    },
+    {
+      "backend_runtime_id": "retire-js/node-cli",
+      "binary": "retire",
+      "capability_ids": [
+        "tool:retire-js/deps"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:scanner:retire.js"
+      ],
+      "health_probe": [
+        "retire",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "retire.js",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-linux"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-linux",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "5.4.3"
+    },
+    {
+      "backend_runtime_id": "rizin/linux-cli",
+      "binary": "rizin",
+      "capability_ids": [
+        "asset:rizin/binary-reverse-engineering"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:rizin:binary-reverse-engineering"
+      ],
+      "health_probe": [
+        "rizin",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "Rizin",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-binary"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-binary",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "0.9.1"
+    },
+    {
+      "backend_runtime_id": "roadrecon/cloud-lab",
+      "binary": "roadrecon",
+      "capability_ids": [
+        "asset:roadtools/entra-identity-analysis"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:roadtools:entra-identity-analysis"
+      ],
+      "health_probe": [
+        "roadrecon",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "ROADtools",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-cloud-lab"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-cloud-lab",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "UNRESOLVED"
+    },
+    {
+      "backend_runtime_id": "rustscan/network-lab",
+      "binary": "rustscan",
+      "capability_ids": [
+        "asset:rustscan/bounded-fast-port-prefilter"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:rustscan:bounded-fast-port-prefilter"
+      ],
+      "health_probe": [
+        "rustscan",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "RustScan",
+      "network_policy": "isolated-fixture-network",
+      "platforms": [
+        "arsenal-network-lab"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-network-lab",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "2.4.1"
+    },
+    {
+      "backend_runtime_id": "schemathesis/network-lab",
+      "binary": "schemathesis",
+      "capability_ids": [
+        "asset:schemathesis/graphql-schema-guided-testing",
+        "asset:schemathesis/schema-guided-api-testing"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:schemathesis:graphql-schema-guided-testing",
+        "fixture:asset:schemathesis:schema-guided-api-testing"
+      ],
+      "health_probe": [
+        "schemathesis",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "Schemathesis",
+      "network_policy": "isolated-fixture-network",
+      "platforms": [
+        "arsenal-network-lab"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-network-lab",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "4.25.2"
+    },
+    {
+      "backend_runtime_id": "scorecard/linux-cli",
+      "binary": "scorecard",
+      "capability_ids": [
+        "asset:openssf-scorecard/repository-supply-chain-posture"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:openssf-scorecard:repository-supply-chain-posture"
+      ],
+      "health_probe": [
+        "scorecard",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "OpenSSF Scorecard",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-linux"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-linux",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "UNRESOLVED"
+    },
+    {
+      "backend_runtime_id": "scoutsuite/cloud-cli",
+      "binary": "scout",
+      "capability_ids": [
+        "asset:scoutsuite/aws-attack-surface-audit",
+        "asset:scoutsuite/azure-attack-surface-audit"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:scoutsuite:aws-attack-surface-audit",
+        "fixture:asset:scoutsuite:azure-attack-surface-audit"
+      ],
+      "health_probe": [
+        "scout",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "ScoutSuite",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-cloud-lab"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-cloud-lab",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "UNRESOLVED"
+    },
+    {
+      "backend_runtime_id": "semgrep/linux-cli",
+      "binary": "semgrep",
+      "capability_ids": [
+        "adapter:semgrep/passive-discovery",
+        "asset-lane:source-scanner-sweep",
+        "asset:semgrep/source-static-analysis",
+        "tool:semgrep/code"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:semgrep:source-static-analysis",
+        "fixture:scanner:semgrep"
+      ],
+      "health_probe": [
+        "semgrep",
+        "--version"
+      ],
+      "installation_method": "pinned-container-image",
+      "name": "semgrep",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-linux"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-linux",
+      "sha256": "18b665bfa396c614029dffb5933cf9aa0113a33c98db2b25c856b2180ebbcd83",
+      "source": "resolved executable/runtime probe",
+      "status": "ready",
+      "version": "1.172.0"
+    },
+    {
+      "backend_runtime_id": "skopeo/linux-cli",
+      "binary": "skopeo",
+      "capability_ids": [
+        "asset:skopeo/container-registry-metadata"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:skopeo:container-registry-metadata"
+      ],
+      "health_probe": [
+        "skopeo",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "skopeo",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-linux"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-linux",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "1.9.3"
+    },
+    {
+      "backend_runtime_id": "slither/contract-cli",
+      "binary": "slither",
+      "capability_ids": [
+        "asset-lane:contract-static-analysis",
+        "asset:slither/solidity-vyper-static-analysis",
+        "tool:slither/contract"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:slither:solidity-vyper-static-analysis",
+        "fixture:scanner:slither"
+      ],
+      "health_probe": [
+        "slither",
+        "--version"
+      ],
+      "installation_method": "pinned-container-image",
+      "name": "slither",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-smart-contract"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-smart-contract",
+      "sha256": "5c813c426f3745494f5f7b45ae19a06fa9a1097342787b1e035822ca8f2dc409",
+      "source": "resolved executable/runtime probe",
+      "status": "ready",
+      "version": "0.11.6"
+    },
+    {
+      "backend_runtime_id": "spotbugs/linux-cli",
+      "binary": "spotbugs",
+      "capability_ids": [
+        "asset:spotbugs/java-bytecode-static-analysis"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:spotbugs:java-bytecode-static-analysis"
+      ],
+      "health_probe": [
+        "spotbugs",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "SpotBugs",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-linux"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-linux",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "4.10.4"
+    },
+    {
+      "backend_runtime_id": "ssh-audit/network-lab",
+      "binary": "ssh-audit",
+      "capability_ids": [
+        "asset:ssh-audit/ssh-configuration-analysis"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:ssh-audit:ssh-configuration-analysis"
+      ],
+      "health_probe": [
+        "ssh-audit",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "ssh-audit",
+      "network_policy": "isolated-fixture-network",
+      "platforms": [
+        "arsenal-network-lab"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-network-lab",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "3.9.0"
+    },
+    {
+      "backend_runtime_id": "subfinder/network-lab",
+      "binary": "subfinder",
+      "capability_ids": [
+        "adapter:subfinder/passive-discovery",
+        "asset:subfinder/passive-subdomain-enumeration"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:adapter:subfinder",
+        "fixture:asset:subfinder:passive-subdomain-enumeration"
+      ],
+      "health_probe": [
+        "subfinder",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "subfinder",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-passive-provider"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-passive-provider",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "2.6.6"
+    },
+    {
+      "backend_runtime_id": "syft/linux-cli",
+      "binary": "syft",
+      "capability_ids": [
+        "asset-lane:dependency-extraction",
+        "asset:syft/artifact-sbom",
+        "asset:syft/container-image-sbom"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:syft:artifact-sbom",
+        "fixture:asset:syft:container-image-sbom"
+      ],
+      "health_probe": [
+        "syft",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "syft",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-linux"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-linux",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "1.51.1"
+    },
+    {
+      "backend_runtime_id": "testssl-sh/linux-cli",
+      "binary": "testssl.sh",
+      "capability_ids": [
+        "asset:testssl-sh/tls-configuration-analysis"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:testssl-sh:tls-configuration-analysis"
+      ],
+      "health_probe": [
+        "testssl.sh",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "testssl.sh",
+      "network_policy": "isolated-fixture-network",
+      "platforms": [
+        "arsenal-network-lab"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-network-lab",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "3.2.4"
+    },
+    {
+      "backend_runtime_id": "trivy/linux-cli",
+      "binary": "trivy",
+      "capability_ids": [
+        "asset-lane:source-scanner-sweep",
+        "asset:trivy/container-image-security-scan",
+        "asset:trivy/filesystem-security-scan",
+        "tool:trivy/deps",
+        "tool:trivy/secrets"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:trivy:container-image-security-scan",
+        "fixture:asset:trivy:filesystem-security-scan",
+        "fixture:scanner:trivy"
+      ],
+      "health_probe": [
+        "trivy",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "trivy",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-linux"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-linux",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "0.73.0"
+    },
+    {
+      "backend_runtime_id": "web-ext/linux-cli",
+      "binary": "web-ext",
+      "capability_ids": [
+        "asset:web-ext/browser-extension-structure-lint"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:web-ext:browser-extension-structure-lint"
+      ],
+      "health_probe": [
+        "web-ext",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "web-ext",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-linux"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-linux",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "8.10.0"
+    },
+    {
+      "backend_runtime_id": "websocat/network-lab",
+      "binary": "websocat",
+      "capability_ids": [
+        "asset:websocat/websocket-protocol-observation"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:websocat:websocket-protocol-observation"
+      ],
+      "health_probe": [
+        "websocat",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "websocat",
+      "network_policy": "isolated-fixture-network",
+      "platforms": [
+        "arsenal-network-lab"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-network-lab",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "1.14.1"
+    },
+    {
+      "backend_runtime_id": "yara/linux-cli",
+      "binary": "yara",
+      "capability_ids": [
+        "asset:yara/approved-rule-binary-scan"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:yara:approved-rule-binary-scan"
+      ],
+      "health_probe": [
+        "yara",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "YARA",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-binary"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-binary",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "4.2.3"
+    },
+    {
+      "backend_runtime_id": "zizmor/linux-cli",
+      "binary": "zizmor",
+      "capability_ids": [
+        "asset:zizmor/github-actions-security-audit"
+      ],
+      "container_digest": "",
+      "fixture_provider": [
+        "fixture:asset:zizmor:github-actions-security-audit"
+      ],
+      "health_probe": [
+        "zizmor",
+        "--version"
+      ],
+      "installation_method": "UNRESOLVED",
+      "name": "zizmor",
+      "network_policy": "none",
+      "platforms": [
+        "arsenal-linux"
+      ],
+      "resource_limits": {
+        "concurrency": 1,
+        "cpu": 4,
+        "output_bytes": 8388608,
+        "process_count": 512,
+        "ram_mb": 6144,
+        "wall_clock_seconds": 1200
+      },
+      "runner_profile": "arsenal-linux",
+      "sha256": "",
+      "source": "resolved executable/runtime probe",
+      "status": "unavailable",
+      "version": "1.29.0"
+    }
+  ],
+  "schema_version": 1
+}

@@ -1,0 +1,28 @@
+{
+  "detail": {
+    "asset": "127.0.0.1",
+    "authorization_decision": "arsenal:tool:semgrep/code",
+    "backend": "semgrep",
+    "backend_version": "1.172.0",
+    "blocking_reason": "",
+    "capability_id": "tool:semgrep/code",
+    "evidence_digest": "b30a3da04299276fa60c33c07c17edd8934e06fb1089ac041d7589c7d67e8cb3",
+    "evidence_ref": "evidence/b30a3da04299276fa60c33c07c17edd8934e06fb1089ac041d7589c7d67e8cb3.json",
+    "execution_error_class": null,
+    "execution_grant_id": "ebc70a7d9afc8d35",
+    "finding_ids": [],
+    "fixture_detection": true,
+    "mission_id": "arsenal-tool-1da608166902",
+    "mode": "FIXTURE",
+    "negative_control_status": "PASSED",
+    "policy_snapshot_digest": "e9dc52e97b35225a0c936cbb21cf6a57125fab156ebe781fbf0dd01d0c147d2f",
+    "result": "EXECUTED_PASS",
+    "task_id": "arsenal-tool-1da608166902-execute"
+  },
+  "digest": "1eee9ebaa6e9c7de160bdafe581c59f5467e3d7c398eabdc9011e41b21d2a4bf",
+  "event_type": "arsenal_task_completed",
+  "observed_at": "2026-08-27T20:34:51.258621+00:00",
+  "previous_digest": "5a85592296cc9563004b209b8828b78513a3b7d075ce25f2d7315eb490a5cd62",
+  "sequence": 4,
+  "status": "completed"
+}

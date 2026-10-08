@@ -1,0 +1,12 @@
+{
+  "detail": {
+    "error_class": "CoverageRepositoryUnavailable",
+    "execution_result_remains_canonical": true
+  },
+  "digest": "6e76b91f428029efffb160b79a600feb441c03b55567e12ea3e9afca7f4e149c",
+  "event_type": "coverage_recording_degraded",
+  "observed_at": "2026-09-03T15:27:02.473033+00:00",
+  "previous_digest": "3a0137b176c645dd68bc46b84a6b16cdba6c0b0da1c96d1e3deb88d0308f3748",
+  "sequence": 5,
+  "status": "completed"
+}

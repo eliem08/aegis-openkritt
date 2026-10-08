@@ -1,0 +1,123 @@
+{
+  "authorization": {
+    "approval_required_for": [],
+    "authorization_id": "fixture:20260903T152700Z",
+    "cloud_fixture": null,
+    "customer_id": "aegis-local-fixture",
+    "data_handling": {
+      "evidence_retention_days": 30,
+      "region": "eu",
+      "stop_on_real_pii": true
+    },
+    "environment": "local-fixture-only",
+    "escalation_contacts": [],
+    "kill_switch_channel": null,
+    "ownership_proof": [
+      "local fixture created by the operator process"
+    ],
+    "passive_provider": null,
+    "permitted_actions": [
+      "source_analysis"
+    ],
+    "prohibited_actions": [
+      "denial_of_service",
+      "persistence",
+      "production_data_exfiltration",
+      "third_party_targeting",
+      "credential_bruteforce",
+      "lateral_movement",
+      "log_tampering"
+    ],
+    "rate_limits": {
+      "max_concurrent_sessions": 1,
+      "requests_per_second": 1.0
+    },
+    "signature": "ca6795627df70d0823a364bba2a3fa596da413d841365a5f3b0b7a73ead4a46b",
+    "signing_key_id": "fixture-auth",
+    "spend_budget": 0.0,
+    "targets": [
+      "127.0.0.1"
+    ],
+    "test_identities": [],
+    "valid_from": "2026-09-03T15:26:55.042600Z",
+    "valid_until": "2026-09-03T15:42:00.042600Z"
+  },
+  "budgets": {
+    "max_attempts": 1,
+    "max_concurrent_sessions": 1,
+    "max_cost_usd": 0.0,
+    "max_duration_seconds": 1200,
+    "max_requests": 1,
+    "requests_per_second": 1.0
+  },
+  "canary_asset": null,
+  "controlled_identity_refs": [],
+  "created_at": "2026-09-03T15:27:00.043317+00:00",
+  "evidence_refs": [
+    "ba5bffcf60663179fbde55077d5105e8ec8bad377dbb212f1c89dd0bd47ab496",
+    "evidence/ba5bffcf60663179fbde55077d5105e8ec8bad377dbb212f1c89dd0bd47ab496.json"
+  ],
+  "execution_grants": [
+    {
+      "allowed_destinations": [],
+      "allowed_methods": [],
+      "budget": {
+        "max_cost_usd": 0.0,
+        "max_human_minutes": 0.0,
+        "max_requests": 0
+      },
+      "constraints": {
+        "authorization_class": "LOCAL_FIXTURE_ONLY",
+        "capability_id": "asset:aegis-firmware-arch/firmware-architecture-detection",
+        "covered_capability_ids": [
+          "asset:aegis-firmware-arch/firmware-architecture-detection"
+        ],
+        "fixture_version": "aegis-firmware-arch-v1",
+        "negative_fixture_digest": "8969f729db1f3c1166701edb401e1b90e378ebc11bd79f78d5b485b82898e55c",
+        "positive_fixture_digest": "92a5bfb8e727417738cfb6b40913d8c1bff57f7c0af53aaebcbea45ba29a5547"
+      },
+      "decision_fingerprint": "e7399923762654ebd0339f30",
+      "expires_at": "2026-09-03T15:42:00.043208+00:00",
+      "external_model_egress_allowed": false,
+      "human_approval": false,
+      "issued_at": "2026-09-03T15:27:00.043208+00:00",
+      "network_allowed": false,
+      "nonce": "22d85e190b284b99",
+      "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+      "state_change_allowed": false
+    }
+  ],
+  "manifest_digest": "ae508205dede895ab61eb3a62e4c16f8c597eee54b837906d3ed6cb9e28e992f",
+  "mission_ids": [
+    "arsenal-tool-a61d97edadc5"
+  ],
+  "mode": "arsenal_fixture",
+  "operator_id": "local-fixture-operator",
+  "operator_selections": {
+    "capabilities": [
+      "asset:aegis-firmware-arch/firmware-architecture-detection"
+    ]
+  },
+  "policy_digest": "e9dc52e97b35225a0c936cbb21cf6a57125fab156ebe781fbf0dd01d0c147d2f",
+  "policy_snapshot": {
+    "authorization_class": "LOCAL_FIXTURE_ONLY",
+    "permitted_actions": [
+      "source_analysis"
+    ],
+    "prohibited_real_targets": true
+  },
+  "program_handle": "aegis-local-fixtures",
+  "program_source": "built-in deterministic fixtures",
+  "run_id": "arsenal-20260903T152700Z-a61d97ed",
+  "schema_version": 1,
+  "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+  "scope_snapshot": {
+    "assets": [
+      "127.0.0.1"
+    ],
+    "network_isolation": "loopback-only"
+  },
+  "selected_assets": [
+    "127.0.0.1"
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "detail": {
+    "capability_id": "tool:retire-js/deps",
+    "grant": {
+      "allowed_destinations": [],
+      "allowed_methods": [],
+      "budget": {
+        "max_cost_usd": 0.0,
+        "max_human_minutes": 0.0,
+        "max_requests": 0
+      },
+      "constraints": {
+        "authorization_class": "LOCAL_FIXTURE_ONLY",
+        "capability_id": "tool:retire-js/deps",
+        "covered_capability_ids": [
+          "tool:retire-js/deps"
+        ],
+        "fixture_version": "scanner-fixture-v2",
+        "negative_fixture_digest": "ad2b0799492915f1624a3f2530c8eb9042405d68381e8d3411872dffc0b3841a",
+        "positive_fixture_digest": "f8363406f4a0e237270db88e9e65a8e164558e302d3b0cba39ce4e4d48d02ceb"
+      },
+      "decision_fingerprint": "a7910c6b2248c5fd849d1f74",
+      "expires_at": "2026-08-27T20:49:40.965428+00:00",
+      "external_model_egress_allowed": false,
+      "human_approval": false,
+      "issued_at": "2026-08-27T20:34:40.965428+00:00",
+      "network_allowed": false,
+      "nonce": "83abfd9e8a7742ad",
+      "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+      "state_change_allowed": false
+    },
+    "policy_decision": {
+      "action": "source_analysis",
+      "authorization_id": "fixture:20260827T203440Z",
+      "evaluated_at": "2026-08-27T20:34:40.965390+00:00",
+      "incidents": [],
+      "reasons": [
+        {
+          "code": "ok",
+          "message": "all policy gates passed",
+          "verdict": "allow"
+        }
+      ],
+      "request_id": "arsenal:tool:retire-js/deps",
+      "required_approvals": [],
+      "target": "127.0.0.1",
+      "tier": "passive",
+      "verdict": "allow"
+    }
+  },
+  "digest": "0471da65d3afab016058e1f12b4b464d6c2a0de9dabd2ddb302ca3f9ecc814f3",
+  "event_type": "arsenal_fixture_authorized",
+  "observed_at": "2026-08-27T20:34:41.016057+00:00",
+  "previous_digest": "c53b560213694cbc744398f3efae93ccdb254d610732f9b2e7f1b4f4ad028e2c",
+  "sequence": 2,
+  "status": "authorized"
+}

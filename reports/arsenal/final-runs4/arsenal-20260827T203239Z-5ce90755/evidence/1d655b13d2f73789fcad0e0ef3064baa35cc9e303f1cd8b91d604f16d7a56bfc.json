@@ -1,0 +1,13 @@
+{
+  "blocking_reason": "operator-owned local emulator/device and fixture app; readiness: adb devices && frida-ps -U",
+  "capability_id": "asset:frida/ios-runtime-instrumentation",
+  "coverage_state": "WAITING_FOR_PREREQUISITE",
+  "evidence_digest": "1d655b13d2f73789fcad0e0ef3064baa35cc9e303f1cd8b91d604f16d7a56bfc",
+  "execution_grant_issued": false,
+  "execution_performed": false,
+  "kind": "arsenal_fixture_blocked",
+  "mission_id": "arsenal-blocked-5ce907553c4ba395",
+  "mode": "FIXTURE",
+  "run_id": "arsenal-20260827T203239Z-5ce90755",
+  "task_id": "arsenal-blocked-5ce907553c4ba395-execute"
+}

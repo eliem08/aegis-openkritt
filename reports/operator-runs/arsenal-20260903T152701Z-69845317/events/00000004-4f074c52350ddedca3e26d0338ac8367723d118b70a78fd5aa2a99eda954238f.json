@@ -1,0 +1,28 @@
+{
+  "detail": {
+    "asset": "127.0.0.1",
+    "authorization_decision": "arsenal:asset:aegis-rag-boundary/rag-retrieval-trust-analysis",
+    "backend": "aegis-rag-boundary",
+    "backend_version": "Python 3.14.5",
+    "blocking_reason": "",
+    "capability_id": "asset:aegis-rag-boundary/rag-retrieval-trust-analysis",
+    "evidence_digest": "5217937d25b6ae5f91dac7d878e4b390eb0018162678492029895643f1e3ace0",
+    "evidence_ref": "evidence/5217937d25b6ae5f91dac7d878e4b390eb0018162678492029895643f1e3ace0.json",
+    "execution_error_class": null,
+    "execution_grant_id": "596362d5074039fb",
+    "finding_ids": [],
+    "fixture_detection": true,
+    "mission_id": "arsenal-tool-69845317ea76",
+    "mode": "FIXTURE",
+    "negative_control_status": "PASSED",
+    "policy_snapshot_digest": "e9dc52e97b35225a0c936cbb21cf6a57125fab156ebe781fbf0dd01d0c147d2f",
+    "result": "EXECUTED_PASS",
+    "task_id": "arsenal-tool-69845317ea76-execute"
+  },
+  "digest": "4f074c52350ddedca3e26d0338ac8367723d118b70a78fd5aa2a99eda954238f",
+  "event_type": "arsenal_task_completed",
+  "observed_at": "2026-09-03T15:27:01.226605+00:00",
+  "previous_digest": "3110cc9c3e016125c3f9ca24241af2a6335769047ccd17cda85bc501589e2b2d",
+  "sequence": 4,
+  "status": "completed"
+}

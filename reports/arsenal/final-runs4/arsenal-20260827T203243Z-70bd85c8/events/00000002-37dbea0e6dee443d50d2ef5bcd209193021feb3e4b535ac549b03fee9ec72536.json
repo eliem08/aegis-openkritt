@@ -1,0 +1,18 @@
+{
+  "detail": {
+    "blocking_reason": "binary not found",
+    "capability_id": "asset:syft/container-image-sbom",
+    "evidence_digest": "c6b8b698ead436155ad35819ba6af01c1c1177cd2a78ef1a20f0c6a144feb355",
+    "evidence_ref": "evidence/c6b8b698ead436155ad35819ba6af01c1c1177cd2a78ef1a20f0c6a144feb355.json",
+    "execution_grant_id": null,
+    "mission_id": "arsenal-blocked-70bd85c8d4c6d14b",
+    "result": "UNAVAILABLE",
+    "task_id": "arsenal-blocked-70bd85c8d4c6d14b-execute"
+  },
+  "digest": "37dbea0e6dee443d50d2ef5bcd209193021feb3e4b535ac549b03fee9ec72536",
+  "event_type": "arsenal_task_blocked",
+  "observed_at": "2026-08-27T20:32:43.439615+00:00",
+  "previous_digest": "37c032b49184a25b090701c4c4959177d5339e5add9b9932bd28ca4f921e2570",
+  "sequence": 2,
+  "status": "failed"
+}

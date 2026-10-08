@@ -1,0 +1,18 @@
+{
+  "detail": {
+    "blocking_reason": "binary not found",
+    "capability_id": "asset:zizmor/github-actions-security-audit",
+    "evidence_digest": "01122cf1a47b110b63f6c3a08a9ef4bc2fbc52e4ddd476bb7e0181f63c33d529",
+    "evidence_ref": "evidence/01122cf1a47b110b63f6c3a08a9ef4bc2fbc52e4ddd476bb7e0181f63c33d529.json",
+    "execution_grant_id": null,
+    "mission_id": "arsenal-blocked-d17bb5a6485da749",
+    "result": "UNAVAILABLE",
+    "task_id": "arsenal-blocked-d17bb5a6485da749-execute"
+  },
+  "digest": "4dfa485a225fac4aed8e394fdf3376a0e4cec8de3174d35a3a1302fa261e795b",
+  "event_type": "arsenal_task_blocked",
+  "observed_at": "2026-08-27T20:32:44.556163+00:00",
+  "previous_digest": "42ce77632169f9044dcbebb7c2f89d651df2387959be27a20759b9093de2048a",
+  "sequence": 2,
+  "status": "failed"
+}

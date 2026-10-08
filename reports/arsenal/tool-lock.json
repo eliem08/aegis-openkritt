@@ -1,0 +1,1231 @@
+{
+  "arsenal_image_digest": "",
+  "generated_at": "2026-09-03T14:17:35.003189+00:00",
+  "git_sha": "61c0d100020008e6653ea66a9867a5440a6fbfca",
+  "schema_version": 1,
+  "tools": [
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:analyzeHeadless",
+      "backend_runtime_id": "ghidra/headless",
+      "container_digest": "",
+      "executable_path": "/usr/local/bin/analyzeHeadless",
+      "executable_sha256": "87f8ddc220cdbb2267de5c9af834cd9a2f86d87de0f5dfa1ab7cbbd44e563817",
+      "expected_versions": [
+        "12.1.3"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "Ghidra 12.1.3",
+      "runner_profile": "arsenal-binary",
+      "tool_names": [
+        "Ghidra"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:angr",
+      "backend_runtime_id": "angr/linux-cli",
+      "container_digest": "",
+      "executable_path": "/usr/local/bin/angr",
+      "executable_sha256": "54942b5cef1d5b8e7f0c60bd34aa7eb814aeb3e9101408e455d51ef3306b469a",
+      "expected_versions": [
+        "9.3.3"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "angr 9.3.3",
+      "runner_profile": "arsenal-binary",
+      "tool_names": [
+        "angr"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:apktool",
+      "backend_runtime_id": "apktool/linux-cli",
+      "container_digest": "",
+      "executable_path": "/usr/local/bin/apktool",
+      "executable_sha256": "fdda4d63def1ad1040804ae9a90a6a3c79e3a136dd6c4e8416bf0c9773be7bfb",
+      "expected_versions": [
+        "3.0.3"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "3.0.3",
+      "runner_profile": "arsenal-android",
+      "tool_names": [
+        "apktool"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:asar",
+      "backend_runtime_id": "electron-asar/node-cli",
+      "container_digest": "",
+      "executable_path": "/usr/local/lib/node_modules/@electron/asar/bin/asar.js",
+      "executable_sha256": "18dda5a64bd7036cb8c28cfb827020ef0c8d2b6dd8b7a97caabed58f114eb308",
+      "expected_versions": [],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "v3.4.1",
+      "runner_profile": "arsenal-linux",
+      "tool_names": [
+        "@electron/asar"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "asset-lane/1",
+        "deep-asset/1",
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:bandit",
+      "backend_runtime_id": "bandit/linux-cli",
+      "container_digest": "",
+      "executable_path": "/usr/local/bin/bandit",
+      "executable_sha256": "701a6f815afc3903f7676f5a75bbf131efa591b89070970f9449d7683f13dce0",
+      "expected_versions": [
+        "1.9.4"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "bandit 1.9.4",
+      "runner_profile": "arsenal-linux",
+      "tool_names": [
+        "Bandit",
+        "bandit"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:binwalk",
+      "backend_runtime_id": "binwalk/firmware-lab",
+      "container_digest": "",
+      "executable_path": "/usr/bin/binwalk",
+      "executable_sha256": "f056abaa4b079ddbf574856e643e2bdc5b48b535df818ff152a0c20fc2641e8a",
+      "expected_versions": [
+        "2.3.4"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "Binwalk v2.3.3",
+      "runner_profile": "arsenal-firmware",
+      "tool_names": [
+        "binwalk"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1",
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:brakeman",
+      "backend_runtime_id": "brakeman/linux-cli",
+      "container_digest": "",
+      "executable_path": "/usr/local/bin/brakeman",
+      "executable_sha256": "465aaa233fd9f9655ccac5d8e2931b1ffe6a27803102bc2c7c9dbb9092093070",
+      "expected_versions": [
+        "7.1.1"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "brakeman 7.1.1",
+      "runner_profile": "arsenal-linux",
+      "tool_names": [
+        "Brakeman",
+        "brakeman"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:capa",
+      "backend_runtime_id": "capa/linux-cli",
+      "container_digest": "",
+      "executable_path": "/opt/venvs/capa/bin/capa",
+      "executable_sha256": "098bc062f6c4ae6b238a9fe19803ffee2919e37059f9ce0d24d40598276e36cf",
+      "expected_versions": [
+        "9.4.0"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "capa 9.4.0",
+      "runner_profile": "arsenal-binary",
+      "tool_names": [
+        "capa"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1",
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:checkov",
+      "backend_runtime_id": "checkov/linux-cli",
+      "container_digest": "",
+      "executable_path": "/usr/local/bin/checkov",
+      "executable_sha256": "26d2dab23712276430d913195a817ed8b881afe924c876d4b4a1a57f6f02950d",
+      "expected_versions": [
+        "3.3.9"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "3.3.9",
+      "runner_profile": "arsenal-linux",
+      "tool_names": [
+        "Checkov",
+        "checkov"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:cloudsplaining",
+      "backend_runtime_id": "cloudsplaining/cloud-lab",
+      "container_digest": "",
+      "executable_path": "/usr/local/bin/cloudsplaining",
+      "executable_sha256": "3e4fefa0b7d14a7e98707ded87bbf3bd57a94abb24a09646d3530035de0d9ed6",
+      "expected_versions": [
+        "0.7.0"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "cloudsplaining, version 0.7.0",
+      "runner_profile": "arsenal-cloud-lab",
+      "tool_names": [
+        "Cloudsplaining"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:codeql",
+      "backend_runtime_id": "codeql/linux-cli",
+      "container_digest": "",
+      "executable_path": "/opt/codeql/codeql",
+      "executable_sha256": "5c905275695b4efcaa02ea380f6e60b01310fa3dff0fa8c442bf0638bb46055a",
+      "expected_versions": [
+        "2.26.4"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "CodeQL command-line toolchain release 2.26.4.",
+      "runner_profile": "arsenal-linux",
+      "tool_names": [
+        "CodeQL"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:detect-secrets",
+      "backend_runtime_id": "detect-secrets/linux-cli",
+      "container_digest": "",
+      "executable_path": "/usr/local/bin/detect-secrets",
+      "executable_sha256": "6b3e5f0a76e83cf8f497619d1937e4f96c1bf67e00838caa5911bb24147509e4",
+      "expected_versions": [
+        "1.5.0"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "1.5.47",
+      "runner_profile": "arsenal-linux",
+      "tool_names": [
+        "detect-secrets"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:dnsx",
+      "backend_runtime_id": "dnsx/network-lab",
+      "container_digest": "",
+      "executable_path": "/root/go/bin/dnsx",
+      "executable_sha256": "c1f63a09fc034a6ca370908f563a37f4ed2f5209f4525ed957df8df4cc0f45a8",
+      "expected_versions": [
+        "1.2.2"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "_             __  __",
+      "runner_profile": "arsenal-network-lab",
+      "tool_names": [
+        "dnsx"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:echidna",
+      "backend_runtime_id": "echidna/contract-cli",
+      "container_digest": "",
+      "executable_path": "/usr/local/bin/echidna",
+      "executable_sha256": "63cc4adedbee09b0a71b41d3caed5772fdab79c05a0c8f38bd7738f07fb395da",
+      "expected_versions": [
+        "2.3.3"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "Echidna 2.3.3",
+      "runner_profile": "arsenal-smart-contract",
+      "tool_names": [
+        "Echidna"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:floss",
+      "backend_runtime_id": "floss/linux-cli",
+      "container_digest": "",
+      "executable_path": "/usr/local/bin/floss",
+      "executable_sha256": "d71b9ea4fe3b2de974dc1ae3c5d0f67569921bc118dcb02ed72e905a662411cb",
+      "expected_versions": [
+        "3.1.1"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "floss v3.1.1-0-g3cd3ee6",
+      "runner_profile": "arsenal-binary",
+      "tool_names": [
+        "FLOSS"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:forge",
+      "backend_runtime_id": "foundry/forge",
+      "container_digest": "",
+      "executable_path": "/usr/local/bin/forge",
+      "executable_sha256": "c0fbe3ba32d7f498507042dbb94f5954be51126a76ce84e37d71749e7c9c571f",
+      "expected_versions": [
+        "1.8.0"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "forge Version: 1.8.0",
+      "runner_profile": "arsenal-smart-contract",
+      "tool_names": [
+        "Foundry"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:garak",
+      "backend_runtime_id": "garak/linux-cli",
+      "container_digest": "",
+      "executable_path": "/usr/local/bin/garak",
+      "executable_sha256": "2dda1ca177505427e1404426625ac96a9a52588f962ab3e9494879dc16880f87",
+      "expected_versions": [],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "garak LLM vulnerability scanner v0.16.0 ( https://github.com/NVIDIA/garak ) at 2026-09-03T14:17:15.264182",
+      "runner_profile": "arsenal-linux",
+      "tool_names": [
+        "garak"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "8.30.1",
+        "asset-lane/1",
+        "deep-asset/1",
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:gitleaks",
+      "backend_runtime_id": "gitleaks/linux-cli",
+      "container_digest": "",
+      "executable_path": "/usr/local/bin/gitleaks",
+      "executable_sha256": "50b742abd7daad8bbddb6301f3017efb680632d9a5b3b4d8f137b3aac250e359",
+      "expected_versions": [
+        "8.21.2",
+        "8.30.1"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "gitleaks version 8.21.2",
+      "runner_profile": "arsenal-linux",
+      "tool_names": [
+        "gitleaks"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1",
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:gosec",
+      "backend_runtime_id": "gosec/linux-cli",
+      "container_digest": "",
+      "executable_path": "/root/go/bin/gosec",
+      "executable_sha256": "940e888a7cdcfaa58876795ca907773458e72a78e7e2c7cbfc111140126fc26f",
+      "expected_versions": [
+        "2.22.8"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "Version: dev",
+      "runner_profile": "arsenal-linux",
+      "tool_names": [
+        "gosec"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:grpcurl",
+      "backend_runtime_id": "grpcurl/network-lab",
+      "container_digest": "",
+      "executable_path": "/usr/local/bin/grpcurl",
+      "executable_sha256": "62e2e4315bb70fab2e27f86c1f7738d09076a097a2dc8e0f701e386251172e40",
+      "expected_versions": [
+        "1.9.3"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "grpcurl v1.9.3",
+      "runner_profile": "arsenal-network-lab",
+      "tool_names": [
+        "grpcurl"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1",
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:grype",
+      "backend_runtime_id": "grype/linux-cli",
+      "container_digest": "",
+      "executable_path": "/usr/local/bin/grype",
+      "executable_sha256": "a8fff88f37a08af6a536e162f37f9902ec94af03df9928ee6295dffe7044dc43",
+      "expected_versions": [
+        "0.116.1"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "grype 0.116.1",
+      "runner_profile": "arsenal-linux",
+      "tool_names": [
+        "grype"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "1.6.9",
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:httpx",
+      "backend_runtime_id": "httpx/network-lab",
+      "container_digest": "",
+      "executable_path": "/usr/local/bin/httpx",
+      "executable_sha256": "8af0465bcb45283815fde9f9dd46c1590b42462e0c4480671bcc1d24e5f68951",
+      "expected_versions": [
+        "1.10.0",
+        "1.6.9"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "__    __  __       _  __",
+      "runner_profile": "arsenal-network-lab",
+      "tool_names": [
+        "http-probe",
+        "httpx"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:jadx",
+      "backend_runtime_id": "jadx/android-lab",
+      "container_digest": "",
+      "executable_path": "/opt/jadx/bin/jadx",
+      "executable_sha256": "6b732b576bf8dc554278beb94ce006f9549ac898eff975d83548f87244961f13",
+      "expected_versions": [
+        "1.5.6"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "1.5.6",
+      "runner_profile": "arsenal-android",
+      "tool_names": [
+        "jadx"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "0.0.3"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:jsluice",
+      "backend_runtime_id": "jsluice/linux-cli",
+      "container_digest": "",
+      "executable_path": "/root/go/bin/jsluice",
+      "executable_sha256": "8333c2076fffe77c54bda7647202970d11430bcb29c7eaf0b33a916d18298aeb",
+      "expected_versions": [
+        "0.0.3"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "jsluice - Extract URLs, paths, and secrets from JavaScript files",
+      "runner_profile": "arsenal-linux",
+      "tool_names": [
+        "jsluice"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "1.1.0",
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:katana",
+      "backend_runtime_id": "katana/network-lab",
+      "container_digest": "",
+      "executable_path": "/root/go/bin/katana",
+      "executable_sha256": "dc06bac76b6976dcf800c57ddb0a0bab4ee66fcf9940df5f35239511dd3aaa62",
+      "expected_versions": [
+        "1.1.0"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "__        __                ",
+      "runner_profile": "arsenal-network-lab",
+      "tool_names": [
+        "katana"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:kics",
+      "backend_runtime_id": "kics/linux-cli",
+      "container_digest": "",
+      "executable_path": "/opt/kics/kics",
+      "executable_sha256": "bf09113e082af287e00e07cc0d85e00a633354a96f920b861535d433d3719829",
+      "expected_versions": [
+        "2.1.20"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "Keeping Infrastructure as Code Secure v2.1.20",
+      "runner_profile": "arsenal-linux",
+      "tool_names": [
+        "KICS"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:kubescape",
+      "backend_runtime_id": "kubescape/kubernetes-lab",
+      "container_digest": "",
+      "executable_path": "/usr/local/bin/kubescape",
+      "executable_sha256": "58e9840d26a3d37fc86dd1b9ee41b085ec7d3e67a56833b66d2a716792af61fa",
+      "expected_versions": [],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "Your current version is: v4.0.12",
+      "runner_profile": "arsenal-kubernetes",
+      "tool_names": [
+        "Kubescape"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:mitmproxy",
+      "backend_runtime_id": "mitmproxy/network-lab",
+      "container_digest": "",
+      "executable_path": "/opt/venvs/mitmproxy/bin/mitmproxy",
+      "executable_sha256": "80bef1ff69a79eeeda773258b212b1b5b5995ef977c6f298e2c06fa45e3cf1d0",
+      "expected_versions": [
+        "12.2.3"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "Mitmproxy: 12.2.3",
+      "runner_profile": "arsenal-network-lab",
+      "tool_names": [
+        "mitmproxy"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:modelscan",
+      "backend_runtime_id": "modelscan/linux-cli",
+      "container_digest": "",
+      "executable_path": "/usr/local/bin/modelscan",
+      "executable_sha256": "9168baf5571ed7900babbbc0642457253646b315e5b351d6e1ecf347e59c8499",
+      "expected_versions": [
+        "0.8.8"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "modelscan, version 0.8.8",
+      "runner_profile": "arsenal-linux",
+      "tool_names": [
+        "ModelScan"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "asset-lane/1",
+        "deep-asset/1",
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:myth",
+      "backend_runtime_id": "mythril/linux-cli",
+      "container_digest": "",
+      "executable_path": "/opt/aegis-tools/mythril/bin/myth",
+      "executable_sha256": "8fe9178fd9157ba015fcc58ddf24699f5c75445556b76cf1b367ffee888240fb",
+      "expected_versions": [
+        "0.24.8"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "Mythril version v0.24.8",
+      "runner_profile": "arsenal-smart-contract",
+      "tool_names": [
+        "Mythril",
+        "mythril"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:naabu",
+      "backend_runtime_id": "naabu/network-lab",
+      "container_digest": "",
+      "executable_path": "/usr/local/bin/naabu",
+      "executable_sha256": "6c0aac4253aebe95bbc13d4712a5f8caf7db9c9b62d6bc1fb4c56594cfa45165",
+      "expected_versions": [
+        "2.6.1"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "__",
+      "runner_profile": "arsenal-network-lab",
+      "tool_names": [
+        "naabu"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:njsscan",
+      "backend_runtime_id": "njsscan/linux-cli",
+      "container_digest": "",
+      "executable_path": "/opt/aegis-tools/njsscan/bin/njsscan",
+      "executable_sha256": "4784e4300260da62238c6fd5922865d8c4f65466abc9e1b76abb6c696999eee7",
+      "expected_versions": [
+        "0.4.3"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "\u001b[34m",
+      "runner_profile": "arsenal-linux",
+      "tool_names": [
+        "njsscan"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "asset-lane/1",
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:nmap",
+      "backend_runtime_id": "nmap/network-lab",
+      "container_digest": "",
+      "executable_path": "/usr/bin/nmap",
+      "executable_sha256": "2fe7e6e019929c0dbb5e4772f2a619416cc3c7f25f95c27f016405dc744f92f7",
+      "expected_versions": [
+        "7.93"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "Nmap version 7.93 ( https://nmap.org )",
+      "runner_profile": "arsenal-network-lab",
+      "tool_names": [
+        "nmap"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:npm",
+      "backend_runtime_id": "npm/linux-cli",
+      "container_digest": "",
+      "executable_path": "/usr/local/lib/node_modules/npm/bin/npm-cli.js",
+      "executable_sha256": "8e5f6f3429f8cdbe693cdc29904e9d5a7b127a494bd15c804bd54c7403bfcbe7",
+      "expected_versions": [
+        "9.2.0"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "10.9.4",
+      "runner_profile": "arsenal-linux",
+      "tool_names": [
+        "npm"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:nuclei",
+      "backend_runtime_id": "nuclei/network-lab",
+      "container_digest": "",
+      "executable_path": "/usr/local/bin/nuclei",
+      "executable_sha256": "b22286190c5458f3f2e9d173d81d7f82884d5d15067efb5fb60a2176b55f4058",
+      "expected_versions": [
+        "3.3.0"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "[\u001b[34mINF\u001b[0m] Nuclei Engine Version: v3.3.0[\u001b[34mINF\u001b[0m] Nuclei Config Directory: /root/.config/nuclei[\u001b[34mINF\u001b[0m] Nuclei Cache Directory: /root/.cache/nuclei[\u001b[34mINF\u001b[0m] PDCP Directory: /root/.pdcp",
+      "runner_profile": "arsenal-network-lab",
+      "tool_names": [
+        "nuclei"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "2.4.0",
+        "deep-asset/1",
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:osv-scanner",
+      "backend_runtime_id": "osv-scanner/linux-cli",
+      "container_digest": "",
+      "executable_path": "/usr/local/bin/osv-scanner",
+      "executable_sha256": "f9f25499a2c8cc367b3af45df2ea7eeca7fbccceab9c35079968f4b3652194be",
+      "expected_versions": [
+        "2.4.0",
+        "2.5.1"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "osv-scanner version: 2.5.1",
+      "runner_profile": "arsenal-linux",
+      "tool_names": [
+        "osv-scanner"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:pefile",
+      "backend_runtime_id": "pefile/linux-cli",
+      "container_digest": "",
+      "executable_path": "/usr/local/bin/pefile",
+      "executable_sha256": "f9ae953c93d4cf7544c6127e854846ff6a254bee8db3a988f1b1be6194557745",
+      "expected_versions": [
+        "2024.8.26"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "pefile 2024.8.26",
+      "runner_profile": "arsenal-binary",
+      "tool_names": [
+        "pefile"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:pip-audit",
+      "backend_runtime_id": "pip-audit/linux-cli",
+      "container_digest": "",
+      "executable_path": "/opt/venvs/pip-audit/bin/pip-audit",
+      "executable_sha256": "4fe2b7c2c97b987786a1bb877721ba156a8623c89db492d989cc838373974166",
+      "expected_versions": [
+        "2.10.1"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "pip-audit 2.10.1",
+      "runner_profile": "arsenal-linux",
+      "tool_names": [
+        "pip-audit"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:playwright",
+      "backend_runtime_id": "playwright/linux-cli",
+      "container_digest": "",
+      "executable_path": "/usr/local/lib/node_modules/@playwright/test/cli.js",
+      "executable_sha256": "79e23e6a249176295b8490567daa7717448a75866d6ea6f6b296ff3d23305c69",
+      "expected_versions": [
+        "1.60.0"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "Version 1.60.0",
+      "runner_profile": "arsenal-linux",
+      "tool_names": [
+        "Playwright"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:promptfoo",
+      "backend_runtime_id": "promptfoo/linux-cli",
+      "container_digest": "",
+      "executable_path": "/usr/local/lib/node_modules/promptfoo/dist/src/entrypoint.js",
+      "executable_sha256": "b1f2d2cbe07ef2308d6e3eea067789d86c4e97d664636f3d1250f74a8ac04003",
+      "expected_versions": [
+        "0.122.2"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "0.122.2",
+      "runner_profile": "arsenal-linux",
+      "tool_names": [
+        "promptfoo"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:psalm",
+      "backend_runtime_id": "psalm/linux-cli",
+      "container_digest": "",
+      "executable_path": "/root/.composer/vendor/bin/psalm",
+      "executable_sha256": "3f11e55364339adc1b31fcabe8704f69e5192c83f7913d71670695f234c2979b",
+      "expected_versions": [
+        "6.16.1"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "Psalm 6.16.1@f1f5de594dc76faf8784e02d3dc4716c91c6f6ac",
+      "runner_profile": "arsenal-linux",
+      "tool_names": [
+        "psalm"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:pyrit",
+      "backend_runtime_id": "pyrit/linux-cli",
+      "container_digest": "",
+      "executable_path": "/usr/local/bin/pyrit",
+      "executable_sha256": "dcb9a675cbd036a7f82f67f3769e5e1936d56e43ebbd33d02e6860afa0a2d2d4",
+      "expected_versions": [],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "1.0.1",
+      "runner_profile": "arsenal-linux",
+      "tool_names": [
+        "PyRIT"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:restler",
+      "backend_runtime_id": "restler/network-lab",
+      "container_digest": "",
+      "executable_path": "/usr/local/bin/restler",
+      "executable_sha256": "44b8004b82c8898d4dbcb7af612ef25cdce85a03741d49d6d278c379749d8ed5",
+      "expected_versions": [
+        "9.3.1"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "RESTler 9.3.1",
+      "runner_profile": "arsenal-network-lab",
+      "tool_names": [
+        "RESTler"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:retire",
+      "backend_runtime_id": "retire-js/node-cli",
+      "container_digest": "",
+      "executable_path": "/usr/local/lib/node_modules/retire/lib/cli.js",
+      "executable_sha256": "fc0cef3213de99d5ee2ac8e074bc1254c2f4014bdfcf9cd427d7566a0337b52e",
+      "expected_versions": [
+        "5.4.3"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "5.4.3",
+      "runner_profile": "arsenal-linux",
+      "tool_names": [
+        "retire.js"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:rizin",
+      "backend_runtime_id": "rizin/linux-cli",
+      "container_digest": "",
+      "executable_path": "/opt/rizin/bin/rizin",
+      "executable_sha256": "ab5614cf137608cffc5a3f4f471a91c995cfa7c0c35465bfb73876e5b95561ba",
+      "expected_versions": [
+        "0.9.1"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "-- Assemble opcodes with the 'a' and 'A' keys in visual mode, which are bindings to the 'wa' and 'wA' commands",
+      "runner_profile": "arsenal-binary",
+      "tool_names": [
+        "Rizin"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:rustscan",
+      "backend_runtime_id": "rustscan/network-lab",
+      "container_digest": "",
+      "executable_path": "/usr/local/bin/rustscan",
+      "executable_sha256": "8a507fbd1821746ce747dcce6c2c4cfa0c6aff9c4d1095967a4c2707db6d1b41",
+      "expected_versions": [
+        "2.4.1"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "rustscan 2.4.1",
+      "runner_profile": "arsenal-network-lab",
+      "tool_names": [
+        "RustScan"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:schemathesis",
+      "backend_runtime_id": "schemathesis/network-lab",
+      "container_digest": "",
+      "executable_path": "/opt/venvs/schemathesis/bin/schemathesis",
+      "executable_sha256": "8f2589bda6c95d2209da9b28e060963154efde1d1c0deebc3bbaab6e2d206e92",
+      "expected_versions": [
+        "4.25.2"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "schemathesis, version 4.25.2",
+      "runner_profile": "arsenal-network-lab",
+      "tool_names": [
+        "Schemathesis"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:scorecard",
+      "backend_runtime_id": "scorecard/linux-cli",
+      "container_digest": "",
+      "executable_path": "/usr/local/bin/scorecard",
+      "executable_sha256": "7db97dd0ab75863614ae5a86c9fb414418a2c0ff00f4a6b33b8806c7ed09efce",
+      "expected_versions": [],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "OpenSSF Scorecard v5.5.0",
+      "runner_profile": "arsenal-linux",
+      "tool_names": [
+        "OpenSSF Scorecard"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "1.164.0",
+        "asset-lane/1",
+        "deep-asset/1",
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:semgrep",
+      "backend_runtime_id": "semgrep/linux-cli",
+      "container_digest": "",
+      "executable_path": "/usr/local/bin/semgrep",
+      "executable_sha256": "c7d9046d766bb5c035107e169808e64345abbfe6cddbb25dc3c2c1c994e3b80e",
+      "expected_versions": [
+        "1.164.0",
+        "1.172.0"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "1.172.0",
+      "runner_profile": "arsenal-linux",
+      "tool_names": [
+        "semgrep"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:skopeo",
+      "backend_runtime_id": "skopeo/linux-cli",
+      "container_digest": "",
+      "executable_path": "/usr/bin/skopeo",
+      "executable_sha256": "639cefd9b555d9bf1a8dcf29bbbc2568c5e1382a47582da1dca7e4298b10f122",
+      "expected_versions": [
+        "1.9.3"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "skopeo version 1.9.3",
+      "runner_profile": "arsenal-linux",
+      "tool_names": [
+        "skopeo"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "asset-lane/1",
+        "deep-asset/1",
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:slither",
+      "backend_runtime_id": "slither/contract-cli",
+      "container_digest": "",
+      "executable_path": "/usr/local/bin/slither",
+      "executable_sha256": "04fe49c2c65830eef0a6cb2cfb3a165b858c1650d933be62e859dfdf4771b5cf",
+      "expected_versions": [
+        "0.11.6"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "0.11.6",
+      "runner_profile": "arsenal-smart-contract",
+      "tool_names": [
+        "slither"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:spotbugs",
+      "backend_runtime_id": "spotbugs/linux-cli",
+      "container_digest": "",
+      "executable_path": "/opt/spotbugs/bin/spotbugs",
+      "executable_sha256": "29d029c0fc837d1592992d9fd27a4a31edd081e6710d4cdf29510eeca77b4f91",
+      "expected_versions": [
+        "4.10.4"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "4.10.4",
+      "runner_profile": "arsenal-linux",
+      "tool_names": [
+        "SpotBugs"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:ssh-audit",
+      "backend_runtime_id": "ssh-audit/network-lab",
+      "container_digest": "",
+      "executable_path": "/usr/local/bin/ssh-audit",
+      "executable_sha256": "add7e0caf6366d8fcc8fb9d032a9022ef2bb84bc8cff65d337470475d74f4e84",
+      "expected_versions": [
+        "3.9.0"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "usage: ssh-audit [-h] [-4] [-6] [-b] [-c] [-d]",
+      "runner_profile": "arsenal-network-lab",
+      "tool_names": [
+        "ssh-audit"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "asset-lane/1",
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:syft",
+      "backend_runtime_id": "syft/linux-cli",
+      "container_digest": "",
+      "executable_path": "/usr/local/bin/syft",
+      "executable_sha256": "abca2def61de9952fa06d3977bb1e064818facb9badfce502b450d3d6846a91f",
+      "expected_versions": [
+        "1.51.1"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "syft 1.51.1",
+      "runner_profile": "arsenal-linux",
+      "tool_names": [
+        "syft"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:testssl.sh",
+      "backend_runtime_id": "testssl-sh/linux-cli",
+      "container_digest": "",
+      "executable_path": "/opt/testssl/testssl.sh",
+      "executable_sha256": "9a42b203edaf8cfdd19cdca7c3cf16c78668bdc88cd656cf2cae0ec6e43129e4",
+      "expected_versions": [
+        "3.2.4"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "\u001b[1m",
+      "runner_profile": "arsenal-network-lab",
+      "tool_names": [
+        "testssl.sh"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "asset-lane/1",
+        "deep-asset/1",
+        "tool-bridge/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:trivy",
+      "backend_runtime_id": "trivy/linux-cli",
+      "container_digest": "",
+      "executable_path": "/usr/local/bin/trivy",
+      "executable_sha256": "5b3ebab0f98d95196c85efc3a9d31a01520c96fa342e4e611f56db64c516df1d",
+      "expected_versions": [
+        "0.73.0"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "Version: 0.73.0",
+      "runner_profile": "arsenal-linux",
+      "tool_names": [
+        "trivy"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:web-ext",
+      "backend_runtime_id": "web-ext/linux-cli",
+      "container_digest": "",
+      "executable_path": "/usr/local/lib/node_modules/web-ext/bin/web-ext.js",
+      "executable_sha256": "0045eb01f064e1ea373ae51c896c0e5cc1281db0a2523ef3f2b363d7b6bcbcae",
+      "expected_versions": [
+        "8.10.0"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "8.10.0",
+      "runner_profile": "arsenal-linux",
+      "tool_names": [
+        "web-ext"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:websocat",
+      "backend_runtime_id": "websocat/network-lab",
+      "container_digest": "",
+      "executable_path": "/usr/local/bin/websocat",
+      "executable_sha256": "66f8dd3a0394761556339117f8bb5123bddefd44e087af2a72ec22b0bd08d514",
+      "expected_versions": [
+        "1.14.1"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "websocat 1.14.1",
+      "runner_profile": "arsenal-network-lab",
+      "tool_names": [
+        "websocat"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:yara",
+      "backend_runtime_id": "yara/linux-cli",
+      "container_digest": "",
+      "executable_path": "/usr/bin/yara",
+      "executable_sha256": "abde7039540db98543899073c6a51f503f985379f5107d93fb0ddf0ed8f47584",
+      "expected_versions": [
+        "4.2.3"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "4.2.3",
+      "runner_profile": "arsenal-binary",
+      "tool_names": [
+        "YARA"
+      ]
+    },
+    {
+      "adapter_versions": [
+        "deep-asset/1"
+      ],
+      "architecture": "x86_64",
+      "backend_id": "external:zizmor",
+      "backend_runtime_id": "zizmor/linux-cli",
+      "container_digest": "",
+      "executable_path": "/usr/local/bin/zizmor",
+      "executable_sha256": "a3331b0a69fc0d8bf8087b0d74d5424602c5a0f2fc2770afe2e908a1295692b5",
+      "expected_versions": [
+        "1.29.0"
+      ],
+      "installation_source": "resolved executable/runtime probe",
+      "installed_version": "zizmor 1.29.0",
+      "runner_profile": "arsenal-linux",
+      "tool_names": [
+        "zizmor"
+      ]
+    }
+  ]
+}

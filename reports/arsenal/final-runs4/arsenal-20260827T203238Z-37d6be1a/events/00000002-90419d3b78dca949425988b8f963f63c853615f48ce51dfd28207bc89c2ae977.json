@@ -1,0 +1,18 @@
+{
+  "detail": {
+    "blocking_reason": "binary not found",
+    "capability_id": "asset:codeql/cross-file-dataflow",
+    "evidence_digest": "6424c2b2951b9bb866134cfd960840dea6e9d5c54fa095d8957bf3de3ad33004",
+    "evidence_ref": "evidence/6424c2b2951b9bb866134cfd960840dea6e9d5c54fa095d8957bf3de3ad33004.json",
+    "execution_grant_id": null,
+    "mission_id": "arsenal-blocked-37d6be1a6ec78d8c",
+    "result": "UNAVAILABLE",
+    "task_id": "arsenal-blocked-37d6be1a6ec78d8c-execute"
+  },
+  "digest": "90419d3b78dca949425988b8f963f63c853615f48ce51dfd28207bc89c2ae977",
+  "event_type": "arsenal_task_blocked",
+  "observed_at": "2026-08-27T20:32:38.680458+00:00",
+  "previous_digest": "4dfba2f265c06c8086b11528802ce741954bb47498dd2142746c175609a0e164",
+  "sequence": 2,
+  "status": "failed"
+}

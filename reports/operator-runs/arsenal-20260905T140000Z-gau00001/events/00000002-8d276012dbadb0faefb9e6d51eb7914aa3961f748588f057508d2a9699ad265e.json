@@ -1,0 +1,17 @@
+{
+  "detail": {
+    "backend": "gau",
+    "backend_version": "2.2.4",
+    "capability_id": "adapter:gau/passive-discovery",
+    "evidence_digest": "4fc0048ec8264e0e73649173cabfb6404b3da01c5862aecf4d5e5caeed2f1019",
+    "evidence_ref": "evidence/4fc0048ec8264e0e73649173cabfb6404b3da01c5862aecf4d5e5caeed2f1019.json",
+    "result": "EXECUTED_PASS",
+    "task_id": "arsenal-task-gau-01"
+  },
+  "digest": "8d276012dbadb0faefb9e6d51eb7914aa3961f748588f057508d2a9699ad265e",
+  "event_type": "arsenal_task_completed",
+  "observed_at": "2026-09-06T14:24:25.399753+00:00",
+  "previous_digest": "fd8b110672ae5bffcaada3a1ac48f19022a1b80bd4796e91fc52941290a43242",
+  "sequence": 2,
+  "status": "completed"
+}

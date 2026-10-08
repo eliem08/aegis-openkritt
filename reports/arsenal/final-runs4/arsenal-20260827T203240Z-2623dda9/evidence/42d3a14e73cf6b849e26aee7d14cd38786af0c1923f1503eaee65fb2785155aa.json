@@ -1,0 +1,13 @@
+{
+  "blocking_reason": "backend is present but its deterministic positive/negative fixture provider is not connected to the canonical executor",
+  "capability_id": "asset:grype/container-image-vulnerability-scan",
+  "coverage_state": "WAITING_FOR_PREREQUISITE",
+  "evidence_digest": "42d3a14e73cf6b849e26aee7d14cd38786af0c1923f1503eaee65fb2785155aa",
+  "execution_grant_issued": false,
+  "execution_performed": false,
+  "kind": "arsenal_fixture_blocked",
+  "mission_id": "arsenal-blocked-2623dda94243eca7",
+  "mode": "FIXTURE",
+  "run_id": "arsenal-20260827T203240Z-2623dda9",
+  "task_id": "arsenal-blocked-2623dda94243eca7-execute"
+}

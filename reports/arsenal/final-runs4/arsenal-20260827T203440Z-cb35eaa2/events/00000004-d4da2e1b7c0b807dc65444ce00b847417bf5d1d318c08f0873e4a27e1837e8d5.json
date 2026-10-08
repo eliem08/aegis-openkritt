@@ -1,0 +1,28 @@
+{
+  "detail": {
+    "asset": "127.0.0.1",
+    "authorization_decision": "arsenal:tool:retire-js/deps",
+    "backend": "retire.js",
+    "backend_version": "5.4.3",
+    "blocking_reason": "",
+    "capability_id": "tool:retire-js/deps",
+    "evidence_digest": "d661d64586f974b3454c59b4cb7f83b2b110d2b1eb5cf286cf7d037e81e5ce3a",
+    "evidence_ref": "evidence/d661d64586f974b3454c59b4cb7f83b2b110d2b1eb5cf286cf7d037e81e5ce3a.json",
+    "execution_error_class": null,
+    "execution_grant_id": "83abfd9e8a7742ad",
+    "finding_ids": [],
+    "fixture_detection": true,
+    "mission_id": "arsenal-tool-cb35eaa24caa",
+    "mode": "FIXTURE",
+    "negative_control_status": "PASSED",
+    "policy_snapshot_digest": "e9dc52e97b35225a0c936cbb21cf6a57125fab156ebe781fbf0dd01d0c147d2f",
+    "result": "EXECUTED_PASS",
+    "task_id": "arsenal-tool-cb35eaa24caa-execute"
+  },
+  "digest": "d4da2e1b7c0b807dc65444ce00b847417bf5d1d318c08f0873e4a27e1837e8d5",
+  "event_type": "arsenal_task_completed",
+  "observed_at": "2026-08-27T20:34:42.002559+00:00",
+  "previous_digest": "ae20ddfd7d6b7b9391762d164bee06a4edd07d35b78685647a2ae4eb7c955b37",
+  "sequence": 4,
+  "status": "completed"
+}

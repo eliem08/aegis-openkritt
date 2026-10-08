@@ -1,0 +1,13 @@
+{
+  "detail": {
+    "capability_id": "asset:mobsf/rest-static-analysis",
+    "mission_id": "arsenal-tool-04a49db7e085",
+    "task_id": "arsenal-tool-04a49db7e085-execute"
+  },
+  "digest": "b7f2d1cbd4859459d8008734dc758c9bdd61e3073d5478e6ea6b4374ea16ba7a",
+  "event_type": "arsenal_task_started",
+  "observed_at": "2026-09-03T15:27:01.674613+00:00",
+  "previous_digest": "823d12b37b62a55aff8c554edfb6f8dab6043c365876fbf706eb8f7907c10b31",
+  "sequence": 3,
+  "status": "running"
+}

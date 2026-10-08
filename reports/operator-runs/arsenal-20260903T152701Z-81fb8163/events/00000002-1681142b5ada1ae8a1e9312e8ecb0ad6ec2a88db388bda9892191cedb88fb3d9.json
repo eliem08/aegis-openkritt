@@ -1,0 +1,58 @@
+{
+  "detail": {
+    "capability_id": "asset:firmae/firmware-emulation",
+    "grant": {
+      "allowed_destinations": [],
+      "allowed_methods": [],
+      "budget": {
+        "max_cost_usd": 0.0,
+        "max_human_minutes": 0.0,
+        "max_requests": 0
+      },
+      "constraints": {
+        "authorization_class": "LOCAL_FIXTURE_ONLY",
+        "capability_id": "asset:firmae/firmware-emulation",
+        "covered_capability_ids": [
+          "asset:firmae/firmware-emulation",
+          "asset:firmadyne/firmware-emulation-fallback"
+        ],
+        "fixture_version": "firmae-emulation-v1",
+        "negative_fixture_digest": "ba0d9b2efc353b93a08fcba684f12d581ee28b945ce9d9a2a0d4472e960e459e",
+        "positive_fixture_digest": "51c1a8c81e5c7986da622f098e7bc08e86e3ee2ed696c66a7b5906f324d1e9e0"
+      },
+      "decision_fingerprint": "239670695b0e6e651bb10c91",
+      "expires_at": "2026-09-03T15:42:01.850807+00:00",
+      "external_model_egress_allowed": false,
+      "human_approval": false,
+      "issued_at": "2026-09-03T15:27:01.850807+00:00",
+      "network_allowed": false,
+      "nonce": "48dbd8c74a091bec",
+      "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+      "state_change_allowed": false
+    },
+    "policy_decision": {
+      "action": "source_analysis",
+      "authorization_id": "fixture:20260903T152701Z",
+      "evaluated_at": "2026-09-03T15:27:01.850782+00:00",
+      "incidents": [],
+      "reasons": [
+        {
+          "code": "ok",
+          "message": "all policy gates passed",
+          "verdict": "allow"
+        }
+      ],
+      "request_id": "arsenal:asset:firmae/firmware-emulation",
+      "required_approvals": [],
+      "target": "127.0.0.1",
+      "tier": "passive",
+      "verdict": "allow"
+    }
+  },
+  "digest": "1681142b5ada1ae8a1e9312e8ecb0ad6ec2a88db388bda9892191cedb88fb3d9",
+  "event_type": "arsenal_fixture_authorized",
+  "observed_at": "2026-09-03T15:27:01.861870+00:00",
+  "previous_digest": "0fe2838ac72bbfbeb0c2b4516bde75f8362e3d6b6d256ee9929428e0c4c168aa",
+  "sequence": 2,
+  "status": "authorized"
+}

@@ -1,0 +1,13 @@
+{
+  "blocking_reason": "backend is present but its deterministic positive/negative fixture provider is not connected to the canonical executor",
+  "capability_id": "asset:aegis-asset-classifier/deterministic-asset-classification",
+  "coverage_state": "WAITING_FOR_PREREQUISITE",
+  "evidence_digest": "92970221b71ed985a515d9774eed4f5b13db85b1e884b64b10b6c2b9a8ecd235",
+  "execution_grant_issued": false,
+  "execution_performed": false,
+  "kind": "arsenal_fixture_blocked",
+  "mission_id": "arsenal-blocked-9a2f9185d24d8c0d",
+  "mode": "FIXTURE",
+  "run_id": "arsenal-20260827T203233Z-9a2f9185",
+  "task_id": "arsenal-blocked-9a2f9185d24d8c0d-execute"
+}

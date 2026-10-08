@@ -1,0 +1,57 @@
+{
+  "detail": {
+    "capability_id": "asset:aegis-firmware-arch/firmware-architecture-detection",
+    "grant": {
+      "allowed_destinations": [],
+      "allowed_methods": [],
+      "budget": {
+        "max_cost_usd": 0.0,
+        "max_human_minutes": 0.0,
+        "max_requests": 0
+      },
+      "constraints": {
+        "authorization_class": "LOCAL_FIXTURE_ONLY",
+        "capability_id": "asset:aegis-firmware-arch/firmware-architecture-detection",
+        "covered_capability_ids": [
+          "asset:aegis-firmware-arch/firmware-architecture-detection"
+        ],
+        "fixture_version": "aegis-firmware-arch-v1",
+        "negative_fixture_digest": "8969f729db1f3c1166701edb401e1b90e378ebc11bd79f78d5b485b82898e55c",
+        "positive_fixture_digest": "92a5bfb8e727417738cfb6b40913d8c1bff57f7c0af53aaebcbea45ba29a5547"
+      },
+      "decision_fingerprint": "e7399923762654ebd0339f30",
+      "expires_at": "2026-09-03T15:42:00.043208+00:00",
+      "external_model_egress_allowed": false,
+      "human_approval": false,
+      "issued_at": "2026-09-03T15:27:00.043208+00:00",
+      "network_allowed": false,
+      "nonce": "22d85e190b284b99",
+      "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+      "state_change_allowed": false
+    },
+    "policy_decision": {
+      "action": "source_analysis",
+      "authorization_id": "fixture:20260903T152700Z",
+      "evaluated_at": "2026-09-03T15:27:00.043158+00:00",
+      "incidents": [],
+      "reasons": [
+        {
+          "code": "ok",
+          "message": "all policy gates passed",
+          "verdict": "allow"
+        }
+      ],
+      "request_id": "arsenal:asset:aegis-firmware-arch/firmware-architecture-detection",
+      "required_approvals": [],
+      "target": "127.0.0.1",
+      "tier": "passive",
+      "verdict": "allow"
+    }
+  },
+  "digest": "33ec94f75f45b5e92485c4c412714d3698eccd1d8532fa165b16db589799fa97",
+  "event_type": "arsenal_fixture_authorized",
+  "observed_at": "2026-09-03T15:27:00.051520+00:00",
+  "previous_digest": "a2da3ef161a776b3755e1bcac5467ad4d473bf325cb933e9c1298184c4b25873",
+  "sequence": 2,
+  "status": "authorized"
+}

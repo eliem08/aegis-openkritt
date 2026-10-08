@@ -1,0 +1,28 @@
+{
+  "detail": {
+    "asset": "127.0.0.1",
+    "authorization_decision": "arsenal:tool:checkov/deps",
+    "backend": "checkov",
+    "backend_version": "3.3.9",
+    "blocking_reason": "",
+    "capability_id": "tool:checkov/deps",
+    "evidence_digest": "7aeb895a40415a6bb15e076ef7f50f63f1164f8abc2253ae052a29d5a1cd01ab",
+    "evidence_ref": "evidence/7aeb895a40415a6bb15e076ef7f50f63f1164f8abc2253ae052a29d5a1cd01ab.json",
+    "execution_error_class": null,
+    "execution_grant_id": "f83ac38f1a02343f",
+    "finding_ids": [],
+    "fixture_detection": true,
+    "mission_id": "arsenal-tool-a197e48b736c",
+    "mode": "FIXTURE",
+    "negative_control_status": "PASSED",
+    "policy_snapshot_digest": "e9dc52e97b35225a0c936cbb21cf6a57125fab156ebe781fbf0dd01d0c147d2f",
+    "result": "EXECUTED_PASS",
+    "task_id": "arsenal-tool-a197e48b736c-execute"
+  },
+  "digest": "59a8c8fd397fb5f32a96e12c1e1f7858e0784ff5c30c886ee18c095d8f6b8c99",
+  "event_type": "arsenal_task_completed",
+  "observed_at": "2026-08-27T20:32:59.398526+00:00",
+  "previous_digest": "a58f152fa83d9ce24def88b9fde44013aa621b81c440dfcf9fa81dc6ea68ccee",
+  "sequence": 4,
+  "status": "completed"
+}

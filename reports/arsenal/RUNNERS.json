@@ -1,0 +1,483 @@
+{
+  "generated_at": "2026-09-03T15:34:55.497728+00:00",
+  "host": {
+    "architecture": "AMD64",
+    "os": "windows"
+  },
+  "profiles": [
+    {
+      "available": true,
+      "backend_runtimes_currently_executable": [],
+      "backend_runtimes_not_yet_executed": [],
+      "backend_runtimes_supported": [],
+      "binfmt": false,
+      "description": "Aegis internal fixtures, inventory, evidence verification, and policy tests",
+      "docker": false,
+      "kvm": "not-required",
+      "missing_prerequisites": [],
+      "network_mode": "none",
+      "os": "any",
+      "privileged": false,
+      "qemu": false,
+      "required_commands": [],
+      "required_environment": [],
+      "runner_profile": "arsenal-core",
+      "runtime_execution_coverage": null,
+      "status": "READY"
+    },
+    {
+      "available": true,
+      "backend_runtimes_currently_executable": [
+        "bandit/linux-cli",
+        "brakeman/linux-cli",
+        "checkov/linux-cli",
+        "codeql/linux-cli",
+        "detect-secrets/linux-cli",
+        "electron-asar/node-cli",
+        "garak/linux-cli",
+        "gitleaks/linux-cli",
+        "gosec/linux-cli",
+        "grype/linux-cli",
+        "jsluice/linux-cli",
+        "kics/linux-cli",
+        "modelscan/linux-cli",
+        "njsscan/linux-cli",
+        "npm/linux-cli",
+        "osv-scanner/linux-cli",
+        "pip-audit/linux-cli",
+        "playwright/linux-cli",
+        "promptfoo/linux-cli",
+        "psalm/linux-cli",
+        "pyrit/linux-cli",
+        "retire-js/node-cli",
+        "scorecard/linux-cli",
+        "semgrep/linux-cli",
+        "skopeo/linux-cli",
+        "spotbugs/linux-cli",
+        "syft/linux-cli",
+        "trivy/linux-cli",
+        "web-ext/linux-cli",
+        "zizmor/linux-cli"
+      ],
+      "backend_runtimes_not_yet_executed": [],
+      "backend_runtimes_supported": [
+        "bandit/linux-cli",
+        "brakeman/linux-cli",
+        "checkov/linux-cli",
+        "codeql/linux-cli",
+        "detect-secrets/linux-cli",
+        "electron-asar/node-cli",
+        "garak/linux-cli",
+        "gitleaks/linux-cli",
+        "gosec/linux-cli",
+        "grype/linux-cli",
+        "jsluice/linux-cli",
+        "kics/linux-cli",
+        "modelscan/linux-cli",
+        "njsscan/linux-cli",
+        "npm/linux-cli",
+        "osv-scanner/linux-cli",
+        "pip-audit/linux-cli",
+        "playwright/linux-cli",
+        "promptfoo/linux-cli",
+        "psalm/linux-cli",
+        "pyrit/linux-cli",
+        "retire-js/node-cli",
+        "scorecard/linux-cli",
+        "semgrep/linux-cli",
+        "skopeo/linux-cli",
+        "spotbugs/linux-cli",
+        "syft/linux-cli",
+        "trivy/linux-cli",
+        "web-ext/linux-cli",
+        "zizmor/linux-cli"
+      ],
+      "binfmt": false,
+      "description": "Pinned Linux CLI/static-analysis image",
+      "docker": true,
+      "kvm": "not-required",
+      "missing_prerequisites": [],
+      "network_mode": "none",
+      "os": "linux",
+      "privileged": false,
+      "qemu": false,
+      "required_commands": [
+        "docker"
+      ],
+      "required_environment": [],
+      "runner_profile": "arsenal-linux",
+      "runtime_execution_coverage": 1.0,
+      "status": "READY"
+    },
+    {
+      "available": true,
+      "backend_runtimes_currently_executable": [
+        "dnsx/network-lab",
+        "grpcurl/network-lab",
+        "httpx/network-lab",
+        "katana/network-lab",
+        "mitmproxy/network-lab",
+        "naabu/network-lab",
+        "nmap/network-lab",
+        "nuclei/network-lab",
+        "restler/network-lab",
+        "rustscan/network-lab",
+        "schemathesis/network-lab",
+        "ssh-audit/network-lab",
+        "testssl-sh/linux-cli",
+        "websocat/network-lab"
+      ],
+      "backend_runtimes_not_yet_executed": [],
+      "backend_runtimes_supported": [
+        "dnsx/network-lab",
+        "grpcurl/network-lab",
+        "httpx/network-lab",
+        "katana/network-lab",
+        "mitmproxy/network-lab",
+        "naabu/network-lab",
+        "nmap/network-lab",
+        "nuclei/network-lab",
+        "restler/network-lab",
+        "rustscan/network-lab",
+        "schemathesis/network-lab",
+        "ssh-audit/network-lab",
+        "testssl-sh/linux-cli",
+        "websocat/network-lab"
+      ],
+      "binfmt": false,
+      "description": "Isolated Docker network with deterministic local services",
+      "docker": true,
+      "kvm": "not-required",
+      "missing_prerequisites": [],
+      "network_mode": "isolated",
+      "os": "linux",
+      "privileged": false,
+      "qemu": false,
+      "required_commands": [
+        "docker"
+      ],
+      "required_environment": [],
+      "runner_profile": "arsenal-network-lab",
+      "runtime_execution_coverage": 1.0,
+      "status": "READY"
+    },
+    {
+      "available": false,
+      "backend_runtimes_currently_executable": [
+        "apktool/linux-cli",
+        "frida/device-cli",
+        "jadx/android-lab",
+        "mobsf/container",
+        "objection/android-lab"
+      ],
+      "backend_runtimes_not_yet_executed": [],
+      "backend_runtimes_supported": [
+        "apktool/linux-cli",
+        "frida/device-cli",
+        "jadx/android-lab",
+        "mobsf/container",
+        "objection/android-lab"
+      ],
+      "binfmt": false,
+      "description": "Operator-owned Android emulator and synthetic APK",
+      "docker": true,
+      "kvm": "not-required",
+      "missing_prerequisites": [
+        "environment:ANDROID_HOME"
+      ],
+      "network_mode": "isolated",
+      "os": "linux",
+      "privileged": false,
+      "qemu": false,
+      "required_commands": [
+        "adb",
+        "emulator"
+      ],
+      "required_environment": [
+        "ANDROID_HOME"
+      ],
+      "runner_profile": "arsenal-android",
+      "runtime_execution_coverage": 1.0,
+      "status": "WAITING_FOR_PREREQUISITE"
+    },
+    {
+      "available": false,
+      "backend_runtimes_currently_executable": [
+        "binwalk/firmware-lab",
+        "firmadyne/qemu-lab",
+        "firmae/qemu-lab"
+      ],
+      "backend_runtimes_not_yet_executed": [],
+      "backend_runtimes_supported": [
+        "binwalk/firmware-lab",
+        "firmadyne/qemu-lab",
+        "firmae/qemu-lab"
+      ],
+      "binfmt": true,
+      "description": "Privileged QEMU/binfmt synthetic firmware lab",
+      "docker": true,
+      "kvm": "optional",
+      "missing_prerequisites": [
+        "privileged-runner-approval"
+      ],
+      "network_mode": "isolated",
+      "os": "linux",
+      "privileged": true,
+      "qemu": true,
+      "required_commands": [
+        "docker",
+        "qemu-system-x86_64",
+        "binwalk"
+      ],
+      "required_environment": [],
+      "runner_profile": "arsenal-firmware",
+      "runtime_execution_coverage": 1.0,
+      "status": "WAITING_FOR_PREREQUISITE"
+    },
+    {
+      "available": true,
+      "backend_runtimes_currently_executable": [
+        "angr/linux-cli",
+        "capa/linux-cli",
+        "floss/linux-cli",
+        "ghidra/headless",
+        "pefile/linux-cli",
+        "rizin/linux-cli",
+        "yara/linux-cli"
+      ],
+      "backend_runtimes_not_yet_executed": [],
+      "backend_runtimes_supported": [
+        "angr/linux-cli",
+        "capa/linux-cli",
+        "floss/linux-cli",
+        "ghidra/headless",
+        "pefile/linux-cli",
+        "rizin/linux-cli",
+        "yara/linux-cli"
+      ],
+      "binfmt": false,
+      "description": "Deterministic ELF/PE analysis fixtures",
+      "docker": true,
+      "kvm": "not-required",
+      "missing_prerequisites": [],
+      "network_mode": "none",
+      "os": "linux",
+      "privileged": false,
+      "qemu": false,
+      "required_commands": [
+        "gcc",
+        "file"
+      ],
+      "required_environment": [],
+      "runner_profile": "arsenal-binary",
+      "runtime_execution_coverage": 1.0,
+      "status": "READY"
+    },
+    {
+      "available": true,
+      "backend_runtimes_currently_executable": [
+        "echidna/contract-cli",
+        "foundry/forge",
+        "mythril/linux-cli",
+        "slither/contract-cli"
+      ],
+      "backend_runtimes_not_yet_executed": [],
+      "backend_runtimes_supported": [
+        "echidna/contract-cli",
+        "foundry/forge",
+        "mythril/linux-cli",
+        "slither/contract-cli"
+      ],
+      "binfmt": false,
+      "description": "Pinned Solidity compiler, static analyzers, and invariant tools",
+      "docker": true,
+      "kvm": "not-required",
+      "missing_prerequisites": [],
+      "network_mode": "none",
+      "os": "linux",
+      "privileged": false,
+      "qemu": false,
+      "required_commands": [
+        "solc"
+      ],
+      "required_environment": [],
+      "runner_profile": "arsenal-smart-contract",
+      "runtime_execution_coverage": 1.0,
+      "status": "READY"
+    },
+    {
+      "available": true,
+      "backend_runtimes_currently_executable": [
+        "kubescape/kubernetes-lab"
+      ],
+      "backend_runtimes_not_yet_executed": [],
+      "backend_runtimes_supported": [
+        "kubescape/kubernetes-lab"
+      ],
+      "binfmt": false,
+      "description": "Disposable local Kubernetes cluster",
+      "docker": true,
+      "kvm": "not-required",
+      "missing_prerequisites": [],
+      "network_mode": "isolated",
+      "os": "linux",
+      "privileged": false,
+      "qemu": false,
+      "required_commands": [
+        "docker",
+        "kubectl",
+        "kind"
+      ],
+      "required_environment": [],
+      "runner_profile": "arsenal-kubernetes",
+      "runtime_execution_coverage": 1.0,
+      "status": "READY"
+    },
+    {
+      "available": false,
+      "backend_runtimes_currently_executable": [
+        "azurehound/cloud-lab",
+        "cloudsplaining/cloud-lab",
+        "prowler/cloud-lab",
+        "roadrecon/cloud-lab",
+        "scoutsuite/cloud-cli"
+      ],
+      "backend_runtimes_not_yet_executed": [],
+      "backend_runtimes_supported": [
+        "azurehound/cloud-lab",
+        "cloudsplaining/cloud-lab",
+        "prowler/cloud-lab",
+        "roadrecon/cloud-lab",
+        "scoutsuite/cloud-cli"
+      ],
+      "binfmt": false,
+      "description": "Operator-owned disposable cloud sandbox; never a bounty target",
+      "docker": true,
+      "kvm": "not-required",
+      "missing_prerequisites": [
+        "environment:AEGIS_CLOUD_LAB_AUTHORIZATION"
+      ],
+      "network_mode": "allowlisted",
+      "os": "linux",
+      "privileged": false,
+      "qemu": false,
+      "required_commands": [],
+      "required_environment": [
+        "AEGIS_CLOUD_LAB_AUTHORIZATION"
+      ],
+      "runner_profile": "arsenal-cloud-lab",
+      "runtime_execution_coverage": 1.0,
+      "status": "WAITING_FOR_PREREQUISITE"
+    },
+    {
+      "available": false,
+      "backend_runtimes_currently_executable": [
+        "class-dump/macos-cli",
+        "otool/macos-cli"
+      ],
+      "backend_runtimes_not_yet_executed": [],
+      "backend_runtimes_supported": [
+        "class-dump/macos-cli",
+        "otool/macos-cli"
+      ],
+      "binfmt": false,
+      "description": "macOS runner with iOS Simulator and synthetic application",
+      "docker": false,
+      "kvm": "not-required",
+      "missing_prerequisites": [
+        "requires macos runner",
+        "command:xcrun",
+        "command:xcodebuild",
+        "command:otool"
+      ],
+      "network_mode": "none",
+      "os": "macos",
+      "privileged": false,
+      "qemu": false,
+      "required_commands": [
+        "xcrun",
+        "xcodebuild",
+        "otool"
+      ],
+      "required_environment": [],
+      "runner_profile": "arsenal-macos-ios",
+      "runtime_execution_coverage": 1.0,
+      "status": "WAITING_FOR_PREREQUISITE"
+    },
+    {
+      "available": true,
+      "backend_runtimes_currently_executable": [],
+      "backend_runtimes_not_yet_executed": [],
+      "backend_runtimes_supported": [],
+      "binfmt": false,
+      "description": "Deterministic 16-case local AI/LLM boundary lab",
+      "docker": false,
+      "kvm": "not-required",
+      "missing_prerequisites": [],
+      "network_mode": "none",
+      "os": "any",
+      "privileged": false,
+      "qemu": false,
+      "required_commands": [],
+      "required_environment": [],
+      "runner_profile": "arsenal-llm",
+      "runtime_execution_coverage": null,
+      "status": "READY"
+    },
+    {
+      "available": false,
+      "backend_runtimes_currently_executable": [],
+      "backend_runtimes_not_yet_executed": [],
+      "backend_runtimes_supported": [],
+      "binfmt": false,
+      "description": "Authoritative PostgreSQL coverage projection",
+      "docker": false,
+      "kvm": "not-required",
+      "missing_prerequisites": [
+        "environment:AEGIS_ARSENAL_COVERAGE_DB_URL"
+      ],
+      "network_mode": "loopback",
+      "os": "any",
+      "privileged": false,
+      "qemu": false,
+      "required_commands": [],
+      "required_environment": [
+        "AEGIS_ARSENAL_COVERAGE_DB_URL"
+      ],
+      "runner_profile": "arsenal-postgres",
+      "runtime_execution_coverage": null,
+      "status": "WAITING_FOR_PREREQUISITE"
+    },
+    {
+      "available": false,
+      "backend_runtimes_currently_executable": [
+        "gau/network-lab",
+        "subfinder/network-lab"
+      ],
+      "backend_runtimes_not_yet_executed": [],
+      "backend_runtimes_supported": [
+        "gau/network-lab",
+        "subfinder/network-lab"
+      ],
+      "binfmt": false,
+      "description": "Operator-owned test domain with explicitly approved passive provider endpoints",
+      "docker": false,
+      "kvm": "not-required",
+      "missing_prerequisites": [
+        "environment:AEGIS_PASSIVE_PROVIDER_AUTHORIZATION"
+      ],
+      "network_mode": "allowlisted",
+      "os": "any",
+      "privileged": false,
+      "qemu": false,
+      "required_commands": [],
+      "required_environment": [
+        "AEGIS_PASSIVE_PROVIDER_AUTHORIZATION"
+      ],
+      "runner_profile": "arsenal-passive-provider",
+      "runtime_execution_coverage": 1.0,
+      "status": "WAITING_FOR_PREREQUISITE"
+    }
+  ],
+  "schema_version": 1
+}

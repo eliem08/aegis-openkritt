@@ -1,0 +1,28 @@
+{
+  "detail": {
+    "asset": "127.0.0.1",
+    "authorization_decision": "arsenal:tool:trivy/deps",
+    "backend": "trivy",
+    "backend_version": "Version: 0.73.0",
+    "blocking_reason": "",
+    "capability_id": "tool:trivy/deps",
+    "evidence_digest": "01fc2a8fe538f306291e2c0c365405f1595c3765efec4bb775730f73bbef9f91",
+    "evidence_ref": "evidence/01fc2a8fe538f306291e2c0c365405f1595c3765efec4bb775730f73bbef9f91.json",
+    "execution_error_class": null,
+    "execution_grant_id": "0795ca81c4846ab3",
+    "finding_ids": [],
+    "fixture_detection": true,
+    "mission_id": "arsenal-tool-5f63279cf9fd",
+    "mode": "FIXTURE",
+    "negative_control_status": "PASSED",
+    "policy_snapshot_digest": "e9dc52e97b35225a0c936cbb21cf6a57125fab156ebe781fbf0dd01d0c147d2f",
+    "result": "EXECUTED_PASS",
+    "task_id": "arsenal-tool-5f63279cf9fd-execute"
+  },
+  "digest": "bd9bc5a5882e23cfa05b442b0809a041a8ed9e66a2d8cd89c24f462a40cd727f",
+  "event_type": "arsenal_task_completed",
+  "observed_at": "2026-08-27T20:34:53.983719+00:00",
+  "previous_digest": "1a9cbd90d36bb5ffe7def81ea820419f9cc46f35ba57c3eda36531eec6b2bcb1",
+  "sequence": 4,
+  "status": "completed"
+}

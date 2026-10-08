@@ -1,0 +1,13 @@
+{
+  "detail": {
+    "capability_id": "asset:aegis-memory-poisoning/agent-memory-poisoning-regression",
+    "mission_id": "arsenal-tool-536a27eb132f",
+    "task_id": "arsenal-tool-536a27eb132f-execute"
+  },
+  "digest": "221f01c338ab181b1ca818eff471a41731444b1b53b78cbe19faa58f91d7bad6",
+  "event_type": "arsenal_task_started",
+  "observed_at": "2026-09-03T15:27:00.856642+00:00",
+  "previous_digest": "a28a7bbd3aaa86be52e238148559735e900d2cf6fd285653f22d1f9219c2d799",
+  "sequence": 3,
+  "status": "running"
+}

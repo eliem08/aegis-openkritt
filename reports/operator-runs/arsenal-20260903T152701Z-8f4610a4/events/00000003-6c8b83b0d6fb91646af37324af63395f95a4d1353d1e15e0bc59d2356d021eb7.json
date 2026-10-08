@@ -1,0 +1,13 @@
+{
+  "detail": {
+    "capability_id": "asset:objection/android-runtime-exploration",
+    "mission_id": "arsenal-tool-8f4610a45a8e",
+    "task_id": "arsenal-tool-8f4610a45a8e-execute"
+  },
+  "digest": "6c8b83b0d6fb91646af37324af63395f95a4d1353d1e15e0bc59d2356d021eb7",
+  "event_type": "arsenal_task_started",
+  "observed_at": "2026-09-03T15:27:01.479818+00:00",
+  "previous_digest": "0df460634b67ed3b75c40e56abf6fbef537b85784d2fdd103aedcc56f5ecc658",
+  "sequence": 3,
+  "status": "running"
+}

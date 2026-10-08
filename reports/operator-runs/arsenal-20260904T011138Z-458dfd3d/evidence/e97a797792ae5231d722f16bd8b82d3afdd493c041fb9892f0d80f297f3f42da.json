@@ -1,0 +1,144 @@
+{
+  "adapter_version": "deep-asset/1",
+  "backend_entrypoint": "",
+  "backend_kind": "EXTERNAL_TOOL",
+  "backend_name": "otool",
+  "backend_package": "",
+  "backend_version": "llvm-otool(1): Apple Inc. version cctools-1040",
+  "binary_path": "/usr/bin/otool",
+  "blocking_reason": "",
+  "capability_id": "asset:otool/ios-macos-load-command-analysis",
+  "capability_ids": [
+    "asset:otool/ios-macos-load-command-analysis"
+  ],
+  "container_digest_if_applicable": "",
+  "coverage_state": "EXECUTED_PASS",
+  "duration_ms": 88,
+  "evidence_digest": "e97a797792ae5231d722f16bd8b82d3afdd493c041fb9892f0d80f297f3f42da",
+  "execution_completed_at": "2026-09-04T01:11:38.624852+00:00",
+  "execution_grant_payload": {
+    "allowed_destinations": [],
+    "allowed_methods": [],
+    "budget": {
+      "max_cost_usd": 0.0,
+      "max_human_minutes": 0.0,
+      "max_requests": 0
+    },
+    "constraints": {
+      "authorization_class": "LOCAL_FIXTURE_ONLY",
+      "capability_id": "asset:otool/ios-macos-load-command-analysis",
+      "covered_capability_ids": [
+        "asset:otool/ios-macos-load-command-analysis"
+      ],
+      "fixture_version": "otool-load-commands-v1",
+      "negative_fixture_digest": "b134745e6124239b183ebe57f4546cfc0b84b41be0b8cb45657f0fb86eb27fc7",
+      "positive_fixture_digest": "cdd468469ab524b25ebebd69105d4a93b3efce80ce04c28b3d909ad9a3707948"
+    },
+    "decision_fingerprint": "33f8725978ced7f84880d484",
+    "expires_at": "2026-09-04T01:26:38.506630+00:00",
+    "external_model_egress_allowed": false,
+    "human_approval": false,
+    "issued_at": "2026-09-04T01:11:38.506630+00:00",
+    "network_allowed": false,
+    "nonce": "6625a76fcbe755c6",
+    "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+    "state_change_allowed": false
+  },
+  "execution_performed": true,
+  "execution_proof_kind": "REAL_BACKEND",
+  "execution_started_at": "2026-09-04T01:11:38.528974+00:00",
+  "exit_code": 0,
+  "fixture_version": "otool-load-commands-v1",
+  "host_architecture": "arm64",
+  "host_platform": "Darwin",
+  "kind": "arsenal_tool_fixture_execution",
+  "launcher_executable": "",
+  "mission_id": "arsenal-tool-458dfd3d5e91",
+  "mode": "FIXTURE",
+  "native_backend_binary": "/usr/bin/otool",
+  "negative_control_clean": true,
+  "negative_control_status": "PASSED",
+  "negative_fixture_digest": "b134745e6124239b183ebe57f4546cfc0b84b41be0b8cb45657f0fb86eb27fc7",
+  "parsed_result_digest": "878579e0c88fbf7e5cbae869ea0a93f8e4ff2f2f9e97048883797a146366dd03",
+  "policy_decision": {
+    "action": "source_analysis",
+    "authorization_id": "fixture:20260904T011138Z",
+    "evaluated_at": "2026-09-04T01:11:38.506581+00:00",
+    "incidents": [],
+    "reasons": [
+      {
+        "code": "ok",
+        "message": "all policy gates passed",
+        "verdict": "allow"
+      }
+    ],
+    "request_id": "arsenal:asset:otool/ios-macos-load-command-analysis",
+    "required_approvals": [],
+    "target": "127.0.0.1",
+    "tier": "passive",
+    "verdict": "allow"
+  },
+  "positive_control_detected": true,
+  "positive_fixture_digest": "cdd468469ab524b25ebebd69105d4a93b3efce80ce04c28b3d909ad9a3707948",
+  "run_id": "arsenal-20260904T011138Z-458dfd3d",
+  "runtime_disposition": "ready",
+  "runtime_reason": "internal hunter capability completed",
+  "stderr_digest": "1b60320976d31a6c8ea434b79341b13eb109dcb76abcdb78ce01376a39a5ce6b",
+  "stdout_digest": "025385eebd2aea44028f4813545dc2ce7fb1b042c21b425544124e9bd3755bfb",
+  "summary": {
+    "blocking_reason": "",
+    "covered_capability_ids": [
+      "asset:otool/ios-macos-load-command-analysis"
+    ],
+    "execution_error_class": null,
+    "execution_proof_kind": "REAL_BACKEND",
+    "fixture_detection": true,
+    "negative": {
+      "duration_ms": 12,
+      "error": "",
+      "execution_completed_at": "2026-09-04T01:11:38.624852+00:00",
+      "execution_started_at": "2026-09-04T01:11:38.613324+00:00",
+      "exit_code": 0,
+      "finding_count": 0,
+      "parsed_result_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "ran": true,
+      "runtime": {
+        "binary": "otool",
+        "checked_at": "2026-09-04T01:11:38.514291+00:00",
+        "name": "otool",
+        "reason": "healthy",
+        "resolved_path": "/usr/bin/otool",
+        "sha256": "179301dcb41ea78accc3fa0048a7e6f6710d891945a751a34addd622020c1818",
+        "status": "ready",
+        "version": "llvm-otool(1): Apple Inc. version cctools-1040"
+      },
+      "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_digest": "b0568d81fb8d3625705e9f55da63827dc577454f9f7d8f3c64465e45bbd03137"
+    },
+    "negative_control_passed": true,
+    "positive": {
+      "duration_ms": 76,
+      "error": "",
+      "execution_completed_at": "2026-09-04T01:11:38.605247+00:00",
+      "execution_started_at": "2026-09-04T01:11:38.528974+00:00",
+      "exit_code": 0,
+      "finding_count": 1,
+      "parsed_result_digest": "0de5b84c56f15f5fcf397caa9373354a9d17e96ab428cb3e6e134d75ac310e35",
+      "ran": true,
+      "runtime": {
+        "binary": "otool",
+        "checked_at": "2026-09-04T01:11:38.514291+00:00",
+        "name": "otool",
+        "reason": "healthy",
+        "resolved_path": "/usr/bin/otool",
+        "sha256": "179301dcb41ea78accc3fa0048a7e6f6710d891945a751a34addd622020c1818",
+        "status": "ready",
+        "version": "llvm-otool(1): Apple Inc. version cctools-1040"
+      },
+      "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_digest": "b5ec48adf198a77103823845989392d93410e9566530a4caeea4b3bd29b60175"
+    },
+    "tool": "otool"
+  },
+  "task_id": "arsenal-tool-458dfd3d5e91-execute"
+}

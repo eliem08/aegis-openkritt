@@ -1,0 +1,138 @@
+{
+  "adapter_version": "tool-bridge/1",
+  "backend_name": "osv-scanner",
+  "backend_version": "osv-scanner version: 2.5.1",
+  "binary_path": "/usr/local/bin/osv-scanner",
+  "blocking_reason": "",
+  "capability_id": "tool:osv-scanner/deps",
+  "capability_ids": [
+    "tool:osv-scanner/deps",
+    "asset:osv-scanner/dependency-vulnerability-analysis"
+  ],
+  "container_digest_if_applicable": "sha256:3766088055a72f82346bf7318cb0acf9ec6b2e82ddf6df6bcba9558f70e9c40d",
+  "coverage_state": "EXECUTED_PASS",
+  "duration_ms": 24631,
+  "evidence_digest": "76c0decb263a927e5afc95bc35f3ff8f8263171f28c6f1569b4036063a594d07",
+  "execution_completed_at": "2026-08-27T20:34:28.233213+00:00",
+  "execution_grant_payload": {
+    "allowed_destinations": [],
+    "allowed_methods": [],
+    "budget": {
+      "max_cost_usd": 0.0,
+      "max_human_minutes": 0.0,
+      "max_requests": 0
+    },
+    "constraints": {
+      "authorization_class": "LOCAL_FIXTURE_ONLY",
+      "capability_id": "tool:osv-scanner/deps",
+      "covered_capability_ids": [
+        "tool:osv-scanner/deps",
+        "asset:osv-scanner/dependency-vulnerability-analysis"
+      ],
+      "fixture_version": "scanner-fixture-v2",
+      "negative_fixture_digest": "ad2b0799492915f1624a3f2530c8eb9042405d68381e8d3411872dffc0b3841a",
+      "positive_fixture_digest": "f8363406f4a0e237270db88e9e65a8e164558e302d3b0cba39ce4e4d48d02ceb"
+    },
+    "decision_fingerprint": "a2be8923fbd7d605567679ae",
+    "expires_at": "2026-08-27T20:49:03.383235+00:00",
+    "external_model_egress_allowed": false,
+    "human_approval": false,
+    "issued_at": "2026-08-27T20:34:03.383235+00:00",
+    "network_allowed": false,
+    "nonce": "ee127556dc53ba40",
+    "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+    "state_change_allowed": false
+  },
+  "execution_performed": true,
+  "execution_started_at": "2026-08-27T20:34:03.598785+00:00",
+  "exit_code": 1,
+  "fixture_version": "scanner-fixture-v2",
+  "kind": "arsenal_tool_fixture_execution",
+  "mission_id": "arsenal-tool-f6f3f4aee974",
+  "mode": "FIXTURE",
+  "negative_control_clean": true,
+  "negative_control_status": "PASSED",
+  "negative_fixture_digest": "ad2b0799492915f1624a3f2530c8eb9042405d68381e8d3411872dffc0b3841a",
+  "parsed_result_digest": "feece96c255984801506bbc8a4cf7336f11177c3dab5fa98a4c14a86239b8eb2",
+  "policy_decision": {
+    "action": "source_analysis",
+    "authorization_id": "fixture:20260827T203403Z",
+    "evaluated_at": "2026-08-27T20:34:03.383195+00:00",
+    "incidents": [],
+    "reasons": [
+      {
+        "code": "ok",
+        "message": "all policy gates passed",
+        "verdict": "allow"
+      }
+    ],
+    "request_id": "arsenal:tool:osv-scanner/deps",
+    "required_approvals": [],
+    "target": "127.0.0.1",
+    "tier": "passive",
+    "verdict": "allow"
+  },
+  "positive_control_detected": true,
+  "positive_fixture_digest": "f8363406f4a0e237270db88e9e65a8e164558e302d3b0cba39ce4e4d48d02ceb",
+  "run_id": "arsenal-20260827T203403Z-f6f3f4ae",
+  "runtime_disposition": "ready",
+  "runtime_reason": "internal hunter capability completed",
+  "stderr_digest": "0565dc86a51da99323094e41cf9ecaf1d556bdecf804383970e2f31a3bcc6ad8",
+  "stdout_digest": "368fcfa681dd5ba81ab61389c9f6c02425cfd59cfb59d6b5df4eec06c23fe7b3",
+  "summary": {
+    "blocking_reason": "",
+    "covered_capability_ids": [
+      "tool:osv-scanner/deps",
+      "asset:osv-scanner/dependency-vulnerability-analysis"
+    ],
+    "execution_error_class": null,
+    "fixture_detection": true,
+    "negative": {
+      "duration_ms": 12204,
+      "error": "Starting filesystem walk for root: /\nScanned /tmp/aegis-arsenal-fixture-xw9yzu5g/negative/package-lock.json file and found 1 package\nEnd status: 0 dirs visited, 1 inodes visited, 1 Extract calls, 295.",
+      "execution_completed_at": "2026-08-27T20:34:28.233213+00:00",
+      "execution_started_at": "2026-08-27T20:34:16.029391+00:00",
+      "exit_code": 0,
+      "finding_count": 0,
+      "parsed_result_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "ran": true,
+      "runtime": {
+        "binary": "osv-scanner",
+        "checked_at": "2026-08-27T20:34:03.467622+00:00",
+        "name": "osv-scanner",
+        "reason": "healthy",
+        "resolved_path": "/usr/local/bin/osv-scanner",
+        "sha256": "f9f25499a2c8cc367b3af45df2ea7eeca7fbccceab9c35079968f4b3652194be",
+        "status": "ready",
+        "version": "osv-scanner version: 2.5.1"
+      },
+      "stderr_digest": "02e072876a08ca9c015a9b1cf409996014a6e55f664cb50d2f4c82fe6859d00d",
+      "stdout_digest": "54345d5194d238b6017d0f3181f392109ce35023cc6b4bdfa8c134943dcb578e"
+    },
+    "negative_control_passed": true,
+    "positive": {
+      "duration_ms": 12427,
+      "error": "",
+      "execution_completed_at": "2026-08-27T20:34:16.025737+00:00",
+      "execution_started_at": "2026-08-27T20:34:03.598785+00:00",
+      "exit_code": 1,
+      "finding_count": 5,
+      "parsed_result_digest": "ce13d4b70496d174511a37f01c89fc798c94b4d0e232d1062f71424f7ac67f67",
+      "ran": true,
+      "runtime": {
+        "binary": "osv-scanner",
+        "checked_at": "2026-08-27T20:34:03.467622+00:00",
+        "name": "osv-scanner",
+        "reason": "healthy",
+        "resolved_path": "/usr/local/bin/osv-scanner",
+        "sha256": "f9f25499a2c8cc367b3af45df2ea7eeca7fbccceab9c35079968f4b3652194be",
+        "status": "ready",
+        "version": "osv-scanner version: 2.5.1"
+      },
+      "stderr_digest": "28476130cca76c1dbecb07c761d381a58378a157420d8ac04515f96aab42732b",
+      "stdout_digest": "07294291a0417d9ed936f543277de497171413e6a54e7606aa1167a4948448c9"
+    },
+    "tool": "osv-scanner"
+  },
+  "task_id": "arsenal-tool-f6f3f4aee974-execute"
+}

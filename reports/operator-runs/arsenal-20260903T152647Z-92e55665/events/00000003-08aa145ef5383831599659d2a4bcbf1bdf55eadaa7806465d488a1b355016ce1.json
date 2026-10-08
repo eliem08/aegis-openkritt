@@ -1,0 +1,13 @@
+{
+  "detail": {
+    "capability_id": "asset:aegis-artifact-diff/authorized-mobile-release-diff",
+    "mission_id": "arsenal-tool-92e55665d928",
+    "task_id": "arsenal-tool-92e55665d928-execute"
+  },
+  "digest": "08aa145ef5383831599659d2a4bcbf1bdf55eadaa7806465d488a1b355016ce1",
+  "event_type": "arsenal_task_started",
+  "observed_at": "2026-09-03T15:26:47.641607+00:00",
+  "previous_digest": "555bc66e7b7c0ffc61eae9a6a6d6b021b6ad76d63cc43b22d8c9f08f8a096e51",
+  "sequence": 3,
+  "status": "running"
+}

@@ -1,0 +1,57 @@
+{
+  "detail": {
+    "capability_id": "asset:mobsf/rest-static-analysis",
+    "grant": {
+      "allowed_destinations": [],
+      "allowed_methods": [],
+      "budget": {
+        "max_cost_usd": 0.0,
+        "max_human_minutes": 0.0,
+        "max_requests": 0
+      },
+      "constraints": {
+        "authorization_class": "LOCAL_FIXTURE_ONLY",
+        "capability_id": "asset:mobsf/rest-static-analysis",
+        "covered_capability_ids": [
+          "asset:mobsf/rest-static-analysis"
+        ],
+        "fixture_version": "mobsf-static-analysis-v1",
+        "negative_fixture_digest": "e4a70941b3c9cd8d3797018401cf7bf7bfb89a3a283f280902e91e2047e903a9",
+        "positive_fixture_digest": "148b210261b2540be854ccd4091fff574e9e0be0d06a676d3ea17d6bb9d0fee9"
+      },
+      "decision_fingerprint": "6b75062d3bcc13af950a6b79",
+      "expires_at": "2026-09-03T15:42:01.655180+00:00",
+      "external_model_egress_allowed": false,
+      "human_approval": false,
+      "issued_at": "2026-09-03T15:27:01.655180+00:00",
+      "network_allowed": false,
+      "nonce": "159ba5c33b6fdc72",
+      "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+      "state_change_allowed": false
+    },
+    "policy_decision": {
+      "action": "source_analysis",
+      "authorization_id": "fixture:20260903T152701Z",
+      "evaluated_at": "2026-09-03T15:27:01.655124+00:00",
+      "incidents": [],
+      "reasons": [
+        {
+          "code": "ok",
+          "message": "all policy gates passed",
+          "verdict": "allow"
+        }
+      ],
+      "request_id": "arsenal:asset:mobsf/rest-static-analysis",
+      "required_approvals": [],
+      "target": "127.0.0.1",
+      "tier": "passive",
+      "verdict": "allow"
+    }
+  },
+  "digest": "823d12b37b62a55aff8c554edfb6f8dab6043c365876fbf706eb8f7907c10b31",
+  "event_type": "arsenal_fixture_authorized",
+  "observed_at": "2026-09-03T15:27:01.664482+00:00",
+  "previous_digest": "b9880957810b71d40c8a63692821f7c1e9937261bc92160099249499258c18b5",
+  "sequence": 2,
+  "status": "authorized"
+}

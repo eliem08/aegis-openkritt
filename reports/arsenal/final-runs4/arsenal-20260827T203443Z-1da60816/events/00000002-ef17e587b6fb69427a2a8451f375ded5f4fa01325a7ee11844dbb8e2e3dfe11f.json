@@ -1,0 +1,58 @@
+{
+  "detail": {
+    "capability_id": "tool:semgrep/code",
+    "grant": {
+      "allowed_destinations": [],
+      "allowed_methods": [],
+      "budget": {
+        "max_cost_usd": 0.0,
+        "max_human_minutes": 0.0,
+        "max_requests": 0
+      },
+      "constraints": {
+        "authorization_class": "LOCAL_FIXTURE_ONLY",
+        "capability_id": "tool:semgrep/code",
+        "covered_capability_ids": [
+          "tool:semgrep/code",
+          "asset:semgrep/source-static-analysis"
+        ],
+        "fixture_version": "scanner-fixture-v2",
+        "negative_fixture_digest": "ad2b0799492915f1624a3f2530c8eb9042405d68381e8d3411872dffc0b3841a",
+        "positive_fixture_digest": "f8363406f4a0e237270db88e9e65a8e164558e302d3b0cba39ce4e4d48d02ceb"
+      },
+      "decision_fingerprint": "7514f4d7f111f31b1abdbad7",
+      "expires_at": "2026-08-27T20:49:43.729579+00:00",
+      "external_model_egress_allowed": false,
+      "human_approval": false,
+      "issued_at": "2026-08-27T20:34:43.729579+00:00",
+      "network_allowed": false,
+      "nonce": "ebc70a7d9afc8d35",
+      "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+      "state_change_allowed": false
+    },
+    "policy_decision": {
+      "action": "source_analysis",
+      "authorization_id": "fixture:20260827T203443Z",
+      "evaluated_at": "2026-08-27T20:34:43.729546+00:00",
+      "incidents": [],
+      "reasons": [
+        {
+          "code": "ok",
+          "message": "all policy gates passed",
+          "verdict": "allow"
+        }
+      ],
+      "request_id": "arsenal:tool:semgrep/code",
+      "required_approvals": [],
+      "target": "127.0.0.1",
+      "tier": "passive",
+      "verdict": "allow"
+    }
+  },
+  "digest": "ef17e587b6fb69427a2a8451f375ded5f4fa01325a7ee11844dbb8e2e3dfe11f",
+  "event_type": "arsenal_fixture_authorized",
+  "observed_at": "2026-08-27T20:34:43.772304+00:00",
+  "previous_digest": "a859b393904260405d95d2ab04f9fd3dc1a8049a32f0749dcec2c22024ecf149",
+  "sequence": 2,
+  "status": "authorized"
+}

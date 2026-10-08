@@ -1,0 +1,28 @@
+{
+  "detail": {
+    "asset": "127.0.0.1",
+    "authorization_decision": "arsenal:tool:njsscan/code",
+    "backend": "njsscan",
+    "backend_version": "\u001b[34m",
+    "blocking_reason": "",
+    "capability_id": "tool:njsscan/code",
+    "evidence_digest": "311868d32868ad82e3dd05a9b5cb2a42c08b320d6ef2d225f046238ff71d9776",
+    "evidence_ref": "evidence/311868d32868ad82e3dd05a9b5cb2a42c08b320d6ef2d225f046238ff71d9776.json",
+    "execution_error_class": null,
+    "execution_grant_id": "8c22a263f6e0aa2e",
+    "finding_ids": [],
+    "fixture_detection": true,
+    "mission_id": "arsenal-tool-35cd11b1091a",
+    "mode": "FIXTURE",
+    "negative_control_status": "PASSED",
+    "policy_snapshot_digest": "e9dc52e97b35225a0c936cbb21cf6a57125fab156ebe781fbf0dd01d0c147d2f",
+    "result": "EXECUTED_PASS",
+    "task_id": "arsenal-tool-35cd11b1091a-execute"
+  },
+  "digest": "00213578f5464dacda19806eeae0acec7550ac16228ecf60de7dca14d9dafd57",
+  "event_type": "arsenal_task_completed",
+  "observed_at": "2026-08-27T20:34:03.192421+00:00",
+  "previous_digest": "0aaef7fea2443f0dddb47ebe8a73d8594d3f519fe703e199ed3323756ff8cb49",
+  "sequence": 4,
+  "status": "completed"
+}

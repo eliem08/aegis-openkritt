@@ -1,0 +1,12 @@
+{
+  "detail": {
+    "manifest_digest": "27133e8a30250159f3fbecbb5e542f87dcdea5585e94899798fa4b95ac2b7b32",
+    "mode": "arsenal_fixture"
+  },
+  "digest": "b9880957810b71d40c8a63692821f7c1e9937261bc92160099249499258c18b5",
+  "event_type": "run_created",
+  "observed_at": "2026-09-03T15:27:01.658169+00:00",
+  "previous_digest": "",
+  "sequence": 1,
+  "status": "created"
+}

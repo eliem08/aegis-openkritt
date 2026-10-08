@@ -1,0 +1,18 @@
+{
+  "detail": {
+    "blocking_reason": "macOS worker; readiness: command -v class-dump && uname -s | grep Darwin",
+    "capability_id": "asset:class-dump/objective-c-interface-recovery",
+    "evidence_digest": "49c93535ba1d4ff5f091ac44467eaa4550be91a5795a7b9003bca24893e2b2ff",
+    "evidence_ref": "evidence/49c93535ba1d4ff5f091ac44467eaa4550be91a5795a7b9003bca24893e2b2ff.json",
+    "execution_grant_id": null,
+    "mission_id": "arsenal-blocked-4da1bdd644d8c0ed",
+    "result": "WAITING_FOR_PREREQUISITE",
+    "task_id": "arsenal-blocked-4da1bdd644d8c0ed-execute"
+  },
+  "digest": "cb1e8b32cec484b662c80813edde9c2f1bd92d5000e832bd3c81b1f61cf7557a",
+  "event_type": "arsenal_task_blocked",
+  "observed_at": "2026-08-27T20:32:38.598955+00:00",
+  "previous_digest": "bdfa9c32be7fc6dc9182d2cc2e498991c905c7997a7f8601cac08ee07bd8d968",
+  "sequence": 2,
+  "status": "failed"
+}

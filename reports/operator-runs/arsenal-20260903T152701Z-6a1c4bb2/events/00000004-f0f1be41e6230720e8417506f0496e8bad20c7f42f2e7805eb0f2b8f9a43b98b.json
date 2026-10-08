@@ -1,0 +1,28 @@
+{
+  "detail": {
+    "asset": "127.0.0.1",
+    "authorization_decision": "arsenal:asset:frida/android-runtime-instrumentation",
+    "backend": "Frida",
+    "backend_version": "Python 3.14.5",
+    "blocking_reason": "",
+    "capability_id": "asset:frida/android-runtime-instrumentation",
+    "evidence_digest": "4d6869c58e99d06332926209a26b9cde1c46a4f7f7777200c07f425ccf872f63",
+    "evidence_ref": "evidence/4d6869c58e99d06332926209a26b9cde1c46a4f7f7777200c07f425ccf872f63.json",
+    "execution_error_class": null,
+    "execution_grant_id": "47b30f1504a52b4b",
+    "finding_ids": [],
+    "fixture_detection": true,
+    "mission_id": "arsenal-tool-6a1c4bb2679b",
+    "mode": "FIXTURE",
+    "negative_control_status": "PASSED",
+    "policy_snapshot_digest": "e9dc52e97b35225a0c936cbb21cf6a57125fab156ebe781fbf0dd01d0c147d2f",
+    "result": "EXECUTED_PASS",
+    "task_id": "arsenal-tool-6a1c4bb2679b-execute"
+  },
+  "digest": "f0f1be41e6230720e8417506f0496e8bad20c7f42f2e7805eb0f2b8f9a43b98b",
+  "event_type": "arsenal_task_completed",
+  "observed_at": "2026-09-03T15:27:01.431640+00:00",
+  "previous_digest": "e72cbf4573f6a4ebbaeb0dd7ebb3c147bc6ffc2546323ced695ac4d40d82a58e",
+  "sequence": 4,
+  "status": "completed"
+}

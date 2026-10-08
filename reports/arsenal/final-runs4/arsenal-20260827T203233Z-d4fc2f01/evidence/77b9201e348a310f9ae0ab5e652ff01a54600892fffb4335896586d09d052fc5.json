@@ -1,0 +1,13 @@
+{
+  "blocking_reason": "backend is present but its deterministic positive/negative fixture provider is not connected to the canonical executor",
+  "capability_id": "asset:aegis-agent-permission-audit/agent-tool-permission-analysis",
+  "coverage_state": "WAITING_FOR_PREREQUISITE",
+  "evidence_digest": "77b9201e348a310f9ae0ab5e652ff01a54600892fffb4335896586d09d052fc5",
+  "execution_grant_issued": false,
+  "execution_performed": false,
+  "kind": "arsenal_fixture_blocked",
+  "mission_id": "arsenal-blocked-d4fc2f01f674c1b9",
+  "mode": "FIXTURE",
+  "run_id": "arsenal-20260827T203233Z-d4fc2f01",
+  "task_id": "arsenal-blocked-d4fc2f01f674c1b9-execute"
+}

@@ -1,0 +1,137 @@
+{
+  "adapter_version": "deep-asset/1",
+  "backend_name": "otool",
+  "backend_version": "Python 3.14.5",
+  "binary_path": "C:\\Python314\\python.exe",
+  "blocking_reason": "",
+  "capability_id": "asset:otool/ios-macos-load-command-analysis",
+  "capability_ids": [
+    "asset:otool/ios-macos-load-command-analysis"
+  ],
+  "container_digest_if_applicable": "",
+  "coverage_state": "EXECUTED_PASS",
+  "duration_ms": 131,
+  "evidence_digest": "62acab7d5a3b213c2b96a7998a328ac811c30388c24a5c66109a36bda53325f8",
+  "execution_completed_at": "2026-09-03T15:27:02.217598+00:00",
+  "execution_grant_payload": {
+    "allowed_destinations": [],
+    "allowed_methods": [],
+    "budget": {
+      "max_cost_usd": 0.0,
+      "max_human_minutes": 0.0,
+      "max_requests": 0
+    },
+    "constraints": {
+      "authorization_class": "LOCAL_FIXTURE_ONLY",
+      "capability_id": "asset:otool/ios-macos-load-command-analysis",
+      "covered_capability_ids": [
+        "asset:otool/ios-macos-load-command-analysis"
+      ],
+      "fixture_version": "otool-load-commands-v1",
+      "negative_fixture_digest": "06fc82196b42b5081b1646611753608ab901bde4d5ff38dcebd88529ffb4fd62",
+      "positive_fixture_digest": "6c91f6ec3b0e996d5b70d6a94a318d2928ebfd6000ad75bd25e78dcd31c3117e"
+    },
+    "decision_fingerprint": "33f8725978ced7f84880d484",
+    "expires_at": "2026-09-03T15:42:02.046595+00:00",
+    "external_model_egress_allowed": false,
+    "human_approval": false,
+    "issued_at": "2026-09-03T15:27:02.046595+00:00",
+    "network_allowed": false,
+    "nonce": "cf880c33388aa16a",
+    "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+    "state_change_allowed": false
+  },
+  "execution_performed": true,
+  "execution_proof_kind": "REAL_BACKEND",
+  "execution_started_at": "2026-09-03T15:27:02.086451+00:00",
+  "exit_code": 0,
+  "fixture_version": "otool-load-commands-v1",
+  "kind": "arsenal_tool_fixture_execution",
+  "mission_id": "arsenal-tool-f09b112a5b69",
+  "mode": "FIXTURE",
+  "negative_control_clean": true,
+  "negative_control_status": "PASSED",
+  "negative_fixture_digest": "06fc82196b42b5081b1646611753608ab901bde4d5ff38dcebd88529ffb4fd62",
+  "parsed_result_digest": "9333a287d317dbe50c03f0386b6be7cf1175619dd942ae99bb6232c9cdabcb1b",
+  "policy_decision": {
+    "action": "source_analysis",
+    "authorization_id": "fixture:20260903T152702Z",
+    "evaluated_at": "2026-09-03T15:27:02.046567+00:00",
+    "incidents": [],
+    "reasons": [
+      {
+        "code": "ok",
+        "message": "all policy gates passed",
+        "verdict": "allow"
+      }
+    ],
+    "request_id": "arsenal:asset:otool/ios-macos-load-command-analysis",
+    "required_approvals": [],
+    "target": "127.0.0.1",
+    "tier": "passive",
+    "verdict": "allow"
+  },
+  "positive_control_detected": true,
+  "positive_fixture_digest": "6c91f6ec3b0e996d5b70d6a94a318d2928ebfd6000ad75bd25e78dcd31c3117e",
+  "run_id": "arsenal-20260903T152702Z-f09b112a",
+  "runtime_disposition": "ready",
+  "runtime_reason": "internal hunter capability completed",
+  "stderr_digest": "1b60320976d31a6c8ea434b79341b13eb109dcb76abcdb78ce01376a39a5ce6b",
+  "stdout_digest": "4af487243d2a748c9eae999b5ea4b3dce7248719e8b816d57d0a684c06174928",
+  "summary": {
+    "blocking_reason": "",
+    "covered_capability_ids": [
+      "asset:otool/ios-macos-load-command-analysis"
+    ],
+    "execution_error_class": null,
+    "execution_proof_kind": "REAL_BACKEND",
+    "fixture_detection": true,
+    "negative": {
+      "duration_ms": 67,
+      "error": "",
+      "execution_completed_at": "2026-09-03T15:27:02.217598+00:00",
+      "execution_started_at": "2026-09-03T15:27:02.150448+00:00",
+      "exit_code": 0,
+      "finding_count": 0,
+      "parsed_result_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "ran": true,
+      "runtime": {
+        "binary": "python",
+        "checked_at": "2026-09-03T15:27:02.075265+00:00",
+        "name": "otool",
+        "reason": "healthy",
+        "resolved_path": "C:\\Python314\\python.exe",
+        "sha256": "3adbbf2af609e206e3ca18cd55fc7c4b52f5c8bb8218dd99fd5a9e50d7a193cd",
+        "status": "ready",
+        "version": "Python 3.14.5"
+      },
+      "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_digest": "0f01b810550a2633a6f3a439f09d1a278be0a4ea008a3fb14bf5dac0552b1c5f"
+    },
+    "negative_control_passed": true,
+    "positive": {
+      "duration_ms": 64,
+      "error": "",
+      "execution_completed_at": "2026-09-03T15:27:02.150277+00:00",
+      "execution_started_at": "2026-09-03T15:27:02.086451+00:00",
+      "exit_code": 0,
+      "finding_count": 1,
+      "parsed_result_digest": "e7d2500b6bf56a1594e3d7d36106d097e2382a1c8a9a8ee0d5142e559386aad2",
+      "ran": true,
+      "runtime": {
+        "binary": "python",
+        "checked_at": "2026-09-03T15:27:02.075265+00:00",
+        "name": "otool",
+        "reason": "healthy",
+        "resolved_path": "C:\\Python314\\python.exe",
+        "sha256": "3adbbf2af609e206e3ca18cd55fc7c4b52f5c8bb8218dd99fd5a9e50d7a193cd",
+        "status": "ready",
+        "version": "Python 3.14.5"
+      },
+      "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_digest": "8fcbcd9fc271760b010af8da8450c6693b5b80f78daa7438c4b1513bb022452f"
+    },
+    "tool": "otool"
+  },
+  "task_id": "arsenal-tool-f09b112a5b69-execute"
+}

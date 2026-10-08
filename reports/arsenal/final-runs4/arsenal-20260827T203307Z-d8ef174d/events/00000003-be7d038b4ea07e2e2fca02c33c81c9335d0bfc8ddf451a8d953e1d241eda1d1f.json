@@ -1,0 +1,13 @@
+{
+  "detail": {
+    "capability_id": "tool:grype/deps",
+    "mission_id": "arsenal-tool-d8ef174d8873",
+    "task_id": "arsenal-tool-d8ef174d8873-execute"
+  },
+  "digest": "be7d038b4ea07e2e2fca02c33c81c9335d0bfc8ddf451a8d953e1d241eda1d1f",
+  "event_type": "arsenal_task_started",
+  "observed_at": "2026-08-27T20:33:07.320963+00:00",
+  "previous_digest": "32961f097f79ddd85b56cd6bfddb59e01d558fdaf84ef215888d876c3964e4a6",
+  "sequence": 3,
+  "status": "running"
+}

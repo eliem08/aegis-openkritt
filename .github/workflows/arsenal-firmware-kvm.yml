@@ -1,0 +1,68 @@
+name: Arsenal Firmware KVM
+
+on:
+  workflow_dispatch:
+    inputs:
+      force_run:
+        description: "Force execution attempt"
+        required: false
+        default: false
+        type: boolean
+  schedule:
+    - cron: "0 4 * * 0"
+
+permissions:
+  contents: read
+
+jobs:
+  arsenal-firmae:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      AEGIS_CHECKOUT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.AEGIS_CHECKOUT_SHA }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Inspect Runner Hardware & Privileged QEMU/KVM
+        id: firmae_check
+        run: |
+          echo "=== FIRMAE RUNNER DIAGNOSTICS ==="
+          uname -a
+          echo "Checking /dev/kvm..."
+          ls -l /dev/kvm || echo "NO_DEV_KVM"
+          echo "Checking binfmt_misc..."
+          ls -l /proc/sys/fs/binfmt_misc || echo "NO_BINFMT_MISC"
+          
+          if [ -e /dev/kvm ] && [ -w /dev/kvm ]; then
+            echo "kvm_supported=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "kvm_supported=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Document FirmAE Runner Requirements & Blocker
+        run: |
+          mkdir -p runs/evidence/firmae
+          cat << 'EOF' > runs/evidence/firmae/runner_diagnostics.json
+          {
+            "backend": "external:firmae",
+            "status": "UNSUPPORTED_ON_AVAILABLE_RUNNER",
+            "runner_image": "ubuntu-24.04",
+            "kvm_available": false,
+            "error": "FirmAE full-system firmware emulation requires privileged KVM acceleration, binfmt_misc kernel support, and root network tap device creation, which are restricted on hosted public runners.",
+            "required_resource": "Dedicated bare-metal or privileged self-hosted Linux runner with /dev/kvm, qemu-system-*, and binfmt_misc enabled",
+            "operator_action_required": "Provision self-hosted runner labeled 'arsenal-kvm-firmware' with /dev/kvm group permissions and sudo privilege for FirmAE container."
+          }
+          EOF
+
+      - name: Upload FirmAE Evidence Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: arsenal-firmware-kvm-${{ env.AEGIS_CHECKOUT_SHA }}
+          path: |
+            runs/evidence/firmae

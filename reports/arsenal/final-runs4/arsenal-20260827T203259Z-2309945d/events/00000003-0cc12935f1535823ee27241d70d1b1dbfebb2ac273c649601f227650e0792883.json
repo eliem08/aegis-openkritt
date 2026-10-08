@@ -1,0 +1,13 @@
+{
+  "detail": {
+    "capability_id": "tool:detect-secrets/secrets",
+    "mission_id": "arsenal-tool-2309945d97ff",
+    "task_id": "arsenal-tool-2309945d97ff-execute"
+  },
+  "digest": "0cc12935f1535823ee27241d70d1b1dbfebb2ac273c649601f227650e0792883",
+  "event_type": "arsenal_task_started",
+  "observed_at": "2026-08-27T20:32:59.754040+00:00",
+  "previous_digest": "baec5abc558ca592444312099b6df2990b4e573a4b6858c2b001e8811af6d69d",
+  "sequence": 3,
+  "status": "running"
+}

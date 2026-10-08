@@ -1,0 +1,57 @@
+{
+  "detail": {
+    "capability_id": "asset:aegis-agent-permission-audit/agent-tool-permission-analysis",
+    "grant": {
+      "allowed_destinations": [],
+      "allowed_methods": [],
+      "budget": {
+        "max_cost_usd": 0.0,
+        "max_human_minutes": 0.0,
+        "max_requests": 0
+      },
+      "constraints": {
+        "authorization_class": "LOCAL_FIXTURE_ONLY",
+        "capability_id": "asset:aegis-agent-permission-audit/agent-tool-permission-analysis",
+        "covered_capability_ids": [
+          "asset:aegis-agent-permission-audit/agent-tool-permission-analysis"
+        ],
+        "fixture_version": "aegis-agent-permission-v1",
+        "negative_fixture_digest": "41d374f915e12105f3bbc13d55fd16214b753318a477c6108d4372579ddc3b5f",
+        "positive_fixture_digest": "9437e3e5f7fff0c0d6577c960c1ae28b605b48046069dfd2d081248a64d0886e"
+      },
+      "decision_fingerprint": "aa7329f3e5061b22e8352899",
+      "expires_at": "2026-09-03T15:42:00.645810+00:00",
+      "external_model_egress_allowed": false,
+      "human_approval": false,
+      "issued_at": "2026-09-03T15:27:00.645810+00:00",
+      "network_allowed": false,
+      "nonce": "2b969f58b644e9f4",
+      "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+      "state_change_allowed": false
+    },
+    "policy_decision": {
+      "action": "source_analysis",
+      "authorization_id": "fixture:20260903T152700Z",
+      "evaluated_at": "2026-09-03T15:27:00.645783+00:00",
+      "incidents": [],
+      "reasons": [
+        {
+          "code": "ok",
+          "message": "all policy gates passed",
+          "verdict": "allow"
+        }
+      ],
+      "request_id": "arsenal:asset:aegis-agent-permission-audit/agent-tool-permission-analysis",
+      "required_approvals": [],
+      "target": "127.0.0.1",
+      "tier": "passive",
+      "verdict": "allow"
+    }
+  },
+  "digest": "c4509e88c60e140ee01b39da9f2852fc3d5a84c8d1982c9ad4496d2b9c789923",
+  "event_type": "arsenal_fixture_authorized",
+  "observed_at": "2026-09-03T15:27:00.654828+00:00",
+  "previous_digest": "a640c2074899f0528832453e644a6fe5b4cb1244e991997bdd93b6217162db7f",
+  "sequence": 2,
+  "status": "authorized"
+}

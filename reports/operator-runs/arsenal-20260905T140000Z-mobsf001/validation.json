@@ -1,0 +1,7 @@
+{
+  "audited_at": "2026-09-06T14:24:25.332251+00:00",
+  "backend_kind": "EXTERNAL_TOOL",
+  "backend_package": "opensecurity/mobile-security-framework-mobsf",
+  "reason": "MobSF live REST API container executed against positive and negative synthetic APK fixtures with genuine manifest vulnerabilities and dangerous permissions detected.",
+  "validation_status": "VALID_EXTERNAL_TOOL_EXECUTION"
+}

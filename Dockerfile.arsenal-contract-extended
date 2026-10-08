@@ -1,0 +1,30 @@
+FROM aegis-arsenal:backend-batch5
+
+USER root
+
+RUN curl -fsSL --retry 3 \
+        https://github.com/foundry-rs/foundry/releases/download/v1.8.0/foundry_v1.8.0_linux_amd64.tar.gz \
+        -o /tmp/foundry.tar.gz \
+    && echo '8c8560de380d58d1ee145934427887b107182367600a3c33aa71f16f2ce7ac57  /tmp/foundry.tar.gz' \
+        | sha256sum -c - \
+    && tar -xzf /tmp/foundry.tar.gz -C /usr/local/bin forge cast anvil chisel \
+    && rm /tmp/foundry.tar.gz \
+    && curl -fsSL --retry 3 \
+        https://github.com/crytic/echidna/releases/download/v2.3.3/echidna-2.3.3-x86_64-linux.tar.gz \
+        -o /tmp/echidna.tar.gz \
+    && echo '436d26cb5af34c6c525812b857ac53f218c7f6ad07d69495ef88bc4cdc85c764  /tmp/echidna.tar.gz' \
+        | sha256sum -c - \
+    && tar -xzf /tmp/echidna.tar.gz -C /usr/local/bin echidna \
+    && ln -sf /usr/local/bin/echidna /usr/local/bin/echidna-test \
+    && rm /tmp/echidna.tar.gz \
+    && curl -fsSL --retry 3 \
+        https://github.com/argotorg/solidity/releases/download/v0.8.36/solc-static-linux \
+        -o /usr/local/bin/solc \
+    && echo 'c8d35afdddc3cd2743ee88b8f25e0fecd16e2bdd5f2120f37e52cd9cc45ae0e6  /usr/local/bin/solc' \
+        | sha256sum -c - \
+    && chmod 0755 /usr/local/bin/solc \
+    && forge --version \
+    && echidna-test --version \
+    && solc --version
+
+WORKDIR /app

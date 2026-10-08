@@ -1,0 +1,13 @@
+{
+  "detail": {
+    "capability_id": "asset:frida/android-runtime-instrumentation",
+    "mission_id": "arsenal-tool-6a1c4bb2679b",
+    "task_id": "arsenal-tool-6a1c4bb2679b-execute"
+  },
+  "digest": "e72cbf4573f6a4ebbaeb0dd7ebb3c147bc6ffc2546323ced695ac4d40d82a58e",
+  "event_type": "arsenal_task_started",
+  "observed_at": "2026-09-03T15:27:01.283887+00:00",
+  "previous_digest": "df7b6d96e516582bf26c62208cc394b77e0fea8a5c9ace5f4ad1144474c6444f",
+  "sequence": 3,
+  "status": "running"
+}

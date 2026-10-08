@@ -1,0 +1,18 @@
+{
+  "detail": {
+    "blocking_reason": "binary not found",
+    "capability_id": "asset:apktool/android-resource-and-manifest-decode",
+    "evidence_digest": "66d9951d9548f0cb8903cc13cc9dff7cc268d8fbef0a33452f05f06f91f7cf6b",
+    "evidence_ref": "evidence/66d9951d9548f0cb8903cc13cc9dff7cc268d8fbef0a33452f05f06f91f7cf6b.json",
+    "execution_grant_id": null,
+    "mission_id": "arsenal-blocked-53625abfcb9123fe",
+    "result": "UNAVAILABLE",
+    "task_id": "arsenal-blocked-53625abfcb9123fe-execute"
+  },
+  "digest": "b19d5adb3249c2a34bbe0e0db17887122fc09d9bb127f34d5135829d44b3f1ab",
+  "event_type": "arsenal_task_blocked",
+  "observed_at": "2026-08-27T20:32:34.424771+00:00",
+  "previous_digest": "7e994289fb93fa9fa3a2695b39351d0f9611a9c520b555bbba60bdad3116152f",
+  "sequence": 2,
+  "status": "failed"
+}

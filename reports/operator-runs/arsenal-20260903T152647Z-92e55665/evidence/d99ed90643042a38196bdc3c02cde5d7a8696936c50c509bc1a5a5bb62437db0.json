@@ -1,0 +1,137 @@
+{
+  "adapter_version": "deep-asset/1",
+  "backend_name": "aegis-artifact-diff",
+  "backend_version": "Python 3.14.5",
+  "binary_path": "C:\\Python314\\python.exe",
+  "blocking_reason": "",
+  "capability_id": "asset:aegis-artifact-diff/authorized-mobile-release-diff",
+  "capability_ids": [
+    "asset:aegis-artifact-diff/authorized-mobile-release-diff"
+  ],
+  "container_digest_if_applicable": "",
+  "coverage_state": "EXECUTED_PASS",
+  "duration_ms": 125,
+  "evidence_digest": "d99ed90643042a38196bdc3c02cde5d7a8696936c50c509bc1a5a5bb62437db0",
+  "execution_completed_at": "2026-09-03T15:26:47.784743+00:00",
+  "execution_grant_payload": {
+    "allowed_destinations": [],
+    "allowed_methods": [],
+    "budget": {
+      "max_cost_usd": 0.0,
+      "max_human_minutes": 0.0,
+      "max_requests": 0
+    },
+    "constraints": {
+      "authorization_class": "LOCAL_FIXTURE_ONLY",
+      "capability_id": "asset:aegis-artifact-diff/authorized-mobile-release-diff",
+      "covered_capability_ids": [
+        "asset:aegis-artifact-diff/authorized-mobile-release-diff"
+      ],
+      "fixture_version": "aegis-artifact-diff-v1",
+      "negative_fixture_digest": "c8f511a723ab7b405e457e988dd0cdbd27cefe8e95613554eb22e81017f8f4e9",
+      "positive_fixture_digest": "8bedf4e91820ceb00678a182978be044cb1750b5b82418647f93bc0e85be9492"
+    },
+    "decision_fingerprint": "68037ab9df7557ee26e40918",
+    "expires_at": "2026-09-03T15:41:47.619511+00:00",
+    "external_model_egress_allowed": false,
+    "human_approval": false,
+    "issued_at": "2026-09-03T15:26:47.619511+00:00",
+    "network_allowed": false,
+    "nonce": "521e19f1b95e2954",
+    "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+    "state_change_allowed": false
+  },
+  "execution_performed": true,
+  "execution_proof_kind": "REAL_BACKEND",
+  "execution_started_at": "2026-09-03T15:26:47.653067+00:00",
+  "exit_code": 0,
+  "fixture_version": "aegis-artifact-diff-v1",
+  "kind": "arsenal_tool_fixture_execution",
+  "mission_id": "arsenal-tool-92e55665d928",
+  "mode": "FIXTURE",
+  "negative_control_clean": true,
+  "negative_control_status": "PASSED",
+  "negative_fixture_digest": "c8f511a723ab7b405e457e988dd0cdbd27cefe8e95613554eb22e81017f8f4e9",
+  "parsed_result_digest": "325f03359a1e1cdbee4481b80561b9cc91b46efdf09ec73cfb587d97d28de12a",
+  "policy_decision": {
+    "action": "source_analysis",
+    "authorization_id": "fixture:20260903T152647Z",
+    "evaluated_at": "2026-09-03T15:26:47.619457+00:00",
+    "incidents": [],
+    "reasons": [
+      {
+        "code": "ok",
+        "message": "all policy gates passed",
+        "verdict": "allow"
+      }
+    ],
+    "request_id": "arsenal:asset:aegis-artifact-diff/authorized-mobile-release-diff",
+    "required_approvals": [],
+    "target": "127.0.0.1",
+    "tier": "passive",
+    "verdict": "allow"
+  },
+  "positive_control_detected": true,
+  "positive_fixture_digest": "8bedf4e91820ceb00678a182978be044cb1750b5b82418647f93bc0e85be9492",
+  "run_id": "arsenal-20260903T152647Z-92e55665",
+  "runtime_disposition": "ready",
+  "runtime_reason": "internal hunter capability completed",
+  "stderr_digest": "1b60320976d31a6c8ea434b79341b13eb109dcb76abcdb78ce01376a39a5ce6b",
+  "stdout_digest": "7d260cf4d2fcc2d29dee9040876407fdc066ff46fb397b5bd3a3001946fba35e",
+  "summary": {
+    "blocking_reason": "",
+    "covered_capability_ids": [
+      "asset:aegis-artifact-diff/authorized-mobile-release-diff"
+    ],
+    "execution_error_class": null,
+    "execution_proof_kind": "REAL_BACKEND",
+    "fixture_detection": true,
+    "negative": {
+      "duration_ms": 62,
+      "error": "",
+      "execution_completed_at": "2026-09-03T15:26:47.784743+00:00",
+      "execution_started_at": "2026-09-03T15:26:47.723027+00:00",
+      "exit_code": 0,
+      "finding_count": 0,
+      "parsed_result_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "ran": true,
+      "runtime": {
+        "binary": "python",
+        "checked_at": "2026-09-03T15:26:47.643012+00:00",
+        "name": "aegis-artifact-diff",
+        "reason": "healthy",
+        "resolved_path": "C:\\Python314\\python.exe",
+        "sha256": "3adbbf2af609e206e3ca18cd55fc7c4b52f5c8bb8218dd99fd5a9e50d7a193cd",
+        "status": "ready",
+        "version": "Python 3.14.5"
+      },
+      "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_digest": "0d60abade7d70f51132e1b553cc75f00f9a74da1bef67ce6a1fa4984f6abe22e"
+    },
+    "negative_control_passed": true,
+    "positive": {
+      "duration_ms": 63,
+      "error": "",
+      "execution_completed_at": "2026-09-03T15:26:47.715705+00:00",
+      "execution_started_at": "2026-09-03T15:26:47.653067+00:00",
+      "exit_code": 0,
+      "finding_count": 1,
+      "parsed_result_digest": "9b639f422cfa7fc00fd59a830888fb8ff7ca8af9393de26000568501c73401af",
+      "ran": true,
+      "runtime": {
+        "binary": "python",
+        "checked_at": "2026-09-03T15:26:47.643012+00:00",
+        "name": "aegis-artifact-diff",
+        "reason": "healthy",
+        "resolved_path": "C:\\Python314\\python.exe",
+        "sha256": "3adbbf2af609e206e3ca18cd55fc7c4b52f5c8bb8218dd99fd5a9e50d7a193cd",
+        "status": "ready",
+        "version": "Python 3.14.5"
+      },
+      "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_digest": "0e4e178803ee692434d212c3f8e9d472ec0ca14cecf29392e6c44efbb6d318f8"
+    },
+    "tool": "aegis-artifact-diff"
+  },
+  "task_id": "arsenal-tool-92e55665d928-execute"
+}

@@ -1,0 +1,130 @@
+{
+  "target": "eliem08/aegis-openkritt",
+  "authorization": "repository-owner self-audit (local checkout only)",
+  "mode": "local-static-candidate-hunt",
+  "evidence_stage": "candidate",
+  "tools": [
+    {
+      "tool": "semgrep",
+      "ran": true,
+      "count": 0,
+      "error": ""
+    },
+    {
+      "tool": "bandit",
+      "ran": true,
+      "count": 202,
+      "error": ""
+    },
+    {
+      "tool": "njsscan",
+      "ran": true,
+      "count": 0,
+      "error": ""
+    },
+    {
+      "tool": "brakeman",
+      "ran": false,
+      "count": 0,
+      "error": "scanner exited 4: Please supply the path to a Rails application (looking in /workspace).\n  Use `--force` to run a scan anyway.\n"
+    },
+    {
+      "tool": "gosec",
+      "ran": false,
+      "count": 0,
+      "error": "scanner exited 1: "
+    },
+    {
+      "tool": "psalm",
+      "ran": true,
+      "count": 0,
+      "error": ""
+    },
+    {
+      "tool": "gitleaks",
+      "ran": false,
+      "count": 0,
+      "error": "scanner exited 1: \n    \u25cb\n    \u2502\u2572\n    \u2502 \u25cb\n    \u25cb \u2591\n    \u2591    gitleaks\n\n\u001b[90m8:52PM\u001b[0m \u001b[32mINF\u001b[0m scan completed in 59.2s\n\u001b[90m8:52PM\u001b[0m \u001b[31mWRN\u001b[0m leaks found: 39\n"
+    },
+    {
+      "tool": "detect-secrets",
+      "ran": true,
+      "count": 7394,
+      "error": ""
+    },
+    {
+      "tool": "trivy",
+      "ran": false,
+      "count": 0,
+      "error": "scanner exited 1: 2026-08-27T20:57:11Z\tFATAL\tFatal error\trun error: fs scan error: scan error: scan failed: failed analysis: analyze with traversal: walk dir error: unknown error with src/aegis/ai/jar"
+    },
+    {
+      "tool": "osv-scanner",
+      "ran": false,
+      "count": 0,
+      "error": "scanner exited 127: Scanning dir .\nStarting filesystem walk for root: /\nScanned /workspace/reports/arsenal/osv-cache-probe/package-lock.json file and found 0 packages\nScanned /workspace/reports/arsena"
+    },
+    {
+      "tool": "checkov",
+      "ran": false,
+      "count": 0,
+      "error": "runtime stale: version probe did not produce a bounded healthy response"
+    },
+    {
+      "tool": "grype",
+      "ran": true,
+      "count": 5,
+      "error": ""
+    },
+    {
+      "tool": "retire.js",
+      "ran": false,
+      "count": 0,
+      "error": "scanner exited 1: {\"version\":\"5.4.3\",\"start\":\"2026-08-27T20:54:43.223Z\",\"data\":[],\"messages\":[],\"errors\":[\"Error downloading: https://raw.githubusercontent.com/RetireJS/retire.js/master/repository/jsr"
+    }
+  ],
+  "raw_candidate_count": 7601,
+  "funnel": {
+    "raw": 7601,
+    "deduped": 7601,
+    "drop_weak_single_engine": 7472,
+    "drop_low_value_rule": 107,
+    "drop_non_product_path": 13,
+    "drop_placeholder_secret": 4,
+    "drop_dependency_advisory": 5,
+    "survivors": 0,
+    "families": 0
+  },
+  "survivor_count": 0,
+  "families": [],
+  "survivors": [],
+  "suppressed_summary": {
+    "weak-single-engine:detect-secrets-unverified": 7380,
+    "weak-single-engine:B608": 79,
+    "low-value-rule:B110": 29,
+    "low-value-rule:B112": 24,
+    "low-value-rule:B603": 21,
+    "low-value-rule:B404": 18,
+    "non-product-path:example": 9,
+    "weak-single-engine:B105": 5,
+    "weak-single-engine:B108": 5,
+    "low-value-rule:B101": 4,
+    "low-value-rule:B607": 4,
+    "low-value-rule:B104": 4,
+    "placeholder/example secret": 4,
+    "non-product-path:bench": 3,
+    "low-value-rule:B405": 1,
+    "low-value-rule:B314": 1,
+    "low-value-rule:B311": 1,
+    "weak-single-engine:B107": 1,
+    "weak-single-engine:B324": 1,
+    "weak-single-engine:B310": 1,
+    "non-product-path:docs": 1,
+    "dependency-advisory:GHSA-35jh-r3h4-6jhm in lodash": 1,
+    "dependency-advisory:GHSA-29mw-wpgm-hmr9 in lodash": 1,
+    "dependency-advisory:GHSA-r5fr-rjxr-66jc in lodash": 1,
+    "dependency-advisory:GHSA-xxjr-mmjv-4gpg in lodash": 1,
+    "dependency-advisory:GHSA-f23m-r3pf-42rh in lodash": 1
+  },
+  "note": "Scanner observations are unverified candidates, not reproduced vulnerabilities. Suppressed candidates are retained in aggregate with reasons for audit. Promotion past 'candidate' requires the evidence lifecycle (source-support, runtime, oracle, local reproduction, judge, human review)."
+}

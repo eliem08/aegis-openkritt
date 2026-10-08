@@ -1,0 +1,28 @@
+{
+  "detail": {
+    "asset": "127.0.0.1",
+    "authorization_decision": "arsenal:asset:scoutsuite/aws-attack-surface-audit",
+    "backend": "ScoutSuite",
+    "backend_version": "Python 3.14.5",
+    "blocking_reason": "",
+    "capability_id": "asset:scoutsuite/aws-attack-surface-audit",
+    "evidence_digest": "84636aa94101946c06cd11da22d3e925f1867d333e658b7df70e447d7c40666d",
+    "evidence_ref": "evidence/84636aa94101946c06cd11da22d3e925f1867d333e658b7df70e447d7c40666d.json",
+    "execution_error_class": null,
+    "execution_grant_id": "dde008656a2a8c06",
+    "finding_ids": [],
+    "fixture_detection": true,
+    "mission_id": "arsenal-tool-d83dec8615ec",
+    "mode": "FIXTURE",
+    "negative_control_status": "PASSED",
+    "policy_snapshot_digest": "e9dc52e97b35225a0c936cbb21cf6a57125fab156ebe781fbf0dd01d0c147d2f",
+    "result": "EXECUTED_PASS",
+    "task_id": "arsenal-tool-d83dec8615ec-execute"
+  },
+  "digest": "33fb0bb09a1505efa6dcde839887986229ab6ae476d35612d6b7f237b95bef6c",
+  "event_type": "arsenal_task_completed",
+  "observed_at": "2026-09-03T15:27:02.852884+00:00",
+  "previous_digest": "e8a9fc704770472e60930b879e75c3cf4e9b664ab1ee7cde46d2f3b353c79077",
+  "sequence": 4,
+  "status": "completed"
+}

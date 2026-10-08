@@ -1,0 +1,13 @@
+{
+  "blocking_reason": "backend is present but its deterministic positive/negative fixture provider is not connected to the canonical executor",
+  "capability_id": "asset:aegis-firmware-arch/firmware-architecture-detection",
+  "coverage_state": "WAITING_FOR_PREREQUISITE",
+  "evidence_digest": "8cc0385d046c3dcebc909d9bbbf123e185cbf897fdeeecd498cc1ffc2630e10c",
+  "execution_grant_issued": false,
+  "execution_performed": false,
+  "kind": "arsenal_fixture_blocked",
+  "mission_id": "arsenal-blocked-0b3f069d3306ac23",
+  "mode": "FIXTURE",
+  "run_id": "arsenal-20260827T203233Z-0b3f069d",
+  "task_id": "arsenal-blocked-0b3f069d3306ac23-execute"
+}

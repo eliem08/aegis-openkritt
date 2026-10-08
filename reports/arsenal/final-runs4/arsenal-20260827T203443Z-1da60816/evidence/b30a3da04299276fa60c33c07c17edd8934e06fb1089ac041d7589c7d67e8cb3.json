@@ -1,0 +1,138 @@
+{
+  "adapter_version": "tool-bridge/1",
+  "backend_name": "semgrep",
+  "backend_version": "1.172.0",
+  "binary_path": "/usr/local/bin/semgrep",
+  "blocking_reason": "",
+  "capability_id": "tool:semgrep/code",
+  "capability_ids": [
+    "tool:semgrep/code",
+    "asset:semgrep/source-static-analysis"
+  ],
+  "container_digest_if_applicable": "sha256:3766088055a72f82346bf7318cb0acf9ec6b2e82ddf6df6bcba9558f70e9c40d",
+  "coverage_state": "EXECUTED_PASS",
+  "duration_ms": 5636,
+  "evidence_digest": "b30a3da04299276fa60c33c07c17edd8934e06fb1089ac041d7589c7d67e8cb3",
+  "execution_completed_at": "2026-08-27T20:34:51.202879+00:00",
+  "execution_grant_payload": {
+    "allowed_destinations": [],
+    "allowed_methods": [],
+    "budget": {
+      "max_cost_usd": 0.0,
+      "max_human_minutes": 0.0,
+      "max_requests": 0
+    },
+    "constraints": {
+      "authorization_class": "LOCAL_FIXTURE_ONLY",
+      "capability_id": "tool:semgrep/code",
+      "covered_capability_ids": [
+        "tool:semgrep/code",
+        "asset:semgrep/source-static-analysis"
+      ],
+      "fixture_version": "scanner-fixture-v2",
+      "negative_fixture_digest": "ad2b0799492915f1624a3f2530c8eb9042405d68381e8d3411872dffc0b3841a",
+      "positive_fixture_digest": "f8363406f4a0e237270db88e9e65a8e164558e302d3b0cba39ce4e4d48d02ceb"
+    },
+    "decision_fingerprint": "7514f4d7f111f31b1abdbad7",
+    "expires_at": "2026-08-27T20:49:43.729579+00:00",
+    "external_model_egress_allowed": false,
+    "human_approval": false,
+    "issued_at": "2026-08-27T20:34:43.729579+00:00",
+    "network_allowed": false,
+    "nonce": "ebc70a7d9afc8d35",
+    "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+    "state_change_allowed": false
+  },
+  "execution_performed": true,
+  "execution_started_at": "2026-08-27T20:34:45.567056+00:00",
+  "exit_code": 1,
+  "fixture_version": "scanner-fixture-v2",
+  "kind": "arsenal_tool_fixture_execution",
+  "mission_id": "arsenal-tool-1da608166902",
+  "mode": "FIXTURE",
+  "negative_control_clean": true,
+  "negative_control_status": "PASSED",
+  "negative_fixture_digest": "ad2b0799492915f1624a3f2530c8eb9042405d68381e8d3411872dffc0b3841a",
+  "parsed_result_digest": "6622ff0091fdab510ff6726549e0947c3a1cd13ddc8462691518c65dd73f8d43",
+  "policy_decision": {
+    "action": "source_analysis",
+    "authorization_id": "fixture:20260827T203443Z",
+    "evaluated_at": "2026-08-27T20:34:43.729546+00:00",
+    "incidents": [],
+    "reasons": [
+      {
+        "code": "ok",
+        "message": "all policy gates passed",
+        "verdict": "allow"
+      }
+    ],
+    "request_id": "arsenal:tool:semgrep/code",
+    "required_approvals": [],
+    "target": "127.0.0.1",
+    "tier": "passive",
+    "verdict": "allow"
+  },
+  "positive_control_detected": true,
+  "positive_fixture_digest": "f8363406f4a0e237270db88e9e65a8e164558e302d3b0cba39ce4e4d48d02ceb",
+  "run_id": "arsenal-20260827T203443Z-1da60816",
+  "runtime_disposition": "ready",
+  "runtime_reason": "internal hunter capability completed",
+  "stderr_digest": "1b60320976d31a6c8ea434b79341b13eb109dcb76abcdb78ce01376a39a5ce6b",
+  "stdout_digest": "dcfe81e3e9a44705903b0237af5a659654d4f4cccc8a600f540aeef20af4adba",
+  "summary": {
+    "blocking_reason": "",
+    "covered_capability_ids": [
+      "tool:semgrep/code",
+      "asset:semgrep/source-static-analysis"
+    ],
+    "execution_error_class": null,
+    "fixture_detection": true,
+    "negative": {
+      "duration_ms": 2766,
+      "error": "",
+      "execution_completed_at": "2026-08-27T20:34:51.202879+00:00",
+      "execution_started_at": "2026-08-27T20:34:48.437226+00:00",
+      "exit_code": 0,
+      "finding_count": 0,
+      "parsed_result_digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "ran": true,
+      "runtime": {
+        "binary": "semgrep",
+        "checked_at": "2026-08-27T20:34:43.808078+00:00",
+        "name": "semgrep",
+        "reason": "healthy",
+        "resolved_path": "/usr/local/bin/semgrep",
+        "sha256": "c7d9046d766bb5c035107e169808e64345abbfe6cddbb25dc3c2c1c994e3b80e",
+        "status": "ready",
+        "version": "1.172.0"
+      },
+      "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_digest": "36853bd6a296b62a5cdf13c7ad2cdd2167a98d7fc94ff2845fcddd77335e959b"
+    },
+    "negative_control_passed": true,
+    "positive": {
+      "duration_ms": 2870,
+      "error": "",
+      "execution_completed_at": "2026-08-27T20:34:48.436967+00:00",
+      "execution_started_at": "2026-08-27T20:34:45.567056+00:00",
+      "exit_code": 1,
+      "finding_count": 2,
+      "parsed_result_digest": "a18a64e8fd700afff6526b1be1548e75b9b2b4f49f2042e7ad73463428225fbe",
+      "ran": true,
+      "runtime": {
+        "binary": "semgrep",
+        "checked_at": "2026-08-27T20:34:43.808078+00:00",
+        "name": "semgrep",
+        "reason": "healthy",
+        "resolved_path": "/usr/local/bin/semgrep",
+        "sha256": "c7d9046d766bb5c035107e169808e64345abbfe6cddbb25dc3c2c1c994e3b80e",
+        "status": "ready",
+        "version": "1.172.0"
+      },
+      "stderr_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_digest": "70c77e9b8419dff538069a71a222763cd1a2236ba3f2bcdb9d22f75e96fc54d2"
+    },
+    "tool": "semgrep"
+  },
+  "task_id": "arsenal-tool-1da608166902-execute"
+}

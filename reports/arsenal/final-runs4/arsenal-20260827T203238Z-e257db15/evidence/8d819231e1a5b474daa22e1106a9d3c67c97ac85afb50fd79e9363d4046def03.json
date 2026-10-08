@@ -1,0 +1,13 @@
+{
+  "blocking_reason": "binary not found",
+  "capability_id": "asset:electron-asar/electron-package-extraction",
+  "coverage_state": "UNAVAILABLE",
+  "evidence_digest": "8d819231e1a5b474daa22e1106a9d3c67c97ac85afb50fd79e9363d4046def03",
+  "execution_grant_issued": false,
+  "execution_performed": false,
+  "kind": "arsenal_fixture_blocked",
+  "mission_id": "arsenal-blocked-e257db159916b2ed",
+  "mode": "FIXTURE",
+  "run_id": "arsenal-20260827T203238Z-e257db15",
+  "task_id": "arsenal-blocked-e257db159916b2ed-execute"
+}

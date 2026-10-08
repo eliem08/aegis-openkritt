@@ -1,0 +1,58 @@
+{
+  "detail": {
+    "capability_id": "tool:osv-scanner/deps",
+    "grant": {
+      "allowed_destinations": [],
+      "allowed_methods": [],
+      "budget": {
+        "max_cost_usd": 0.0,
+        "max_human_minutes": 0.0,
+        "max_requests": 0
+      },
+      "constraints": {
+        "authorization_class": "LOCAL_FIXTURE_ONLY",
+        "capability_id": "tool:osv-scanner/deps",
+        "covered_capability_ids": [
+          "tool:osv-scanner/deps",
+          "asset:osv-scanner/dependency-vulnerability-analysis"
+        ],
+        "fixture_version": "scanner-fixture-v2",
+        "negative_fixture_digest": "ad2b0799492915f1624a3f2530c8eb9042405d68381e8d3411872dffc0b3841a",
+        "positive_fixture_digest": "f8363406f4a0e237270db88e9e65a8e164558e302d3b0cba39ce4e4d48d02ceb"
+      },
+      "decision_fingerprint": "a2be8923fbd7d605567679ae",
+      "expires_at": "2026-08-27T20:49:03.383235+00:00",
+      "external_model_egress_allowed": false,
+      "human_approval": false,
+      "issued_at": "2026-08-27T20:34:03.383235+00:00",
+      "network_allowed": false,
+      "nonce": "ee127556dc53ba40",
+      "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+      "state_change_allowed": false
+    },
+    "policy_decision": {
+      "action": "source_analysis",
+      "authorization_id": "fixture:20260827T203403Z",
+      "evaluated_at": "2026-08-27T20:34:03.383195+00:00",
+      "incidents": [],
+      "reasons": [
+        {
+          "code": "ok",
+          "message": "all policy gates passed",
+          "verdict": "allow"
+        }
+      ],
+      "request_id": "arsenal:tool:osv-scanner/deps",
+      "required_approvals": [],
+      "target": "127.0.0.1",
+      "tier": "passive",
+      "verdict": "allow"
+    }
+  },
+  "digest": "a21b902786bd6f72779a0440b68b58620428954d1f6ed39fc8d540827bb59e9c",
+  "event_type": "arsenal_fixture_authorized",
+  "observed_at": "2026-08-27T20:34:03.432259+00:00",
+  "previous_digest": "6428f6fc351493c18d39a14118ac2092a19bd06b59cebd203b0e003bf2cbfacb",
+  "sequence": 2,
+  "status": "authorized"
+}

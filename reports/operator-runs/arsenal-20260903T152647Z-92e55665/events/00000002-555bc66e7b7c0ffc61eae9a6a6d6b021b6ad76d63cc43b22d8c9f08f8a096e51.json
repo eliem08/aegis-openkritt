@@ -1,0 +1,57 @@
+{
+  "detail": {
+    "capability_id": "asset:aegis-artifact-diff/authorized-mobile-release-diff",
+    "grant": {
+      "allowed_destinations": [],
+      "allowed_methods": [],
+      "budget": {
+        "max_cost_usd": 0.0,
+        "max_human_minutes": 0.0,
+        "max_requests": 0
+      },
+      "constraints": {
+        "authorization_class": "LOCAL_FIXTURE_ONLY",
+        "capability_id": "asset:aegis-artifact-diff/authorized-mobile-release-diff",
+        "covered_capability_ids": [
+          "asset:aegis-artifact-diff/authorized-mobile-release-diff"
+        ],
+        "fixture_version": "aegis-artifact-diff-v1",
+        "negative_fixture_digest": "c8f511a723ab7b405e457e988dd0cdbd27cefe8e95613554eb22e81017f8f4e9",
+        "positive_fixture_digest": "8bedf4e91820ceb00678a182978be044cb1750b5b82418647f93bc0e85be9492"
+      },
+      "decision_fingerprint": "68037ab9df7557ee26e40918",
+      "expires_at": "2026-09-03T15:41:47.619511+00:00",
+      "external_model_egress_allowed": false,
+      "human_approval": false,
+      "issued_at": "2026-09-03T15:26:47.619511+00:00",
+      "network_allowed": false,
+      "nonce": "521e19f1b95e2954",
+      "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+      "state_change_allowed": false
+    },
+    "policy_decision": {
+      "action": "source_analysis",
+      "authorization_id": "fixture:20260903T152647Z",
+      "evaluated_at": "2026-09-03T15:26:47.619457+00:00",
+      "incidents": [],
+      "reasons": [
+        {
+          "code": "ok",
+          "message": "all policy gates passed",
+          "verdict": "allow"
+        }
+      ],
+      "request_id": "arsenal:asset:aegis-artifact-diff/authorized-mobile-release-diff",
+      "required_approvals": [],
+      "target": "127.0.0.1",
+      "tier": "passive",
+      "verdict": "allow"
+    }
+  },
+  "digest": "555bc66e7b7c0ffc61eae9a6a6d6b021b6ad76d63cc43b22d8c9f08f8a096e51",
+  "event_type": "arsenal_fixture_authorized",
+  "observed_at": "2026-09-03T15:26:47.629998+00:00",
+  "previous_digest": "92e3abc26a76ba96095e203d11ad97c320b3fb53b5e8d730da03f52a53a31a9b",
+  "sequence": 2,
+  "status": "authorized"
+}

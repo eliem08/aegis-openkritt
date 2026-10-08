@@ -1,0 +1,28 @@
+{
+  "detail": {
+    "asset": "127.0.0.1",
+    "authorization_decision": "arsenal:tool:trivy/secrets",
+    "backend": "trivy",
+    "backend_version": "Version: 0.73.0",
+    "blocking_reason": "",
+    "capability_id": "tool:trivy/secrets",
+    "evidence_digest": "807cee92beb06153693a60a303e0036793c9fa54a1452bb922daa205b05d7065",
+    "evidence_ref": "evidence/807cee92beb06153693a60a303e0036793c9fa54a1452bb922daa205b05d7065.json",
+    "execution_error_class": null,
+    "execution_grant_id": "da31fd4f494b2fea",
+    "finding_ids": [],
+    "fixture_detection": true,
+    "mission_id": "arsenal-tool-fb3b79acedf1",
+    "mode": "FIXTURE",
+    "negative_control_status": "PASSED",
+    "policy_snapshot_digest": "e9dc52e97b35225a0c936cbb21cf6a57125fab156ebe781fbf0dd01d0c147d2f",
+    "result": "EXECUTED_PASS",
+    "task_id": "arsenal-tool-fb3b79acedf1-execute"
+  },
+  "digest": "19816fd4abf24de0fd821a715a0b88c75c903e741d1ae3fc442fbdd4bf8c91bb",
+  "event_type": "arsenal_task_completed",
+  "observed_at": "2026-08-27T20:34:54.919428+00:00",
+  "previous_digest": "fa73d27935222e0ea3693c264a3b8a8b1990db7471de79d16cb731fa7cb79f3b",
+  "sequence": 4,
+  "status": "completed"
+}

@@ -1,0 +1,13 @@
+{
+  "detail": {
+    "capability_id": "tool:trivy/deps",
+    "mission_id": "arsenal-tool-5f63279cf9fd",
+    "task_id": "arsenal-tool-5f63279cf9fd-execute"
+  },
+  "digest": "1a9cbd90d36bb5ffe7def81ea820419f9cc46f35ba57c3eda36531eec6b2bcb1",
+  "event_type": "arsenal_task_started",
+  "observed_at": "2026-08-27T20:34:53.526537+00:00",
+  "previous_digest": "8a93d4daa3c5bc73307d4955193ccf1b090119a7d1b7b34252581764f6e72d63",
+  "sequence": 3,
+  "status": "running"
+}

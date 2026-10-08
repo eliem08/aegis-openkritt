@@ -1,0 +1,57 @@
+{
+  "detail": {
+    "capability_id": "asset:aegis-memory-poisoning/agent-memory-poisoning-regression",
+    "grant": {
+      "allowed_destinations": [],
+      "allowed_methods": [],
+      "budget": {
+        "max_cost_usd": 0.0,
+        "max_human_minutes": 0.0,
+        "max_requests": 0
+      },
+      "constraints": {
+        "authorization_class": "LOCAL_FIXTURE_ONLY",
+        "capability_id": "asset:aegis-memory-poisoning/agent-memory-poisoning-regression",
+        "covered_capability_ids": [
+          "asset:aegis-memory-poisoning/agent-memory-poisoning-regression"
+        ],
+        "fixture_version": "aegis-memory-poisoning-v1",
+        "negative_fixture_digest": "324345b5404d05f49c5c53e6ef500b962f2a4f9839c794fb76842f873c022e12",
+        "positive_fixture_digest": "d6e3df1644dc281dcdd35852621e99071cbafc6640087ab3afa067c042e3cda6"
+      },
+      "decision_fingerprint": "0d3d381e6c806285e952cfd3",
+      "expires_at": "2026-09-03T15:42:00.834970+00:00",
+      "external_model_egress_allowed": false,
+      "human_approval": false,
+      "issued_at": "2026-09-03T15:27:00.834970+00:00",
+      "network_allowed": false,
+      "nonce": "ae3c93079036f118",
+      "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+      "state_change_allowed": false
+    },
+    "policy_decision": {
+      "action": "source_analysis",
+      "authorization_id": "fixture:20260903T152700Z",
+      "evaluated_at": "2026-09-03T15:27:00.834944+00:00",
+      "incidents": [],
+      "reasons": [
+        {
+          "code": "ok",
+          "message": "all policy gates passed",
+          "verdict": "allow"
+        }
+      ],
+      "request_id": "arsenal:asset:aegis-memory-poisoning/agent-memory-poisoning-regression",
+      "required_approvals": [],
+      "target": "127.0.0.1",
+      "tier": "passive",
+      "verdict": "allow"
+    }
+  },
+  "digest": "a28a7bbd3aaa86be52e238148559735e900d2cf6fd285653f22d1f9219c2d799",
+  "event_type": "arsenal_fixture_authorized",
+  "observed_at": "2026-09-03T15:27:00.846001+00:00",
+  "previous_digest": "fc563f88311af1832b50ca06c6968ed41035ca383264ab3285f462bba7f0590b",
+  "sequence": 2,
+  "status": "authorized"
+}

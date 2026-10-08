@@ -1,0 +1,13 @@
+{
+  "detail": {
+    "capability_id": "tool:retire-js/deps",
+    "mission_id": "arsenal-tool-cb35eaa24caa",
+    "task_id": "arsenal-tool-cb35eaa24caa-execute"
+  },
+  "digest": "ae20ddfd7d6b7b9391762d164bee06a4edd07d35b78685647a2ae4eb7c955b37",
+  "event_type": "arsenal_task_started",
+  "observed_at": "2026-08-27T20:34:41.043438+00:00",
+  "previous_digest": "0471da65d3afab016058e1f12b4b464d6c2a0de9dabd2ddb302ca3f9ecc814f3",
+  "sequence": 3,
+  "status": "running"
+}

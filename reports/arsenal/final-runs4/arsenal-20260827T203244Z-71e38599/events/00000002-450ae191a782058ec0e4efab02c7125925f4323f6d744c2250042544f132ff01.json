@@ -1,0 +1,53 @@
+{
+  "detail": {
+    "grant": {
+      "allowed_destinations": [],
+      "allowed_methods": [],
+      "budget": {
+        "max_cost_usd": 0.0,
+        "max_human_minutes": 0.0,
+        "max_requests": 1
+      },
+      "constraints": {
+        "authorization_class": "LOCAL_FIXTURE_ONLY",
+        "capability_id": "fixture:ai/llm-security-boundary",
+        "fixture_version": "llm-security-fixture-v1",
+        "oracle_version": "boundary-oracle-v1"
+      },
+      "decision_fingerprint": "6e438caa32ec4439aca7ed2e",
+      "expires_at": "2026-08-27T20:47:44.602296+00:00",
+      "external_model_egress_allowed": false,
+      "human_approval": false,
+      "issued_at": "2026-08-27T20:32:44.602296+00:00",
+      "network_allowed": false,
+      "nonce": "ecfdfe976d17dd11",
+      "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+      "state_change_allowed": false
+    },
+    "grant_signature_digest": "c397ef68343eac515eef4ab417d59dce02301c8cca60f09f23e960074f566a9a",
+    "policy_decision": {
+      "action": "source_analysis",
+      "authorization_id": "fixture:20260827T203244Z",
+      "evaluated_at": "2026-08-27T20:32:44.602208+00:00",
+      "incidents": [],
+      "reasons": [
+        {
+          "code": "ok",
+          "message": "all policy gates passed",
+          "verdict": "allow"
+        }
+      ],
+      "request_id": "arsenal:llm-security-fixture",
+      "required_approvals": [],
+      "target": "127.0.0.1",
+      "tier": "passive",
+      "verdict": "allow"
+    }
+  },
+  "digest": "450ae191a782058ec0e4efab02c7125925f4323f6d744c2250042544f132ff01",
+  "event_type": "arsenal_fixture_authorized",
+  "observed_at": "2026-08-27T20:32:44.657381+00:00",
+  "previous_digest": "939034e4e9f9f44d8c61f91127e913f1768167f602b4f67986ac1a1244ce729b",
+  "sequence": 2,
+  "status": "authorized"
+}

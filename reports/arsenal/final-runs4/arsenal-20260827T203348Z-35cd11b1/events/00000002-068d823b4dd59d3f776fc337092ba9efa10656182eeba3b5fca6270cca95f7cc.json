@@ -1,0 +1,57 @@
+{
+  "detail": {
+    "capability_id": "tool:njsscan/code",
+    "grant": {
+      "allowed_destinations": [],
+      "allowed_methods": [],
+      "budget": {
+        "max_cost_usd": 0.0,
+        "max_human_minutes": 0.0,
+        "max_requests": 0
+      },
+      "constraints": {
+        "authorization_class": "LOCAL_FIXTURE_ONLY",
+        "capability_id": "tool:njsscan/code",
+        "covered_capability_ids": [
+          "tool:njsscan/code"
+        ],
+        "fixture_version": "scanner-fixture-v2",
+        "negative_fixture_digest": "ad2b0799492915f1624a3f2530c8eb9042405d68381e8d3411872dffc0b3841a",
+        "positive_fixture_digest": "f8363406f4a0e237270db88e9e65a8e164558e302d3b0cba39ce4e4d48d02ceb"
+      },
+      "decision_fingerprint": "50f1cd07c1a1bd092840b84a",
+      "expires_at": "2026-08-27T20:48:48.343053+00:00",
+      "external_model_egress_allowed": false,
+      "human_approval": false,
+      "issued_at": "2026-08-27T20:33:48.343053+00:00",
+      "network_allowed": false,
+      "nonce": "8c22a263f6e0aa2e",
+      "scope_digest": "fe59d9dfbc7ecc1702486e23c54d91d79eff60aa75c592f0ce62b9a5bc5cc0ea",
+      "state_change_allowed": false
+    },
+    "policy_decision": {
+      "action": "source_analysis",
+      "authorization_id": "fixture:20260827T203348Z",
+      "evaluated_at": "2026-08-27T20:33:48.342991+00:00",
+      "incidents": [],
+      "reasons": [
+        {
+          "code": "ok",
+          "message": "all policy gates passed",
+          "verdict": "allow"
+        }
+      ],
+      "request_id": "arsenal:tool:njsscan/code",
+      "required_approvals": [],
+      "target": "127.0.0.1",
+      "tier": "passive",
+      "verdict": "allow"
+    }
+  },
+  "digest": "068d823b4dd59d3f776fc337092ba9efa10656182eeba3b5fca6270cca95f7cc",
+  "event_type": "arsenal_fixture_authorized",
+  "observed_at": "2026-08-27T20:33:48.393726+00:00",
+  "previous_digest": "32effcc6f77f05605b46322ad58ab586073fef82e03ae99f02118ebb36724a40",
+  "sequence": 2,
+  "status": "authorized"
+}

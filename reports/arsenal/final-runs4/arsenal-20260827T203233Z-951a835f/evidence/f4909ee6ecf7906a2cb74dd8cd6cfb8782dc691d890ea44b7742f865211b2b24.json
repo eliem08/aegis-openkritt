@@ -1,0 +1,13 @@
+{
+  "blocking_reason": "backend is present but its deterministic positive/negative fixture provider is not connected to the canonical executor",
+  "capability_id": "asset:aegis-artifact-diff/authorized-mobile-release-diff",
+  "coverage_state": "WAITING_FOR_PREREQUISITE",
+  "evidence_digest": "f4909ee6ecf7906a2cb74dd8cd6cfb8782dc691d890ea44b7742f865211b2b24",
+  "execution_grant_issued": false,
+  "execution_performed": false,
+  "kind": "arsenal_fixture_blocked",
+  "mission_id": "arsenal-blocked-951a835fd3cc8867",
+  "mode": "FIXTURE",
+  "run_id": "arsenal-20260827T203233Z-951a835f",
+  "task_id": "arsenal-blocked-951a835fd3cc8867-execute"
+}

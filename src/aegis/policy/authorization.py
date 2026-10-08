@@ -27,6 +27,30 @@ class Environment(str, Enum):
     STAGING = "staging"
     APPROVED_PRODUCTION = "approved-production"
     LOCAL_FIXTURE_ONLY = "local-fixture-only"
+    OPERATOR_OWNED_CLOUD_FIXTURE = "operator-owned-cloud-fixture"
+    PASSIVE_PROVIDER_FIXTURE = "passive-provider-fixture"
+
+
+class CloudFixtureConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    provider: str
+    account_id: str
+    resource_scope: list[str] = Field(default_factory=list)
+    max_cost_usd: float = Field(default=10.0, le=10.0)
+    allowed_scanners: list[str] = Field(default_factory=list)
+    teardown_required: bool = True
+    teardown_verified: bool = False
+
+
+class PassiveProviderConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    operator_domain: str
+    allowed_sources: list[str] = Field(default_factory=list)
+    max_requests: int = Field(default=50, le=200)
+    passive_only: bool = True
+    reference_only_downstream: bool = True
 
 
 class RateLimits(BaseModel):
@@ -79,6 +103,8 @@ class Authorization(BaseModel):
     escalation_contacts: list[str] = Field(default_factory=list)
     kill_switch_channel: str | None = None
     spend_budget: float | None = None
+    cloud_fixture: CloudFixtureConfig | None = None
+    passive_provider: PassiveProviderConfig | None = None
 
     # Signature envelope (not covered by the signature itself).
     signature: str | None = None
@@ -93,6 +119,16 @@ class Authorization(BaseModel):
     def _window_ordered(self) -> Authorization:
         if self.valid_until <= self.valid_from:
             raise ValueError("valid_until must be after valid_from")
+        if self.environment is Environment.OPERATOR_OWNED_CLOUD_FIXTURE:
+            if self.cloud_fixture is None:
+                raise ValueError("cloud_fixture config required for OPERATOR_OWNED_CLOUD_FIXTURE")
+            if self.cloud_fixture.max_cost_usd > 10.0:
+                raise ValueError("cloud_fixture budget cannot exceed $10.00")
+        elif self.environment is Environment.PASSIVE_PROVIDER_FIXTURE:
+            if self.passive_provider is None:
+                raise ValueError("passive_provider config required for PASSIVE_PROVIDER_FIXTURE")
+            if not self.passive_provider.passive_only:
+                raise ValueError("passive_provider must be passive_only")
         return self
 
     # --- convenience predicates (pure; the engine composes these) ---

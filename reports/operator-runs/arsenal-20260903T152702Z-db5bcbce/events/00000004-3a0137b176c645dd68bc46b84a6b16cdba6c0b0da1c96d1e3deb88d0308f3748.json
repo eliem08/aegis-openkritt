@@ -1,0 +1,28 @@
+{
+  "detail": {
+    "asset": "127.0.0.1",
+    "authorization_decision": "arsenal:asset:class-dump/objective-c-interface-recovery",
+    "backend": "class-dump",
+    "backend_version": "Python 3.14.5",
+    "blocking_reason": "",
+    "capability_id": "asset:class-dump/objective-c-interface-recovery",
+    "evidence_digest": "396720387cc79c023ace60bb11e74797e5ecd3aef7c6d283bf7a9d4b327ba0a5",
+    "evidence_ref": "evidence/396720387cc79c023ace60bb11e74797e5ecd3aef7c6d283bf7a9d4b327ba0a5.json",
+    "execution_error_class": null,
+    "execution_grant_id": "b0746a55d44fb659",
+    "finding_ids": [],
+    "fixture_detection": true,
+    "mission_id": "arsenal-tool-db5bcbce3547",
+    "mode": "FIXTURE",
+    "negative_control_status": "PASSED",
+    "policy_snapshot_digest": "e9dc52e97b35225a0c936cbb21cf6a57125fab156ebe781fbf0dd01d0c147d2f",
+    "result": "EXECUTED_PASS",
+    "task_id": "arsenal-tool-db5bcbce3547-execute"
+  },
+  "digest": "3a0137b176c645dd68bc46b84a6b16cdba6c0b0da1c96d1e3deb88d0308f3748",
+  "event_type": "arsenal_task_completed",
+  "observed_at": "2026-09-03T15:27:02.465297+00:00",
+  "previous_digest": "2f869aa4004d4d4e670407cdae7fabcd4368519b201b0be279c8844bd9a4a986",
+  "sequence": 4,
+  "status": "completed"
+}

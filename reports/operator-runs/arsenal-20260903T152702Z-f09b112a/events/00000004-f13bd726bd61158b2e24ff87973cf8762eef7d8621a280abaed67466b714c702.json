@@ -1,0 +1,28 @@
+{
+  "detail": {
+    "asset": "127.0.0.1",
+    "authorization_decision": "arsenal:asset:otool/ios-macos-load-command-analysis",
+    "backend": "otool",
+    "backend_version": "Python 3.14.5",
+    "blocking_reason": "",
+    "capability_id": "asset:otool/ios-macos-load-command-analysis",
+    "evidence_digest": "62acab7d5a3b213c2b96a7998a328ac811c30388c24a5c66109a36bda53325f8",
+    "evidence_ref": "evidence/62acab7d5a3b213c2b96a7998a328ac811c30388c24a5c66109a36bda53325f8.json",
+    "execution_error_class": null,
+    "execution_grant_id": "cf880c33388aa16a",
+    "finding_ids": [],
+    "fixture_detection": true,
+    "mission_id": "arsenal-tool-f09b112a5b69",
+    "mode": "FIXTURE",
+    "negative_control_status": "PASSED",
+    "policy_snapshot_digest": "e9dc52e97b35225a0c936cbb21cf6a57125fab156ebe781fbf0dd01d0c147d2f",
+    "result": "EXECUTED_PASS",
+    "task_id": "arsenal-tool-f09b112a5b69-execute"
+  },
+  "digest": "f13bd726bd61158b2e24ff87973cf8762eef7d8621a280abaed67466b714c702",
+  "event_type": "arsenal_task_completed",
+  "observed_at": "2026-09-03T15:27:02.243681+00:00",
+  "previous_digest": "5603ca34dfab81f85792207601cb7bfea8606786fb924831fc94e8dddab1e357",
+  "sequence": 4,
+  "status": "completed"
+}

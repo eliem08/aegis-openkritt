@@ -1,0 +1,17 @@
+{
+  "detail": {
+    "backend": "subfinder",
+    "backend_version": "2.6.6",
+    "capability_id": "adapter:subfinder/passive-discovery",
+    "evidence_digest": "68ae592c7ea968863f8495662a4d11d95178263344612bd84e56fc8d2693b9bf",
+    "evidence_ref": "evidence/68ae592c7ea968863f8495662a4d11d95178263344612bd84e56fc8d2693b9bf.json",
+    "result": "EXECUTED_PASS",
+    "task_id": "arsenal-task-subf-01"
+  },
+  "digest": "3089bbbb5251d98bd0b490c3d5e3cbe845b949b0f08cca072060b2f50dc1f294",
+  "event_type": "arsenal_task_completed",
+  "observed_at": "2026-09-06T14:24:25.441276+00:00",
+  "previous_digest": "8f47ec14ff07794bcb9ba9aa79690448fc70af60a1653a218d0cd2c105ef4414",
+  "sequence": 2,
+  "status": "completed"
+}

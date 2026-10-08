@@ -1,0 +1,18 @@
+{
+  "detail": {
+    "blocking_reason": "backend is present but its deterministic positive/negative fixture provider is not connected to the canonical executor",
+    "capability_id": "asset:aegis-rag-boundary/rag-retrieval-trust-analysis",
+    "evidence_digest": "966e16ac567928aa59efd0acae31f1e0ff065f0e8ef6c3e05ab620417581c29f",
+    "evidence_ref": "evidence/966e16ac567928aa59efd0acae31f1e0ff065f0e8ef6c3e05ab620417581c29f.json",
+    "execution_grant_id": null,
+    "mission_id": "arsenal-blocked-8c8465280078db28",
+    "result": "WAITING_FOR_PREREQUISITE",
+    "task_id": "arsenal-blocked-8c8465280078db28-execute"
+  },
+  "digest": "c44efb704a55a0d29bbedb6e79962b2399dfd96127486dcf610b0e695a5ddb22",
+  "event_type": "arsenal_task_blocked",
+  "observed_at": "2026-08-27T20:32:34.234222+00:00",
+  "previous_digest": "3be3dbfc67250f7c36c3ea7b1adb3c0277108ba226fd8d29025963437dd38939",
+  "sequence": 2,
+  "status": "failed"
+}
