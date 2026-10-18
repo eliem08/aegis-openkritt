@@ -32,7 +32,20 @@ jobs:
           AEGIS_CLOUD_LAB_AUTHORIZATION: "fixture-sandbox-approved"
         run: |
           pytest -q tests/arsenal/test_external_fixtures.py
-          python -m aegis.cli arsenal exercise --capability asset:prowler/aws-security-posture --runs-dir reports/operator-runs
-          python -m aegis.cli arsenal exercise --capability asset:scoutsuite/aws-attack-surface-audit --runs-dir reports/operator-runs
-          python -m aegis.cli arsenal exercise --capability asset:roadtools/entra-identity-analysis --runs-dir reports/operator-runs
-          python -m aegis.cli arsenal exercise --capability asset:azurehound/azure-entra-relationship-collection --runs-dir reports/operator-runs
+          # Cloud exercises require cloud credentials / sandbox access (unavailable on
+          # GitHub-hosted runners). The exercise CLI exits 1 with WAITING_FOR_PREREQUISITE
+          # when these are missing. Treat that as a skip (warning), not a failure.
+          # Real execution failures still fail.
+          for cap in "asset:prowler/aws-security-posture" "asset:scoutsuite/aws-attack-surface-audit" "asset:roadtools/entra-identity-analysis" "asset:azurehound/azure-entra-relationship-collection"; do
+            out=$(python -m aegis.cli arsenal exercise --capability "$cap" --runs-dir reports/operator-runs 2>&1) || true
+            result=$(echo "$out" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d[0]['result'])" 2>/dev/null || echo "PARSE_ERROR")
+            if [ "$result" = "WAITING_FOR_PREREQUISITE" ]; then
+              echo "::warning::Skipped $cap: prerequisites unavailable on this runner (expected on GitHub-hosted runners; needs cloud credentials)"
+            elif [ "$result" = "EXECUTED_PASS" ]; then
+              echo "Passed $cap"
+            else
+              echo "::error::Exercise $cap failed with result: $result"
+              echo "$out" | tail -20
+              exit 1
+            fi
+          done
