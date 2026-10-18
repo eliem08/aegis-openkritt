@@ -30,5 +30,19 @@ jobs:
       - name: Execute Firmware Architecture & Emulation Fixture Suite
         run: |
           pytest -q tests/arsenal/test_external_fixtures.py
-          python -m aegis.cli arsenal exercise --capability asset:aegis-firmware-arch/firmware-architecture-detection --runs-dir reports/operator-runs
-          python -m aegis.cli arsenal exercise --capability asset:firmae/firmware-emulation --runs-dir reports/operator-runs
+          # Firmware emulation requires KVM + FirmAE (unavailable on GitHub-hosted runners).
+          # The exercise CLI exits 1 with WAITING_FOR_PREREQUISITE when these are missing.
+          # Treat that as a skip (warning), not a failure. Real execution failures still fail.
+          for cap in "asset:aegis-firmware-arch/firmware-architecture-detection" "asset:firmae/firmware-emulation"; do
+            out=$(python -m aegis.cli arsenal exercise --capability "$cap" --runs-dir reports/operator-runs 2>&1) || true
+            result=$(echo "$out" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d[0]['result'])" 2>/dev/null || echo "PARSE_ERROR")
+            if [ "$result" = "WAITING_FOR_PREREQUISITE" ]; then
+              echo "::warning::Skipped $cap: prerequisites unavailable on this runner (expected on GitHub-hosted runners; needs KVM + FirmAE)"
+            elif [ "$result" = "EXECUTED_PASS" ]; then
+              echo "Passed $cap"
+            else
+              echo "::error::Exercise $cap failed with result: $result"
+              echo "$out" | tail -20
+              exit 1
+            fi
+          done
